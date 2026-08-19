@@ -21,18 +21,34 @@ import { useRides } from '../context/RideContext.js';
 import { colors, spacing, fontSize } from '../theme.js';
 
 // Converte coordenadas num nome de sítio legível (OpenStreetMap Nominatim).
-// Se falhar, devolve null e usamos um rótulo genérico.
+//
+// O Nominatim exige que cada aplicação se identifique — pedidos sem
+// User-Agent são recusados. Sem isso, todos os locais apareciam com o
+// nome de reserva e o motorista não sabia para onde ia.
 async function reverseGeocode(lat, lng) {
   try {
     const r = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&zoom=16&lat=${lat}&lon=${lng}`,
-      { headers: { Accept: 'application/json' } }
+      {
+        headers: {
+          Accept: 'application/json',
+          'User-Agent': 'TimorgianaRide/1.0 (app de transporte, Dili, Timor-Leste)',
+        },
+      }
     );
+    if (!r.ok) return null;
     const j = await r.json();
     return j?.display_name ? j.display_name.split(',').slice(0, 2).join(',').trim() : null;
   } catch {
     return null;
   }
+}
+
+// Nome de reserva quando não se consegue o nome do sítio: as próprias
+// coordenadas. Não é bonito, mas é útil — o motorista pode copiá-las para
+// um mapa. O texto do botão que o utilizador carregou não serve de nome.
+function coordLabel(lat, lng) {
+  return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 }
 
 export default function RequestRideScreen({ navigation }) {
@@ -54,7 +70,7 @@ export default function RequestRideScreen({ navigation }) {
   async function onPickDestination(coord) {
     setDestCoord(coord);
     const label = await reverseGeocode(coord.lat, coord.lng);
-    setDest(label || t('destinationOnMap'));
+    setDest(label || coordLabel(coord.lat, coord.lng));
   }
 
   async function useMyLocation() {
@@ -67,7 +83,7 @@ export default function RequestRideScreen({ navigation }) {
       setOriginCoord(c);
       setCenter(c);
       const label = await reverseGeocode(c.lat, c.lng);
-      setOrigin(label || t('useMyLocation'));
+      setOrigin(label || coordLabel(c.lat, c.lng));
     } catch {
       /* ignora — o utilizador pode escrever a origem à mão */
     } finally {
