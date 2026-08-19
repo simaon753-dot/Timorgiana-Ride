@@ -14,12 +14,14 @@
       "backgroundColor": "#0E5C54"
     },
     "ios": {
+      "bundleIdentifier": "tl.timorgiana.ride",
       "supportsTablet": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "A TimorgianaRide usa a tua localização para indicar o ponto de partida da viagem."
       }
     },
     "android": {
+      "package": "tl.timorgiana.ride",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0E5C54"
