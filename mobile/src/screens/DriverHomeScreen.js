@@ -78,6 +78,12 @@ export default function DriverHomeScreen({ navigation }) {
 
         <View style={{ flex: 1, minHeight: spacing.xl }} />
         {!connected ? <Text style={styles.offline}>{t('liveOff')}</Text> : null}
+        <Button
+          title={`🧾 ${t('history')}`}
+          variant="outline"
+          onPress={() => navigation.navigate('History')}
+        />
+        <View style={{ height: spacing.sm }} />
         <Button title={t('logout')} variant="ghost" onPress={logout} />
       </ScrollView>
     </SafeAreaView>

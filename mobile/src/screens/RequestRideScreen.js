@@ -46,6 +46,7 @@ export default function RequestRideScreen({ navigation }) {
   const [center, setCenter] = useState(null);
   const [vType, setVType] = useState('any');
   const [fare, setFare] = useState('');
+  const [distanceKm, setDistanceKm] = useState(null);
   const [gps, setGps] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -98,7 +99,10 @@ export default function RequestRideScreen({ navigation }) {
     }
   }
 
-  const mapMarkers = originCoord ? [{ ...originCoord, label: origin }] : [];
+  // Quando existem os dois pontos, o mapa desenha a rota e devolve a distância
+  const mapMarkers = [];
+  if (originCoord) mapMarkers.push({ ...originCoord, label: origin || t('originField') });
+  if (destCoord) mapMarkers.push({ ...destCoord, label: dest || t('destination') });
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -123,8 +127,15 @@ export default function RequestRideScreen({ navigation }) {
             center={center}
             height={220}
             onPick={onPickDestination}
+            onRoute={({ km }) => setDistanceKm(km)}
           />
-          <Text style={styles.mapHint}>{t('mapHint')}</Text>
+          {distanceKm != null ? (
+            <Text style={styles.distance}>
+              🛣️ {t('distance')}: {distanceKm} {t('km')}
+            </Text>
+          ) : (
+            <Text style={styles.mapHint}>{t('mapHint')}</Text>
+          )}
 
           <Button
             title={gps ? t('gettingLocation') : t('useMyLocation')}
@@ -205,6 +216,14 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     color: colors.textMuted,
     marginTop: spacing.xs,
+    marginBottom: spacing.md,
+    textAlign: 'center',
+  },
+  distance: {
+    fontSize: fontSize.sm,
+    fontWeight: '700',
+    color: colors.teal,
+    marginTop: spacing.sm,
     marginBottom: spacing.md,
     textAlign: 'center',
   },

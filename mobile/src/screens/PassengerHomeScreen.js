@@ -132,6 +132,12 @@ export default function PassengerHomeScreen({ navigation }) {
         )}
 
         <View style={{ flex: 1, minHeight: spacing.xl }} />
+        <Button
+          title={`🧾 ${t('history')}`}
+          variant="outline"
+          onPress={() => navigation.navigate('History')}
+        />
+        <View style={{ height: spacing.sm }} />
         <Button title={t('logout')} variant="ghost" onPress={logout} />
       </ScrollView>
     </SafeAreaView>

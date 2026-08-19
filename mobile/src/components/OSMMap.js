@@ -18,6 +18,7 @@ export default function OSMMap({
   center,
   height = 240,
   onPick,
+  onRoute, // recebe { km } quando há rota entre dois pontos
 }) {
   const c = center || markers[0] || DILI;
   const markersKey = JSON.stringify(markers);
@@ -50,9 +51,10 @@ export default function OSMMap({
         onMessage={(e) => {
           try {
             const d = JSON.parse(e.nativeEvent.data);
-            if (d && typeof d.lat === 'number' && onPick) onPick(d);
+            if (d?.type === 'route' && onRoute) onRoute({ km: d.km });
+            else if (typeof d?.lat === 'number' && onPick) onPick(d);
           } catch {
-            /* ignora mensagens que não sejam coordenadas */
+            /* ignora mensagens que não sejam do nosso formato */
           }
         }}
         style={styles.web}
@@ -77,6 +79,30 @@ function buildHtml({ center, markers, pickable }) {
   pts.forEach(function(p){ L.marker([p.lat,p.lng]).addTo(map).bindPopup(p.label); });
   if (pts.length > 1) { map.fitBounds(pts.map(function(p){return [p.lat,p.lng];}),{padding:[40,40]}); }
   else if (pts.length === 1) { map.setView([pts[0].lat,pts[0].lng], 15); }
+
+  // --- Rota entre origem e destino -------------------------------------
+  // Tenta o OSRM (segue as estradas reais). Se falhar — sem rede, sítio
+  // sem estradas mapeadas — desenha uma linha reta tracejada, para o
+  // utilizador ver sempre a ligação entre os dois pontos.
+  function send(o){ if(window.ReactNativeWebView){ window.ReactNativeWebView.postMessage(JSON.stringify(o)); } }
+  function straightLine(a,b){
+    L.polyline([[a.lat,a.lng],[b.lat,b.lng]],{color:'#0E5C54',weight:4,opacity:0.6,dashArray:'8,8'}).addTo(map);
+    var R=6371, dLat=(b.lat-a.lat)*Math.PI/180, dLng=(b.lng-a.lng)*Math.PI/180;
+    var s=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+    send({type:'route', km: Math.round(2*R*Math.asin(Math.sqrt(s))*10)/10, approx:true});
+  }
+  if (pts.length > 1) {
+    var a = pts[0], b = pts[pts.length-1];
+    var url = 'https://router.project-osrm.org/route/v1/driving/'+a.lng+','+a.lat+';'+b.lng+','+b.lat+'?overview=full&geometries=geojson';
+    fetch(url).then(function(r){ return r.json(); }).then(function(j){
+      var route = j && j.routes && j.routes[0];
+      if(!route) throw new Error('sem rota');
+      var line = route.geometry.coordinates.map(function(c){ return [c[1],c[0]]; });
+      L.polyline(line,{color:'#0E5C54',weight:5,opacity:0.85}).addTo(map);
+      map.fitBounds(L.polyline(line).getBounds(),{padding:[30,30]});
+      send({type:'route', km: Math.round(route.distance/100)/10});
+    }).catch(function(){ straightLine(a,b); });
+  }
   ${
     pickable
       ? `var pin=null;

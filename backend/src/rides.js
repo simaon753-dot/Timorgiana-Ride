@@ -29,6 +29,9 @@ function compactUser(id, { withVehicle = false } = {}) {
 export function toPublicRide(row) {
   if (!row) return null;
   return {
+    // Presente só nas consultas de histórico: estrelas que o utilizador
+    // atual já deu a esta viagem (null se ainda não avaliou)
+    ...(row.my_stars !== undefined ? { myStars: row.my_stars } : {}),
     id: row.id,
     status: row.status,
     destLabel: row.dest_label,
@@ -109,6 +112,25 @@ export function getAvailableRidesForDriver(driverVehicleType) {
        ORDER BY id ASC`
     )
     .all(driverVehicleType);
+}
+
+// Histórico: viagens terminadas (concluídas ou canceladas) do utilizador.
+// Inclui quantas estrelas ESTE utilizador já deu, para o ecrã saber se
+// ainda pode avaliar.
+export function getRideHistoryForUser(user, limit = 50) {
+  // A coluna vem de uma lista fixa (não de input do utilizador)
+  const col = user.role === 'passenger' ? 'passenger_id' : 'driver_id';
+  return db
+    .prepare(
+      `SELECT r.*, (
+         SELECT stars FROM ratings WHERE ride_id = r.id AND rater_id = ?
+       ) AS my_stars
+       FROM rides r
+       WHERE r.${col} = ? AND r.status IN ('completed','cancelled')
+       ORDER BY r.id DESC
+       LIMIT ?`
+    )
+    .all(user.id, user.id, limit);
 }
 
 // Aceitar uma viagem de forma ATÓMICA.

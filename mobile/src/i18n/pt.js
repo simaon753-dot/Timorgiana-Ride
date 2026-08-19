@@ -115,4 +115,17 @@ export default {
   ratePassenger: 'Avalia o passageiro',
   submitRating: 'Enviar avaliação',
   ratingThanks: 'Obrigado pela tua avaliação! ⭐',
+
+  // Histórico
+  history: 'Histórico',
+  historyTitle: 'As tuas viagens',
+  historyEmpty: 'Ainda não fizeste nenhuma viagem.',
+  historyEmptyHint: 'As viagens terminadas aparecem aqui.',
+  notRated: 'Sem avaliação',
+  withLabel: 'Com',
+
+  // Distância
+  distance: 'Distância',
+  distanceApprox: 'em linha reta',
+  km: 'km',
 };

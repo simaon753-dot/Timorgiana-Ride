@@ -48,6 +48,7 @@ export const api = {
   // Viagens
   createRide: (token, body) => request('/rides', { method: 'POST', body, token }),
   activeRide: (token) => request('/rides/active', { token }),
+  rideHistory: (token) => request('/rides/history', { token }),
   availableRides: (token) => request('/rides/available', { token }),
   acceptRide: (token, id, fareUsd) =>
     request(`/rides/${id}/accept`, { method: 'POST', body: { fareUsd }, token }),

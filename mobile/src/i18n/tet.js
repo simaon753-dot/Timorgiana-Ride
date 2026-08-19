@@ -116,4 +116,17 @@ export default {
   ratePassenger: 'Avalia pasajeiru',
   submitRating: 'Haruka avaliasaun',
   ratingThanks: 'Obrigadu ba ita-nia avaliasaun! ⭐',
+
+  // Istóriku
+  history: 'Istóriku',
+  historyTitle: 'Ita-nia viajen sira',
+  historyEmpty: 'Seidauk halo viajen ida.',
+  historyEmptyHint: 'Viajen neʼebé remata sei mosu iha neʼe.',
+  notRated: 'Seidauk avalia',
+  withLabel: 'Ho',
+
+  // Distánsia
+  distance: 'Distánsia',
+  distanceApprox: 'liña loos',
+  km: 'km',
 };

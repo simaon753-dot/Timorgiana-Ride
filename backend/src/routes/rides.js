@@ -4,6 +4,7 @@ import {
   createRide,
   getRideById,
   getActiveRideForUser,
+  getRideHistoryForUser,
   getAvailableRidesForDriver,
   acceptRide,
   setRideStatus,
@@ -73,6 +74,12 @@ ridesRouter.post('/', requireRole('passenger'), (req, res) => {
 ridesRouter.get('/active', (req, res) => {
   const row = getActiveRideForUser(req.user);
   return res.json({ ride: row ? toPublicRide(row) : null });
+});
+
+// GET /api/rides/history — viagens terminadas do utilizador
+ridesRouter.get('/history', (req, res) => {
+  const rows = getRideHistoryForUser(req.user);
+  return res.json({ rides: rows.map(toPublicRide) });
 });
 
 // GET /api/rides/available — pedidos por aceitar (só motoristas)
