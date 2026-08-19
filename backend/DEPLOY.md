@@ -8,11 +8,31 @@ de qualquer ponto de Díli, com endereço fixo e ligação encriptada.
 | Peça | Serviço | Custo |
 |---|---|---|
 | Base de dados | **Neon** (PostgreSQL) | Grátis, permanente |
-| Aplicação | **Render** ou equivalente | ~7 USD/mês |
+| Aplicação | **Render** | Grátis (ver abaixo) ou ~7 USD/mês |
 
-> O plano gratuito do Render existe, mas **adormece ao fim de 15 minutos**
-> sem tráfego e demora cerca de 50 segundos a acordar. Numa app de táxis
-> isso é inaceitável: o passageiro conclui que está avariada.
+### O plano gratuito serve para o piloto
+
+O Render adormece um serviço gratuito ao fim de **15 minutos sem tráfego**, e
+demora cerca de um minuto a acordar. Para a maioria das apps isso é mau. Para
+esta, muito menos — e a razão está nas docs do Render:
+
+> O contador de inactividade inclui "pedidos HTTP **e mensagens WebSocket de
+> ligações existentes**".
+
+A TimorgianaRide mantém uma ligação permanente aberta com cada motorista
+online — é assim que os pedidos chegam em tempo real. **Enquanto houver um
+motorista com a app aberta, o servidor não adormece.** E se não houver
+nenhum motorista online, também não há viagem possível.
+
+O custo real: **a primeira pessoa a abrir a app de manhã espera ~1 minuto.**
+
+A app está preparada para isso: repete os pedidos que falham (até ~80 s) e
+mostra uma faixa "a acordar o servidor" em vez de dizer que não há ligação.
+
+Limite: 750 horas de serviço activo por mês (um mês tem ~730), suficiente
+para um serviço, sobretudo se adormecer de noite.
+
+**Passar a pago mais tarde é um clique**, sem mexer no código.
 
 ## Passo 1 — Base de dados (grátis, sem cartão)
 
@@ -38,7 +58,7 @@ Depois `npm run dev` — o esquema é criado sozinho no arranque.
    - **Root Directory:** `backend`
    - **Build Command:** `npm install`
    - **Start Command:** `npm start`
-   - **Plan:** Starter (~7 USD/mês) — *não* o gratuito
+   - **Plan:** Free para o piloto (ou Starter ~7 USD/mês quando houver uso a sério)
 4. Variáveis de ambiente:
    - `DATABASE_URL` — a do Neon
    - `JWT_SECRET` — o mesmo valor longo e aleatório

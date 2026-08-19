@@ -73,7 +73,7 @@ export async function testServer(input) {
   if (!url) return { ok: false, error: 'Endereço vazio.' };
   try {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 8000);
+    const timer = setTimeout(() => ctrl.abort(), 75000); // servidor pode estar a acordar
     const res = await fetch(`${url}/api/health`, { signal: ctrl.signal });
     clearTimeout(timer);
     if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
@@ -83,6 +83,9 @@ export async function testServer(input) {
     }
     return { ok: true };
   } catch (e) {
-    return { ok: false, error: e?.name === 'AbortError' ? 'Sem resposta (8s).' : 'Não foi possível ligar.' };
+    return {
+      ok: false,
+      error: e?.name === 'AbortError' ? 'Sem resposta ao fim de 75s.' : 'Não foi possível ligar.',
+    };
   }
 }

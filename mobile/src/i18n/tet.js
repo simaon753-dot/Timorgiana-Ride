@@ -147,4 +147,6 @@ export default {
   serverCurrent: 'Uza hela',
   serverDefault: 'valór orijinál',
   serverCustom: 'ita konfigura',
+  serverFirstSlow: 'Ligasaun primeiru loron nian bele demora too minutu ida.',
+  waking: 'Hadeer servidór… bele demora minutu ida',
 };

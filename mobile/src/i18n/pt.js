@@ -146,4 +146,6 @@ export default {
   serverCurrent: 'A usar agora',
   serverDefault: 'valor de origem',
   serverCustom: 'configurado por ti',
+  serverFirstSlow: 'Na primeira ligação do dia pode demorar até 1 minuto.',
+  waking: 'A acordar o servidor… pode demorar 1 minuto',
 };

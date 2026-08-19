@@ -84,6 +84,7 @@ export default function ServerScreen({ navigation }) {
 
           <Text style={styles.title}>{t('serverTitle')}</Text>
           <Text style={styles.explain}>{t('serverExplain')}</Text>
+          <Text style={styles.explain}>⏳ {t('serverFirstSlow')}</Text>
 
           <View style={styles.currentBox}>
             <Text style={styles.currentLabel}>{t('serverCurrent')}</Text>

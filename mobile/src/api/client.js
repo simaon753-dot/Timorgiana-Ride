@@ -1,6 +1,5 @@
 import { getApiUrl } from '../serverUrl.js';
 
-// Erro com mensagem amigável vinda do backend
 export class ApiError extends Error {
   constructor(message, status) {
     super(message);
@@ -9,21 +8,52 @@ export class ApiError extends Error {
   }
 }
 
-// Pedido genérico à API. Aceita um token opcional para rotas protegidas.
+// Servidores em planos gratuitos adormecem quando ninguém os usa e demoram
+// cerca de um minuto a acordar. Em vez de falhar aos 8 segundos e dizer
+// "sem ligação" — o que faria o utilizador pensar que a app está partida —
+// tentamos várias vezes, com paciência crescente.
+//
+// Só repetimos falhas de REDE. Um erro do servidor (401, 409…) é uma
+// resposta legítima e repeti-la não faria sentido.
+const TENTATIVAS = [15000, 30000, 35000]; // total: até 80 s
+
+// Avisa a interface de que a ligação está demorada (servidor a acordar)
+let onSlow = null;
+export function setSlowHandler(fn) {
+  onSlow = fn;
+}
+
+function fetchComPrazo(url, options, prazo) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), prazo);
+  return fetch(url, { ...options, signal: ctrl.signal }).finally(() => clearTimeout(timer));
+}
+
 async function request(path, { method = 'GET', body, token } = {}) {
+  const options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  };
+
   let res;
-  try {
-    // Lido a cada pedido: o utilizador pode ter mudado o servidor
-    res = await fetch(`${getApiUrl()}${path}`, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-  } catch {
-    // Falha de rede (servidor em baixo, sem internet, IP errado…)
+
+  for (let i = 0; i < TENTATIVAS.length; i++) {
+    if (i > 0 && onSlow) onSlow(true); // a partir da 2.ª: avisar que está lento
+    try {
+      res = await fetchComPrazo(`${getApiUrl()}${path}`, options, TENTATIVAS[i]);
+      break;
+    } catch {
+      // falha de rede — tentar de novo com mais paciência
+    }
+  }
+
+  if (onSlow) onSlow(false);
+
+  if (!res) {
     throw new ApiError('NETWORK', 0);
   }
 
@@ -46,7 +76,6 @@ export const api = {
   me: (token) => request('/auth/me', { token }),
   health: () => request('/health'),
 
-  // Viagens
   createRide: (token, body) => request('/rides', { method: 'POST', body, token }),
   activeRide: (token) => request('/rides/active', { token }),
   rideHistory: (token) => request('/rides/history', { token }),
@@ -59,12 +88,10 @@ export const api = {
   updateFare: (token, id, fareUsd) =>
     request(`/rides/${id}/fare`, { method: 'POST', body: { fareUsd }, token }),
 
-  // Chat
   listMessages: (token, id) => request(`/rides/${id}/messages`, { token }),
   sendMessage: (token, id, body) =>
     request(`/rides/${id}/messages`, { method: 'POST', body: { body }, token }),
 
-  // Avaliação
   rateRide: (token, id, stars) =>
     request(`/rides/${id}/rate`, { method: 'POST', body: { stars }, token }),
 };
