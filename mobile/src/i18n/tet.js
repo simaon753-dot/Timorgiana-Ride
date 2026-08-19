@@ -129,4 +129,22 @@ export default {
   distance: 'Distánsia',
   distanceApprox: 'liña loos',
   km: 'km',
+
+  // Konfigurasaun servidór
+  serverSettings: 'Servidór',
+  serverTitle: 'Endereçu servidór',
+  serverExplain:
+    'Endereçu servidór TimorgianaRide. Troka deʼit se aplikasaun la bele liga.',
+  serverField: 'Endereçu',
+  serverPlaceholder: 'Ezemplu: 10.0.0.5:4000 ka haʼu-nia-servidor.com',
+  serverTest: 'Testa ligasaun',
+  serverSave: 'Rai',
+  serverReset: 'Fila ba valór orijinál',
+  serverTesting: 'Testa hela…',
+  serverOk: '✅ Ligasaun laʼo diʼak!',
+  serverFail: '❌ La iha ligasaun',
+  serverSaved: 'Endereçu rai ona. Tenke tama fila fali.',
+  serverCurrent: 'Uza hela',
+  serverDefault: 'valór orijinál',
+  serverCustom: 'ita konfigura',
 };

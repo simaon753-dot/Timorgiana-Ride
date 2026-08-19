@@ -15,6 +15,9 @@ export default function WelcomeScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <StatusBar style="light" />
       <View style={styles.header}>
+        <Pressable onPress={() => navigation.navigate('Server')} hitSlop={10}>
+          <Text style={styles.gear}>⚙️</Text>
+        </Pressable>
         <LanguageToggle onTeal />
       </View>
 
@@ -51,7 +54,14 @@ export default function WelcomeScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.teal },
-  header: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, alignItems: 'flex-end' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+  },
+  gear: { fontSize: 22 },
   hero: { flex: 1, justifyContent: 'center', paddingHorizontal: spacing.lg },
   title: { color: colors.white, fontSize: fontSize.xxl, fontWeight: '800', marginTop: spacing.xl },
   subtitle: {

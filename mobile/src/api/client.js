@@ -1,4 +1,4 @@
-import { API_URL } from '../config.js';
+import { getApiUrl } from '../serverUrl.js';
 
 // Erro com mensagem amigável vinda do backend
 export class ApiError extends Error {
@@ -13,7 +13,8 @@ export class ApiError extends Error {
 async function request(path, { method = 'GET', body, token } = {}) {
   let res;
   try {
-    res = await fetch(`${API_URL}${path}`, {
+    // Lido a cada pedido: o utilizador pode ter mudado o servidor
+    res = await fetch(`${getApiUrl()}${path}`, {
       method,
       headers: {
         'Content-Type': 'application/json',

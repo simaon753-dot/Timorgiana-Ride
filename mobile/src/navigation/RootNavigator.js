@@ -12,6 +12,7 @@ import RequestRideScreen from '../screens/RequestRideScreen.js';
 import DriverHomeScreen from '../screens/DriverHomeScreen.js';
 import ChatScreen from '../screens/ChatScreen.js';
 import HistoryScreen from '../screens/HistoryScreen.js';
+import ServerScreen from '../screens/ServerScreen.js';
 import LoadingScreen from '../screens/LoadingScreen.js';
 import { colors } from '../theme.js';
 
@@ -54,6 +55,7 @@ export default function RootNavigator() {
             )}
             <Stack.Screen name="Chat" component={ChatScreen} />
             <Stack.Screen name="History" component={HistoryScreen} />
+            <Stack.Screen name="Server" component={ServerScreen} />
           </Stack.Navigator>
         </RideProvider>
       ) : (
@@ -62,6 +64,9 @@ export default function RootNavigator() {
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
+          {/* Tem de existir na área pública: se o endereço do servidor
+              estiver errado, não é possível chegar ao login */}
+          <Stack.Screen name="Server" component={ServerScreen} />
         </Stack.Navigator>
       )}
     </NavigationContainer>

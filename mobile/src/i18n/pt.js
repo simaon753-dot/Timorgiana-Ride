@@ -128,4 +128,22 @@ export default {
   distance: 'Distância',
   distanceApprox: 'em linha reta',
   km: 'km',
+
+  // Definições do servidor
+  serverSettings: 'Servidor',
+  serverTitle: 'Endereço do servidor',
+  serverExplain:
+    'Endereço do servidor TimorgianaRide. Só precisas de mexer aqui se a app não conseguir ligar-se.',
+  serverField: 'Endereço',
+  serverPlaceholder: 'Ex.: 10.0.0.5:4000 ou meuservidor.com',
+  serverTest: 'Testar ligação',
+  serverSave: 'Guardar',
+  serverReset: 'Repor o valor original',
+  serverTesting: 'A testar…',
+  serverOk: '✅ Ligação estabelecida!',
+  serverFail: '❌ Sem ligação',
+  serverSaved: 'Endereço guardado. Vais ter de iniciar sessão de novo.',
+  serverCurrent: 'A usar agora',
+  serverDefault: 'valor de origem',
+  serverCustom: 'configurado por ti',
 };

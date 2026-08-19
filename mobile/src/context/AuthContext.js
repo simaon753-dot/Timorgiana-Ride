@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api, ApiError } from '../api/client.js';
+import { loadSavedServer } from '../serverUrl.js';
 
 const TOKEN_KEY = 'tgr.token';
 const AuthContext = createContext(null);
@@ -13,6 +14,10 @@ export function AuthProvider({ children }) {
   // Ao abrir a app: tenta recuperar a sessão guardada e validá-la
   useEffect(() => {
     (async () => {
+      // O endereço do servidor tem de ser carregado ANTES de qualquer
+      // pedido — caso contrário validaríamos a sessão contra o servidor
+      // errado (o de compilação em vez do que o utilizador configurou).
+      await loadSavedServer();
       try {
         const saved = await AsyncStorage.getItem(TOKEN_KEY);
         if (saved) {
