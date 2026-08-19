@@ -2,7 +2,6 @@ import jwt from 'jsonwebtoken';
 import { config } from './config.js';
 import { findUserById } from './users.js';
 
-// Assina um token para um utilizador
 export function signToken(user) {
   return jwt.sign({ sub: user.id, role: user.role }, config.jwtSecret, {
     expiresIn: config.jwtExpiresIn,
@@ -10,28 +9,30 @@ export function signToken(user) {
 }
 
 // Middleware Express: exige um token válido no cabeçalho Authorization
-export function requireAuth(req, res, next) {
+export async function requireAuth(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
 
-  if (!token) {
-    return res.status(401).json({ error: 'Token em falta.' });
-  }
+  if (!token) return res.status(401).json({ error: 'Token em falta.' });
 
+  let payload;
   try {
-    const payload = jwt.verify(token, config.jwtSecret);
-    const user = findUserById(payload.sub);
-    if (!user) {
-      return res.status(401).json({ error: 'Utilizador não encontrado.' });
-    }
-    req.user = user;
-    next();
+    payload = jwt.verify(token, config.jwtSecret);
   } catch {
     return res.status(401).json({ error: 'Token inválido ou expirado.' });
   }
+
+  try {
+    const user = await findUserById(payload.sub);
+    if (!user) return res.status(401).json({ error: 'Utilizador não encontrado.' });
+    req.user = user;
+    next();
+  } catch (err) {
+    console.error('[auth] falha a consultar utilizador:', err.message);
+    return res.status(503).json({ error: 'Serviço indisponível. Tenta de novo.' });
+  }
 }
 
-// Middleware extra: restringe a rota a um tipo de conta
 export function requireRole(role) {
   return (req, res, next) => {
     if (!req.user || req.user.role !== role) {
@@ -42,10 +43,10 @@ export function requireRole(role) {
 }
 
 // Verifica um token "à mão" (usado pelo Socket.io, que não passa por Express)
-export function verifyToken(token) {
+export async function verifyToken(token) {
   try {
     const payload = jwt.verify(token, config.jwtSecret);
-    return findUserById(payload.sub) || null;
+    return (await findUserById(payload.sub)) || null;
   } catch {
     return null;
   }

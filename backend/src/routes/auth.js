@@ -33,7 +33,7 @@ authRouter.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Motoristas têm de indicar a matrícula do veículo.' });
     }
 
-    if (findUserByPhone(phone)) {
+    if (await findUserByPhone(phone)) {
       return res.status(409).json({ error: 'Já existe uma conta com este número de telemóvel.' });
     }
 
@@ -53,7 +53,7 @@ authRouter.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Telemóvel e palavra-passe são obrigatórios.' });
     }
 
-    const row = findUserByPhone(phone);
+    const row = await findUserByPhone(phone);
     if (!row || !(await verifyPassword(row, password))) {
       return res.status(401).json({ error: 'Telemóvel ou palavra-passe incorretos.' });
     }

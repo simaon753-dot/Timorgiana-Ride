@@ -89,12 +89,16 @@ export default function HistoryScreen({ navigation }) {
   );
 }
 
-// "2026-08-19 03:24:49" -> "19/08/2026"
+// Aceita tanto "2026-08-19 03:24:49" (SQLite) como o formato ISO que o
+// PostgreSQL devolve — e nunca mostra "Invalid Date" ao utilizador.
 function formatDate(s) {
   if (!s) return '';
-  const [date] = s.split(' ');
-  const [y, m, d] = date.split('-');
-  return `${d}/${m}/${y}`;
+  const d = new Date(s);
+  if (!Number.isNaN(d.getTime())) {
+    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+  }
+  const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
 }
 
 const styles = StyleSheet.create({

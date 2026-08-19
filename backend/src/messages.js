@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { query, one } from './db.js';
 
 export function toPublicMessage(row) {
   return {
@@ -10,17 +10,15 @@ export function toPublicMessage(row) {
   };
 }
 
-export function addMessage(rideId, senderId, body) {
-  const res = db
-    .prepare('INSERT INTO messages (ride_id, sender_id, body) VALUES (?, ?, ?)')
-    .run(rideId, senderId, body.trim());
-  const row = db.prepare('SELECT * FROM messages WHERE id = ?').get(res.lastInsertRowid);
+export async function addMessage(rideId, senderId, body) {
+  const row = await one(
+    'INSERT INTO messages (ride_id, sender_id, body) VALUES ($1,$2,$3) RETURNING *',
+    [rideId, senderId, body.trim()]
+  );
   return toPublicMessage(row);
 }
 
-export function listMessages(rideId) {
-  return db
-    .prepare('SELECT * FROM messages WHERE ride_id = ? ORDER BY id ASC')
-    .all(rideId)
-    .map(toPublicMessage);
+export async function listMessages(rideId) {
+  const rows = await query('SELECT * FROM messages WHERE ride_id = $1 ORDER BY id ASC', [rideId]);
+  return rows.map(toPublicMessage);
 }
