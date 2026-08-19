@@ -4,7 +4,7 @@ import cors from 'cors';
 import { Server as SocketServer } from 'socket.io';
 
 import { config } from './config.js';
-import { initSchema, pool } from './db.js';
+import { initSchema, pool, query } from './db.js';
 import { authRouter } from './routes/auth.js';
 import { ridesRouter } from './routes/rides.js';
 import { verifyToken } from './auth.js';
@@ -13,8 +13,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/health', (req, res) => {
-  res.json({ ok: true, service: 'TimorgianaRide', time: new Date().toISOString() });
+// Saúde real: confirma que a base de dados responde. Verificar apenas que
+// o processo está vivo daria "ok" com o servidor incapaz de autenticar
+// alguém — os painéis verdes e os utilizadores à porta.
+app.get('/api/health', async (req, res) => {
+  const base = { service: 'TimorgianaRide', time: new Date().toISOString() };
+  try {
+    await query('SELECT 1');
+    res.json({ ...base, ok: true, database: 'ok' });
+  } catch (e) {
+    console.error('[health] base de dados inacessível:', e.message);
+    res.status(503).json({ ...base, ok: false, database: 'inacessível' });
+  }
 });
 
 app.use('/api/auth', authRouter);
