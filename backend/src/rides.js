@@ -60,18 +60,19 @@ export function getRideById(id) {
   return one(`${RIDE_SELECT} WHERE r.id = $1`, [id]);
 }
 
-export function createRide({
+// Insere e depois lê. Em PostgreSQL não dá para fazer as duas coisas numa
+// só instrução: todas as partes veem a base de dados como estava ANTES da
+// instrução, por isso um SELECT no mesmo comando não encontraria a linha
+// que o INSERT acabou de criar.
+export async function createRide({
   passengerId, destLabel, destLat, destLng,
   originLabel, originLat, originLng, vehicleType, fareUsd,
 }) {
-  return one(
-    `WITH nova AS (
-       INSERT INTO rides
-         (passenger_id, dest_label, dest_lat, dest_lng, origin_label, origin_lat, origin_lng, vehicle_type, fare_usd, status)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'requested')
-       RETURNING id
-     )
-     ${RIDE_SELECT} WHERE r.id = (SELECT id FROM nova)`,
+  const inserted = await one(
+    `INSERT INTO rides
+       (passenger_id, dest_label, dest_lat, dest_lng, origin_label, origin_lat, origin_lng, vehicle_type, fare_usd, status)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'requested')
+     RETURNING id`,
     [
       passengerId,
       destLabel.trim(),
@@ -84,6 +85,7 @@ export function createRide({
       num(fareUsd),
     ]
   );
+  return getRideById(inserted.id);
 }
 
 // Viagem ativa do utilizador (para restaurar o estado ao abrir a app)
