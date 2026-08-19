@@ -13,9 +13,6 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      },
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://SUBSTITUIR-PELO-ENDERECO-DO-BACKEND"
       }
     },
     "production": {

@@ -25,10 +25,19 @@
         "backgroundColor": "#0E5C54"
       },
       "edgeToEdgeEnabled": true,
-      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"]
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "d23e9f97-dffd-40bd-98d6-74f93437289c"
+      }
+    },
+    "owner": "simaon753"
   }
 }
