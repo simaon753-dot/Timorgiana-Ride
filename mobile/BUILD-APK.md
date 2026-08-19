@@ -3,17 +3,31 @@
 Guia para transformar o TimorgianaRide numa app que se instala no telemóvel,
 sem precisar do Expo Go.
 
-## Antes de começar
+## O endereço do servidor é configurável na app
 
-O APK precisa de um **backend acessível pela internet**. Enquanto o servidor
-só existir no Mac (`http://10.x.x.x:4000`), a app instalada noutro telemóvel
-**não o consegue alcançar**.
+**Não é preciso decidir o backend antes de compilar.** A app tem um ecrã de
+definições (roda dentada ⚙️ no ecrã de boas-vindas) onde se escreve o endereço
+do servidor, que fica guardado no telemóvel.
 
-Duas hipóteses:
+Isto significa que:
+
+- O APK pode ser gerado **agora**, sem servidor definido
+- Se o endereço mudar (um túnel gratuito muda a cada reinício), basta
+  actualizá-lo na app — **sem recompilar nem reinstalar**
+- O mesmo APK serve para testes e para produção
+
+O valor definido na compilação (`EXPO_PUBLIC_API_URL`) é apenas o **ponto de
+partida**; o que o utilizador guardar tem prioridade.
+
+## Onde pôr o backend
+
+O APK precisa de um backend **acessível pela internet**. Enquanto o servidor só
+existir no Mac (`http://10.x.x.x:4000`), só telemóveis na mesma Wi-Fi lá chegam.
 
 | Opção | Custo | Notas |
 |---|---|---|
-| **Túnel** (Cloudflare Tunnel) | Grátis | Backend fica no Mac; o Mac tem de estar ligado. Bom para testes |
+| **Mesma Wi-Fi** | Grátis | Já funciona hoje. Chega para testes presenciais |
+| **Túnel** (Cloudflare) | Grátis | Backend fica no Mac; o Mac tem de estar ligado. O endereço muda a cada reinício — mas isso deixou de ser problema, ver acima |
 | **Alojar online** | ~5–7 USD/mês | Funciona sem o Mac. Os planos gratuitos adormecem (~50 s a acordar), o que estraga a experiência numa app de táxis |
 
 ## Passo 1 — Conta Expo (uma só vez)
@@ -33,18 +47,18 @@ cd "Documents/Claude Code/TimorgianaRide/mobile" && npx eas-cli init
 
 Isto cria um `projectId` e acrescenta-o ao `app.json`.
 
-## Passo 3 — Indicar o endereço do backend
+## Passo 3 — (Opcional) Endereço de partida
 
-Editar `eas.json` e substituir, no perfil `preview`:
+Se já souberes o endereço do backend, editar `eas.json` e substituir, no
+perfil `preview`:
 
 ```json
 "EXPO_PUBLIC_API_URL": "https://SUBSTITUIR-PELO-ENDERECO-DO-BACKEND"
 ```
 
-pelo endereço real (por exemplo, o URL do túnel).
-
-> Sem este passo o APK compila na mesma, mas fica sem conseguir ligar-se ao
-> servidor. Ver `src/config.js` para a ordem de prioridades.
+**Podes saltar este passo.** Nesse caso, quem instalar o APK abre a roda
+dentada ⚙️ no ecrã de boas-vindas e escreve lá o endereço — há um botão
+"Testar ligação" que confirma se o servidor responde.
 
 ## Passo 4 — Gerar o APK
 
