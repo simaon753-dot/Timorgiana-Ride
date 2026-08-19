@@ -1,0 +1,37 @@
+# --- Dependências (regeneram-se com `npm install`) ---
+node_modules/
+
+# --- SEGREDOS: nunca versionar ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- Base de dados (contém dados de utilizadores) ---
+data/
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+
+# --- Builds e caches ---
+dist/
+web-build/
+.expo/
+.metro-health-check*
+*.tsbuildinfo
+
+# --- Registos ---
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# --- Sistema ---
+.DS_Store
+Thumbs.db
+
+# --- Pastas nativas geradas ---
+/mobile/ios
+/mobile/android

@@ -1,0 +1,219 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+import * as Location from 'expo-location';
+import Button from '../components/Button.js';
+import TextField from '../components/TextField.js';
+import SegmentedPicker from '../components/SegmentedPicker.js';
+import LanguageToggle from '../components/LanguageToggle.js';
+import OSMMap from '../components/OSMMap.js';
+import { useI18n } from '../i18n/index.js';
+import { useRides } from '../context/RideContext.js';
+import { colors, spacing, fontSize } from '../theme.js';
+
+// Converte coordenadas num nome de sítio legível (OpenStreetMap Nominatim).
+// Se falhar, devolve null e usamos um rótulo genérico.
+async function reverseGeocode(lat, lng) {
+  try {
+    const r = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&zoom=16&lat=${lat}&lon=${lng}`,
+      { headers: { Accept: 'application/json' } }
+    );
+    const j = await r.json();
+    return j?.display_name ? j.display_name.split(',').slice(0, 2).join(',').trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+export default function RequestRideScreen({ navigation }) {
+  const { t } = useI18n();
+  const { requestRide } = useRides();
+
+  const [dest, setDest] = useState('');
+  const [destCoord, setDestCoord] = useState(null);
+  const [origin, setOrigin] = useState('');
+  const [originCoord, setOriginCoord] = useState(null);
+  const [center, setCenter] = useState(null);
+  const [vType, setVType] = useState('any');
+  const [fare, setFare] = useState('');
+  const [gps, setGps] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  async function onPickDestination(coord) {
+    setDestCoord(coord);
+    const label = await reverseGeocode(coord.lat, coord.lng);
+    setDest(label || t('destinationOnMap'));
+  }
+
+  async function useMyLocation() {
+    setGps(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') return;
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      setOriginCoord(c);
+      setCenter(c);
+      const label = await reverseGeocode(c.lat, c.lng);
+      setOrigin(label || t('useMyLocation'));
+    } catch {
+      /* ignora — o utilizador pode escrever a origem à mão */
+    } finally {
+      setGps(false);
+    }
+  }
+
+  async function onSubmit() {
+    setError(null);
+    if (!dest.trim()) return setError(t('errDestRequired'));
+
+    setLoading(true);
+    try {
+      await requestRide({
+        destLabel: dest.trim(),
+        destLat: destCoord?.lat,
+        destLng: destCoord?.lng,
+        originLabel: origin.trim() || undefined,
+        originLat: originCoord?.lat,
+        originLng: originCoord?.lng,
+        vehicleType: vType === 'any' ? undefined : vType,
+        fareUsd: fare.trim() === '' ? undefined : Number(fare),
+      });
+      navigation.goBack(); // o ecrã inicial mostra agora a viagem em curso
+    } catch (e) {
+      setError(e?.message === 'NETWORK' ? t('errNetwork') : e?.message || t('errGeneric'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const mapMarkers = originCoord ? [{ ...originCoord, label: origin }] : [];
+
+  return (
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      <StatusBar style="dark" />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <View style={styles.topBar}>
+          <Pressable onPress={() => navigation.goBack()} hitSlop={10}>
+            <Text style={styles.back}>‹ {t('back')}</Text>
+          </Pressable>
+          <LanguageToggle />
+        </View>
+
+        <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
+          <Text style={styles.title}>{t('requestRide')}</Text>
+
+          <OSMMap
+            pickable
+            markers={mapMarkers}
+            center={center}
+            height={220}
+            onPick={onPickDestination}
+          />
+          <Text style={styles.mapHint}>{t('mapHint')}</Text>
+
+          <Button
+            title={gps ? t('gettingLocation') : t('useMyLocation')}
+            variant="outline"
+            onPress={useMyLocation}
+            loading={gps}
+            style={{ marginBottom: spacing.md }}
+          />
+
+          <TextField
+            label={t('destination')}
+            value={dest}
+            onChangeText={setDest}
+            placeholder={t('destinationPlaceholder')}
+          />
+          <TextField
+            label={t('originField')}
+            value={origin}
+            onChangeText={setOrigin}
+            placeholder={t('originPlaceholder')}
+          />
+
+          <Text style={styles.sectionLabel}>{t('vehicleType')}</Text>
+          <SegmentedPicker
+            value={vType}
+            onChange={setVType}
+            options={[
+              { value: 'any', label: t('vehicleAny'), icon: '🚕' },
+              { value: 'car', label: t('vehicleCar'), icon: '🚗' },
+              { value: 'motorbike', label: t('vehicleMotorbike'), icon: '🏍️' },
+            ]}
+          />
+
+          <View style={{ height: spacing.md }} />
+          <TextField
+            label={t('suggestedFare')}
+            optionalLabel={t('optional')}
+            value={fare}
+            onChangeText={setFare}
+            keyboardType="numeric"
+            placeholder="Ex.: 3"
+          />
+
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+
+          <Button
+            title={t('requestRide')}
+            onPress={onSubmit}
+            loading={loading}
+            style={{ marginTop: spacing.md }}
+          />
+          <View style={{ height: spacing.xl }} />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: colors.paper },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
+  },
+  back: { color: colors.teal, fontSize: fontSize.md, fontWeight: '700' },
+  title: {
+    fontSize: fontSize.xl,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
+  form: { paddingHorizontal: spacing.lg, paddingTop: spacing.xs },
+  mapHint: {
+    fontSize: fontSize.xs,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
+    marginBottom: spacing.md,
+    textAlign: 'center',
+  },
+  sectionLabel: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  error: { color: colors.danger, fontSize: fontSize.sm, marginTop: spacing.md },
+});
