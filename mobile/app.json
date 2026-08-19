@@ -40,6 +40,16 @@
         "projectId": "d23e9f97-dffd-40bd-98d6-74f93437289c"
       }
     },
-    "owner": "simaon753"
+    "owner": "simaon753",
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ]
   }
 }

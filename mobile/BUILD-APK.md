@@ -80,6 +80,26 @@ A compilação corre nos servidores da Expo (~10–20 min). No fim recebes um
 Para instalar num iPhone real é preciso uma conta de programador da Apple
 (~99 USD/ano). Sem isso, só funciona no simulador ou via Expo Go.
 
+## ⚠️ Armadilha: o Android bloqueia HTTP simples
+
+Desde o **Android 9**, uma app instalada recusa por omissão todo o tráfego
+**HTTP não encriptado** (o Expo Go não sofre disto porque traz a permissão
+activada). Sintoma: a app diz "não foi possível ligar" mesmo com o servidor
+a responder normalmente no computador.
+
+Resolvido neste projeto com o plugin `expo-build-properties` no `app.json`:
+
+```json
+"plugins": [
+  ["expo-build-properties", { "android": { "usesCleartextTraffic": true } }]
+]
+```
+
+> 🔒 **Nota de segurança:** isto permite tráfego **não encriptado**. É
+> aceitável para testes numa rede local, mas quando a app for usada a sério —
+> com nomes, telemóveis e localizações de pessoas reais a passar na rede — o
+> backend deve estar em **HTTPS**, e esta opção deve voltar a `false`.
+
 ## ⚠️ Armadilha: a cache do Metro
 
 O `EXPO_PUBLIC_API_URL` é **embutido no código** durante a compilação. Mas o
