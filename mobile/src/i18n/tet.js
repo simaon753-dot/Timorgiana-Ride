@@ -193,4 +193,8 @@ export default {
   tripInfo: '{km} km · {min} min',
   priceApprox: 'folin besik',
   needBothPoints: 'Hili fatin foti no destinu iha mapa.',
+  searchPlaceholder: 'Buka fatin…',
+  searchHint: 'Hakerek naran fatin nian.\nEzemplu: Timor Plaza, aeroportu, Cristo Rei',
+  searchNothing: 'La hetan fatin neʼe. Koko naran seluk, ka toka iha mapa.',
+  searchOrTap: 'Buka ka toka iha mapa',
 };

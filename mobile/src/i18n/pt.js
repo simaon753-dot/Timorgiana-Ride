@@ -192,4 +192,8 @@ export default {
   tripInfo: '{km} km · {min} min',
   priceApprox: 'preço aproximado',
   needBothPoints: 'Escolhe a recolha e o destino no mapa.',
+  searchPlaceholder: 'Procurar sítio…',
+  searchHint: 'Escreve o nome do sítio.\nEx.: Timor Plaza, aeroporto, Cristo Rei',
+  searchNothing: 'Não encontrámos esse sítio. Tenta outro nome, ou toca no mapa.',
+  searchOrTap: 'Procurar ou tocar no mapa',
 };

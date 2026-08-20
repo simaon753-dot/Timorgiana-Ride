@@ -4,34 +4,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import * as Location from 'expo-location';
 import OSMMap from '../components/OSMMap.js';
+import PlaceSearch from '../components/PlaceSearch.js';
+import { nomeDoLugar, rotuloCoordenadas } from '../lib/geocode.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
 import { api } from '../api/client.js';
 import { colors, spacing, fontSize, radius } from '../theme.js';
-
-// O Nominatim exige que a aplicação se identifique; sem User-Agent não
-// devolve o nome do sítio e os locais ficariam sem nome legível.
-async function reverseGeocode(lat, lng) {
-  try {
-    const r = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&zoom=16&lat=${lat}&lon=${lng}`,
-      {
-        headers: {
-          Accept: 'application/json',
-          'User-Agent': 'TimorgianaRide/1.0 (app de transporte, Dili, Timor-Leste)',
-        },
-      }
-    );
-    if (!r.ok) return null;
-    const j = await r.json();
-    return j?.display_name ? j.display_name.split(',').slice(0, 2).join(',').trim() : null;
-  } catch {
-    return null;
-  }
-}
-
-const coordLabel = (lat, lng) => `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 
 export default function RequestRideScreen({ navigation }) {
   const { t } = useI18n();
@@ -46,6 +25,7 @@ export default function RequestRideScreen({ navigation }) {
   const [gps, setGps] = useState(false);
   const [erro, setErro] = useState(null);
   const [aPedir, setAPedir] = useState(false);
+  const [pesquisa, setPesquisa] = useState(null); // 'origem' | 'destino' | null
 
   // Assim que houver os dois pontos, o servidor devolve rota, preços e
   // tempo de chegada num só pedido — é ele que fixa o preço.
@@ -77,8 +57,8 @@ export default function RequestRideScreen({ navigation }) {
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
-      const label = await reverseGeocode(lat, lng);
-      setOrigem({ lat, lng, label: label || coordLabel(lat, lng) });
+      const label = await nomeDoLugar(lat, lng);
+      setOrigem({ lat, lng, label: label || rotuloCoordenadas(lat, lng) });
     } catch {
       /* sem GPS — o utilizador pode escolher no mapa */
     } finally {
@@ -93,10 +73,19 @@ export default function RequestRideScreen({ navigation }) {
   }, [usarLocalizacao]);
 
   async function escolherNoMapa({ lat, lng }) {
-    const label = await reverseGeocode(lat, lng);
-    const ponto = { lat, lng, label: label || coordLabel(lat, lng) };
+    const label = await nomeDoLugar(lat, lng);
+    const ponto = { lat, lng, label: label || rotuloCoordenadas(lat, lng) };
     if (!origem) setOrigem(ponto);
     else setDestino(ponto);
+  }
+
+  // A pesquisa abre em ecrã inteiro. O campo que a abriu decide o que a
+  // escolha define — recolha ou destino.
+  function aoEscolherDaPesquisa(lugar) {
+    const ponto = { lat: lugar.lat, lng: lugar.lng, label: lugar.label };
+    if (pesquisa === 'origem') setOrigem(ponto);
+    else setDestino(ponto);
+    setPesquisa(null);
   }
 
   async function pedir() {
@@ -127,6 +116,27 @@ export default function RequestRideScreen({ navigation }) {
 
   const opcao = orcamento?.options?.find((o) => o.type === veiculo);
 
+  if (pesquisa) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <StatusBar style="dark" />
+        <PlaceSearch
+          placeholder={t('searchPlaceholder')}
+          onEscolher={aoEscolherDaPesquisa}
+          onFechar={() => setPesquisa(null)}
+          onUsarLocalizacao={
+            pesquisa === 'origem'
+              ? () => {
+                  setPesquisa(null);
+                  usarLocalizacao();
+                }
+              : undefined
+          }
+        />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
@@ -156,15 +166,15 @@ export default function RequestRideScreen({ navigation }) {
             rotulo={t('pickupPoint')}
             valor={origem?.label}
             vazio={gps ? t('gettingLocation') : t('useMyLocation')}
-            onPress={usarLocalizacao}
+            onPress={() => setPesquisa('origem')}
           />
           <View style={styles.linha} />
           <Ponto
             cor={colors.coral}
             rotulo={t('dropoffPoint')}
             valor={destino?.label}
-            vazio={t('tapMapToChoose')}
-            onPress={() => setDestino(null)}
+            vazio={t('searchOrTap')}
+            onPress={() => setPesquisa('destino')}
           />
 
           {aCalcular ? (
