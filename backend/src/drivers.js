@@ -26,7 +26,7 @@ export function updateLocation(userId, lat, lng) {
 // (PostGIS) só compensaria com muitos milhares de motoristas.
 export function nearestDrivers({ lat, lng, vehicleType, limit = 10, maxKm = 15 }) {
   return query(
-    `SELECT id, name, last_lat, last_lng,
+    `SELECT id, name, push_token, last_lat, last_lng,
             6371 * 2 * asin(sqrt(
               power(sin(radians($1 - last_lat) / 2), 2) +
               cos(radians(last_lat)) * cos(radians($1)) *

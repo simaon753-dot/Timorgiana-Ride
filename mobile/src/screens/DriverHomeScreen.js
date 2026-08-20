@@ -145,7 +145,9 @@ function RequestCard({ ride, onAccept }) {
       <View style={styles.metaRow}>
         <Text style={styles.passenger}>🧍 {ride.passenger?.name}</Text>
         <Text style={styles.wants}>
-          {t('wantsLabel')}: {wants}
+          {ride.pickupKm != null
+            ? `📍 ${t('pickupDistance', { km: ride.pickupKm })}`
+            : `${t('wantsLabel')}: ${wants}`}
         </Text>
       </View>
       <TextField

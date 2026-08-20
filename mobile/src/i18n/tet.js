@@ -178,4 +178,7 @@ export default {
   goOnline: 'Sai disponivel',
   goOffline: 'Sai la disponivel',
   driverOnMap: 'Motorista besik hela',
+  pickupDistance: 'dook {km} km husi ita',
+  fareSuggested: 'Sujestaun: USD {value}',
+  fareUse: 'Uza',
 };

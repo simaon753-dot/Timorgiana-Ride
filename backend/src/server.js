@@ -32,6 +32,13 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+// Tarifas de referência. A app usa isto para sugerir um valor a partir
+// da distância — mas o preço final continua a ser combinado entre as
+// duas pessoas, que é o princípio do serviço.
+app.get('/api/config/fares', (req, res) => {
+  res.json({ fares: config.tarifas, currency: 'USD' });
+});
+
 app.use('/api/auth', authRouter);
 app.use('/api/rides', ridesRouter);
 app.use('/api/driver', driverRouter);

@@ -99,7 +99,11 @@ ridesRouter.get(
   '/available',
   requireApprovedDriver,
   wrap(async (req, res) => {
-    const rows = await getAvailableRidesForDriver(req.user.vehicle_type || 'car');
+    const rows = await getAvailableRidesForDriver(
+      req.user.vehicle_type || 'car',
+      req.user.last_lat,
+      req.user.last_lng
+    );
     return res.json({ rides: rows.map(toPublicRide) });
   })
 );

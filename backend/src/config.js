@@ -10,6 +10,27 @@ export const config = {
   // Ligação PostgreSQL (Neon, Render, Railway…)
   databaseUrl: process.env.DATABASE_URL || '',
 
+  // Tarifas sugeridas, por tipo de veículo. Ficam aqui (e não na app)
+  // para poderem ser mudadas no painel do alojamento sem obrigar os
+  // utilizadores a instalar uma versão nova.
+  //
+  // Valores de partida para Díli — a confirmar com quem conhece o mercado.
+  tarifas: {
+    motorbike: {
+      base: Number(process.env.FARE_MOTO_BASE) || 0.5,
+      perKm: Number(process.env.FARE_MOTO_KM) || 0.25,
+      min: Number(process.env.FARE_MOTO_MIN) || 1,
+    },
+    car: {
+      base: Number(process.env.FARE_CAR_BASE) || 1,
+      perKm: Number(process.env.FARE_CAR_KM) || 0.5,
+      min: Number(process.env.FARE_CAR_MIN) || 2,
+    },
+  },
+
+  // Só os motoristas a esta distância do passageiro são avisados
+  raioAvisoKm: Number(process.env.NOTIFY_RADIUS_KM) || 10,
+
   // Serviços geridos exigem TLS. Local (localhost) normalmente não.
   databaseSsl:
     process.env.DATABASE_SSL === 'false'

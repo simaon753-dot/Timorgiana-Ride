@@ -1,4 +1,5 @@
-import { onlineDrivers } from './drivers.js';
+import { onlineDrivers, nearestDrivers } from './drivers.js';
+import { config } from './config.js';
 
 const EXPO_PUSH = 'https://exp.host/--/api/v2/push/send';
 
@@ -31,7 +32,19 @@ async function enviar(mensagens) {
 
 // Avisa os motoristas disponíveis de que há um pedido novo
 export async function notificarPedidoNovo(ride) {
-  const motoristas = await onlineDrivers(ride.vehicleType);
+  // Se soubermos onde é a recolha, avisamos só quem está por perto: não
+  // vale a pena acordar um motorista a 20 km de distância. Sem
+  // coordenadas, avisamos todos os disponíveis.
+  const temOrigem = ride.originLat != null && ride.originLng != null;
+  const motoristas = temOrigem
+    ? await nearestDrivers({
+        lat: ride.originLat,
+        lng: ride.originLng,
+        vehicleType: ride.vehicleType,
+        maxKm: config.raioAvisoKm,
+        limit: 25,
+      }).then((rows) => rows.map((r) => ({ ...r, push_token: r.push_token })))
+    : await onlineDrivers(ride.vehicleType);
   const mensagens = motoristas
     .filter((m) => m.push_token)
     .map((m) => ({

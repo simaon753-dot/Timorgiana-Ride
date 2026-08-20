@@ -177,4 +177,7 @@ export default {
   goOnline: 'Ficar disponível',
   goOffline: 'Ficar indisponível',
   driverOnMap: 'O motorista está a aproximar-se',
+  pickupDistance: 'a {km} km de ti',
+  fareSuggested: 'Sugestão: USD {value}',
+  fareUse: 'Usar',
 };

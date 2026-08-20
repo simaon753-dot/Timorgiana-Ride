@@ -27,6 +27,9 @@ export function toPublicRide(row) {
   if (!row) return null;
   return {
     ...(row.my_stars !== undefined ? { myStars: row.my_stars } : {}),
+    ...(row.pickup_km !== undefined
+      ? { pickupKm: row.pickup_km != null ? Math.round(row.pickup_km * 10) / 10 : null }
+      : {}),
     id: row.id,
     status: row.status,
     destLabel: row.dest_label,
@@ -112,14 +115,28 @@ export function getRideHistoryForUser(user, limit = 50) {
   );
 }
 
-// Pedidos por atribuir que um motorista pode aceitar
-export function getAvailableRidesForDriver(driverVehicleType) {
+// Pedidos por atribuir que um motorista pode aceitar, do mais próximo
+// ao mais distante. Todos os elegíveis continuam a ver todos os pedidos —
+// com poucos motoristas, enviar só ao mais próximo arrisca que um pedido
+// fique sem resposta se essa pessoa estiver distraída.
+export function getAvailableRidesForDriver(driverVehicleType, driverLat, driverLng) {
+  const temPosicao = typeof driverLat === 'number' && typeof driverLng === 'number';
   return query(
-    `${RIDE_SELECT}
-     WHERE r.status = 'requested' AND r.driver_id IS NULL
-       AND (r.vehicle_type IS NULL OR r.vehicle_type = $1)
-     ORDER BY r.id ASC`,
-    [driverVehicleType]
+    `SELECT sub.*, ${
+      temPosicao
+        ? `CASE WHEN sub.origin_lat IS NULL THEN NULL ELSE
+             6371 * 2 * asin(sqrt(
+               power(sin(radians($2 - sub.origin_lat) / 2), 2) +
+               cos(radians(sub.origin_lat)) * cos(radians($2)) *
+               power(sin(radians($3 - sub.origin_lng) / 2), 2)
+             )) END`
+        : 'NULL::float'
+    } AS pickup_km
+     FROM (${RIDE_SELECT}
+       WHERE r.status = 'requested' AND r.driver_id IS NULL
+         AND (r.vehicle_type IS NULL OR r.vehicle_type = $1)) sub
+     ORDER BY pickup_km ASC NULLS LAST, sub.id ASC`,
+    temPosicao ? [driverVehicleType, driverLat, driverLng] : [driverVehicleType]
   );
 }
 

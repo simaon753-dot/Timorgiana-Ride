@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import LanguageToggle from '../components/LanguageToggle.js';
 import OSMMap from '../components/OSMMap.js';
 import { useI18n } from '../i18n/index.js';
 import { useRides } from '../context/RideContext.js';
+import { api } from '../api/client.js';
 import { colors, spacing, fontSize } from '../theme.js';
 
 // Converte coordenadas num nome de sítio legível (OpenStreetMap Nominatim).
@@ -64,6 +65,12 @@ export default function RequestRideScreen({ navigation }) {
   const [fare, setFare] = useState('');
   const [distanceKm, setDistanceKm] = useState(null);
   const [gps, setGps] = useState(false);
+  const [tarifas, setTarifas] = useState(null);
+
+  // As tarifas vêm do servidor: mudá-las não deve exigir uma app nova.
+  useEffect(() => {
+    api.fares().then(({ fares }) => setTarifas(fares)).catch(() => {});
+  }, []);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -116,6 +123,14 @@ export default function RequestRideScreen({ navigation }) {
   }
 
   // Quando existem os dois pontos, o mapa desenha a rota e devolve a distância
+  // Sugestão a partir da distância. É só uma sugestão: o preço final
+  // continua a ser combinado entre passageiro e motorista.
+  const tabela = tarifas?.[vType === 'motorbike' ? 'motorbike' : 'car'];
+  const sugestao =
+    distanceKm != null && tabela
+      ? Math.max(tabela.min, Math.round((tabela.base + tabela.perKm * distanceKm) * 4) / 4)
+      : null;
+
   const mapMarkers = [];
   if (originCoord) mapMarkers.push({ ...originCoord, label: origin || t('originField') });
   if (destCoord) mapMarkers.push({ ...destCoord, label: dest || t('destination') });
@@ -195,6 +210,14 @@ export default function RequestRideScreen({ navigation }) {
             placeholder="Ex.: 3"
           />
 
+          {sugestao != null && fare.trim() === '' ? (
+            <Pressable style={styles.suggest} onPress={() => setFare(String(sugestao))}>
+              <Text style={styles.suggestText}>
+                💡 {t('fareSuggested', { value: sugestao })} · {t('fareUse')}
+              </Text>
+            </Pressable>
+          ) : null}
+
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
           <Button
@@ -251,4 +274,12 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   error: { color: colors.danger, fontSize: fontSize.sm, marginTop: spacing.md },
+  suggest: {
+    backgroundColor: '#EFEAE1',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: spacing.md,
+    alignItems: 'center',
+  },
+  suggestText: { color: colors.teal, fontWeight: '700', fontSize: fontSize.sm },
 });
