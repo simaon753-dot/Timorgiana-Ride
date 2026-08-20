@@ -10,6 +10,7 @@ import RegisterScreen from '../screens/RegisterScreen.js';
 import PassengerHomeScreen from '../screens/PassengerHomeScreen.js';
 import RequestRideScreen from '../screens/RequestRideScreen.js';
 import DriverHomeScreen from '../screens/DriverHomeScreen.js';
+import DriverPendingScreen from '../screens/DriverPendingScreen.js';
 import ChatScreen from '../screens/ChatScreen.js';
 import HistoryScreen from '../screens/HistoryScreen.js';
 import ServerScreen from '../screens/ServerScreen.js';
@@ -38,6 +39,21 @@ export default function RootNavigator() {
   const { user, restoring } = useAuth();
 
   if (restoring) return <LoadingScreen />;
+
+  // Motorista por aprovar não entra na área de viagens: não tem nada
+  // para fazer lá, e o backend recusaria tudo à mesma.
+  const motoristaPorAprovar =
+    user?.role === 'driver' && (user.driverStatus || 'pending') !== 'approved';
+
+  if (motoristaPorAprovar) {
+    return (
+      <NavigationContainer theme={navTheme}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="DriverPending" component={DriverPendingScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
+  }
 
   return (
     <NavigationContainer theme={navTheme}>

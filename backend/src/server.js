@@ -7,11 +7,14 @@ import { config } from './config.js';
 import { initSchema, pool, query } from './db.js';
 import { authRouter } from './routes/auth.js';
 import { ridesRouter } from './routes/rides.js';
+import { driverRouter } from './routes/driver.js';
+import { adminRouter } from './routes/admin.js';
 import { verifyToken } from './auth.js';
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+// Limite maior: os documentos dos motoristas viajam em base64
+app.use(express.json({ limit: '6mb' }));
 
 // Saúde real: confirma que a base de dados responde. Verificar apenas que
 // o processo está vivo daria "ok" com o servidor incapaz de autenticar
@@ -29,6 +32,8 @@ app.get('/api/health', async (req, res) => {
 
 app.use('/api/auth', authRouter);
 app.use('/api/rides', ridesRouter);
+app.use('/api/driver', driverRouter);
+app.use('/api/admin', adminRouter);
 
 app.use('/api', (req, res) => {
   res.status(404).json({ error: 'Rota não encontrada.' });
@@ -55,6 +60,7 @@ io.use(async (socket, next) => {
       role: user.role,
       name: user.name,
       vehicleType: user.vehicle_type || 'car',
+      driverStatus: user.driver_status || 'pending',
     };
     next();
   } catch (e) {
@@ -67,7 +73,8 @@ io.on('connection', (socket) => {
   console.log(`[socket] ligado: ${user.name} (${user.role}#${user.id})`);
 
   socket.join(`user:${user.id}`);
-  if (user.role === 'driver') {
+  // Só motoristas aprovados entram nas salas que recebem pedidos
+  if (user.role === 'driver' && user.driverStatus === 'approved') {
     socket.join('drivers');
     socket.join(`drivers:${user.vehicleType}`);
   }

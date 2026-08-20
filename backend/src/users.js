@@ -22,6 +22,7 @@ export function toPublicUser(row) {
     createdAt: row.created_at,
   };
   if (row.role === 'driver') {
+    base.driverStatus = row.driver_status || 'pending';
     base.vehicle = {
       type: row.vehicle_type || 'car',
       model: row.vehicle_model || null,
@@ -29,6 +30,7 @@ export function toPublicUser(row) {
       color: row.vehicle_color || null,
     };
   }
+  if (row.is_admin) base.isAdmin = true;
   return base;
 }
 
@@ -47,10 +49,11 @@ export async function createUser({ name, phone, email, password, role, vehicle }
   const vehicleType =
     role === 'driver' ? (vehicle?.type === 'motorbike' ? 'motorbike' : 'car') : null;
 
+  // Motoristas novos ficam à espera de aprovação; passageiros entram logo
   return one(
     `INSERT INTO users
-       (name, phone, email, password_hash, role, vehicle_type, vehicle_model, vehicle_plate, vehicle_color)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       (name, phone, email, password_hash, role, vehicle_type, vehicle_model, vehicle_plate, vehicle_color, driver_status)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
      RETURNING *`,
     [
       name.trim(),
@@ -62,6 +65,7 @@ export async function createUser({ name, phone, email, password, role, vehicle }
       vehicle?.model?.trim() || null,
       vehicle?.plate?.trim() || null,
       vehicle?.color?.trim() || null,
+      role === 'driver' ? 'pending' : null,
     ]
   );
 }

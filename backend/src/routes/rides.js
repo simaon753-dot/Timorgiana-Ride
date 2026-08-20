@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireAuth, requireRole } from '../auth.js';
+import { requireAuth, requireRole, requireApprovedDriver } from '../auth.js';
 import {
   createRide,
   getRideById,
@@ -90,7 +90,7 @@ ridesRouter.get(
 // GET /api/rides/available — só motoristas
 ridesRouter.get(
   '/available',
-  requireRole('driver'),
+  requireApprovedDriver,
   wrap(async (req, res) => {
     const rows = await getAvailableRidesForDriver(req.user.vehicle_type || 'car');
     return res.json({ rides: rows.map(toPublicRide) });
@@ -100,7 +100,7 @@ ridesRouter.get(
 // POST /api/rides/:id/accept
 ridesRouter.post(
   '/:id/accept',
-  requireRole('driver'),
+  requireApprovedDriver,
   wrap(async (req, res) => {
     const rideId = Number(req.params.id);
     const { fareUsd } = req.body || {};
@@ -123,7 +123,7 @@ ridesRouter.post(
 // POST /api/rides/:id/status
 ridesRouter.post(
   '/:id/status',
-  requireRole('driver'),
+  requireApprovedDriver,
   wrap(async (req, res) => {
     const rideId = Number(req.params.id);
     const { status } = req.body || {};
@@ -148,7 +148,7 @@ ridesRouter.post(
 // POST /api/rides/:id/fare
 ridesRouter.post(
   '/:id/fare',
-  requireRole('driver'),
+  requireApprovedDriver,
   wrap(async (req, res) => {
     const rideId = Number(req.params.id);
     const fare = Number(req.body?.fareUsd);

@@ -42,6 +42,22 @@ export function requireRole(role) {
   };
 }
 
+// Motorista aprovado. Sem isto, alguém que se registasse como motorista
+// começava a receber pedidos de imediato — sem carta, sem verificação,
+// com passageiros reais a entrar no veículo.
+export function requireApprovedDriver(req, res, next) {
+  if (!req.user || req.user.role !== 'driver') {
+    return res.status(403).json({ error: 'Sem permissão para esta ação.' });
+  }
+  if ((req.user.driver_status || 'pending') !== 'approved') {
+    return res.status(403).json({
+      error: 'A tua conta de motorista ainda não foi aprovada.',
+      driverStatus: req.user.driver_status || 'pending',
+    });
+  }
+  next();
+}
+
 // Verifica um token "à mão" (usado pelo Socket.io, que não passa por Express)
 export async function verifyToken(token) {
   try {

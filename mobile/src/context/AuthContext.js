@@ -58,6 +58,19 @@ export function AuthProvider({ children }) {
     [persist]
   );
 
+  // Volta a ler o utilizador do servidor. Usado enquanto o motorista
+  // espera aprovação: é assim que a app sabe que já foi decidido.
+  const refreshUser = useCallback(async () => {
+    if (!token) return null;
+    try {
+      const { user } = await api.me(token);
+      setUser(user);
+      return user;
+    } catch {
+      return null;
+    }
+  }, [token]);
+
   const logout = useCallback(async () => {
     setUser(null);
     setToken(null);
@@ -65,7 +78,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, restoring, login, register, logout, ApiError }}>
+    <AuthContext.Provider value={{ user, token, restoring, login, register, logout, refreshUser, ApiError }}>
       {children}
     </AuthContext.Provider>
   );

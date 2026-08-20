@@ -61,6 +61,10 @@ export async function initSchema() {
       vehicle_model TEXT,
       vehicle_plate TEXT,
       vehicle_color TEXT,
+      -- Só motoristas: pending -> approved | rejected.
+      -- Um motorista só recebe pedidos depois de aprovado.
+      driver_status TEXT CHECK (driver_status IN ('pending','approved','rejected')),
+      is_admin      BOOLEAN NOT NULL DEFAULT FALSE,
       rating_avg    REAL NOT NULL DEFAULT 0,
       rating_count  INTEGER NOT NULL DEFAULT 0,
       created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -84,6 +88,23 @@ export async function initSchema() {
                    CHECK (status IN ('requested','accepted','arriving','completed','cancelled')),
       created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  // Documentos dos motoristas (carta de condução, documento do veículo).
+  // Guardados na própria base de dados: para um piloto com poucos
+  // motoristas chega, e evita depender de mais um serviço externo.
+  // Se crescer, esta tabela é o único sítio a mudar.
+  await query(`
+    CREATE TABLE IF NOT EXISTS driver_documents (
+      id         SERIAL PRIMARY KEY,
+      user_id    INTEGER NOT NULL REFERENCES users(id),
+      kind       TEXT NOT NULL CHECK (kind IN ('licence','vehicle','photo')),
+      mime       TEXT NOT NULL,
+      bytes      BYTEA NOT NULL,
+      size_bytes INTEGER NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (user_id, kind)
     )
   `);
 
@@ -113,6 +134,18 @@ export async function initSchema() {
   await query('CREATE INDEX IF NOT EXISTS idx_rides_driver ON rides(driver_id)');
   await query('CREATE INDEX IF NOT EXISTS idx_rides_passenger ON rides(passenger_id)');
   await query('CREATE INDEX IF NOT EXISTS idx_messages_ride ON messages(ride_id)');
+
+  // --- Migrações para bases criadas antes destas colunas ---
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS driver_status TEXT`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT FALSE`);
+  // Motoristas que já existiam ficam aprovados: foram criados antes da
+  // regra existir e bloqueá-los agora quebraria contas em uso.
+  await query(
+    `UPDATE users SET driver_status = 'approved'
+     WHERE role = 'driver' AND driver_status IS NULL`
+  );
+
+  await query('CREATE INDEX IF NOT EXISTS idx_docs_user ON driver_documents(user_id)');
 
   const [{ now }] = await query('SELECT NOW() AS now');
   console.log('[db] PostgreSQL pronto —', now.toISOString());

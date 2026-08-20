@@ -148,4 +148,25 @@ export default {
   serverCustom: 'configurado por ti',
   serverFirstSlow: 'Na primeira ligação do dia pode demorar até 1 minuto.',
   waking: 'A acordar o servidor… pode demorar 1 minuto',
+
+  // Aprovação de motoristas
+  pendingTitle: 'Conta em análise',
+  pendingExplain:
+    'Antes de começares a receber viagens, precisamos de confirmar quem és. Envia os documentos abaixo — analisamos e avisamos-te.',
+  rejectedTitle: 'Conta não aprovada',
+  rejectedExplain:
+    'A tua conta de motorista não foi aprovada. Se achas que houve engano, contacta-nos.',
+  approvedNow: '🎉 A tua conta foi aprovada! Já podes receber viagens.',
+  docLicence: 'Carta de condução',
+  docVehicle: 'Documento do veículo',
+  docPhoto: 'Foto tua',
+  docSent: 'Enviado',
+  docMissing: 'Em falta',
+  docSend: 'Enviar',
+  docReplace: 'Substituir',
+  docSending: 'A enviar…',
+  docHint: 'Fotografa o documento ou escolhe da galeria. Máximo 4 MB.',
+  docsComplete: 'Documentos enviados. Aguarda a nossa análise.',
+  docsIncomplete: 'Faltam documentos.',
+  errPermissionPhotos: 'Sem permissão para aceder às fotos.',
 };

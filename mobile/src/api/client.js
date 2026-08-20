@@ -94,4 +94,9 @@ export const api = {
 
   rateRide: (token, id, stars) =>
     request(`/rides/${id}/rate`, { method: 'POST', body: { stars }, token }),
+
+  // Motorista: estado da conta e documentos
+  driverStatus: (token) => request('/driver/status', { token }),
+  uploadDocument: (token, { kind, mime, base64 }) =>
+    request('/driver/documents', { method: 'POST', body: { kind, mime, base64 }, token }),
 };

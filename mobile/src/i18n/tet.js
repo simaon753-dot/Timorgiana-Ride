@@ -149,4 +149,25 @@ export default {
   serverCustom: 'ita konfigura',
   serverFirstSlow: 'Ligasaun primeiru loron nian bele demora too minutu ida.',
   waking: 'Hadeer servidór… bele demora minutu ida',
+
+  // Aprovasaun motorista
+  pendingTitle: 'Konta iha análize',
+  pendingExplain:
+    'Molok simu viajen, ami presiza konfirma ita-nia identidade. Haruka dokumentu sira iha kraik — ami analiza no avisa ita.',
+  rejectedTitle: 'Konta la aprova',
+  rejectedExplain:
+    'Ita-nia konta motorista la aprova. Se ita hanoin katak iha sala, kontakta ami.',
+  approvedNow: '🎉 Ita-nia konta aprova ona! Bele simu viajen.',
+  docLicence: 'Karta kondusaun',
+  docVehicle: 'Dokumentu veíkulu',
+  docPhoto: 'Ita-nia foto',
+  docSent: 'Haruka ona',
+  docMissing: 'Seidauk',
+  docSend: 'Haruka',
+  docReplace: 'Troka',
+  docSending: 'Haruka hela…',
+  docHint: 'Foto dokumentu ka hili husi galeria. Máximu 4 MB.',
+  docsComplete: 'Dokumentu haruka ona. Hein ami-nia análize.',
+  docsIncomplete: 'Falta dokumentu.',
+  errPermissionPhotos: 'La iha permisaun atu asesu foto.',
 };
