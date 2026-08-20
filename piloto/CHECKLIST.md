@@ -1,0 +1,115 @@
+# Piloto TimorgianaRide — Díli
+
+Lista do que falta para pôr a app na rua. Divide-se em duas colunas porque
+duas coisas diferentes estão a bloquear: uma resolve-se com código, a outra
+não.
+
+---
+
+## Antes de falar com o primeiro motorista
+
+### Legal — isto é teu, e é a sério
+
+Estás a guardar cartas de condução, documentos de veículos e fotografias de
+pessoas numa base de dados alojada em Singapura. Isso deixou de ser um
+projecto pessoal no momento em que um motorista real enviar a primeira foto.
+
+- [ ] **Licenciamento de transporte** — verificar se um serviço de
+      intermediação de transporte precisa de autorização em Timor-Leste, e
+      de qual entidade.
+- [ ] **Estatuto dos motoristas** — são trabalhadores independentes. Isso
+      tem de estar escrito, não subentendido, ou o risco é teu.
+- [ ] **Termos de utilização e política de privacidade**, em português e
+      tétum, dentro da app antes do registo — onde ficam os documentos,
+      quem os vê, quanto tempo lá ficam, como se apagam.
+- [ ] **Responsabilidade civil** — quem responde se houver um acidente
+      durante uma viagem marcada pela app. Decide isto antes, não depois.
+- [ ] **Seguro** — o dos motoristas cobre transporte de passageiros a
+      pagamento? Muitas apólices particulares não cobrem.
+
+> Não sou advogado em Timor-Leste e tu és. Deixo a lista; a análise é tua.
+
+### Técnico — feito, falta confirmares
+
+- [ ] Enviar o commit da Fase 4 (`git push`) — actualiza o servidor
+- [ ] Abrir o painel de administração na app e confirmar que os números batem
+- [ ] Fazer um SOS de teste e confirmar que chega
+- [ ] Trocar a palavra-passe do Neon (a actual passou pela conversa)
+- [ ] Rever o tétum com um falante nativo — o que está lá é primeira versão
+
+---
+
+## Recrutar os motoristas
+
+O objectivo é **5 a 10 motoristas**, não mais. Um piloto grande de mais
+esconde os problemas em vez de os mostrar.
+
+### Quem procurar
+
+Motoristas que já fazem transporte em Díli e que já usam Grab ou Maxim.
+Sabem o trabalho, sabem o que os incomoda na concorrência, e conseguem
+comparar. Um motorista que nunca fez isto não te consegue dizer se a app
+é boa.
+
+### O que lhes dizes
+
+O argumento é um só e é forte: **não há comissão**. Numa viagem de $3, a
+Grab fica com cerca de 20%. Aqui ficam com $3.
+
+Não prometas volume. Não tens passageiros ainda — sê honesto sobre isso.
+O que estás a pedir é que testem, não que larguem o que têm.
+
+### O que lhes dás
+
+- O link do manual (Tétum + Português) — explica a instalação sozinho
+- O teu número, para quando falhar
+
+### O que tens de fazer no momento
+
+Cada motorista que se regista fica **à espera de aprovação**. Tens de abrir
+o painel na app e aprová-lo. Se demorares dois dias, ele desiste. Aprova no
+mesmo dia.
+
+---
+
+## Durante o piloto
+
+### O que medir
+
+Não são as viagens. É isto:
+
+| O quê | Porquê importa |
+|---|---|
+| Quantos instalaram vs. quantos ficaram online | Mede se a instalação é o obstáculo |
+| Tempo entre pedido e aceitação | Se passa de 2–3 min, o passageiro desiste |
+| Pedidos sem resposta | Motoristas a mais offline, ou poucos na zona |
+| Cancelamentos depois de aceitar | Mede se o preço firme está a ser aceite |
+| Onde é que a app os confundiu | O que arranjar a seguir |
+
+### As perguntas que valem a pena fazer
+
+Depois da primeira viagem real de cada motorista, uma chamada de 5 minutos:
+
+1. Onde é que te enganaste a usar a app?
+2. O preço que a app mostrou pareceu-te justo?
+3. O passageiro percebeu quanto tinha de pagar?
+4. Preferes isto ou a Grab? Porquê?
+
+A pergunta 1 é a que dá mais resultado. Ninguém diz "a app é má" — dizem
+"carreguei aqui e não percebi o que aconteceu".
+
+---
+
+## O que ainda não existe
+
+Coisas reais que faltam e que o piloto vai expor. Não são falhas do
+código — são decisões que ainda não tomaste:
+
+- **Passageiros.** Tens motoristas mas não tens procura. Um motorista
+  online sem pedidos desliga ao fim de duas horas e não volta.
+- **Zona de arranque.** Cobrir Díli inteira com 5 motoristas dá tempos de
+  espera longos. Escolher uma zona (Timor Plaza, Farol, Lecidere) e
+  concentrar lá é melhor do que espalhar.
+- **Suporte.** Quando um motorista ligar às 21h, quem atende?
+- **iPhone.** Só existe Android. Em Díli é a esmagadora maioria, mas
+  convém saberes que é uma escolha, não um esquecimento.

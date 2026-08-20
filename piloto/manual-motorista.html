@@ -1,0 +1,411 @@
+<title>Manual Motorista TimorgianaRide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&display=swap">
+
+<style>
+  /* ── Paleta ────────────────────────────────────────────────────────
+     A marca TimorgianaRide: teal, coral, papel. Os neutros puxam para o
+     verde do teal — cinzento puro ao lado deste teal lê-se sujo.        */
+  :root {
+    --teal:      #0E5C54;
+    --teal-deep: #0A423C;
+    --coral:     #FF6B4A;
+    --ground:    #F7F4EF;
+    --card:      #FFFFFF;
+    --ink:       #14201D;
+    --ink-soft:  #5C6A64;
+    --line:      #E2DDD4;
+    --alert-bg:  #FDF0E9;
+    --alert-ink: #8A3B1C;
+    --header-bg: #0A423C;
+    --on-teal:   #F2F8F6;
+    --shadow:    0 1px 2px rgba(20,32,29,.06), 0 6px 20px rgba(20,32,29,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --teal:      #4FB3A5;
+      --teal-deep: #7FD3C6;
+      --coral:     #FF8465;
+      --ground:    #0E1614;
+      --card:      #16221F;
+      --ink:       #ECF2EF;
+      --ink-soft:  #97A8A1;
+      --line:      #26332F;
+      --alert-bg:  #2A1B14;
+      --alert-ink: #FFB593;
+      --header-bg: #10312B;
+      --on-teal:   #E8F4F0;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    --teal:      #4FB3A5;
+    --teal-deep: #7FD3C6;
+    --coral:     #FF8465;
+    --ground:    #0E1614;
+    --card:      #16221F;
+    --ink:       #ECF2EF;
+    --ink-soft:  #97A8A1;
+    --line:      #26332F;
+    --alert-bg:  #2A1B14;
+    --alert-ink: #FFB593;
+    --header-bg: #10312B;
+    --on-teal:   #E8F4F0;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.3);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.55;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .folha {
+    max-width: 34rem;
+    margin: 0 auto;
+    padding: 0 1.15rem 4rem;
+  }
+
+  /* ── Cabeçalho ───────────────────────────────────────────────────── */
+  header {
+    background: var(--header-bg);
+    color: var(--on-teal);
+    margin: 0 -1.15rem 2rem;
+    padding: 2.5rem 1.15rem 2.25rem;
+  }
+  .marca {
+    font-size: .74rem;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    opacity: .8;
+    margin: 0 0 1rem;
+  }
+  h1 {
+    font-size: clamp(1.9rem, 8vw, 2.6rem);
+    font-stretch: 125%;
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -.02em;
+    text-wrap: balance;
+    margin: 0 0 .6rem;
+  }
+  .subtitulo { margin: 0; opacity: .85; font-size: 1rem; }
+
+  /* O motivo para um motorista mudar de app cabe numa linha. Fica no topo. */
+  .destaque {
+    display: inline-block;
+    margin-top: 1.5rem;
+    background: var(--coral);
+    color: #22100A;
+    font-weight: 700;
+    font-size: 1.02rem;
+    padding: .55rem 1rem;
+    border-radius: 3px;
+  }
+
+  /* ── Passos ──────────────────────────────────────────────────────── */
+  /* A numeração é informação verdadeira: não dá para ficar disponível
+     antes de ser aprovado, nem ser aprovado antes de enviar documentos. */
+  .passo {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1.25rem 1.15rem;
+    margin-bottom: .9rem;
+    box-shadow: var(--shadow);
+    display: grid;
+    grid-template-columns: 2.15rem 1fr;
+    column-gap: .95rem;
+  }
+  .n {
+    font-size: 1.35rem;
+    font-weight: 700;
+    font-stretch: 125%;
+    font-variant-numeric: tabular-nums;
+    color: var(--coral);
+    line-height: 1.25;
+  }
+  .passo h2 {
+    grid-column: 2;
+    margin: 0 0 .35rem;
+    font-size: 1.16rem;
+    font-weight: 700;
+    font-stretch: 110%;
+    letter-spacing: -.01em;
+    line-height: 1.25;
+  }
+  .corpo { grid-column: 2; }
+  .corpo p { margin: 0 0 .55rem; }
+  .corpo p:last-child { margin-bottom: 0; }
+
+  /* Português a seguir ao Tétum. Curto, para ninguém ficar preso na
+     língua errada — em vez de um botão que é preciso descobrir. */
+  .pt {
+    font-size: .875rem;
+    color: var(--ink-soft);
+    border-left: 2px solid var(--line);
+    padding-left: .7rem;
+    margin-top: .6rem;
+  }
+  .pt::before {
+    content: "PT";
+    display: block;
+    font-size: .62rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    color: var(--ink-soft);
+    opacity: .7;
+    margin-bottom: .1rem;
+  }
+
+  .toque {
+    display: inline-block;
+    font-weight: 600;
+    background: var(--ground);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: .05rem .42rem;
+    font-size: .93em;
+    white-space: nowrap;
+  }
+
+  /* ── Aviso do Android ────────────────────────────────────────────── */
+  /* É aqui que os pilotos morrem: o telemóvel diz que a app é perigosa e
+     o motorista desiste. Explicado com honestidade, não escondido.      */
+  .aviso {
+    background: var(--alert-bg);
+    border: 1px solid var(--alert-ink);
+    border-radius: 4px;
+    padding: 1rem 1.05rem;
+    margin: .75rem 0 0;
+    grid-column: 2;
+  }
+  .aviso .rotulo {
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--alert-ink);
+    margin: 0 0 .35rem;
+  }
+  .aviso p { margin: 0 0 .5rem; font-size: .95rem; }
+  .aviso p:last-child { margin-bottom: 0; }
+
+  /* ── Botão de descarga ───────────────────────────────────────────── */
+  .descarregar {
+    display: block;
+    background: var(--teal);
+    color: var(--ground);
+    text-align: center;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 1.05rem 1rem;
+    border-radius: 4px;
+    margin: .8rem 0 .35rem;
+    grid-column: 2;
+  }
+  .descarregar:hover { background: var(--teal-deep); }
+  .descarregar:focus-visible { outline: 3px solid var(--coral); outline-offset: 2px; }
+  .descarregar small { display: block; font-weight: 400; font-size: .78rem; opacity: .85; margin-top: .15rem; }
+
+  /* ── Secções finais ──────────────────────────────────────────────── */
+  .seccao {
+    margin-top: 2.75rem;
+    border-top: 2px solid var(--ink);
+    padding-top: 1.15rem;
+  }
+  .seccao > h2 {
+    margin: 0 0 .9rem;
+    font-size: 1.28rem;
+    font-weight: 700;
+    font-stretch: 118%;
+    letter-spacing: -.015em;
+  }
+
+  .lista { display: grid; gap: .8rem; }
+  .item {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: .95rem 1.05rem;
+  }
+  .item h3 {
+    margin: 0 0 .25rem;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .item p { margin: 0; font-size: .95rem; }
+
+  .sos { border-color: var(--coral); border-width: 2px; }
+  .sos h3 { color: var(--coral); }
+
+  .contacto {
+    background: var(--header-bg);
+    color: var(--on-teal);
+    border-radius: 4px;
+    padding: 1.4rem 1.15rem;
+    margin-top: 1rem;
+    text-align: center;
+  }
+  .contacto p { margin: 0 0 .5rem; font-size: .95rem; opacity: .85; }
+  .contacto a {
+    color: inherit;
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-stretch: 118%;
+    font-variant-numeric: tabular-nums;
+    text-decoration: none;
+    border-bottom: 2px solid var(--coral);
+  }
+
+  footer {
+    margin-top: 2.5rem;
+    font-size: .82rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+</style>
+
+<div class="folha">
+
+  <header>
+    <p class="marca">TimorgianaRide · Dili</p>
+    <h1>Sai motorista iha Dili</h1>
+    <p class="subtitulo">Pasu ba pasu, atu hahú simu viajen.</p>
+    <p class="destaque">Osan hotu ba ita. La iha komisaun.</p>
+  </header>
+
+  <div class="passo">
+    <div class="n">1</div>
+    <h2>Deskarga aplikasaun</h2>
+    <div class="corpo">
+      <p>Toka iha butaun kraik ho ita-nia telemóvel Android.</p>
+      <p class="pt">Toca no botão abaixo, no telemóvel Android.</p>
+    </div>
+    <a class="descarregar" href="APK_URL">
+      Deskarga TimorgianaRide
+      <small>Android · ~70 MB</small>
+    </a>
+    <div class="aviso">
+      <p class="rotulo">Importante</p>
+      <p><strong>Telemóvel sei hatete katak ficheiru neʼe bele perigozu.</strong> Neʼe normál: aplikasaun neʼe la mai husi Play Store, mai direta husi ami.</p>
+      <p>Toka <span class="toque">Deskarga tuir loron</span> ka <span class="toque">Instala</span>. Se telemóvel husu, toka <span class="toque">Konfigurasaun</span> no liga <span class="toque">Permiti husi fonte neʼe</span>.</p>
+      <p class="pt">O telemóvel vai dizer que o ficheiro pode ser perigoso. É normal — a app não vem da Play Store, vem directamente de nós. Toca em “Transferir mesmo assim” ou “Instalar”. Se pedir, vai a “Definições” e activa “Permitir desta origem”.</p>
+    </div>
+  </div>
+
+  <div class="passo">
+    <div class="n">2</div>
+    <h2>Halo ita-nia konta</h2>
+    <div class="corpo">
+      <p>Loke aplikasaun, hili <span class="toque">Haʼu motorista</span>, no hatama ita-nia naran, númeru telefone no senha.</p>
+      <p>Depois hatama dadus veíkulu: kareta ka motorizada, modelu, plaka no kór.</p>
+      <p class="pt">Abre a app, escolhe “Sou motorista” e mete o teu nome, telemóvel e palavra-passe. Depois os dados do veículo: carro ou motorizada, modelo, matrícula e cor.</p>
+    </div>
+  </div>
+
+  <div class="passo">
+    <div class="n">3</div>
+    <h2>Haruka dokumentu tolu</h2>
+    <div class="corpo">
+      <p>Foto ba: <strong>karta kondusaun</strong>, <strong>dokumentu veíkulu</strong>, no <strong>ita-nia foto</strong>.</p>
+      <p>Tanbasá? Tanba pasajeiru sira presiza hatene katak ema neʼebé mai foti sira, ami koñese ona. Dokumentu sira nakfilak deʼit ba ekipa TimorgianaRide — ami la fahe ba ema seluk.</p>
+      <p class="pt">Fotografa a carta de condução, o documento do veículo e uma foto tua. Isto existe para o passageiro saber que quem o vai buscar está identificado. Os documentos são vistos só pela equipa TimorgianaRide.</p>
+    </div>
+  </div>
+
+  <div class="passo">
+    <div class="n">4</div>
+    <h2>Hein aprovasaun</h2>
+    <div class="corpo">
+      <p>Ami haree dokumentu sira no avisa ita iha aplikasaun laran. Baibain lalais.</p>
+      <p>Enkuantu hein, ita seidauk bele simu viajen.</p>
+      <p class="pt">Verificamos os documentos e avisamos-te dentro da app. Enquanto esperas, ainda não recebes viagens.</p>
+    </div>
+  </div>
+
+  <div class="passo">
+    <div class="n">5</div>
+    <h2>Sai disponivel</h2>
+    <div class="corpo">
+      <p>Bainhira aprova ona, iha ekrán prinsipál iha butaun <span class="toque">Disponivel</span>. Liga nia.</p>
+      <p>Se la liga, ita la simu pedidu. Bainhira ita han ka deskansa, desliga deʼit.</p>
+      <p class="pt">Depois de aprovado, tens um botão “Disponível” no ecrã principal. Liga-o para receber pedidos; desliga quando estiveres a comer ou a descansar.</p>
+    </div>
+  </div>
+
+  <div class="passo">
+    <div class="n">6</div>
+    <h2>Simu viajen</h2>
+    <div class="corpo">
+      <p>Pedidu mosu ho fatin foti, destinu no folin. Toka <span class="toque">Simu</span>.</p>
+      <p>Ita bele telefone ba pasajeiru ka haruka mensajen husi aplikasaun laran.</p>
+      <p class="pt">O pedido aparece com a recolha, o destino e o preço. Toca em “Aceitar”. Podes ligar ao passageiro ou enviar mensagem pela app.</p>
+    </div>
+  </div>
+
+  <div class="passo">
+    <div class="n">7</div>
+    <h2>Simu osan</h2>
+    <div class="corpo">
+      <p>Pasajeiru selu ho osan iha viajen rohan. <strong>Osan hotu ba ita.</strong> TimorgianaRide la foti komisaun ida.</p>
+      <p>Folin neʼebé aplikasaun hatudu, neʼe mak folin loos. La iha folin foun iha rohan.</p>
+      <p class="pt">O passageiro paga em dinheiro no fim. O dinheiro é todo teu — a TimorgianaRide não cobra comissão. O preço que a app mostra é o preço final.</p>
+    </div>
+  </div>
+
+  <section class="seccao">
+    <h2>Buat sira seluk ne’ebé importante</h2>
+    <div class="lista">
+
+      <div class="item sos">
+        <h3>🚨 Butaun emerjénsia</h3>
+        <p>Durante viajen, iha butaun mean <strong>Emerjénsia</strong>. Se buat ruma sala, toka nia: ami simu avizu ho ita-nia fatin, no ita bele telefone ba polísia kedas.</p>
+        <p class="pt">Durante a viagem tens um botão vermelho de Emergência. Se algo correr mal, carrega: recebemos o alerta com a tua posição e podes ligar logo à polícia.</p>
+      </div>
+
+      <div class="item">
+        <h3>Kansela viajen</h3>
+        <p>Bele kansela, maibé la diʼak kansela beibeik depois simu ona — pasajeiru hein no lakon tempu.</p>
+        <p class="pt">Podes cancelar, mas não é bom cancelar muitas vezes depois de aceitar — o passageiro fica à espera.</p>
+      </div>
+
+      <div class="item">
+        <h3>Internet no bateria</h3>
+        <p>Aplikasaun presiza internet atu simu pedidu no fahe ita-nia fatin. Uza dadus uitoan deʼit, maibé prepara karregadór iha kareta.</p>
+        <p class="pt">A app precisa de internet para receber pedidos e partilhar a tua posição. Usa poucos dados, mas leva carregador.</p>
+      </div>
+
+      <div class="item">
+        <h3>Avaliasaun</h3>
+        <p>Iha viajen rohan, pasajeiru fó estrela. Ita mós fó estrela ba pasajeiru.</p>
+        <p class="pt">No fim da viagem o passageiro dá estrelas — e tu também avalias o passageiro.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="seccao">
+    <h2>Iha problema? Telefone mai</h2>
+    <div class="contacto">
+      <p>TimorgianaRide · Dili</p>
+      <a href="tel:+67074192857">+670 7419 2857</a>
+    </div>
+  </section>
+
+  <footer>
+    <p>TimorgianaRide — serbisu transporte iha Dili. Selu ho osan, la iha komisaun.<br>
+    Aplikasaun neʼe iha faze teste. Se buat ruma la laʼo diʼak, hatete mai ami.</p>
+    <p class="pt">TimorgianaRide — transporte em Díli. Pagamento em dinheiro, sem comissão. A app está em fase de teste; se algo não funcionar, diz-nos.</p>
+  </footer>
+
+</div>
