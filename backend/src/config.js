@@ -15,16 +15,20 @@ export const config = {
   // utilizadores a instalar uma versão nova.
   //
   // Valores de partida para Díli — a confirmar com quem conhece o mercado.
+  // Motorizada: até 2 km custa 0,75 USD (valor definido pelo Simão). A
+  // fórmula 0,25 + 0,25/km dá exactamente esse valor aos 2 km, por isso a
+  // tabela cresce sem saltos em vez de ter um caso especial.
+  // Carro: o dobro, proporção habitual entre mota-táxi e táxi.
   tarifas: {
     motorbike: {
-      base: Number(process.env.FARE_MOTO_BASE) || 0.5,
+      base: Number(process.env.FARE_MOTO_BASE) || 0.25,
       perKm: Number(process.env.FARE_MOTO_KM) || 0.25,
-      min: Number(process.env.FARE_MOTO_MIN) || 1,
+      min: Number(process.env.FARE_MOTO_MIN) || 0.75,
     },
     car: {
-      base: Number(process.env.FARE_CAR_BASE) || 1,
+      base: Number(process.env.FARE_CAR_BASE) || 0.5,
       perKm: Number(process.env.FARE_CAR_KM) || 0.5,
-      min: Number(process.env.FARE_CAR_MIN) || 2,
+      min: Number(process.env.FARE_CAR_MIN) || 1.5,
     },
   },
 
