@@ -26,7 +26,7 @@ import { colors, spacing, fontSize, radius } from '../theme.js';
 export default function PassengerHomeScreen({ navigation }) {
   const { t } = useI18n();
   const { user, logout } = useAuth();
-  const { activeRide, isFinal, cancelRide, dismissRide, loading } = useRides();
+  const { activeRide, isFinal, cancelRide, dismissRide, loading, driverLocation } = useRides();
 
   const vehicleLabel = (v) => (v?.type === 'motorbike' ? t('vehicleMotorbike') : t('vehicleCar'));
   const markers = activeRide ? rideMarkers(activeRide) : [];
@@ -59,7 +59,10 @@ export default function PassengerHomeScreen({ navigation }) {
 
             {markers.length > 0 ? (
               <View style={{ marginTop: spacing.md }}>
-                <OSMMap markers={markers} height={170} />
+                <OSMMap markers={markers} height={190} liveMarker={driverLocation} />
+                {driverLocation ? (
+                  <Text style={styles.driverMoving}>{t('driverOnMap')}</Text>
+                ) : null}
               </View>
             ) : null}
 
@@ -225,4 +228,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   callBtnText: { color: colors.onTeal, fontWeight: '700', fontSize: fontSize.sm },
+  driverMoving: {
+    fontSize: fontSize.xs,
+    color: colors.teal,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: spacing.xs,
+  },
 });

@@ -169,4 +169,12 @@ export default {
   docsComplete: 'Documentos enviados. Aguarda a nossa análise.',
   docsIncomplete: 'Faltam documentos.',
   errPermissionPhotos: 'Sem permissão para aceder às fotos.',
+  // Disponibilidade
+  online: 'Disponível',
+  offline: 'Indisponível',
+  onlineHint: 'Estás a receber pedidos',
+  offlineHint: 'Não recebes pedidos enquanto estiveres assim',
+  goOnline: 'Ficar disponível',
+  goOffline: 'Ficar indisponível',
+  driverOnMap: 'O motorista está a aproximar-se',
 };

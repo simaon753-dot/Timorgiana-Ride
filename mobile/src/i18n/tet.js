@@ -170,4 +170,12 @@ export default {
   docsComplete: 'Dokumentu haruka ona. Hein ami-nia análize.',
   docsIncomplete: 'Falta dokumentu.',
   errPermissionPhotos: 'La iha permisaun atu asesu foto.',
+  // Disponibilidade
+  online: 'Disponivel',
+  offline: 'La disponivel',
+  onlineHint: 'Ita simu pedidu hela',
+  offlineHint: 'La simu pedidu bainhira nune',
+  goOnline: 'Sai disponivel',
+  goOffline: 'Sai la disponivel',
+  driverOnMap: 'Motorista besik hela',
 };

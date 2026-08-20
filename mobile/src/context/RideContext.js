@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import * as Location from 'expo-location';
 import { api } from '../api/client.js';
 import { createSocket } from '../socket.js';
+import { registarParaNotificacoes } from '../push.js';
 import { useAuth } from './AuthContext.js';
 
 const RideContext = createContext(null);
@@ -18,6 +20,8 @@ export function RideProvider({ children }) {
   const [rated, setRated] = useState(false);
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [online, setOnlineState] = useState(!!user?.isOnline); // motorista disponível
+  const [driverLocation, setDriverLocation] = useState(null); // posição vista pelo passageiro
 
   const socketRef = useRef(null);
   const rideIdRef = useRef(null); // id da viagem atual (para os handlers do socket)
@@ -57,11 +61,21 @@ export function RideProvider({ children }) {
     socket.on('ride:update', (ride) => {
       setActiveRide((curr) => (!curr || curr.id === ride.id ? ride : curr));
     });
+    socket.on('ride:driverLocation', ({ rideId, lat, lng }) => {
+      if (rideId !== rideIdRef.current) return;
+      setDriverLocation({ lat, lng });
+    });
     socket.on('message:new', (msg) => {
       if (msg.rideId !== rideIdRef.current) return;
       setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
       setUnread((n) => n + 1);
     });
+
+    // Notificações: sem isto o motorista teria de manter a app aberta o
+    // dia todo para não perder pedidos.
+    registarParaNotificacoes()
+      .then((pushToken) => pushToken && api.savePushToken(token, pushToken))
+      .catch(() => {});
 
     return () => {
       cancelled = true;
@@ -69,6 +83,37 @@ export function RideProvider({ children }) {
       socketRef.current = null;
     };
   }, [token, user, isDriver]);
+
+  // Enquanto disponível, o motorista envia a sua posição. É assim que o
+  // passageiro vê o veículo a aproximar-se — e é o que mais distingue
+  // isto de uma app de mensagens.
+  useEffect(() => {
+    if (!isDriver || !online) return;
+    let parado = false;
+
+    async function enviarPosicao() {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted' || parado) return;
+        const pos = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        socketRef.current?.emit('driver:location', {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        });
+      } catch {
+        /* sem GPS agora — tenta outra vez no próximo ciclo */
+      }
+    }
+
+    enviarPosicao();
+    const id = setInterval(enviarPosicao, 12000);
+    return () => {
+      parado = true;
+      clearInterval(id);
+    };
+  }, [isDriver, online]);
 
   // Quando a viagem ativa muda: repor chat/avaliação e carregar histórico
   const activeId = activeRide?.id ?? null;
@@ -78,6 +123,7 @@ export function RideProvider({ children }) {
     setMessages([]);
     setUnread(0);
     setRated(false);
+    setDriverLocation(null);
     if (activeId && hasDriver && token) {
       api
         .listMessages(token, activeId)
@@ -144,6 +190,23 @@ export function RideProvider({ children }) {
     [token, activeId]
   );
 
+  // Ficar disponível/indisponível. Avisa o servidor pelas duas vias: o
+  // socket trata das salas em tempo real, a API garante que fica gravado
+  // mesmo que o socket esteja a reconectar.
+  const toggleOnline = useCallback(
+    async (valor) => {
+      setOnlineState(valor);
+      socketRef.current?.emit('driver:setOnline', valor);
+      try {
+        const { online } = await api.setAvailability(token, valor);
+        setOnlineState(!!online);
+      } catch {
+        setOnlineState(!valor); // reverter se falhou
+      }
+    },
+    [token]
+  );
+
   const markChatRead = useCallback(() => setUnread(0), []);
 
   const rateRide = useCallback(
@@ -179,6 +242,9 @@ export function RideProvider({ children }) {
         rated,
         connected,
         loading,
+        online,
+        toggleOnline,
+        driverLocation,
         requestRide,
         acceptRide,
         advanceStatus,

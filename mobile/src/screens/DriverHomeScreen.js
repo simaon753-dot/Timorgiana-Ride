@@ -37,6 +37,8 @@ export default function DriverHomeScreen({ navigation }) {
     dismissRide,
     loading,
     connected,
+    online,
+    toggleOnline,
   } = useRides();
 
   return (
@@ -47,6 +49,26 @@ export default function DriverHomeScreen({ navigation }) {
           <Logo size="sm" />
           <LanguageToggle />
         </View>
+
+        {/* Interruptor de disponibilidade. Um motorista a almoçar não deve
+            receber pedidos: para o passageiro, um pedido que ninguém atende
+            é pior do que nenhum. */}
+        {!activeRide ? (
+          <Pressable
+            style={[styles.onlineCard, online && styles.onlineCardOn]}
+            onPress={() => toggleOnline(!online)}
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.onlineTitle, online && styles.onlineTitleOn]}>
+                {online ? `🟢 ${t('online')}` : `⚪ ${t('offline')}`}
+              </Text>
+              <Text style={styles.onlineHint}>{online ? t('onlineHint') : t('offlineHint')}</Text>
+            </View>
+            <View style={[styles.switchTrack, online && styles.switchTrackOn]}>
+              <View style={[styles.switchThumb, online && styles.switchThumbOn]} />
+            </View>
+          </Pressable>
+        ) : null}
 
         {loading ? (
           <ActivityIndicator color={colors.teal} style={{ marginTop: spacing.xxl }} />
@@ -337,6 +359,29 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   fareSaveBtn: { paddingHorizontal: spacing.lg, marginBottom: spacing.md },
+  onlineCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  onlineCardOn: { borderColor: colors.success, backgroundColor: '#F1F8F4' },
+  onlineTitle: { fontSize: fontSize.md, fontWeight: '800', color: colors.textMuted },
+  onlineTitleOn: { color: colors.success },
+  onlineHint: { fontSize: fontSize.xs, color: colors.textMuted, marginTop: 2 },
+  switchTrack: {
+    width: 52, height: 30, borderRadius: 15,
+    backgroundColor: colors.border, padding: 3, justifyContent: 'center',
+  },
+  switchTrackOn: { backgroundColor: colors.success },
+  switchThumb: {
+    width: 24, height: 24, borderRadius: 12, backgroundColor: colors.white,
+  },
+  switchThumbOn: { alignSelf: 'flex-end' },
   offline: {
     textAlign: 'center',
     color: colors.textMuted,

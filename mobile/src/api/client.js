@@ -99,4 +99,9 @@ export const api = {
   driverStatus: (token) => request('/driver/status', { token }),
   uploadDocument: (token, { kind, mime, base64 }) =>
     request('/driver/documents', { method: 'POST', body: { kind, mime, base64 }, token }),
+  setAvailability: (token, online) =>
+    request('/driver/availability', { method: 'POST', body: { online }, token }),
+
+  savePushToken: (token, pushToken) =>
+    request('/auth/push-token', { method: 'POST', body: { token: pushToken }, token }),
 };

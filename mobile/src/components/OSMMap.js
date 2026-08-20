@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { colors, radius, spacing, fontSize } from '../theme.js';
@@ -19,14 +19,27 @@ export default function OSMMap({
   height = 240,
   onPick,
   onRoute, // recebe { km } quando há rota entre dois pontos
+  liveMarker, // { lat, lng } que se move — ex.: o motorista a aproximar-se
 }) {
+  const webRef = useRef(null);
   const c = center || markers[0] || DILI;
   const markersKey = JSON.stringify(markers);
 
+  // O HTML NÃO depende do liveMarker: se dependesse, o mapa recarregava a
+  // cada nova posição do motorista — a piscar de 12 em 12 segundos e a
+  // perder o zoom que o utilizador tivesse feito. Em vez disso, injectamos
+  // uma instrução no mapa já carregado, que apenas move o ícone.
   const html = useMemo(
     () => buildHtml({ center: c, markers, pickable }),
     [c.lat, c.lng, pickable, markersKey]
   );
+
+  useEffect(() => {
+    if (!liveMarker || !webRef.current) return;
+    webRef.current.injectJavaScript(
+      `window.moverMotorista && window.moverMotorista(${liveMarker.lat}, ${liveMarker.lng}); true;`
+    );
+  }, [liveMarker?.lat, liveMarker?.lng]);
 
   // O WebView não existe na versão web — mostrar um aviso simpático
   // em vez do erro vermelho do react-native-webview.
@@ -42,6 +55,7 @@ export default function OSMMap({
   return (
     <View style={[styles.wrap, { height }]}>
       <WebView
+        ref={webRef}
         originWhitelist={['*']}
         source={{ html }}
         javaScriptEnabled
@@ -103,6 +117,17 @@ function buildHtml({ center, markers, pickable }) {
       send({type:'route', km: Math.round(route.distance/100)/10});
     }).catch(function(){ straightLine(a,b); });
   }
+  // Ícone do motorista, movido de fora sem recarregar o mapa
+  var motoristaIcon = L.divIcon({
+    html: '<div style="font-size:26px;line-height:26px">\u{1F697}</div>',
+    className: '', iconSize: [26,26], iconAnchor: [13,13]
+  });
+  var motorista = null;
+  window.moverMotorista = function(lat, lng){
+    if (motorista) { motorista.setLatLng([lat,lng]); }
+    else { motorista = L.marker([lat,lng], {icon: motoristaIcon, zIndexOffset: 1000}).addTo(map); }
+  };
+
   ${
     pickable
       ? `var pin=null;

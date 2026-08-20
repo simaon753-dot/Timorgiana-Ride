@@ -7,6 +7,7 @@ import {
   normalizePhone,
 } from '../users.js';
 import { signToken, requireAuth } from '../auth.js';
+import { savePushToken } from '../drivers.js';
 
 export const authRouter = Router();
 
@@ -62,6 +63,17 @@ authRouter.post('/login', async (req, res) => {
   } catch (err) {
     console.error('[auth/login]', err);
     return res.status(500).json({ error: 'Erro ao iniciar sessão.' });
+  }
+});
+
+// POST /api/auth/push-token — guardar o destino das notificações
+authRouter.post('/push-token', requireAuth, async (req, res) => {
+  try {
+    await savePushToken(req.user.id, req.body?.token || null);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[auth/push-token]', err.message);
+    res.status(500).json({ error: 'Erro ao guardar.' });
   }
 });
 

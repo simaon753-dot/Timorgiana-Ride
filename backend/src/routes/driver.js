@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth, requireRole } from '../auth.js';
 import { saveDocument, listDocuments } from '../documents.js';
+import { setOnline, savePushToken } from '../drivers.js';
 import { toPublicUser } from '../users.js';
 
 export const driverRouter = Router();
@@ -21,6 +22,33 @@ driverRouter.get(
         createdAt: d.created_at,
       })),
     });
+  })
+);
+
+// POST /api/driver/availability — ficar disponível ou indisponível
+driverRouter.post(
+  '/availability',
+  wrap(async (req, res) => {
+    const { online } = req.body || {};
+    if (typeof online !== 'boolean') {
+      return res.status(400).json({ error: 'Valor inválido.' });
+    }
+    if ((req.user.driver_status || 'pending') !== 'approved') {
+      return res.status(403).json({ error: 'A tua conta ainda não foi aprovada.' });
+    }
+    const row = await setOnline(req.user.id, online);
+
+    // Manter as salas do tempo real em sintonia com a base de dados.
+    // Sem isto, mudar a disponibilidade por aqui gravava o estado mas
+    // deixava o socket fora das salas: o motorista aparecia disponível
+    // e não recebia pedido nenhum.
+    const io = req.app.get('io');
+    const salas = ['drivers', `drivers:${req.user.vehicle_type || 'car'}`];
+    const alvo = io.in(`user:${req.user.id}`);
+    if (row?.is_online) await alvo.socketsJoin(salas);
+    else await alvo.socketsLeave(salas);
+
+    res.json({ online: !!row?.is_online });
   })
 );
 

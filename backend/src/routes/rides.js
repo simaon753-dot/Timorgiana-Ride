@@ -13,6 +13,8 @@ import {
 } from '../rides.js';
 import { addMessage, listMessages } from '../messages.js';
 import { addRating, hasRated } from '../ratings.js';
+import { notificarPedidoNovo, notificarAceite } from '../push.js';
+import { one } from '../db.js';
 
 export const ridesRouter = Router();
 
@@ -65,6 +67,11 @@ ridesRouter.post(
     const io = req.app.get('io');
     io.to(row.vehicle_type ? `drivers:${row.vehicle_type}` : 'drivers').emit('ride:new', ride);
 
+    // Notificação para quem tem a app fechada. Deliberadamente sem await:
+    // se o serviço de notificações estiver lento, o passageiro não fica à
+    // espera — o pedido já foi criado e entregue em tempo real.
+    notificarPedidoNovo(ride).catch(() => {});
+
     return res.status(201).json({ ride });
   })
 );
@@ -113,10 +120,16 @@ ridesRouter.post(
     if (!row) return res.status(409).json({ error: 'Esta viagem já não está disponível.' });
 
     const io = req.app.get('io');
+    const ride = toPublicRide(row);
     notify(io, row, 'ride:update');
     io.to('drivers').emit('ride:taken', { id: row.id });
 
-    return res.json({ ride: toPublicRide(row) });
+    // Avisar o passageiro, que pode ter fechado a app à espera
+    one('SELECT push_token FROM users WHERE id = $1', [row.passenger_id])
+      .then((u) => notificarAceite(u?.push_token, ride))
+      .catch(() => {});
+
+    return res.json({ ride });
   })
 );
 

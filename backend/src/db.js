@@ -65,6 +65,13 @@ export async function initSchema() {
       -- Um motorista só recebe pedidos depois de aprovado.
       driver_status TEXT CHECK (driver_status IN ('pending','approved','rejected')),
       is_admin      BOOLEAN NOT NULL DEFAULT FALSE,
+      -- Só motoristas: se está a aceitar pedidos neste momento
+      is_online     BOOLEAN NOT NULL DEFAULT FALSE,
+      -- Última posição conhecida, para o passageiro ver o motorista
+      -- a aproximar-se e para escolher o motorista mais próximo
+      last_lat      DOUBLE PRECISION,
+      last_lng      DOUBLE PRECISION,
+      last_seen_at  TIMESTAMPTZ,
       rating_avg    REAL NOT NULL DEFAULT 0,
       rating_count  INTEGER NOT NULL DEFAULT 0,
       created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -145,7 +152,14 @@ export async function initSchema() {
      WHERE role = 'driver' AND driver_status IS NULL`
   );
 
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_online BOOLEAN NOT NULL DEFAULT FALSE`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_lat DOUBLE PRECISION`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_lng DOUBLE PRECISION`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS push_token TEXT`);
+
   await query('CREATE INDEX IF NOT EXISTS idx_docs_user ON driver_documents(user_id)');
+  await query('CREATE INDEX IF NOT EXISTS idx_users_online ON users(is_online) WHERE role = \'driver\'');
 
   const [{ now }] = await query('SELECT NOW() AS now');
   console.log('[db] PostgreSQL pronto —', now.toISOString());

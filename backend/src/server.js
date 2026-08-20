@@ -10,6 +10,8 @@ import { ridesRouter } from './routes/rides.js';
 import { driverRouter } from './routes/driver.js';
 import { adminRouter } from './routes/admin.js';
 import { verifyToken } from './auth.js';
+import { setOnline, updateLocation } from './drivers.js';
+import { one } from './db.js';
 
 const app = express();
 app.use(cors());
@@ -61,6 +63,7 @@ io.use(async (socket, next) => {
       name: user.name,
       vehicleType: user.vehicle_type || 'car',
       driverStatus: user.driver_status || 'pending',
+      isOnline: !!user.is_online,
     };
     next();
   } catch (e) {
@@ -73,14 +76,68 @@ io.on('connection', (socket) => {
   console.log(`[socket] ligado: ${user.name} (${user.role}#${user.id})`);
 
   socket.join(`user:${user.id}`);
-  // Só motoristas aprovados entram nas salas que recebem pedidos
-  if (user.role === 'driver' && user.driverStatus === 'approved') {
+  const podeReceberPedidos = user.role === 'driver' && user.driverStatus === 'approved';
+
+  const entrarNasSalas = () => {
     socket.join('drivers');
     socket.join(`drivers:${user.vehicleType}`);
-  }
+  };
+  const sairDasSalas = () => {
+    socket.leave('drivers');
+    socket.leave(`drivers:${user.vehicleType}`);
+  };
 
-  socket.on('disconnect', () => {
+  // Só entra nas salas se estiver aprovado E disponível. Um motorista a
+  // almoçar não deve receber pedidos que não vai aceitar — para o
+  // passageiro, um pedido que ninguém atende é pior do que nenhum.
+  if (podeReceberPedidos && user.isOnline) entrarNasSalas();
+
+  socket.on('driver:setOnline', async (online, ack) => {
+    if (!podeReceberPedidos) return;
+    try {
+      await setOnline(user.id, online);
+      user.isOnline = !!online;
+      if (online) entrarNasSalas();
+      else sairDasSalas();
+      if (typeof ack === 'function') ack({ ok: true, online: !!online });
+    } catch (e) {
+      console.error('[socket] driver:setOnline', e.message);
+      if (typeof ack === 'function') ack({ ok: false });
+    }
+  });
+
+  // Posição do motorista: guardada e reencaminhada ao passageiro da
+  // viagem em curso, para ele ver o veículo a aproximar-se.
+  socket.on('driver:location', async ({ lat, lng } = {}) => {
+    if (user.role !== 'driver') return;
+    if (typeof lat !== 'number' || typeof lng !== 'number') return;
+    try {
+      await updateLocation(user.id, lat, lng);
+      const viagem = await one(
+        `SELECT id, passenger_id FROM rides
+         WHERE driver_id = $1 AND status IN ('accepted','arriving')
+         ORDER BY id DESC LIMIT 1`,
+        [user.id]
+      );
+      if (viagem) {
+        io.to(`user:${viagem.passenger_id}`).emit('ride:driverLocation', {
+          rideId: viagem.id,
+          lat,
+          lng,
+        });
+      }
+    } catch (e) {
+      console.error('[socket] driver:location', e.message);
+    }
+  });
+
+  socket.on('disconnect', async () => {
     console.log(`[socket] desligado: ${user.name} (${user.role}#${user.id})`);
+    // Se o motorista fecha a app, deixa de estar disponível. Caso
+    // contrário continuaria a receber pedidos que nunca veria.
+    if (podeReceberPedidos && user.isOnline) {
+      await setOnline(user.id, false).catch(() => {});
+    }
   });
 });
 
