@@ -15,6 +15,7 @@ import { addMessage, listMessages } from '../messages.js';
 import { addRating, hasRated } from '../ratings.js';
 import { notificarPedidoNovo, notificarAceite } from '../push.js';
 import { one } from '../db.js';
+import { rota, preco } from '../routing.js';
 
 export const ridesRouter = Router();
 
@@ -56,11 +57,27 @@ ridesRouter.post(
         .json({ error: 'Já tens uma viagem a decorrer.', ride: toPublicRide(existing) });
     }
 
+    // O preço é calculado AQUI, a partir da rota real. Se viesse da app,
+    // bastaria alterar a distância no telemóvel para pagar sempre o
+    // mínimo. Sem coordenadas (destino escrito à mão) aceita-se o valor
+    // proposto, que nesse caso volta a ser combinado entre as pessoas.
+    let precoFinal = fareUsd;
+    const temCoords =
+      originLat != null && originLng != null && destLat != null && destLng != null;
+    if (temCoords) {
+      const viagem = await rota(
+        { lat: Number(originLat), lng: Number(originLng) },
+        { lat: Number(destLat), lng: Number(destLng) }
+      );
+      precoFinal = preco(vehicleType === 'motorbike' ? 'motorbike' : 'car', viagem.km);
+    }
+
     const row = await createRide({
       passengerId: req.user.id,
       destLabel, destLat, destLng,
       originLabel, originLat, originLng,
-      vehicleType, fareUsd,
+      vehicleType,
+      fareUsd: precoFinal,
     });
     const ride = toPublicRide(row);
 

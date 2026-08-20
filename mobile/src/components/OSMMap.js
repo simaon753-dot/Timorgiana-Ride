@@ -20,6 +20,7 @@ export default function OSMMap({
   onPick,
   onRoute, // recebe { km } quando há rota entre dois pontos
   liveMarker, // { lat, lng } que se move — ex.: o motorista a aproximar-se
+  fill = false, // ocupa todo o espaço do pai, sem moldura nem cantos
 }) {
   const webRef = useRef(null);
   const c = center || markers[0] || DILI;
@@ -45,7 +46,7 @@ export default function OSMMap({
   // em vez do erro vermelho do react-native-webview.
   if (Platform.OS === 'web') {
     return (
-      <View style={[styles.wrap, styles.fallback, { height }]}>
+      <View style={[styles.wrap, styles.fallback, fill ? styles.fill : { height }]}>
         <Text style={styles.fallbackIcon}>🗺️</Text>
         <Text style={styles.fallbackText}>O mapa está disponível na app do telemóvel.</Text>
       </View>
@@ -53,7 +54,7 @@ export default function OSMMap({
   }
 
   return (
-    <View style={[styles.wrap, { height }]}>
+    <View style={[styles.wrap, fill ? styles.fill : { height }]}>
       <WebView
         ref={webRef}
         originWhitelist={['*']}
@@ -149,6 +150,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: '#e9e4db',
   },
+  fill: { flex: 1, borderRadius: 0, borderWidth: 0 },
   web: { flex: 1, backgroundColor: 'transparent' },
   fallback: { alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
   fallbackIcon: { fontSize: 32, marginBottom: spacing.sm },

@@ -9,6 +9,7 @@ import { authRouter } from './routes/auth.js';
 import { ridesRouter } from './routes/rides.js';
 import { driverRouter } from './routes/driver.js';
 import { adminRouter } from './routes/admin.js';
+import { quoteRouter } from './routes/quote.js';
 import { verifyToken } from './auth.js';
 import { setOnline, updateLocation } from './drivers.js';
 import { one } from './db.js';
@@ -43,6 +44,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/rides', ridesRouter);
 app.use('/api/driver', driverRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/quote', quoteRouter);
 
 app.use('/api', (req, res) => {
   res.status(404).json({ error: 'Rota não encontrada.' });

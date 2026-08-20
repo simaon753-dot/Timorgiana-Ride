@@ -1,31 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import * as Location from 'expo-location';
-import Button from '../components/Button.js';
-import TextField from '../components/TextField.js';
-import SegmentedPicker from '../components/SegmentedPicker.js';
-import LanguageToggle from '../components/LanguageToggle.js';
 import OSMMap from '../components/OSMMap.js';
 import { useI18n } from '../i18n/index.js';
+import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
 import { api } from '../api/client.js';
-import { colors, spacing, fontSize } from '../theme.js';
+import { colors, spacing, fontSize, radius } from '../theme.js';
 
-// Converte coordenadas num nome de sítio legível (OpenStreetMap Nominatim).
-//
-// O Nominatim exige que cada aplicação se identifique — pedidos sem
-// User-Agent são recusados. Sem isso, todos os locais apareciam com o
-// nome de reserva e o motorista não sabia para onde ia.
+// O Nominatim exige que a aplicação se identifique; sem User-Agent não
+// devolve o nome do sítio e os locais ficariam sem nome legível.
 async function reverseGeocode(lat, lng) {
   try {
     const r = await fetch(
@@ -45,241 +31,315 @@ async function reverseGeocode(lat, lng) {
   }
 }
 
-// Nome de reserva quando não se consegue o nome do sítio: as próprias
-// coordenadas. Não é bonito, mas é útil — o motorista pode copiá-las para
-// um mapa. O texto do botão que o utilizador carregou não serve de nome.
-function coordLabel(lat, lng) {
-  return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-}
+const coordLabel = (lat, lng) => `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 
 export default function RequestRideScreen({ navigation }) {
   const { t } = useI18n();
+  const { token } = useAuth();
   const { requestRide } = useRides();
 
-  const [dest, setDest] = useState('');
-  const [destCoord, setDestCoord] = useState(null);
-  const [origin, setOrigin] = useState('');
-  const [originCoord, setOriginCoord] = useState(null);
-  const [center, setCenter] = useState(null);
-  const [vType, setVType] = useState('any');
-  const [fare, setFare] = useState('');
-  const [distanceKm, setDistanceKm] = useState(null);
+  const [origem, setOrigem] = useState(null); // { lat, lng, label }
+  const [destino, setDestino] = useState(null);
+  const [orcamento, setOrcamento] = useState(null);
+  const [aCalcular, setACalcular] = useState(false);
+  const [veiculo, setVeiculo] = useState('car');
   const [gps, setGps] = useState(false);
-  const [tarifas, setTarifas] = useState(null);
+  const [erro, setErro] = useState(null);
+  const [aPedir, setAPedir] = useState(false);
 
-  // As tarifas vêm do servidor: mudá-las não deve exigir uma app nova.
+  // Assim que houver os dois pontos, o servidor devolve rota, preços e
+  // tempo de chegada num só pedido — é ele que fixa o preço.
   useEffect(() => {
-    api.fares().then(({ fares }) => setTarifas(fares)).catch(() => {});
-  }, []);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+    if (!origem || !destino) return setOrcamento(null);
+    let cancelado = false;
+    setACalcular(true);
+    api
+      .quote(token, {
+        originLat: origem.lat,
+        originLng: origem.lng,
+        destLat: destino.lat,
+        destLng: destino.lng,
+      })
+      .then((q) => !cancelado && setOrcamento(q))
+      .catch(() => !cancelado && setOrcamento(null))
+      .finally(() => !cancelado && setACalcular(false));
+    return () => {
+      cancelado = true;
+    };
+  }, [token, origem?.lat, origem?.lng, destino?.lat, destino?.lng]);
 
-  async function onPickDestination(coord) {
-    setDestCoord(coord);
-    const label = await reverseGeocode(coord.lat, coord.lng);
-    setDest(label || coordLabel(coord.lat, coord.lng));
-  }
-
-  async function useMyLocation() {
+  const usarLocalizacao = useCallback(async () => {
     setGps(true);
+    setErro(null);
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') return;
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      setOriginCoord(c);
-      setCenter(c);
-      const label = await reverseGeocode(c.lat, c.lng);
-      setOrigin(label || coordLabel(c.lat, c.lng));
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      const label = await reverseGeocode(lat, lng);
+      setOrigem({ lat, lng, label: label || coordLabel(lat, lng) });
     } catch {
-      /* ignora — o utilizador pode escrever a origem à mão */
+      /* sem GPS — o utilizador pode escolher no mapa */
     } finally {
       setGps(false);
     }
+  }, []);
+
+  // Pedir a localização logo à entrada: quase sempre a recolha é onde a
+  // pessoa está, e poupa-lhe um toque.
+  useEffect(() => {
+    usarLocalizacao();
+  }, [usarLocalizacao]);
+
+  async function escolherNoMapa({ lat, lng }) {
+    const label = await reverseGeocode(lat, lng);
+    const ponto = { lat, lng, label: label || coordLabel(lat, lng) };
+    if (!origem) setOrigem(ponto);
+    else setDestino(ponto);
   }
 
-  async function onSubmit() {
-    setError(null);
-    if (!dest.trim()) return setError(t('errDestRequired'));
-
-    setLoading(true);
+  async function pedir() {
+    setErro(null);
+    if (!origem || !destino) return setErro(t('needBothPoints'));
+    setAPedir(true);
     try {
       await requestRide({
-        destLabel: dest.trim(),
-        destLat: destCoord?.lat,
-        destLng: destCoord?.lng,
-        originLabel: origin.trim() || undefined,
-        originLat: originCoord?.lat,
-        originLng: originCoord?.lng,
-        vehicleType: vType === 'any' ? undefined : vType,
-        fareUsd: fare.trim() === '' ? undefined : Number(fare),
+        destLabel: destino.label,
+        destLat: destino.lat,
+        destLng: destino.lng,
+        originLabel: origem.label,
+        originLat: origem.lat,
+        originLng: origem.lng,
+        vehicleType: veiculo,
       });
-      navigation.goBack(); // o ecrã inicial mostra agora a viagem em curso
+      navigation.goBack();
     } catch (e) {
-      setError(e?.message === 'NETWORK' ? t('errNetwork') : e?.message || t('errGeneric'));
+      setErro(e?.message === 'NETWORK' ? t('errNetwork') : e?.message || t('errGeneric'));
     } finally {
-      setLoading(false);
+      setAPedir(false);
     }
   }
 
-  // Quando existem os dois pontos, o mapa desenha a rota e devolve a distância
-  // Sugestão a partir da distância. É só uma sugestão: o preço final
-  // continua a ser combinado entre passageiro e motorista.
-  const tabela = tarifas?.[vType === 'motorbike' ? 'motorbike' : 'car'];
-  const sugestao =
-    distanceKm != null && tabela
-      ? Math.max(tabela.min, Math.round((tabela.base + tabela.perKm * distanceKm) * 4) / 4)
-      : null;
+  const marcadores = [];
+  if (origem) marcadores.push({ lat: origem.lat, lng: origem.lng, label: origem.label });
+  if (destino) marcadores.push({ lat: destino.lat, lng: destino.lng, label: destino.label });
 
-  const mapMarkers = [];
-  if (originCoord) mapMarkers.push({ ...originCoord, label: origin || t('originField') });
-  if (destCoord) mapMarkers.push({ ...destCoord, label: dest || t('destination') });
+  const opcao = orcamento?.options?.find((o) => o.type === veiculo);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <View style={styles.topBar}>
-          <Pressable onPress={() => navigation.goBack()} hitSlop={10}>
-            <Text style={styles.back}>‹ {t('back')}</Text>
-          </Pressable>
-          <LanguageToggle />
-        </View>
 
-        <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
-          <Text style={styles.title}>{t('requestRide')}</Text>
-
-          <OSMMap
-            pickable
-            markers={mapMarkers}
-            center={center}
-            height={220}
-            onPick={onPickDestination}
-            onRoute={({ km }) => setDistanceKm(km)}
-          />
-          {distanceKm != null ? (
-            <Text style={styles.distance}>
-              🛣️ {t('distance')}: {distanceKm} {t('km')}
+      {/* Mapa a ocupar o espaço todo até ao painel */}
+      <View style={styles.mapa}>
+        <OSMMap pickable fill markers={marcadores} onPick={escolherNoMapa} />
+        <Pressable style={styles.voltar} onPress={() => navigation.goBack()} hitSlop={10}>
+          <Text style={styles.voltarTexto}>‹</Text>
+        </Pressable>
+        {orcamento ? (
+          <View style={styles.rotaBadge}>
+            <Text style={styles.rotaTexto}>
+              {t('tripInfo', { km: orcamento.distanceKm, min: orcamento.durationMin })}
+              {orcamento.approximate ? ` · ${t('priceApprox')}` : ''}
             </Text>
-          ) : (
-            <Text style={styles.mapHint}>{t('mapHint')}</Text>
-          )}
+          </View>
+        ) : null}
+      </View>
 
-          <Button
-            title={gps ? t('gettingLocation') : t('useMyLocation')}
-            variant="outline"
-            onPress={useMyLocation}
-            loading={gps}
-            style={{ marginBottom: spacing.md }}
+      {/* Painel inferior */}
+      <View style={styles.painel}>
+        <View style={styles.puxador} />
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <Ponto
+            cor={colors.teal}
+            rotulo={t('pickupPoint')}
+            valor={origem?.label}
+            vazio={gps ? t('gettingLocation') : t('useMyLocation')}
+            onPress={usarLocalizacao}
+          />
+          <View style={styles.linha} />
+          <Ponto
+            cor={colors.coral}
+            rotulo={t('dropoffPoint')}
+            valor={destino?.label}
+            vazio={t('tapMapToChoose')}
+            onPress={() => setDestino(null)}
           />
 
-          <TextField
-            label={t('destination')}
-            value={dest}
-            onChangeText={setDest}
-            placeholder={t('destinationPlaceholder')}
-          />
-          <TextField
-            label={t('originField')}
-            value={origin}
-            onChangeText={setOrigin}
-            placeholder={t('originPlaceholder')}
-          />
-
-          <Text style={styles.sectionLabel}>{t('vehicleType')}</Text>
-          <SegmentedPicker
-            value={vType}
-            onChange={setVType}
-            options={[
-              { value: 'any', label: t('vehicleAny'), icon: '🚕' },
-              { value: 'car', label: t('vehicleCar'), icon: '🚗' },
-              { value: 'motorbike', label: t('vehicleMotorbike'), icon: '🏍️' },
-            ]}
-          />
-
-          <View style={{ height: spacing.md }} />
-          <TextField
-            label={t('suggestedFare')}
-            optionalLabel={t('optional')}
-            value={fare}
-            onChangeText={setFare}
-            keyboardType="numeric"
-            placeholder="Ex.: 3"
-          />
-
-          {sugestao != null && fare.trim() === '' ? (
-            <Pressable style={styles.suggest} onPress={() => setFare(String(sugestao))}>
-              <Text style={styles.suggestText}>
-                💡 {t('fareSuggested', { value: sugestao })} · {t('fareUse')}
-              </Text>
-            </Pressable>
+          {aCalcular ? (
+            <ActivityIndicator color={colors.teal} style={{ marginVertical: spacing.lg }} />
+          ) : orcamento ? (
+            <>
+              <Text style={styles.seccao}>{t('chooseVehicle')}</Text>
+              {orcamento.options.map((o) => (
+                <CartaoVeiculo
+                  key={o.type}
+                  opcao={o}
+                  ativo={veiculo === o.type}
+                  onPress={() => setVeiculo(o.type)}
+                  t={t}
+                />
+              ))}
+              <View style={styles.pagamento}>
+                <Text style={styles.pagamentoTexto}>💵 {t('payCash')}</Text>
+              </View>
+            </>
           ) : null}
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-
-          <Button
-            title={t('requestRide')}
-            onPress={onSubmit}
-            loading={loading}
-            style={{ marginTop: spacing.md }}
-          />
-          <View style={{ height: spacing.xl }} />
+          {erro ? <Text style={styles.erro}>{erro}</Text> : null}
         </ScrollView>
-      </KeyboardAvoidingView>
+
+        <Pressable
+          style={[styles.botao, (!opcao || aPedir) && styles.botaoInativo]}
+          onPress={pedir}
+          disabled={!opcao || aPedir}
+        >
+          {aPedir ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <Text style={styles.botaoTexto}>
+              {opcao ? `${t('confirmRide')} $${opcao.fareUsd.toFixed(2)}` : t('whereTo')}
+            </Text>
+          )}
+        </Pressable>
+      </View>
     </SafeAreaView>
+  );
+}
+
+function Ponto({ cor, rotulo, valor, vazio, onPress }) {
+  return (
+    <Pressable style={styles.ponto} onPress={onPress}>
+      <View style={[styles.bolinha, { backgroundColor: cor }]} />
+      <View style={{ flex: 1 }}>
+        <Text style={styles.pontoRotulo}>{rotulo}</Text>
+        <Text style={[styles.pontoValor, !valor && styles.pontoVazio]} numberOfLines={1}>
+          {valor || vazio}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
+function CartaoVeiculo({ opcao, ativo, onPress, t }) {
+  const nome = opcao.type === 'motorbike' ? t('vehicleMotorbike') : t('vehicleCar');
+  const icone = opcao.type === 'motorbike' ? '🏍️' : '🚗';
+  return (
+    <Pressable
+      style={[styles.veiculo, ativo && styles.veiculoAtivo, !opcao.available && styles.veiculoIndisp]}
+      onPress={onPress}
+    >
+      <Text style={styles.veiculoIcone}>{icone}</Text>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.veiculoNome}>{nome}</Text>
+        <Text style={styles.veiculoEta}>
+          {opcao.available ? t('minAway', { min: opcao.etaMin }) : t('noDriverNearby')}
+        </Text>
+      </View>
+      <Text style={styles.veiculoPreco}>${opcao.fareUsd.toFixed(2)}</Text>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
-  topBar: {
-    flexDirection: 'row',
+  mapa: { flex: 1, position: 'relative' },
+  voltar: {
+    position: 'absolute',
+    top: spacing.md,
+    left: spacing.md,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.white,
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    elevation: 3,
+  },
+  voltarTexto: { fontSize: 26, color: colors.teal, fontWeight: '800', marginTop: -4 },
+  rotaBadge: {
+    position: 'absolute',
+    top: spacing.md,
+    alignSelf: 'center',
+    backgroundColor: colors.teal,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
+    borderRadius: radius.pill,
+  },
+  rotaTexto: { color: colors.onTeal, fontWeight: '700', fontSize: fontSize.sm },
+
+  painel: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.md,
+    maxHeight: '58%',
   },
-  back: { color: colors.teal, fontSize: fontSize.md, fontWeight: '700' },
-  title: {
-    fontSize: fontSize.xl,
-    fontWeight: '800',
-    color: colors.text,
+  puxador: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    alignSelf: 'center',
     marginBottom: spacing.md,
   },
-  form: { paddingHorizontal: spacing.lg, paddingTop: spacing.xs },
-  mapHint: {
+  ponto: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm },
+  bolinha: { width: 10, height: 10, borderRadius: 5, marginRight: spacing.md },
+  pontoRotulo: {
     fontSize: fontSize.xs,
     color: colors.textMuted,
-    marginTop: spacing.xs,
-    marginBottom: spacing.md,
-    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  distance: {
-    fontSize: fontSize.sm,
-    fontWeight: '700',
-    color: colors.teal,
-    marginTop: spacing.sm,
-    marginBottom: spacing.md,
-    textAlign: 'center',
-  },
-  sectionLabel: {
-    fontSize: fontSize.sm,
-    fontWeight: '600',
-    color: colors.text,
+  pontoValor: { fontSize: fontSize.md, color: colors.text, fontWeight: '600' },
+  pontoVazio: { color: colors.textMuted, fontWeight: '400' },
+  linha: { height: 1, backgroundColor: colors.border, marginLeft: 26 },
+
+  seccao: {
+    fontSize: fontSize.xs,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: spacing.md,
     marginBottom: spacing.sm,
+  },
+  veiculo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  veiculoAtivo: { borderColor: colors.teal, backgroundColor: '#F0F5F4' },
+  veiculoIndisp: { opacity: 0.55 },
+  veiculoIcone: { fontSize: 26, marginRight: spacing.md },
+  veiculoNome: { fontSize: fontSize.md, fontWeight: '700', color: colors.text },
+  veiculoEta: { fontSize: fontSize.xs, color: colors.textMuted, marginTop: 1 },
+  veiculoPreco: { fontSize: fontSize.lg, fontWeight: '800', color: colors.teal },
+
+  pagamento: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
     marginTop: spacing.xs,
   },
-  error: { color: colors.danger, fontSize: fontSize.sm, marginTop: spacing.md },
-  suggest: {
-    backgroundColor: '#EFEAE1',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: spacing.md,
+  pagamentoTexto: { fontSize: fontSize.md, color: colors.text, fontWeight: '600' },
+
+  erro: { color: colors.danger, fontSize: fontSize.sm, marginTop: spacing.sm },
+
+  botao: {
+    backgroundColor: colors.coral,
+    borderRadius: radius.md,
+    height: 54,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: spacing.md,
   },
-  suggestText: { color: colors.teal, fontWeight: '700', fontSize: fontSize.sm },
+  botaoInativo: { backgroundColor: colors.border },
+  botaoTexto: { color: colors.white, fontSize: fontSize.md, fontWeight: '800' },
 });

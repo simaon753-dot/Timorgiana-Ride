@@ -76,6 +76,7 @@ export const api = {
   me: (token) => request('/auth/me', { token }),
   health: () => request('/health'),
   fares: () => request('/config/fares'),
+  quote: (token, body) => request('/quote', { method: 'POST', body, token }),
 
   createRide: (token, body) => request('/rides', { method: 'POST', body, token }),
   activeRide: (token) => request('/rides/active', { token }),

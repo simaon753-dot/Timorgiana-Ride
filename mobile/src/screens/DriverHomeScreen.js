@@ -115,7 +115,6 @@ export default function DriverHomeScreen({ navigation }) {
 // ---- Cartão de um pedido por aceitar ----
 function RequestCard({ ride, onAccept }) {
   const { t } = useI18n();
-  const [fare, setFare] = useState(ride.fareUsd != null ? String(ride.fareUsd) : '');
   const [busy, setBusy] = useState(false);
 
   const wants =
@@ -128,7 +127,7 @@ function RequestCard({ ride, onAccept }) {
   async function accept() {
     setBusy(true);
     try {
-      await onAccept(fare === '' ? null : Number(fare));
+      await onAccept(null);
     } catch {
       setBusy(false); // se falhar (já aceite por outro), volta a permitir
     }
@@ -150,47 +149,13 @@ function RequestCard({ ride, onAccept }) {
             : `${t('wantsLabel')}: ${wants}`}
         </Text>
       </View>
-      <TextField
-        label={t('fareInput')}
-        value={fare}
-        onChangeText={setFare}
-        keyboardType="numeric"
-        placeholder="Ex.: 3"
-      />
-      <Button title={t('acceptRide')} onPress={accept} loading={busy} />
-    </View>
-  );
-}
-
-// Editor da tarifa combinada (o motorista pode ajustar após conversar)
-function FareEditor({ ride }) {
-  const { t } = useI18n();
-  const { updateFare } = useRides();
-  const [fare, setFare] = useState(ride.fareUsd != null ? String(ride.fareUsd) : '');
-  const [busy, setBusy] = useState(false);
-
-  async function save() {
-    if (fare.trim() === '') return;
-    setBusy(true);
-    try {
-      await updateFare(ride.id, Number(fare));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <View style={styles.fareEditor}>
-      <View style={{ flex: 1 }}>
-        <TextField
-          label={`${t('fareLabel')} (USD)`}
-          value={fare}
-          onChangeText={setFare}
-          keyboardType="numeric"
-          placeholder="Ex.: 3"
-        />
+      <View style={styles.precoLinha}>
+        <Text style={styles.precoRotulo}>{t('fareLabel')}</Text>
+        <Text style={styles.precoValor}>
+          {ride.fareUsd != null ? `$${ride.fareUsd.toFixed(2)}` : t('fareToAgree')}
+        </Text>
       </View>
-      <Button title={t('saveFare')} onPress={save} loading={busy} style={styles.fareSaveBtn} />
+      <Button title={t('acceptRide')} onPress={accept} loading={busy} />
     </View>
   );
 }
@@ -244,7 +209,6 @@ function ActiveRideCard({ ride, isFinal, navigation, onArriving, onComplete, onC
           <View style={{ marginTop: spacing.md }}>
             <ChatButton navigation={navigation} />
           </View>
-          <FareEditor ride={ride} />
         </>
       ) : null}
 
@@ -354,6 +318,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   callBtnText: { color: colors.onTeal, fontWeight: '700', fontSize: fontSize.sm },
+  precoLinha: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  precoRotulo: { fontSize: fontSize.sm, color: colors.textMuted },
+  precoValor: { fontSize: fontSize.xl, fontWeight: '800', color: colors.teal },
   fareEditor: {
     flexDirection: 'row',
     alignItems: 'flex-end',
