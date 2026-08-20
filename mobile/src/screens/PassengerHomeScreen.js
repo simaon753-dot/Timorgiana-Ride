@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Linking,
   Pressable,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -16,6 +17,7 @@ import LanguageToggle from '../components/LanguageToggle.js';
 import StatusBadge from '../components/StatusBadge.js';
 import OSMMap from '../components/OSMMap.js';
 import ChatButton from '../components/ChatButton.js';
+import SosButton from '../components/SosButton.js';
 import RatingPanel from '../components/RatingPanel.js';
 import { rideMarkers } from '../lib/rideMarkers.js';
 import { useI18n } from '../i18n/index.js';
@@ -33,13 +35,43 @@ export default function PassengerHomeScreen({ navigation }) {
   const withDriver =
     activeRide?.driver && ['accepted', 'arriving'].includes(activeRide.status);
 
+  // Cancelar depois de o motorista aceitar não é a mesma coisa que cancelar
+  // enquanto ainda se procura. O texto diz-lhe qual dos dois é — sem
+  // impedir nada: às vezes cancelar é mesmo o que faz falta.
+  function confirmarCancelamento() {
+    Alert.alert(
+      t('cancelConfirmTitle'),
+      withDriver ? t('cancelConfirmAccepted') : t('cancelConfirmRequested'),
+      [
+        { text: t('cancelKeep'), style: 'cancel' },
+        {
+          text: t('cancelYes'),
+          style: 'destructive',
+          onPress: async () => {
+            const r = await cancelRide(activeRide.id);
+            if (r?.aviso === 'demasiados') {
+              Alert.alert(t('cancelTooMany', { n: r.cancelamentos }), t('cancelTooManyExplain'));
+            }
+          },
+        },
+      ]
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.topBar}>
           <Logo size="sm" />
-          <LanguageToggle />
+          <View style={styles.topBarDireita}>
+            {user?.isAdmin ? (
+              <Pressable onPress={() => navigation.navigate('Admin')} style={styles.adminLink}>
+                <Text style={styles.adminLinkText}>⚙</Text>
+              </Pressable>
+            ) : null}
+            <LanguageToggle />
+          </View>
         </View>
 
         {loading ? (
@@ -106,6 +138,12 @@ export default function PassengerHomeScreen({ navigation }) {
               </View>
             ) : null}
 
+            {withDriver ? (
+              <View style={{ marginTop: spacing.md }}>
+                <SosButton rideId={activeRide.id} />
+              </View>
+            ) : null}
+
             {activeRide.status === 'completed' ? (
               <RatingPanel ride={activeRide} role="passenger" />
             ) : null}
@@ -117,7 +155,7 @@ export default function PassengerHomeScreen({ navigation }) {
               <Button
                 title={t('cancelRide')}
                 variant="outline"
-                onPress={() => cancelRide(activeRide.id)}
+                onPress={() => confirmarCancelamento()}
               />
             )}
           </View>
@@ -166,6 +204,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: spacing.xl,
   },
+  topBarDireita: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  adminLink: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.white,
+  },
+  adminLinkText: { fontSize: 18, color: colors.teal },
   heroCard: {
     backgroundColor: colors.white,
     borderRadius: radius.lg,

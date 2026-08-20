@@ -1,4 +1,5 @@
 import { onlineDrivers, nearestDrivers } from './drivers.js';
+import { query } from './db.js';
 import { config } from './config.js';
 
 const EXPO_PUSH = 'https://exp.host/--/api/v2/push/send';
@@ -72,4 +73,26 @@ export async function notificarAceite(pushToken, ride) {
       priority: 'high',
     },
   ]);
+}
+
+// Avisa todos os administradores de um pedido de ajuda. Vai com prioridade
+// máxima e sem `sound: 'default'` trocado por nada: isto tem de tocar mesmo
+// que o telemóvel esteja no bolso.
+export async function notificarAdminsSOS({ nome, rideId, lat, lng }) {
+  const admins = await query(
+    'SELECT push_token FROM users WHERE is_admin = TRUE AND push_token IS NOT NULL'
+  );
+  if (!admins.length) return { enviadas: 0 };
+
+  const onde = lat != null && lng != null ? `${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}` : 'sem posição';
+  return enviar(
+    admins.map((a) => ({
+      to: a.push_token,
+      sound: 'default',
+      title: '🚨 PEDIDO DE AJUDA',
+      body: `${nome || 'Alguém'} carregou no SOS · ${onde}`,
+      data: { tipo: 'sos', rideId },
+      priority: 'high',
+    }))
+  );
 }

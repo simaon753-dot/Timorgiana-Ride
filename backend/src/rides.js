@@ -155,8 +155,13 @@ export async function acceptRide(rideId, driverId, fareUsd) {
   return getRideById(rideId);
 }
 
-export async function setRideStatus(rideId, status) {
-  await query('UPDATE rides SET status = $1, updated_at = NOW() WHERE id = $2', [status, rideId]);
+export async function setRideStatus(rideId, status, porQuem = null) {
+  await query(
+    `UPDATE rides SET status = $1, updated_at = NOW(),
+            cancelled_by = COALESCE($3, cancelled_by)
+     WHERE id = $2`,
+    [status, rideId, porQuem]
+  );
   return getRideById(rideId);
 }
 

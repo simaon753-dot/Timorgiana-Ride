@@ -17,6 +17,7 @@ import LanguageToggle from '../components/LanguageToggle.js';
 import StatusBadge from '../components/StatusBadge.js';
 import OSMMap from '../components/OSMMap.js';
 import ChatButton from '../components/ChatButton.js';
+import SosButton from '../components/SosButton.js';
 import RatingPanel from '../components/RatingPanel.js';
 import { rideMarkers } from '../lib/rideMarkers.js';
 import { useI18n } from '../i18n/index.js';
@@ -208,6 +209,11 @@ function ActiveRideCard({ ride, isFinal, navigation, onArriving, onComplete, onC
         <>
           <View style={{ marginTop: spacing.md }}>
             <ChatButton navigation={navigation} />
+          </View>
+          {/* O motorista corre o mesmo risco que o passageiro — leva
+              desconhecidos no carro, muitas vezes de noite. */}
+          <View style={{ marginTop: spacing.md }}>
+            <SosButton rideId={ride.id} />
           </View>
         </>
       ) : null}

@@ -173,9 +173,11 @@ export function RideProvider({ children }) {
 
   const cancelRide = useCallback(
     async (id) => {
-      const { ride } = await api.cancelRide(token, id);
-      setActiveRide(ride);
-      return ride;
+      const resposta = await api.cancelRide(token, id);
+      setActiveRide(resposta.ride);
+      // Devolve a resposta inteira: além da viagem, traz o número de
+      // cancelamentos recentes, que o ecrã usa para avisar quem exagera.
+      return resposta;
     },
     [token]
   );

@@ -196,4 +196,55 @@ export default {
   searchHint: 'Escreve o nome do sítio.\nEx.: Timor Plaza, aeroporto, Cristo Rei',
   searchNothing: 'Não encontrámos esse sítio. Tenta outro nome, ou toca no mapa.',
   searchOrTap: 'Procurar ou tocar no mapa',
+
+  // Emergência
+  sos: 'Emergência',
+  sosConfirmTitle: 'Pedir ajuda?',
+  sosConfirmExplain:
+    'Vamos avisar a TimorgianaRide com a tua posição e podes ligar à polícia. Usa só numa emergência real.',
+  sosConfirmYes: 'Sim, pedir ajuda',
+  sosSentTitle: '🚨 Pedido de ajuda enviado',
+  sosSentExplain: 'A TimorgianaRide foi avisada. Queres ligar à polícia agora?',
+  sosOnlyAlert: 'Não, obrigado',
+  sosCall: 'Ligar {n}',
+  sosOffline: 'Sem ligação',
+  sosOfflineExplain: 'Não conseguimos avisar a TimorgianaRide. Podes ligar à polícia directamente.',
+  shareTrip: 'Partilhar viagem',
+  shareTripText:
+    'Estou numa viagem TimorgianaRide.\nMotorista: {driver} ({plate})\nDestino: {dest}\nPosição: {link}',
+
+  // Cancelamentos
+  cancelConfirmTitle: 'Cancelar a viagem?',
+  cancelConfirmAccepted: 'O motorista já vem a caminho. Cancelar agora faz com que ele perca a viagem.',
+  cancelConfirmRequested: 'Ainda não há motorista. Podes cancelar sem problema.',
+  cancelKeep: 'Manter viagem',
+  cancelYes: 'Sim, cancelar',
+  cancelTooMany: 'Já cancelaste {n} viagens esta semana',
+  cancelTooManyExplain:
+    'Cancelar muitas vezes deixa os motoristas sem trabalho. Se isto continuar, a tua conta pode ser suspensa.',
+
+  // Administração
+  admin: 'Administração',
+  adminTitle: 'Painel',
+  adminPending: 'Motoristas a aguardar',
+  adminNoPending: 'Nenhum motorista à espera. 👍',
+  adminApprove: 'Aprovar',
+  adminReject: 'Recusar',
+  adminApproved: 'Motorista aprovado ✅',
+  adminRejected: 'Motorista recusado',
+  adminRejectTitle: 'Recusar este motorista?',
+  adminRejectExplain: 'Não vai poder receber viagens. Podes mudar de ideias mais tarde.',
+  adminDocs: 'Documentos',
+  adminNoDocs: 'Não enviou documentos',
+  adminSosTitle: 'Pedidos de ajuda',
+  adminNoSos: 'Sem pedidos de ajuda.',
+  adminSosResolve: 'Marcar como tratado',
+  adminSosCall: 'Ligar a {name}',
+  adminSosMap: 'Ver no mapa',
+  adminDrivers: 'Motoristas',
+  adminOnline: 'disponíveis',
+  adminRides24h: 'viagens (24h)',
+  adminWaiting: 'à espera',
+  adminPassengers: 'passageiros',
+  adminRefresh: 'Actualizar',
 };

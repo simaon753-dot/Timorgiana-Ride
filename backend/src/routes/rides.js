@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { criarAlerta, cancelamentosRecentes } from '../sos.js';
 import { requireAuth, requireRole, requireApprovedDriver } from '../auth.js';
 import {
   createRide,
@@ -13,9 +14,10 @@ import {
 } from '../rides.js';
 import { addMessage, listMessages } from '../messages.js';
 import { addRating, hasRated } from '../ratings.js';
-import { notificarPedidoNovo, notificarAceite } from '../push.js';
+import { notificarPedidoNovo, notificarAceite, notificarAdminsSOS } from '../push.js';
 import { one } from '../db.js';
 import { rota, preco } from '../routing.js';
+import { config } from '../config.js';
 
 export const ridesRouter = Router();
 
@@ -254,6 +256,39 @@ ridesRouter.post(
   })
 );
 
+// POST /api/rides/:id/sos — pedido de ajuda durante uma viagem.
+//
+// Regista sempre, mesmo sem posição e mesmo sem viagem activa: quando
+// alguém carrega neste botão, o pior resultado possível é o pedido
+// perder-se por causa de um campo em falta.
+ridesRouter.post(
+  '/:id/sos',
+  wrap(async (req, res) => {
+    const rideId = Number(req.params.id) || null;
+    const { lat, lng, note } = req.body || {};
+
+    if (rideId) {
+      const row = await getRideById(rideId);
+      const seuDono = row && (row.passenger_id === req.user.id || row.driver_id === req.user.id);
+      if (!seuDono) return res.status(403).json({ error: 'Sem permissão.' });
+    }
+
+    const alerta = await criarAlerta({
+      rideId,
+      userId: req.user.id,
+      lat: lat != null ? Number(lat) : null,
+      lng: lng != null ? Number(lng) : null,
+      note,
+    });
+
+    // Toca a todos os administradores em simultâneo, por socket e por push.
+    req.app.get('io').to('admins').emit('sos:novo', { id: alerta.id });
+    notificarAdminsSOS({ nome: req.user.name, rideId, lat, lng }).catch(() => {});
+
+    return res.status(201).json({ alerta: { id: alerta.id }, emergencia: config.numeroEmergencia });
+  })
+);
+
 // POST /api/rides/:id/cancel
 ridesRouter.post(
   '/:id/cancel',
@@ -268,11 +303,21 @@ ridesRouter.post(
       return res.status(409).json({ error: 'Esta viagem já terminou.' });
     }
 
-    const updated = await setRideStatus(rideId, 'cancelled');
+    const updated = await setRideStatus(rideId, 'cancelled', req.user.id);
     const io = req.app.get('io');
     notify(io, updated, 'ride:update');
     if (row.status === 'requested') io.to('drivers').emit('ride:taken', { id: row.id });
 
-    return res.json({ ride: toPublicRide(updated) });
+    // Cancelar depois de o motorista já ter aceitado custa-lhe tempo e
+    // combustível. Não bloqueamos ninguém — devolvemos o número para a app
+    // poder avisar quem está a ganhar o hábito.
+    const jaAceite = row.status !== 'requested';
+    const cancelamentos = jaAceite ? await cancelamentosRecentes(req.user.id) : 0;
+
+    return res.json({
+      ride: toPublicRide(updated),
+      cancelamentos,
+      aviso: cancelamentos >= config.avisoCancelamentos ? 'demasiados' : null,
+    });
   })
 );

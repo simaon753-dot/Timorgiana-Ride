@@ -197,4 +197,55 @@ export default {
   searchHint: 'Hakerek naran fatin nian.\nEzemplu: Timor Plaza, aeroportu, Cristo Rei',
   searchNothing: 'La hetan fatin neʼe. Koko naran seluk, ka toka iha mapa.',
   searchOrTap: 'Buka ka toka iha mapa',
+
+  // Emerjénsia
+  sos: 'Emerjénsia',
+  sosConfirmTitle: 'Husu ajuda?',
+  sosConfirmExplain:
+    'Ami avisa TimorgianaRide ho ita-nia fatin, no ita bele telefone ba polísia. Uza deʼit iha emerjénsia loos.',
+  sosConfirmYes: 'Sin, husu ajuda',
+  sosSentTitle: '🚨 Pedidu ajuda haruka ona',
+  sosSentExplain: 'TimorgianaRide hatene ona. Ita hakarak telefone ba polísia agora?',
+  sosOnlyAlert: 'Lae, obrigadu',
+  sosCall: 'Telefone {n}',
+  sosOffline: 'La iha ligasaun',
+  sosOfflineExplain: 'Ami la bele avisa TimorgianaRide. Ita bele telefone ba polísia diretamente.',
+  shareTrip: 'Fahe viajen',
+  shareTripText:
+    'Haʼu iha viajen TimorgianaRide.\nMotorista: {driver} ({plate})\nDestinu: {dest}\nFatin: {link}',
+
+  // Kanselamentu
+  cancelConfirmTitle: 'Kansela viajen?',
+  cancelConfirmAccepted: 'Motorista mai hela ona. Kansela agora nia lakon viajen.',
+  cancelConfirmRequested: 'Seidauk iha motorista. Ita bele kansela.',
+  cancelKeep: 'Kontinua viajen',
+  cancelYes: 'Sin, kansela',
+  cancelTooMany: 'Ita kansela ona viajen {n} semana neʼe',
+  cancelTooManyExplain:
+    'Kansela beibeik halo motorista sira lakon serbisu. Se kontinua, ita-nia konta bele suspende.',
+
+  // Administrasaun
+  admin: 'Administrasaun',
+  adminTitle: 'Painel',
+  adminPending: 'Motorista sira hein hela',
+  adminNoPending: 'La iha motorista hein. 👍',
+  adminApprove: 'Aprova',
+  adminReject: 'Rejeita',
+  adminApproved: 'Motorista aprova ona ✅',
+  adminRejected: 'Motorista rejeita ona',
+  adminRejectTitle: 'Rejeita motorista neʼe?',
+  adminRejectExplain: 'Nia sei la bele simu viajen. Ita bele troka hanoin depois.',
+  adminDocs: 'Dokumentu',
+  adminNoDocs: 'La haruka dokumentu',
+  adminSosTitle: 'Pedidu ajuda',
+  adminNoSos: 'La iha pedidu ajuda.',
+  adminSosResolve: 'Marka nuʼudar trata ona',
+  adminSosCall: 'Telefone ba {name}',
+  adminSosMap: 'Haree iha mapa',
+  adminDrivers: 'Motorista',
+  adminOnline: 'disponivel',
+  adminRides24h: 'viajen (24h)',
+  adminWaiting: 'hein hela',
+  adminPassengers: 'pasajeiru',
+  adminRefresh: 'Atualiza',
 };

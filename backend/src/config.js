@@ -33,6 +33,11 @@ export const config = {
   },
 
   // Só os motoristas a esta distância do passageiro são avisados
+  // Emergência em Timor-Leste. Configurável por ambiente porque o número
+  // certo pode mudar e não queremos gerar um APK novo por causa disso.
+  numeroEmergencia: process.env.EMERGENCY_NUMBER || '112',
+  avisoCancelamentos: Number(process.env.CANCEL_WARN_AFTER) || 3,
+
   raioAvisoKm: Number(process.env.NOTIFY_RADIUS_KM) || 10,
 
   // Serviços geridos exigem TLS. Local (localhost) normalmente não.

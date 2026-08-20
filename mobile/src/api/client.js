@@ -104,6 +104,16 @@ export const api = {
   setAvailability: (token, online) =>
     request('/driver/availability', { method: 'POST', body: { online }, token }),
 
+  sos: (token, rideId, body) =>
+    request(`/rides/${rideId || 0}/sos`, { method: 'POST', body, token }),
+
+  adminResumo: (token) => request('/admin/resumo', { token }),
+  adminSos: (token) => request('/admin/sos', { token }),
+  adminResolverSos: (token, id) => request(`/admin/sos/${id}/resolver`, { method: 'POST', token }),
+  adminDrivers: (token, status) => request(`/admin/drivers?status=${status}`, { token }),
+  adminDecidir: (token, id, decision) =>
+    request(`/admin/drivers/${id}/decision`, { method: 'POST', body: { decision }, token }),
+
   savePushToken: (token, pushToken) =>
     request('/auth/push-token', { method: 'POST', body: { token: pushToken }, token }),
 };

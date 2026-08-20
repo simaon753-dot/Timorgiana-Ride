@@ -73,6 +73,7 @@ io.use(async (socket, next) => {
       vehicleType: user.vehicle_type || 'car',
       driverStatus: user.driver_status || 'pending',
       isOnline: !!user.is_online,
+      isAdmin: !!user.is_admin,
     };
     next();
   } catch (e) {
@@ -85,6 +86,9 @@ io.on('connection', (socket) => {
   console.log(`[socket] ligado: ${user.name} (${user.role}#${user.id})`);
 
   socket.join(`user:${user.id}`);
+  // Os administradores ficam sempre numa sala própria para receberem os
+  // pedidos de ajuda no instante em que acontecem.
+  if (user.isAdmin) socket.join('admins');
   const podeReceberPedidos = user.role === 'driver' && user.driverStatus === 'approved';
 
   const entrarNasSalas = () => {

@@ -14,6 +14,7 @@ import DriverPendingScreen from '../screens/DriverPendingScreen.js';
 import ChatScreen from '../screens/ChatScreen.js';
 import HistoryScreen from '../screens/HistoryScreen.js';
 import ServerScreen from '../screens/ServerScreen.js';
+import AdminScreen from '../screens/AdminScreen.js';
 import LoadingScreen from '../screens/LoadingScreen.js';
 import { colors } from '../theme.js';
 
@@ -72,6 +73,9 @@ export default function RootNavigator() {
             <Stack.Screen name="Chat" component={ChatScreen} />
             <Stack.Screen name="History" component={HistoryScreen} />
             <Stack.Screen name="Server" component={ServerScreen} />
+            {/* Só existe para administradores. Não estar registado é a
+                melhor protecção: não há ecrã para navegar até ele. */}
+            {user.isAdmin ? <Stack.Screen name="Admin" component={AdminScreen} /> : null}
           </Stack.Navigator>
         </RideProvider>
       ) : (

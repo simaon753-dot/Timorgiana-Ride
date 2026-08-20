@@ -3,6 +3,7 @@ import { requireAuth } from '../auth.js';
 import { query, one } from '../db.js';
 import { getDocument } from '../documents.js';
 import { toPublicUser } from '../users.js';
+import { alertasAbertos, resolverAlerta } from '../sos.js';
 
 export const adminRouter = Router();
 adminRouter.use(requireAuth);
@@ -76,5 +77,57 @@ adminRouter.post(
     req.app.get('io').to(`user:${row.id}`).emit('driver:status', { status: decision });
 
     res.json({ driver: toPublicUser(row) });
+  })
+);
+
+// GET /api/admin/sos — pedidos de ajuda por resolver
+adminRouter.get(
+  '/sos',
+  wrap(async (_req, res) => {
+    const rows = await alertasAbertos();
+    res.json({
+      alertas: rows.map((r) => ({
+        id: r.id,
+        rideId: r.ride_id,
+        quem: r.quem,
+        telefone: r.telefone,
+        papel: r.papel,
+        destino: r.dest_label,
+        estadoViagem: r.estado_viagem,
+        lat: r.lat,
+        lng: r.lng,
+        nota: r.note,
+        quando: r.created_at,
+      })),
+    });
+  })
+);
+
+// POST /api/admin/sos/:id/resolver — marcar como tratado
+adminRouter.post(
+  '/sos/:id/resolver',
+  wrap(async (req, res) => {
+    const row = await resolverAlerta(Number(req.params.id));
+    if (!row) return res.status(404).json({ error: 'Alerta não encontrado.' });
+    res.json({ ok: true });
+  })
+);
+
+// GET /api/admin/resumo — o estado do serviço num ecrã só
+adminRouter.get(
+  '/resumo',
+  wrap(async (_req, res) => {
+    const [n] = await query(`
+      SELECT
+        (SELECT COUNT(*) FROM users WHERE role='driver' AND COALESCE(driver_status,'pending')='pending')::int AS pendentes,
+        (SELECT COUNT(*) FROM users WHERE role='driver' AND driver_status='approved')::int AS aprovados,
+        (SELECT COUNT(*) FROM users WHERE role='driver' AND driver_status='approved' AND is_online)::int AS disponiveis,
+        (SELECT COUNT(*) FROM users WHERE role='passenger')::int AS passageiros,
+        (SELECT COUNT(*) FROM sos_alerts WHERE resolved=FALSE)::int AS sos,
+        (SELECT COUNT(*) FROM rides WHERE created_at > NOW() - INTERVAL '24 hours')::int AS viagens24h,
+        (SELECT COUNT(*) FROM rides WHERE status='completed')::int AS concluidas,
+        (SELECT COUNT(*) FROM rides WHERE status='requested')::int AS esperando
+    `);
+    res.json({ resumo: n });
   })
 );

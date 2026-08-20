@@ -93,6 +93,7 @@ export async function initSchema() {
       vehicle_type TEXT CHECK (vehicle_type IN ('car','motorbike')),
       status       TEXT NOT NULL DEFAULT 'requested'
                    CHECK (status IN ('requested','accepted','arriving','completed','cancelled')),
+      cancelled_by INTEGER REFERENCES users(id),
       created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
@@ -121,6 +122,22 @@ export async function initSchema() {
       ride_id    INTEGER NOT NULL REFERENCES rides(id),
       sender_id  INTEGER NOT NULL REFERENCES users(id),
       body       TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  // Alertas de emergência. Guardados com a posição do momento: se algo
+  // correr mal durante uma viagem, o que interessa é saber ONDE estava a
+  // pessoa quando pediu ajuda, não onde estava quando entrou no carro.
+  await query(`
+    CREATE TABLE IF NOT EXISTS sos_alerts (
+      id         SERIAL PRIMARY KEY,
+      ride_id    INTEGER REFERENCES rides(id),
+      user_id    INTEGER NOT NULL REFERENCES users(id),
+      lat        DOUBLE PRECISION,
+      lng        DOUBLE PRECISION,
+      note       TEXT,
+      resolved   BOOLEAN NOT NULL DEFAULT FALSE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
@@ -158,7 +175,10 @@ export async function initSchema() {
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS push_token TEXT`);
 
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS cancelled_by INTEGER REFERENCES users(id)`);
+
   await query('CREATE INDEX IF NOT EXISTS idx_docs_user ON driver_documents(user_id)');
+  await query('CREATE INDEX IF NOT EXISTS idx_sos_aberto ON sos_alerts(resolved, created_at DESC)');
   await query('CREATE INDEX IF NOT EXISTS idx_users_online ON users(is_online) WHERE role = \'driver\'');
 
   const [{ now }] = await query('SELECT NOW() AS now');
