@@ -9,7 +9,8 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      }
+      },
+      "channel": "development"
     },
     "preview": {
       "distribution": "internal",
@@ -21,7 +22,8 @@
       },
       "ios": {
         "resourceClass": "m-medium"
-      }
+      },
+      "channel": "preview"
     },
     "production": {
       "android": {
@@ -32,7 +34,8 @@
       },
       "ios": {
         "resourceClass": "m-medium"
-      }
+      },
+      "channel": "production"
     },
     "ios-simulador": {
       "distribution": "internal",
@@ -41,7 +44,8 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://timorgiana-ride.onrender.com"
-      }
+      },
+      "channel": "ios-simulador"
     }
   },
   "submit": {
