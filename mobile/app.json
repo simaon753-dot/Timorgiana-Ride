@@ -17,7 +17,9 @@
       "bundleIdentifier": "tl.timorgiana.ride",
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "A TimorgianaRide usa a tua localização para indicar o ponto de partida da viagem."
+        "NSLocationWhenInUseUsageDescription": "A TimorgianaRide usa a tua localização para indicar o ponto de partida da viagem.",
+        "NSPhotoLibraryUsageDescription": "A TimorgianaRide precisa das tuas fotos para enviares a carta de condução e os documentos do veículo.",
+        "NSCameraUsageDescription": "A TimorgianaRide usa a câmara para fotografares a carta de condução e os documentos do veículo."
       }
     },
     "android": {

@@ -18,11 +18,26 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://timorgiana-ride.onrender.com"
+      },
+      "ios": {
+        "resourceClass": "m-medium"
       }
     },
     "production": {
       "android": {
         "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://timorgiana-ride.onrender.com"
+      },
+      "ios": {
+        "resourceClass": "m-medium"
+      }
+    },
+    "ios-simulador": {
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://timorgiana-ride.onrender.com"

@@ -166,6 +166,18 @@
     margin-bottom: .1rem;
   }
 
+  /* Dito à frente, não escondido: um motorista com iPhone deve saber
+     imediatamente, em vez de tentar instalar e falhar. */
+  .so-android {
+    background: var(--ground);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: .6rem .75rem;
+    font-size: .92rem;
+    margin-top: .6rem !important;
+  }
+  .so-android span { color: var(--ink-soft); font-size: .85rem; }
+
   .toque {
     display: inline-block;
     font-weight: 600;
@@ -290,6 +302,8 @@
     <div class="corpo">
       <p>Toka iha butaun kraik ho ita-nia telemóvel Android.</p>
       <p class="pt">Toca no botão abaixo, no telemóvel Android.</p>
+      <p class="so-android"><strong>Android deʼit.</strong> iPhone seidauk bele — ami sei prepara hela.<br>
+      <span>Só Android. O iPhone ainda não é possível.</span></p>
     </div>
     <a class="descarregar" href="https://expo.dev/artifacts/eas/i9bBGpFRa3bzv1y_tiVfeaI5yl6ZAULhiA0E9OUD758.apk">
       Deskarga TimorgianaRide
