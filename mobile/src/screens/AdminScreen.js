@@ -18,6 +18,7 @@ import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
 import { getApiUrl } from '../serverUrl.js';
+import { abrirNoMapa } from '../lib/mapaLink.js';
 import Button from '../components/Button.js';
 
 // Painel do administrador. Existe para uma coisa só: aprovar motoristas e
@@ -134,9 +135,7 @@ export default function AdminScreen({ navigation }) {
                   {a.lat != null && a.lng != null ? (
                     <TouchableOpacity
                       style={styles.accaoSos}
-                      onPress={() =>
-                        Linking.openURL(`https://www.openstreetmap.org/?mlat=${a.lat}&mlon=${a.lng}#map=17/${a.lat}/${a.lng}`)
-                      }
+                      onPress={() => abrirNoMapa(Linking, a.lat, a.lng)}
                     >
                       <Text style={styles.accaoSosTexto}>🗺 {t('adminSosMap')}</Text>
                     </TouchableOpacity>

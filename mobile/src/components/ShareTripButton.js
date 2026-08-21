@@ -2,6 +2,7 @@ import React from 'react';
 import { Share, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { colors, radius, spacing, fontSize } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
+import { linkMapa } from '../lib/mapaLink.js';
 
 // Partilhar a viagem com alguém de fora. É o par preventivo do botão de
 // emergência: em vez de pedir ajuda depois de algo correr mal, dá a uma
@@ -21,9 +22,7 @@ export default function ShareTripButton({ ride, driverLocation }) {
         ? { lat: ride.destLat, lng: ride.destLng }
         : null);
 
-    const link = ponto
-      ? `https://www.openstreetmap.org/?mlat=${ponto.lat}&mlon=${ponto.lng}#map=16/${ponto.lat}/${ponto.lng}`
-      : '';
+    const link = ponto ? linkMapa(ponto.lat, ponto.lng) : '';
 
     const texto = t('shareTripText', {
       driver: ride.driver?.name || '—',
