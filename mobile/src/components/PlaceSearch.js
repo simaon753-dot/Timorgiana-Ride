@@ -4,9 +4,17 @@ import { pesquisarLugares } from '../lib/geocode.js';
 import { useI18n } from '../i18n/index.js';
 import { colors, spacing, fontSize, radius } from '../theme.js';
 
-// Caixa de pesquisa com resultados. A consulta só parte quando a pessoa
-// pára de escrever — o Nominatim pede no máximo cerca de um pedido por
-// segundo, e disparar a cada tecla seria abusivo e mais lento.
+// Caixa de pesquisa com resultados, a flutuar POR CIMA do mapa.
+//
+// O mapa fica visível de propósito: quem procura "Farol" quer perceber
+// onde isso fica em relação a si, e um ecrã branco por cima do mapa
+// esconde justamente a informação que ajuda a decidir. Entre a barra e a
+// lista há espaço transparente que deixa passar o toque — dá para escolher
+// um ponto no mapa sem fechar a pesquisa primeiro.
+//
+// A consulta só parte quando a pessoa pára de escrever: o Nominatim pede
+// no máximo cerca de um pedido por segundo, e disparar a cada tecla seria
+// abusivo e mais lento.
 export default function PlaceSearch({ placeholder, onEscolher, onFechar, onUsarLocalizacao }) {
   const { t } = useI18n();
   const [termo, setTermo] = useState('');
@@ -35,8 +43,12 @@ export default function PlaceSearch({ placeholder, onEscolher, onFechar, onUsarL
     return () => clearTimeout(temporizador);
   }, [termo]);
 
+  const temAlgoParaMostrar =
+    aProcurar || resultados.length > 0 || procurou || (onUsarLocalizacao && termo.trim().length < 3);
+
   return (
-    <View style={styles.wrap}>
+    // box-none: esta camada não intercepta toques; só os filhos o fazem.
+    <View style={styles.wrap} pointerEvents="box-none">
       <View style={styles.barra}>
         <Text style={styles.lupa}>🔎</Text>
         <TextInput
@@ -53,7 +65,14 @@ export default function PlaceSearch({ placeholder, onEscolher, onFechar, onUsarL
         </Pressable>
       </View>
 
-      <ScrollView keyboardShouldPersistTaps="handled" style={styles.lista}>
+      {/* A lista só ocupa espaço quando tem o que mostrar. Sem isto,
+          um painel vazio taparia metade do mapa sem razão. */}
+      {temAlgoParaMostrar ? (
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        style={styles.lista}
+        contentContainerStyle={styles.listaConteudo}
+      >
         {/* Primeira opção, sempre visível: a maioria das recolhas é onde a
             pessoa está, e escondê-la atrás de um gesto seria escondê-la. */}
         {onUsarLocalizacao && termo.trim().length < 3 ? (
@@ -82,12 +101,14 @@ export default function PlaceSearch({ placeholder, onEscolher, onFechar, onUsarL
           <Text style={styles.vazio}>{t('searchHint')}</Text>
         )}
       </ScrollView>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: colors.paper },
+  // Sem fundo: o que estiver por trás — o mapa — continua à vista.
+  wrap: { ...StyleSheet.absoluteFillObject, justifyContent: 'space-between' },
   barra: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -97,11 +118,26 @@ const styles = StyleSheet.create({
     borderColor: colors.teal,
     paddingHorizontal: spacing.md,
     margin: spacing.md,
+    // Sombra para a barra se destacar do mapa por baixo
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
   },
   lupa: { fontSize: 16, marginRight: spacing.sm },
   input: { flex: 1, paddingVertical: 13, fontSize: fontSize.md, color: colors.text },
   fechar: { fontSize: 18, color: colors.textMuted, paddingLeft: spacing.sm },
-  lista: { flex: 1, paddingHorizontal: spacing.md },
+  // Cresce com os resultados mas nunca passa de metade do ecrã, para o
+  // mapa continuar a ser visível enquanto se escolhe.
+  lista: {
+    maxHeight: '52%',
+    flexGrow: 0,
+    backgroundColor: 'rgba(247,244,239,0.94)',
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+  },
+  listaConteudo: { padding: spacing.md },
   item: {
     flexDirection: 'row',
     alignItems: 'center',

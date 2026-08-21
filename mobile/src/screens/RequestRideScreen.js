@@ -75,12 +75,25 @@ export default function RequestRideScreen({ navigation }) {
   async function escolherNoMapa({ lat, lng }) {
     const label = await nomeDoLugar(lat, lng);
     const ponto = { lat, lng, label: label || rotuloCoordenadas(lat, lng) };
-    if (!origem) setOrigem(ponto);
-    else setDestino(ponto);
+
+    // Com a pesquisa aberta, o campo que a abriu decide — a pessoa disse
+    // explicitamente qual queria. Só sem pesquisa é que adivinhamos:
+    // primeiro toque é a recolha, o seguinte é o destino.
+    if (pesquisa === 'origem') {
+      setOrigem(ponto);
+      setPesquisa(null);
+    } else if (pesquisa === 'destino') {
+      setDestino(ponto);
+      setPesquisa(null);
+    } else if (!origem) {
+      setOrigem(ponto);
+    } else {
+      setDestino(ponto);
+    }
   }
 
-  // A pesquisa abre em ecrã inteiro. O campo que a abriu decide o que a
-  // escolha define — recolha ou destino.
+  // A pesquisa flutua por cima do mapa, que nunca é desmontado. O campo
+  // que a abriu decide o que a escolha define — recolha ou destino.
   function aoEscolherDaPesquisa(lugar) {
     const ponto = { lat: lugar.lat, lng: lugar.lng, label: lugar.label };
     if (pesquisa === 'origem') setOrigem(ponto);
@@ -116,10 +129,31 @@ export default function RequestRideScreen({ navigation }) {
 
   const opcao = orcamento?.options?.find((o) => o.type === veiculo);
 
-  if (pesquisa) {
-    return (
-      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <StatusBar style="dark" />
+  return (
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      <StatusBar style="dark" />
+
+      {/* Mapa a ocupar o espaço todo até ao painel. Nunca é desmontado:
+          além de manter o contexto visual durante a pesquisa, remontá-lo
+          obrigaria o WebView a recarregar o Leaflet e a perder o zoom. */}
+      <View style={styles.mapa}>
+        <OSMMap pickable fill markers={marcadores} onPick={escolherNoMapa} />
+        {!pesquisa ? (
+          <Pressable style={styles.voltar} onPress={() => navigation.goBack()} hitSlop={10}>
+            <Text style={styles.voltarTexto}>‹</Text>
+          </Pressable>
+        ) : null}
+        {orcamento && !pesquisa ? (
+          <View style={styles.rotaBadge}>
+            <Text style={styles.rotaTexto}>
+              {t('tripInfo', { km: orcamento.distanceKm, min: orcamento.durationMin })}
+              {orcamento.approximate ? ` · ${t('priceApprox')}` : ''}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+
+      {pesquisa ? (
         <PlaceSearch
           placeholder={t('searchPlaceholder')}
           onEscolher={aoEscolherDaPesquisa}
@@ -133,32 +167,10 @@ export default function RequestRideScreen({ navigation }) {
               : undefined
           }
         />
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <StatusBar style="dark" />
-
-      {/* Mapa a ocupar o espaço todo até ao painel */}
-      <View style={styles.mapa}>
-        <OSMMap pickable fill markers={marcadores} onPick={escolherNoMapa} />
-        <Pressable style={styles.voltar} onPress={() => navigation.goBack()} hitSlop={10}>
-          <Text style={styles.voltarTexto}>‹</Text>
-        </Pressable>
-        {orcamento ? (
-          <View style={styles.rotaBadge}>
-            <Text style={styles.rotaTexto}>
-              {t('tripInfo', { km: orcamento.distanceKm, min: orcamento.durationMin })}
-              {orcamento.approximate ? ` · ${t('priceApprox')}` : ''}
-            </Text>
-          </View>
-        ) : null}
-      </View>
+      ) : null}
 
       {/* Painel inferior */}
-      <View style={styles.painel}>
+      <View style={[styles.painel, pesquisa && styles.escondido]}>
         <View style={styles.puxador} />
         <ScrollView showsVerticalScrollIndicator={false}>
           <Ponto
@@ -255,6 +267,9 @@ function CartaoVeiculo({ opcao, ativo, onPress, t }) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
   mapa: { flex: 1, position: 'relative' },
+  // display:none em vez de não renderizar: mantém o painel montado, para
+  // o veículo escolhido e o orçamento não se perderem ao abrir a pesquisa.
+  escondido: { display: 'none' },
   voltar: {
     position: 'absolute',
     top: spacing.md,
