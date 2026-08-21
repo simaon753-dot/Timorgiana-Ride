@@ -124,8 +124,8 @@ export default function RequestRideScreen({ navigation }) {
   }
 
   const marcadores = [];
-  if (origem) marcadores.push({ lat: origem.lat, lng: origem.lng, label: origem.label });
-  if (destino) marcadores.push({ lat: destino.lat, lng: destino.lng, label: destino.label });
+  if (origem) marcadores.push({ lat: origem.lat, lng: origem.lng, label: origem.label, tipo: 'origem' });
+  if (destino) marcadores.push({ lat: destino.lat, lng: destino.lng, label: destino.label, tipo: 'destino' });
 
   const opcao = orcamento?.options?.find((o) => o.type === veiculo);
 

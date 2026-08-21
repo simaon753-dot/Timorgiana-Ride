@@ -8,9 +8,14 @@ import { colors, spacing, fontSize, radius } from '../theme.js';
 //
 // O mapa fica visível de propósito: quem procura "Farol" quer perceber
 // onde isso fica em relação a si, e um ecrã branco por cima do mapa
-// esconde justamente a informação que ajuda a decidir. Entre a barra e a
-// lista há espaço transparente que deixa passar o toque — dá para escolher
-// um ponto no mapa sem fechar a pesquisa primeiro.
+// esconde justamente a informação que ajuda a decidir.
+//
+// Os resultados ficam LOGO POR BAIXO da barra, encostados ao topo. A
+// primeira versão punha-os em baixo e o teclado tapava-os — o teclado sobe
+// sempre do fundo, por isso o fundo é o pior sítio para pôr o que a pessoa
+// precisa de ler enquanto escreve. Por baixo fica o mapa, e o espaço
+// transparente deixa passar o toque: dá para escolher um ponto no mapa sem
+// fechar a pesquisa primeiro.
 //
 // A consulta só parte quando a pessoa pára de escrever: o Nominatim pede
 // no máximo cerca de um pedido por segundo, e disparar a cada tecla seria
@@ -108,7 +113,7 @@ export default function PlaceSearch({ placeholder, onEscolher, onFechar, onUsarL
 
 const styles = StyleSheet.create({
   // Sem fundo: o que estiver por trás — o mapa — continua à vista.
-  wrap: { ...StyleSheet.absoluteFillObject, justifyContent: 'space-between' },
+  wrap: { ...StyleSheet.absoluteFillObject },
   barra: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -130,14 +135,16 @@ const styles = StyleSheet.create({
   fechar: { fontSize: 18, color: colors.textMuted, paddingLeft: spacing.sm },
   // Cresce com os resultados mas nunca passa de metade do ecrã, para o
   // mapa continuar a ser visível enquanto se escolhe.
+  // Encostada ao topo, logo a seguir à barra. Cresce com os resultados
+  // até um limite, para o mapa nunca desaparecer por completo.
   lista: {
-    maxHeight: '52%',
+    maxHeight: '46%',
     flexGrow: 0,
-    backgroundColor: 'rgba(247,244,239,0.94)',
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
+    marginHorizontal: spacing.md,
+    borderRadius: radius.lg,
+    backgroundColor: 'rgba(247,244,239,0.96)',
   },
-  listaConteudo: { padding: spacing.md },
+  listaConteudo: { padding: spacing.sm },
   item: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -79,11 +79,22 @@ export default function OSMMap({
 }
 
 function buildHtml({ center, markers, pickable }) {
-  const pts = markers.map((m) => ({ lat: m.lat, lng: m.lng, label: m.label || '' }));
+  const pts = markers.map((m) => ({ lat: m.lat, lng: m.lng, label: m.label || '', tipo: m.tipo || '' }));
   return `<!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<style>html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}</style>
+<style>
+html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
+.rotulo.leaflet-tooltip{
+  background:#0E5C54; color:#F2F8F6; border:none; border-radius:6px;
+  padding:4px 9px; font:600 11.5px/1.25 -apple-system,Roboto,sans-serif;
+  box-shadow:0 2px 6px rgba(0,0,0,.3); max-width:150px; white-space:normal;
+  text-align:center;
+}
+.rotulo.destino{ background:#E85531; }
+.rotulo.leaflet-tooltip-top.origem:before{ border-top-color:#0E5C54; }
+.rotulo.leaflet-tooltip-top.destino:before{ border-top-color:#E85531; }
+</style>
 </head><body>
 <div id="map"></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -91,7 +102,22 @@ function buildHtml({ center, markers, pickable }) {
   var map = L.map('map',{zoomControl:true,attributionControl:false}).setView([${center.lat},${center.lng}], 14);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
   var pts = ${JSON.stringify(pts)};
-  pts.forEach(function(p){ L.marker([p.lat,p.lng]).addTo(map).bindPopup(p.label); });
+  pts.forEach(function(p){
+    var m = L.marker([p.lat,p.lng]).addTo(map);
+    // No mapa mostra-se só a primeira parte do nome. O nome completo já
+    // está no painel de baixo, e dois rótulos longos em pontos próximos
+    // sobrepõem-se e deixam de se ler — num ecrã de telemóvel isso
+    // acontece em qualquer viagem curta dentro de Díli.
+    var curto = (p.label || '').split(',')[0].trim();
+    if (curto) {
+      // permanent: o nome fica sempre à vista, na cabeça do pino. Antes
+      // era um popup e só aparecia a quem soubesse tocar no marcador.
+      m.bindTooltip(curto, {
+        permanent: true, direction: 'top', offset: [0,-34],
+        className: 'rotulo ' + (p.tipo === 'destino' ? 'destino' : 'origem'), opacity: 1
+      });
+    }
+  });
   if (pts.length > 1) { map.fitBounds(pts.map(function(p){return [p.lat,p.lng];}),{padding:[40,40]}); }
   else if (pts.length === 1) { map.setView([pts[0].lat,pts[0].lng], 15); }
 
