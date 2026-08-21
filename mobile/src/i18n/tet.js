@@ -77,8 +77,8 @@ export default {
   statusCompleted: 'Viajen remata',
   statusCancelled: 'Viajen kansela',
 
-  fareLabel: 'Tarifa kombinadu',
-  fareToAgree: 'Atu kombina',
+  fareLabel: 'Folin',
+  fareToAgree: 'Sura hela',
   yourDriver: 'Ita-nia motorista',
   yourPassenger: 'Pasajeiru',
   callLabel: 'Telefone',
@@ -89,7 +89,6 @@ export default {
   noRequests: 'Seidauk iha pedidu.',
   waitingRequests: 'Pedidu foun sei mosu iha neʼe automatikamente.',
   wantsLabel: 'Hakarak',
-  fareInput: 'Tarifa (USD)',
   acceptRide: 'Simu',
   onTheWay: 'Iha dalan',
   completeRide: 'Remata viajen',
@@ -100,7 +99,6 @@ export default {
   useMyLocation: '📍 Uza haʼu-nia fatin',
   gettingLocation: 'Buka fatin…',
   destinationOnMap: 'Pontu hili iha mapa',
-  suggestedFare: 'Tarifa neʼebé ita oferese (USD)',
 
   // Chat
   openChat: 'Mensajen',
@@ -108,7 +106,6 @@ export default {
   typeMessage: 'Hakerek mensajen…',
   send: 'Haruka',
   chatEmpty: 'Seidauk iha mensajen. Hatete olá! 👋',
-  saveFare: 'Rai',
 
   // Avaliasaun
   rateTitle: 'Viajen laʼo diʼak ka lae?',
@@ -179,8 +176,6 @@ export default {
   goOffline: 'Sai la disponivel',
   driverOnMap: 'Motorista besik hela',
   pickupDistance: 'dook {km} km husi ita',
-  fareSuggested: 'Sujestaun: USD {value}',
-  fareUse: 'Uza',
   whereTo: 'Ita ba neebé?',
   pickupPoint: 'Foti',
   dropoffPoint: 'Destinu',

@@ -51,14 +51,22 @@ export default function ChatScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={10}>
-          <Text style={styles.back}>‹ {t('back')}</Text>
+        <Pressable onPress={() => navigation.goBack()} hitSlop={10} style={styles.ladoEsquerdo}>
+          <Text style={styles.back} numberOfLines={1}>
+            ‹ {t('back')}
+          </Text>
         </Pressable>
-        <View>
-          <Text style={styles.title}>{t('chatTitle')}</Text>
-          {other ? <Text style={styles.subtitle}>{other}</Text> : null}
+        <View style={styles.centro}>
+          <Text style={styles.title} numberOfLines={1}>
+            {t('chatTitle')}
+          </Text>
+          {other ? (
+            <Text style={styles.subtitle} numberOfLines={1}>
+              {other}
+            </Text>
+          ) : null}
         </View>
-        <View style={{ width: 50 }} />
+        <View style={styles.ladoDireito} />
       </View>
 
       <KeyboardAvoidingView
@@ -112,7 +120,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  back: { color: colors.teal, fontSize: fontSize.md, fontWeight: '700', width: 50 },
+  ladoEsquerdo: { flex: 1, alignItems: 'flex-start' },
+  ladoDireito: { flex: 1 },
+  centro: { flexShrink: 1, alignItems: 'center', paddingHorizontal: spacing.sm },
+  back: { color: colors.teal, fontSize: fontSize.md, fontWeight: '700' },
   title: { fontSize: fontSize.md, fontWeight: '800', color: colors.text, textAlign: 'center' },
   subtitle: { fontSize: fontSize.xs, color: colors.textMuted, textAlign: 'center' },
   list: { padding: spacing.md, flexGrow: 1 },

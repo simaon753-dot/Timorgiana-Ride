@@ -76,8 +76,8 @@ export default {
   statusCompleted: 'Viagem concluída',
   statusCancelled: 'Viagem cancelada',
 
-  fareLabel: 'Tarifa combinada',
-  fareToAgree: 'A combinar',
+  fareLabel: 'Preço',
+  fareToAgree: 'A calcular',
   yourDriver: 'O teu motorista',
   yourPassenger: 'Passageiro',
   callLabel: 'Ligar',
@@ -88,7 +88,6 @@ export default {
   noRequests: 'Sem pedidos de momento.',
   waitingRequests: 'Os novos pedidos aparecem aqui automaticamente.',
   wantsLabel: 'Quer',
-  fareInput: 'Tarifa (USD)',
   acceptRide: 'Aceitar',
   onTheWay: 'A caminho',
   completeRide: 'Concluir viagem',
@@ -99,7 +98,6 @@ export default {
   useMyLocation: '📍 Usar a minha localização',
   gettingLocation: 'A obter localização…',
   destinationOnMap: 'Ponto escolhido no mapa',
-  suggestedFare: 'Tarifa que ofereces (USD)',
 
   // Chat
   openChat: 'Mensagens',
@@ -107,7 +105,6 @@ export default {
   typeMessage: 'Escreve uma mensagem…',
   send: 'Enviar',
   chatEmpty: 'Ainda não há mensagens. Diz olá! 👋',
-  saveFare: 'Guardar',
 
   // Avaliação
   rateTitle: 'Como correu a viagem?',
@@ -178,8 +175,6 @@ export default {
   goOffline: 'Ficar indisponível',
   driverOnMap: 'O motorista está a aproximar-se',
   pickupDistance: 'a {km} km de ti',
-  fareSuggested: 'Sugestão: USD {value}',
-  fareUse: 'Usar',
   whereTo: 'Para onde vais?',
   pickupPoint: 'Recolha',
   dropoffPoint: 'Destino',

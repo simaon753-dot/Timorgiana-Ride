@@ -18,6 +18,7 @@ import StatusBadge from '../components/StatusBadge.js';
 import OSMMap from '../components/OSMMap.js';
 import ChatButton from '../components/ChatButton.js';
 import SosButton from '../components/SosButton.js';
+import ShareTripButton from '../components/ShareTripButton.js';
 import RatingPanel from '../components/RatingPanel.js';
 import { rideMarkers } from '../lib/rideMarkers.js';
 import { useI18n } from '../i18n/index.js';
@@ -139,7 +140,8 @@ export default function PassengerHomeScreen({ navigation }) {
             ) : null}
 
             {withDriver ? (
-              <View style={{ marginTop: spacing.md }}>
+              <View style={{ marginTop: spacing.md, gap: spacing.sm }}>
+                <ShareTripButton ride={activeRide} driverLocation={driverLocation} />
                 <SosButton rideId={activeRide.id} />
               </View>
             ) : null}
