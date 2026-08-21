@@ -7,8 +7,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "testar": "EXPO_GO=1 EXPO_PUBLIC_API_URL=https://timorgiana-ride.onrender.com expo start --clear",
-    "testar-tunel": "EXPO_GO=1 EXPO_PUBLIC_API_URL=https://timorgiana-ride.onrender.com expo start --clear --tunnel"
+    "testar": "EXPO_PUBLIC_API_URL=https://timorgiana-ride.onrender.com expo start --clear",
+    "testar-tunel": "EXPO_PUBLIC_API_URL=https://timorgiana-ride.onrender.com expo start --clear --tunnel",
+    "publicar": "EAS_UPDATE=1 EXPO_PUBLIC_API_URL=https://timorgiana-ride.onrender.com npx eas-cli@latest update --branch preview --non-interactive"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",

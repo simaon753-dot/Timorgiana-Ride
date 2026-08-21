@@ -1,17 +1,24 @@
 // Configuração dinâmica sobre o app.json.
 //
-// Existe por um motivo só: o `runtimeVersion` é obrigatório para as
-// actualizações pelo ar chegarem ao APK, mas o Expo Go RECUSA qualquer
-// projecto cujo runtime não seja `exposdk:<versão>`. Com o campo escrito no
-// app.json, ganhámos as actualizações e perdemos o Expo Go — que é o único
-// caminho gratuito para testar em iPhone.
+// O `runtimeVersion` é obrigatório para as actualizações pelo ar chegarem
+// ao APK, mas o Expo Go RECUSA qualquer projecto cujo runtime não seja
+// `exposdk:<versão>` — e o Expo Go é o único caminho gratuito para testar
+// em iPhone.
 //
-// Aqui o campo existe por omissão (o comportamento de produção) e só é
-// retirado quando se pede explicitamente, no arranque para Expo Go.
+// A primeira tentativa punha o campo por omissão e tirava-o com uma
+// variável de ambiente. Foi má ideia: quem escrevesse `npx expo start` — o
+// comando que qualquer pessoa escreve — apanhava o manifesto errado e via
+// "there was a problem running the requested app", sem pista nenhuma.
+//
+// Agora é ao contrário. Em desenvolvimento o campo NUNCA existe, e só
+// aparece quando quem está a chamar é o EAS a compilar ou a publicar uma
+// actualização. Esses dois casos são automáticos ou têm comando próprio
+// (`npm run publicar`), por isso não dependem de ninguém se lembrar.
 export default ({ config }) => {
-  const paraExpoGo = process.env.EXPO_GO === '1';
+  const paraDistribuir =
+    process.env.EAS_BUILD === 'true' || process.env.EAS_UPDATE === '1';
 
-  if (!paraExpoGo) return config;
+  if (paraDistribuir) return config;
 
   const { runtimeVersion, updates, ...semAtualizacoes } = config;
   return semAtualizacoes;
