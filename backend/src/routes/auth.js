@@ -16,7 +16,7 @@ const ROLES = ['passenger', 'driver'];
 // POST /api/auth/register
 authRouter.post('/register', async (req, res) => {
   try {
-    const { name, phone, email, password, role, vehicle } = req.body || {};
+    const { name, phone, email, password, role, vehicle, termsVersion } = req.body || {};
 
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Nome é obrigatório.' });
@@ -33,12 +33,17 @@ authRouter.post('/register', async (req, res) => {
     if (role === 'driver' && (!vehicle || !vehicle.plate || !vehicle.plate.trim())) {
       return res.status(400).json({ error: 'Motoristas têm de indicar a matrícula do veículo.' });
     }
+    // Exigido no servidor e não só na app: a caixa marcada no telemóvel é
+    // uma cortesia da interface; o que fica como prova é isto.
+    if (!termsVersion) {
+      return res.status(400).json({ error: 'É preciso aceitar os termos de utilização.' });
+    }
 
     if (await findUserByPhone(phone)) {
       return res.status(409).json({ error: 'Já existe uma conta com este número de telemóvel.' });
     }
 
-    const created = await createUser({ name, phone, email, password, role, vehicle });
+    const created = await createUser({ name, phone, email, password, role, vehicle, termsVersion });
     return res.status(201).json({ user: toPublicUser(created), token: signToken(created) });
   } catch (err) {
     console.error('[auth/register]', err);

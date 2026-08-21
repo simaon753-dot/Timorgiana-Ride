@@ -15,6 +15,7 @@ import ChatScreen from '../screens/ChatScreen.js';
 import HistoryScreen from '../screens/HistoryScreen.js';
 import ServerScreen from '../screens/ServerScreen.js';
 import AdminScreen from '../screens/AdminScreen.js';
+import TermosScreen from '../screens/TermosScreen.js';
 import LoadingScreen from '../screens/LoadingScreen.js';
 import { colors } from '../theme.js';
 
@@ -51,6 +52,7 @@ export default function RootNavigator() {
       <NavigationContainer theme={navTheme}>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="DriverPending" component={DriverPendingScreen} />
+          <Stack.Screen name="Termos" component={TermosScreen} />
           {/* Quem gere o serviço pode também querer conduzir. Sem isto,
               a conta ficaria presa no ecrã de espera — à espera de uma
               aprovação que só ela própria pode dar. */}
@@ -77,6 +79,7 @@ export default function RootNavigator() {
             <Stack.Screen name="Chat" component={ChatScreen} />
             <Stack.Screen name="History" component={HistoryScreen} />
             <Stack.Screen name="Server" component={ServerScreen} />
+            <Stack.Screen name="Termos" component={TermosScreen} />
             {/* Só existe para administradores. Não estar registado é a
                 melhor protecção: não há ecrã para navegar até ele. */}
             {user.isAdmin ? <Stack.Screen name="Admin" component={AdminScreen} /> : null}
@@ -91,6 +94,7 @@ export default function RootNavigator() {
           {/* Tem de existir na área pública: se o endereço do servidor
               estiver errado, não é possível chegar ao login */}
           <Stack.Screen name="Server" component={ServerScreen} />
+          <Stack.Screen name="Termos" component={TermosScreen} />
         </Stack.Navigator>
       )}
     </NavigationContainer>

@@ -250,4 +250,25 @@ export default {
   etaTripValue: '{min} min · {km} km',
   expandMap: 'Ver mapa inteiro',
   etaArrivalShort: '🚗 Chega em {min} min',
+  // Termos
+  errTermsRequired: 'Tens de aceitar os termos para criar conta.',
+  termsTitle: 'Termos',
+  driverTermsPending: 'Falta aceitares os termos para motoristas.',
+  driverTermsRead: 'Ler e aceitar',
+  driverTermsDone: '✓ Termos aceites',
+
+  // Cancelamento
+  cancelWhyTitle: 'Porque estás a cancelar?',
+  cancelReason_mudei_de_ideias: 'Já não preciso da viagem',
+  cancelReason_motorista_demora: 'O motorista está a demorar',
+  cancelReason_enganei_destino: 'Enganei-me no destino',
+  cancelReason_outro_transporte: 'Arranjei outro transporte',
+  cancelReason_longe_demais: 'Estou longe de mais',
+  cancelReason_passageiro_nao_aparece: 'O passageiro não aparece',
+  cancelReason_problema_veiculo: 'Problema no veículo',
+  cancelReason_destino_inacessivel: 'Não consigo chegar ao destino',
+  cancelReason_outro: 'Outro motivo',
+
+  // Mensagens automáticas
+  sysMsg_aceite: 'O motorista aceitou a viagem e vem a caminho. Podem combinar aqui o ponto exacto de encontro.',
 };

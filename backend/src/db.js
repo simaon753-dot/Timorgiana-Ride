@@ -179,6 +179,18 @@ export async function initSchema() {
   // A rota é calculada para fixar o preço; guardá-la evita pedir outra vez
   // ao OSRM só para mostrar quanto tempo demora a viagem.
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS distance_km REAL`);
+  // Porque é que a viagem foi cancelada. Guardado como código curto e não
+  // como texto livre: serve para contar padrões, não para ler histórias.
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS cancel_reason TEXT`);
+  // Mensagens automáticas do serviço não têm remetente humano.
+  await query(`ALTER TABLE messages ALTER COLUMN sender_id DROP NOT NULL`);
+  await query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS kind TEXT`);
+  // Prova de que os termos foram aceites, e qual versão. A versão importa:
+  // se os termos mudarem, é preciso saber quem aceitou o quê.
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_version TEXT`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMPTZ`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS driver_terms_version TEXT`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS driver_terms_accepted_at TIMESTAMPTZ`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS duration_min INTEGER`);
 
   await query('CREATE INDEX IF NOT EXISTS idx_docs_user ON driver_documents(user_id)');

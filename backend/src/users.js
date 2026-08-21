@@ -31,6 +31,8 @@ export function toPublicUser(row) {
     };
   }
   if (row.is_admin) base.isAdmin = true;
+  base.termsVersion = row.terms_version || null;
+  base.driverTermsVersion = row.driver_terms_version || null;
   return base;
 }
 
@@ -44,7 +46,7 @@ export function findUserByPhone(phone) {
 
 // Cria um utilizador. A restrição UNIQUE do telemóvel protege contra
 // dois registos simultâneos com o mesmo número.
-export async function createUser({ name, phone, email, password, role, vehicle }) {
+export async function createUser({ name, phone, email, password, role, vehicle, termsVersion }) {
   const passwordHash = await bcrypt.hash(password, 10);
   const vehicleType =
     role === 'driver' ? (vehicle?.type === 'motorbike' ? 'motorbike' : 'car') : null;
@@ -52,8 +54,9 @@ export async function createUser({ name, phone, email, password, role, vehicle }
   // Motoristas novos ficam à espera de aprovação; passageiros entram logo
   return one(
     `INSERT INTO users
-       (name, phone, email, password_hash, role, vehicle_type, vehicle_model, vehicle_plate, vehicle_color, driver_status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+       (name, phone, email, password_hash, role, vehicle_type, vehicle_model, vehicle_plate,
+        vehicle_color, driver_status, terms_version, terms_accepted_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,NOW())
      RETURNING *`,
     [
       name.trim(),
@@ -66,6 +69,7 @@ export async function createUser({ name, phone, email, password, role, vehicle }
       vehicle?.plate?.trim() || null,
       vehicle?.color?.trim() || null,
       role === 'driver' ? 'pending' : null,
+      termsVersion || null,
     ]
   );
 }

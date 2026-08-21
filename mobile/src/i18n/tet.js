@@ -251,4 +251,25 @@ export default {
   etaTripValue: '{min} min · {km} km',
   expandMap: 'Haree mapa tomak',
   etaArrivalShort: '🚗 Toʼo iha {min} min',
+  // Termu
+  errTermsRequired: 'Tenke simu termu sira atu halo konta.',
+  termsTitle: 'Termu',
+  driverTermsPending: 'Falta simu termu ba motorista.',
+  driverTermsRead: 'Lee no simu',
+  driverTermsDone: '✓ Termu simu ona',
+
+  // Kanselamentu
+  cancelWhyTitle: 'Tanbasá ita kansela?',
+  cancelReason_mudei_de_ideias: 'Haʼu la presiza ona viajen',
+  cancelReason_motorista_demora: 'Motorista demora too',
+  cancelReason_enganei_destino: 'Haʼu sala destinu',
+  cancelReason_outro_transporte: 'Haʼu hetan transporte seluk',
+  cancelReason_longe_demais: 'Haʼu dook liu',
+  cancelReason_passageiro_nao_aparece: 'Pasajeiru la mosu',
+  cancelReason_problema_veiculo: 'Problema iha veíkulu',
+  cancelReason_destino_inacessivel: 'Haʼu la bele toʼo destinu',
+  cancelReason_outro: 'Razaun seluk',
+
+  // Mensajen automátiku
+  sysMsg_aceite: 'Motorista simu viajen no mai hela. Bele kombina iha neʼe fatin hasoru nian.',
 };

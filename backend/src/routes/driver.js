@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { one } from '../db.js';
 import { requireAuth, requireRole } from '../auth.js';
 import { saveDocument, listDocuments } from '../documents.js';
 import { setOnline, savePushToken } from '../drivers.js';
@@ -50,6 +51,26 @@ driverRouter.post(
     else await alvo.socketsLeave(salas);
 
     res.json({ online: !!row?.is_online });
+  })
+);
+
+// POST /api/driver/terms — aceitar os termos específicos de motorista
+//
+// Separado do registo de propósito: os termos de motorista falam de seguro,
+// de documentos válidos e de trabalho independente. Aceitá-los ANTES de
+// enviar os documentos seria aceitar no abstracto; aqui a pessoa já sabe
+// exactamente o que entregou.
+driverRouter.post(
+  '/terms',
+  wrap(async (req, res) => {
+    const { version } = req.body || {};
+    if (!version) return res.status(400).json({ error: 'Versão dos termos em falta.' });
+    const row = await one(
+      `UPDATE users SET driver_terms_version = $1, driver_terms_accepted_at = NOW()
+       WHERE id = $2 RETURNING *`,
+      [String(version), req.user.id]
+    );
+    res.json({ user: toPublicUser(row) });
   })
 );
 

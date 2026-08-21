@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import MapaExpandivel from '../components/MapaExpandivel.js';
 import { minutosAte, horaDeChegada } from '../lib/estimativa.js';
 import ChatButton from '../components/ChatButton.js';
 import SosButton from '../components/SosButton.js';
+import MotivoCancelamento from '../components/MotivoCancelamento.js';
 import ShareTripButton from '../components/ShareTripButton.js';
 import RatingPanel from '../components/RatingPanel.js';
 import { rideMarkers } from '../lib/rideMarkers.js';
@@ -50,24 +51,14 @@ export default function PassengerHomeScreen({ navigation }) {
   // Cancelar depois de o motorista aceitar não é a mesma coisa que cancelar
   // enquanto ainda se procura. O texto diz-lhe qual dos dois é — sem
   // impedir nada: às vezes cancelar é mesmo o que faz falta.
-  function confirmarCancelamento() {
-    Alert.alert(
-      t('cancelConfirmTitle'),
-      withDriver ? t('cancelConfirmAccepted') : t('cancelConfirmRequested'),
-      [
-        { text: t('cancelKeep'), style: 'cancel' },
-        {
-          text: t('cancelYes'),
-          style: 'destructive',
-          onPress: async () => {
-            const r = await cancelRide(activeRide.id);
-            if (r?.aviso === 'demasiados') {
-              Alert.alert(t('cancelTooMany', { n: r.cancelamentos }), t('cancelTooManyExplain'));
-            }
-          },
-        },
-      ]
-    );
+  const [aCancelar, setACancelar] = useState(false);
+
+  async function cancelarComMotivo(motivo) {
+    setACancelar(false);
+    const r = await cancelRide(activeRide.id, motivo);
+    if (r?.aviso === 'demasiados') {
+      Alert.alert(t('cancelTooMany', { n: r.cancelamentos }), t('cancelTooManyExplain'));
+    }
   }
 
   return (
@@ -188,6 +179,14 @@ export default function PassengerHomeScreen({ navigation }) {
               </View>
             ) : null}
 
+            <MotivoCancelamento
+              visivel={aCancelar}
+              papel="passenger"
+              aCaminho={!!withDriver}
+              onFechar={() => setACancelar(false)}
+              onConfirmar={cancelarComMotivo}
+            />
+
             {activeRide.status === 'completed' ? (
               <RatingPanel ride={activeRide} role="passenger" />
             ) : null}
@@ -199,7 +198,7 @@ export default function PassengerHomeScreen({ navigation }) {
               <Button
                 title={t('cancelRide')}
                 variant="outline"
-                onPress={() => confirmarCancelamento()}
+                onPress={() => setACancelar(true)}
               />
             )}
           </View>

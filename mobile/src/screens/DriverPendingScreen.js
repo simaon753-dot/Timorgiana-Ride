@@ -6,6 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
 import LanguageToggle from '../components/LanguageToggle.js';
+import { VERSAO_TERMOS_MOTORISTA } from '../termos/index.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
@@ -147,6 +148,25 @@ export default function DriverPendingScreen({ navigation }) {
         ) : null}
 
         <View style={{ flex: 1, minHeight: spacing.xl }} />
+        {/* Os termos de motorista vêm DEPOIS dos documentos, de propósito:
+            falam de seguro e de documentos válidos, e aceitá-los antes de
+            os entregar seria aceitar no abstracto. */}
+        {completo && user?.driverTermsVersion !== VERSAO_TERMOS_MOTORISTA ? (
+          <View style={styles.termosCaixa}>
+            <Text style={styles.termosTexto}>{t('driverTermsPending')}</Text>
+            <View style={{ height: spacing.sm }} />
+            <Button
+              title={t('driverTermsRead')}
+              onPress={() =>
+                navigation.navigate('Termos', { quem: 'driver', aceitavel: true })
+              }
+            />
+          </View>
+        ) : completo ? (
+          <Text style={styles.termosFeitos}>{t('driverTermsDone')}</Text>
+        ) : null}
+
+        <View style={{ height: spacing.lg }} />
         <Button title={t('logout')} variant="ghost" onPress={logout} />
       </ScrollView>
     </SafeAreaView>
@@ -155,6 +175,22 @@ export default function DriverPendingScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
+  termosCaixa: {
+    backgroundColor: '#FFF8F0',
+    borderWidth: 1,
+    borderColor: colors.coral,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginTop: spacing.lg,
+  },
+  termosTexto: { color: colors.text, fontSize: fontSize.sm, fontWeight: '600' },
+  termosFeitos: {
+    color: colors.success,
+    fontSize: fontSize.sm,
+    fontWeight: '700',
+    marginTop: spacing.lg,
+    textAlign: 'center',
+  },
   scroll: { flexGrow: 1, padding: spacing.lg },
   topBar: {
     flexDirection: 'row',

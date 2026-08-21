@@ -86,7 +86,8 @@ export const api = {
     request(`/rides/${id}/accept`, { method: 'POST', body: { fareUsd }, token }),
   setRideStatus: (token, id, status) =>
     request(`/rides/${id}/status`, { method: 'POST', body: { status }, token }),
-  cancelRide: (token, id) => request(`/rides/${id}/cancel`, { method: 'POST', token }),
+  cancelRide: (token, id, reason) =>
+    request(`/rides/${id}/cancel`, { method: 'POST', body: { reason }, token }),
   updateFare: (token, id, fareUsd) =>
     request(`/rides/${id}/fare`, { method: 'POST', body: { fareUsd }, token }),
 
@@ -106,6 +107,9 @@ export const api = {
 
   sos: (token, rideId, body) =>
     request(`/rides/${rideId || 0}/sos`, { method: 'POST', body, token }),
+
+  acceptDriverTerms: (token, version) =>
+    request('/driver/terms', { method: 'POST', body: { version }, token }),
 
   adminResumo: (token) => request('/admin/resumo', { token }),
   adminSos: (token) => request('/admin/sos', { token }),

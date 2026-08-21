@@ -19,9 +19,18 @@ projecto pessoal no momento em que um motorista real enviar a primeira foto.
       de qual entidade.
 - [ ] **Estatuto dos motoristas** — são trabalhadores independentes. Isso
       tem de estar escrito, não subentendido, ou o risco é teu.
-- [ ] **Termos de utilização e política de privacidade**, em português e
-      tétum, dentro da app antes do registo — onde ficam os documentos,
-      quem os vê, quanto tempo lá ficam, como se apagam.
+- [x] **Termos de utilização**, PT + Tétum, dentro da app antes do registo
+      — RASCUNHO FEITO, falta a tua revisão. Estão em
+      `mobile/src/termos/`. Três secções marcadas com ⚖ dependem de
+      direito timorense e são decisão tua, não minha:
+      · Responsabilidade civil (passageiro e motorista)
+      · Estatuto de trabalhador independente do motorista
+      Nenhum motorista real deve aceitar isto antes de o teres lido.
+      A versão está em `termos/versao.js` — muda-a se alterares o texto,
+      senão quem aceitou o antigo fica marcado como tendo aceite o novo.
+- [ ] **Revisão do tétum dos termos por falante nativo.** É mais urgente
+      aqui do que no resto da app: uma palavra mal escolhida muda o que a
+      pessoa julga estar a aceitar.
 - [ ] **Responsabilidade civil** — quem responde se houver um acidente
       durante uma viagem marcada pela app. Decide isto antes, não depois.
 - [ ] **Seguro** — o dos motoristas cobre transporte de passageiros a

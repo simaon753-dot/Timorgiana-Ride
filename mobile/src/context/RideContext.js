@@ -194,8 +194,8 @@ export function RideProvider({ children }) {
   );
 
   const cancelRide = useCallback(
-    async (id) => {
-      const resposta = await api.cancelRide(token, id);
+    async (id, reason) => {
+      const resposta = await api.cancelRide(token, id, reason);
       setActiveRide(resposta.ride);
       // Devolve a resposta inteira: além da viagem, traz o número de
       // cancelamentos recentes, que o ecrã usa para avisar quem exagera.

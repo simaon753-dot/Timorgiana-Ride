@@ -17,6 +17,8 @@ import RoleSelector from '../components/RoleSelector.js';
 import SegmentedPicker from '../components/SegmentedPicker.js';
 import LanguageToggle from '../components/LanguageToggle.js';
 import { useI18n } from '../i18n/index.js';
+import AceitarTermos from '../components/AceitarTermos.js';
+import { VERSAO_TERMOS } from '../termos/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { colors, spacing, fontSize } from '../theme.js';
 
@@ -36,6 +38,7 @@ export default function RegisterScreen({ navigation, route }) {
 
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [aceitou, setAceitou] = useState(false);
 
   async function onSubmit() {
     setError(null);
@@ -43,6 +46,7 @@ export default function RegisterScreen({ navigation, route }) {
     if (phone.replace(/[\s()-]/g, '').length < 7) return setError(t('errPhoneRequired'));
     if (password.length < 6) return setError(t('errPasswordShort'));
     if (role === 'driver' && !vPlate.trim()) return setError(t('errPlateRequired'));
+    if (!aceitou) return setError(t('errTermsRequired'));
 
     const payload = {
       name,
@@ -50,6 +54,7 @@ export default function RegisterScreen({ navigation, route }) {
       email: email.trim() || undefined,
       password,
       role,
+      termsVersion: VERSAO_TERMOS,
       ...(role === 'driver'
         ? { vehicle: { type: vType, model: vModel, plate: vPlate, color: vColor } }
         : {}),
@@ -164,6 +169,15 @@ export default function RegisterScreen({ navigation, route }) {
             ) : null}
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
+
+            <View style={{ marginBottom: spacing.md }}>
+              <AceitarTermos
+                aceite={aceitou}
+                onMudar={setAceitou}
+                quem={role}
+                onAbrir={() => navigation.navigate('Termos', { quem: role })}
+              />
+            </View>
 
             <Button
               title={t('createAccountButton')}

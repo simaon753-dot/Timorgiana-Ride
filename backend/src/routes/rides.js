@@ -12,12 +12,21 @@ import {
   setRideFare,
   toPublicRide,
 } from '../rides.js';
-import { addMessage, listMessages } from '../messages.js';
+import { addMessage, addSystemMessage, listMessages } from '../messages.js';
 import { addRating, hasRated } from '../ratings.js';
 import { notificarPedidoNovo, notificarAceite, notificarAdminsSOS } from '../push.js';
-import { one } from '../db.js';
+import { one, query } from '../db.js';
 import { rota, preco } from '../routing.js';
 import { config } from '../config.js';
+
+// Motivos possíveis para cancelar. Os primeiros quatro são do passageiro,
+// os quatro seguintes do motorista; a app mostra os que interessam a cada
+// um. Guardar o código e não a frase permite contá-los depois.
+const MOTIVOS_VALIDOS = [
+  'mudei_de_ideias', 'motorista_demora', 'enganei_destino', 'outro_transporte',
+  'longe_demais', 'passageiro_nao_aparece', 'problema_veiculo', 'destino_inacessivel',
+  'outro',
+];
 
 export const ridesRouter = Router();
 
@@ -152,6 +161,17 @@ ridesRouter.post(
     const ride = toPublicRide(row);
     notify(io, row, 'ride:update');
     io.to('drivers').emit('ride:taken', { id: row.id });
+
+    // Uma linha na conversa a dizer que o motorista aceitou. Serve de
+    // ponto de partida: uma conversa vazia não convida ninguém a escrever,
+    // e é útil o passageiro poder responder logo com uma referência do
+    // sítio onde está à espera.
+    addSystemMessage(rideId, 'aceite')
+      .then((m) => {
+        io.to(`user:${row.passenger_id}`).emit('message:new', m);
+        io.to(`user:${row.driver_id}`).emit('message:new', m);
+      })
+      .catch(() => {});
 
     // Avisar o passageiro, que pode ter fechado a app à espera
     one('SELECT push_token FROM users WHERE id = $1', [row.passenger_id])
@@ -308,6 +328,12 @@ ridesRouter.post(
     if (['completed', 'cancelled'].includes(row.status)) {
       return res.status(409).json({ error: 'Esta viagem já terminou.' });
     }
+
+    // Motivo em lista fechada: texto livre não se conta, e o objectivo é
+    // perceber padrões — se metade dos motoristas cancela por "passageiro
+    // não aparece", isso muda o produto, não é uma queixa isolada.
+    const motivo = MOTIVOS_VALIDOS.includes(req.body?.reason) ? req.body.reason : 'outro';
+    await query('UPDATE rides SET cancel_reason = $1 WHERE id = $2', [motivo, rideId]);
 
     const updated = await setRideStatus(rideId, 'cancelled', req.user.id);
     const io = req.app.get('io');

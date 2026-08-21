@@ -79,6 +79,16 @@ export default function ChatScreen({ navigation }) {
             <Text style={styles.empty}>{t('chatEmpty')}</Text>
           ) : (
             messages.map((m) => {
+              // Mensagem do serviço: não é de nenhum dos dois, por isso
+              // não leva balão nem lado. O corpo traz um código e o texto
+              // é escolhido aqui — assim cada um lê na sua língua.
+              if (m.kind === 'sistema') {
+                return (
+                  <Text key={m.id} style={styles.sistema}>
+                    {t(`sysMsg_${m.body}`)}
+                  </Text>
+                );
+              }
               const mine = m.senderId === user?.id;
               return (
                 <View key={m.id} style={[styles.bubbleRow, mine ? styles.rowMine : styles.rowOther]}>
@@ -127,6 +137,18 @@ const styles = StyleSheet.create({
   title: { fontSize: fontSize.md, fontWeight: '800', color: colors.text, textAlign: 'center' },
   subtitle: { fontSize: fontSize.xs, color: colors.textMuted, textAlign: 'center' },
   list: { padding: spacing.md, flexGrow: 1 },
+  sistema: {
+    textAlign: 'center',
+    color: colors.textMuted,
+    fontSize: fontSize.xs,
+    lineHeight: 18,
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.md,
+    overflow: 'hidden',
+  },
   empty: {
     textAlign: 'center',
     color: colors.textMuted,

@@ -16,6 +16,7 @@ import TextField from '../components/TextField.js';
 import LanguageToggle from '../components/LanguageToggle.js';
 import StatusBadge from '../components/StatusBadge.js';
 import MapaExpandivel from '../components/MapaExpandivel.js';
+import MotivoCancelamento from '../components/MotivoCancelamento.js';
 import ChatButton from '../components/ChatButton.js';
 import SosButton from '../components/SosButton.js';
 import RatingPanel from '../components/RatingPanel.js';
@@ -80,7 +81,7 @@ export default function DriverHomeScreen({ navigation }) {
             navigation={navigation}
             onArriving={() => advanceStatus(activeRide.id, 'arriving')}
             onComplete={() => advanceStatus(activeRide.id, 'completed')}
-            onCancel={() => cancelRide(activeRide.id)}
+            onCancel={(motivo) => cancelRide(activeRide.id, motivo)}
             onDismiss={dismissRide}
           />
         ) : (
@@ -164,6 +165,7 @@ function RequestCard({ ride, onAccept }) {
 // ---- Cartão da viagem ativa do motorista ----
 function ActiveRideCard({ ride, isFinal, navigation, onArriving, onComplete, onCancel, onDismiss }) {
   const { t } = useI18n();
+  const [aCancelar, setACancelar] = useState(false);
   const markers = rideMarkers(ride);
   const active = ['accepted', 'arriving'].includes(ride.status);
 
@@ -241,15 +243,26 @@ function ActiveRideCard({ ride, isFinal, navigation, onArriving, onComplete, onC
         <>
           <Button title={t('onTheWay')} onPress={onArriving} />
           <View style={{ height: spacing.sm }} />
-          <Button title={t('cancelRide')} variant="outline" onPress={onCancel} />
+          <Button title={t('cancelRide')} variant="outline" onPress={() => setACancelar(true)} />
         </>
       ) : (
         <>
           <Button title={t('completeRide')} variant="secondary" onPress={onComplete} />
           <View style={{ height: spacing.sm }} />
-          <Button title={t('cancelRide')} variant="outline" onPress={onCancel} />
+          <Button title={t('cancelRide')} variant="outline" onPress={() => setACancelar(true)} />
         </>
       )}
+
+      <MotivoCancelamento
+        visivel={aCancelar}
+        papel="driver"
+        aCaminho
+        onFechar={() => setACancelar(false)}
+        onConfirmar={(motivo) => {
+          setACancelar(false);
+          onCancel(motivo);
+        }}
+      />
     </View>
   );
 }
