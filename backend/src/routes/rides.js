@@ -64,6 +64,8 @@ ridesRouter.post(
     // mínimo. Sem coordenadas (destino escrito à mão) aceita-se o valor
     // proposto, que nesse caso volta a ser combinado entre as pessoas.
     let precoFinal = fareUsd;
+    let kmViagem = null;
+    let minViagem = null;
     const temCoords =
       originLat != null && originLng != null && destLat != null && destLng != null;
     if (temCoords) {
@@ -72,6 +74,8 @@ ridesRouter.post(
         { lat: Number(destLat), lng: Number(destLng) }
       );
       precoFinal = preco(vehicleType === 'motorbike' ? 'motorbike' : 'car', viagem.km);
+      kmViagem = viagem.km;
+      minViagem = viagem.min;
     }
 
     const row = await createRide({
@@ -80,6 +84,8 @@ ridesRouter.post(
       originLabel, originLat, originLng,
       vehicleType,
       fareUsd: precoFinal,
+      distanceKm: kmViagem,
+      durationMin: minViagem,
     });
     const ride = toPublicRide(row);
 

@@ -15,7 +15,8 @@ import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
 import LanguageToggle from '../components/LanguageToggle.js';
 import StatusBadge from '../components/StatusBadge.js';
-import OSMMap from '../components/OSMMap.js';
+import MapaExpandivel from '../components/MapaExpandivel.js';
+import { minutosAte, horaDeChegada } from '../lib/estimativa.js';
 import ChatButton from '../components/ChatButton.js';
 import SosButton from '../components/SosButton.js';
 import ShareTripButton from '../components/ShareTripButton.js';
@@ -36,6 +37,15 @@ export default function PassengerHomeScreen({ navigation }) {
   const markers = activeRide ? rideMarkers(activeRide) : [];
   const withDriver =
     activeRide?.driver && ['accepted', 'arriving'].includes(activeRide.status);
+
+  // O motorista ainda vem a caminho: quanto falta até estar à porta.
+  const minChegada =
+    activeRide?.status === 'accepted' || activeRide?.status === 'arriving'
+      ? minutosAte(driverLocation, {
+          lat: activeRide.originLat,
+          lng: activeRide.originLng,
+        })
+      : null;
 
   // Cancelar depois de o motorista aceitar não é a mesma coisa que cancelar
   // enquanto ainda se procura. O texto diz-lhe qual dos dois é — sem
@@ -93,7 +103,12 @@ export default function PassengerHomeScreen({ navigation }) {
 
             {markers.length > 0 ? (
               <View style={{ marginTop: spacing.md }}>
-                <OSMMap markers={markers} height={190} liveMarker={driverLocation} liveLabel={driverPlace} />
+                <MapaExpandivel
+                  markers={markers}
+                  height={190}
+                  liveMarker={driverLocation}
+                  liveLabel={driverPlace}
+                />
                 {driverLocation ? (
                   <Text style={styles.driverMoving}>
                     {driverPlace ? t('nowOnStreet', { rua: driverPlace }) : t('driverOnMap')}
@@ -119,6 +134,22 @@ export default function PassengerHomeScreen({ navigation }) {
                 ) : null}
                 {activeRide.driver.vehicle?.plate ? (
                   <InfoRow label={t('vehiclePlate')} value={activeRide.driver.vehicle.plate} />
+                ) : null}
+                {minChegada != null ? (
+                  <InfoRow
+                    label={t('etaArrival')}
+                    value={t('etaMinutes', { min: minChegada, hora: horaDeChegada(minChegada) })}
+                    strong
+                  />
+                ) : null}
+                {activeRide.durationMin != null ? (
+                  <InfoRow
+                    label={t('etaTrip')}
+                    value={t('etaTripValue', {
+                      min: activeRide.durationMin,
+                      km: activeRide.distanceKm ?? '—',
+                    })}
+                  />
                 ) : null}
                 <InfoRow
                   label={t('fareLabel')}

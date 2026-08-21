@@ -245,4 +245,9 @@ export default {
   adminRefresh: 'Atualiza',
   nowOnStreet: 'Agora iha {rua}',
   shareTripStreet: '📍 Haʼu agora iha {rua}.',
+  etaArrival: 'Toʼo iha',
+  etaMinutes: '{min} min · {hora}',
+  etaTrip: 'Depois, viajen',
+  etaTripValue: '{min} min · {km} km',
+  expandMap: 'Haree mapa tomak',
 };

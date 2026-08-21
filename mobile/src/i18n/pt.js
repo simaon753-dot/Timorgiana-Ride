@@ -244,4 +244,9 @@ export default {
   adminRefresh: 'Actualizar',
   nowOnStreet: 'Vais agora na {rua}',
   shareTripStreet: '📍 Estou agora na {rua}.',
+  etaArrival: 'Chega em',
+  etaMinutes: '{min} min · {hora}',
+  etaTrip: 'Depois, a viagem',
+  etaTripValue: '{min} min · {km} km',
+  expandMap: 'Ver mapa inteiro',
 };

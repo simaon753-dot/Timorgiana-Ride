@@ -30,15 +30,24 @@ export async function rota(origem, destino) {
     const j = await r.json();
     const rt = j?.routes?.[0];
     if (!rt) throw new Error('sem rota');
-    return {
-      km: Math.round((rt.distance / 1000) * 10) / 10,
-      min: Math.max(1, Math.round(rt.duration / 60)),
-      aproximado: false,
-    };
+    const km = Math.round((rt.distance / 1000) * 10) / 10;
+    return { km, min: duracaoRealista(km, rt.duration / 60), aproximado: false };
   } catch {
     const km = Math.round(straightKm(origem, destino) * 1.4 * 10) / 10;
-    return { km, min: Math.max(1, Math.round((km / 25) * 60)), aproximado: true };
+    return { km, min: duracaoRealista(km, null), aproximado: true };
   }
+}
+
+// O OSRM devolve o tempo com as estradas livres — para 1,7 km em Díli dava
+// 2 minutos, ou seja 51 km/h, o que não acontece em hora nenhuma do dia.
+// Tomamos o maior entre o que o OSRM diz e o que uma velocidade real de
+// cidade dá. Uma estimativa optimista que falha faz o passageiro pensar que
+// o motorista se atrasou; uma conservadora que se cumpre não incomoda
+// ninguém.
+export function duracaoRealista(km, minutosOsrm) {
+  const VELOCIDADE_CIDADE_KMH = 22;
+  const porVelocidade = (km / VELOCIDADE_CIDADE_KMH) * 60;
+  return Math.max(1, Math.round(Math.max(porVelocidade, minutosOsrm || 0)));
 }
 
 // Preço final, arredondado a 0,25 USD

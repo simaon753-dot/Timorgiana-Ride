@@ -40,6 +40,8 @@ export function toPublicRide(row) {
     originLng: row.origin_lng ?? null,
     vehicleType: row.vehicle_type || null,
     fareUsd: row.fare_usd ?? null,
+    distanceKm: row.distance_km ?? null,
+    durationMin: row.duration_min ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     passenger: { id: row.passenger_id, name: row.p_name, phone: row.p_phone },
@@ -70,11 +72,13 @@ export function getRideById(id) {
 export async function createRide({
   passengerId, destLabel, destLat, destLng,
   originLabel, originLat, originLng, vehicleType, fareUsd,
+  distanceKm = null, durationMin = null,
 }) {
   const inserted = await one(
     `INSERT INTO rides
-       (passenger_id, dest_label, dest_lat, dest_lng, origin_label, origin_lat, origin_lng, vehicle_type, fare_usd, status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'requested')
+       (passenger_id, dest_label, dest_lat, dest_lng, origin_label, origin_lat, origin_lng,
+        vehicle_type, fare_usd, distance_km, duration_min, status)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'requested')
      RETURNING id`,
     [
       passengerId,
@@ -86,6 +90,8 @@ export async function createRide({
       num(originLng),
       vehicleType === 'car' || vehicleType === 'motorbike' ? vehicleType : null,
       num(fareUsd),
+      num(distanceKm),
+      durationMin != null ? Math.round(Number(durationMin)) : null,
     ]
   );
   return getRideById(inserted.id);

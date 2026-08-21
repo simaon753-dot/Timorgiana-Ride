@@ -176,6 +176,10 @@ export async function initSchema() {
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS push_token TEXT`);
 
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS cancelled_by INTEGER REFERENCES users(id)`);
+  // A rota é calculada para fixar o preço; guardá-la evita pedir outra vez
+  // ao OSRM só para mostrar quanto tempo demora a viagem.
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS distance_km REAL`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS duration_min INTEGER`);
 
   await query('CREATE INDEX IF NOT EXISTS idx_docs_user ON driver_documents(user_id)');
   await query('CREATE INDEX IF NOT EXISTS idx_sos_aberto ON sos_alerts(resolved, created_at DESC)');

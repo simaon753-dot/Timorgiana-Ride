@@ -15,7 +15,7 @@ import Button from '../components/Button.js';
 import TextField from '../components/TextField.js';
 import LanguageToggle from '../components/LanguageToggle.js';
 import StatusBadge from '../components/StatusBadge.js';
-import OSMMap from '../components/OSMMap.js';
+import MapaExpandivel from '../components/MapaExpandivel.js';
 import ChatButton from '../components/ChatButton.js';
 import SosButton from '../components/SosButton.js';
 import RatingPanel from '../components/RatingPanel.js';
@@ -180,13 +180,23 @@ function ActiveRideCard({ ride, isFinal, navigation, onArriving, onComplete, onC
 
       {markers.length > 0 ? (
         <View style={{ marginTop: spacing.md }}>
-          <OSMMap markers={markers} height={170} />
+          <MapaExpandivel markers={markers} height={170} />
         </View>
       ) : null}
 
       <View style={styles.passengerBox}>
         <Text style={styles.boxTitle}>{t('yourPassenger')}</Text>
         <Text style={styles.passengerName}>{ride.passenger?.name}</Text>
+        {/* O motorista precisa de saber em que se está a meter antes de
+            arrancar: quanto tempo e quantos quilómetros. */}
+        {ride.durationMin != null ? (
+          <View style={styles.row}>
+            <Text style={styles.rowLabel}>{t('etaTrip')}</Text>
+            <Text style={styles.rowValue}>
+              {t('etaTripValue', { min: ride.durationMin, km: ride.distanceKm ?? '—' })}
+            </Text>
+          </View>
+        ) : null}
         <View style={styles.row}>
           <Text style={styles.rowLabel}>{t('fareLabel')}</Text>
           <Text style={styles.rowValueStrong}>
@@ -315,6 +325,7 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
   rowLabel: { color: colors.textMuted, fontSize: fontSize.sm },
+  rowValue: { fontSize: fontSize.sm, fontWeight: '600', color: colors.text },
   rowValueStrong: { fontSize: fontSize.md, fontWeight: '800', color: colors.teal },
   callBtn: {
     marginTop: spacing.md,
