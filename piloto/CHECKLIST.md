@@ -31,7 +31,7 @@ projecto pessoal no momento em que um motorista real enviar a primeira foto.
 
 ### Técnico — feito, falta confirmares
 
-- [ ] Enviar o commit da Fase 4 (`git push`) — actualiza o servidor
+- [x] Enviar a Fase 4 (`git push`) — feito 21/08/2026, servidor confirmado no ar
 - [ ] Abrir o painel de administração na app e confirmar que os números batem
 - [ ] Fazer um SOS de teste e confirmar que chega
 - [ ] Trocar a palavra-passe do Neon (a actual passou pela conversa)
@@ -111,5 +111,11 @@ código — são decisões que ainda não tomaste:
   espera longos. Escolher uma zona (Timor Plaza, Farol, Lecidere) e
   concentrar lá é melhor do que espalhar.
 - **Suporte.** Quando um motorista ligar às 21h, quem atende?
-- **iPhone.** Só existe Android. Em Díli é a esmagadora maioria, mas
-  convém saberes que é uma escolha, não um esquecimento.
+- **iPhone — decidido em 21/08/2026: fica de fora do piloto.** Distribuir
+  a iPhones exige o Apple Developer Program (99 USD/ano) e não há
+  alternativa: a Apple não permite instalação fora da App Store nem do
+  TestFlight. Em Díli a esmagadora maioria dos motoristas usa Android, por
+  isso o custo não se justifica antes de haver procura que o pague.
+  O Simão testa no iPhone dele pelo **Expo Go** (grátis, porque a app é
+  SDK 54 e é essa a versão que a App Store ainda serve).
+  Rever esta decisão se aparecerem passageiros ou motoristas com iPhone.
