@@ -20,6 +20,7 @@ export default function OSMMap({
   onPick,
   onRoute, // recebe { km } quando há rota entre dois pontos
   liveMarker, // { lat, lng } que se move — ex.: o motorista a aproximar-se
+  liveLabel, // nome da rua onde o veículo vai agora (acompanha o marcador)
   fill = false, // ocupa todo o espaço do pai, sem moldura nem cantos
 }) {
   const webRef = useRef(null);
@@ -38,9 +39,11 @@ export default function OSMMap({
   useEffect(() => {
     if (!liveMarker || !webRef.current) return;
     webRef.current.injectJavaScript(
-      `window.moverMotorista && window.moverMotorista(${liveMarker.lat}, ${liveMarker.lng}); true;`
+      `window.moverMotorista && window.moverMotorista(${liveMarker.lat}, ${liveMarker.lng}, ${JSON.stringify(
+        liveLabel || ''
+      )}); true;`
     );
-  }, [liveMarker?.lat, liveMarker?.lng]);
+  }, [liveMarker?.lat, liveMarker?.lng, liveLabel]);
 
   // O WebView não existe na versão web — mostrar um aviso simpático
   // em vez do erro vermelho do react-native-webview.
@@ -92,6 +95,8 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
   text-align:center;
 }
 .rotulo.destino{ background:#E85531; }
+.rotulo.agora{ background:#1C2421; }
+.rotulo.leaflet-tooltip-bottom.agora:before{ border-bottom-color:#1C2421; }
 .rotulo.leaflet-tooltip-top.origem:before{ border-top-color:#0E5C54; }
 .rotulo.leaflet-tooltip-top.destino:before{ border-top-color:#E85531; }
 </style>
@@ -150,9 +155,21 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
     className: '', iconSize: [26,26], iconAnchor: [13,13]
   });
   var motorista = null;
-  window.moverMotorista = function(lat, lng){
+  window.moverMotorista = function(lat, lng, rua){
     if (motorista) { motorista.setLatLng([lat,lng]); }
     else { motorista = L.marker([lat,lng], {icon: motoristaIcon, zIndexOffset: 1000}).addTo(map); }
+    // O rótulo acompanha o veículo e diz a rua onde ele vai agora. Ao
+    // contrário da recolha e do destino, este muda durante a viagem — é
+    // essa mudança que responde a "onde estamos neste momento".
+    if (rua) {
+      if (motorista.getTooltip()) { motorista.setTooltipContent(rua); }
+      else {
+        motorista.bindTooltip(rua, {
+          permanent: true, direction: 'bottom', offset: [0,16],
+          className: 'rotulo agora', opacity: 1
+        });
+      }
+    }
   };
 
   ${

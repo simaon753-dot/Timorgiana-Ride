@@ -243,4 +243,6 @@ export default {
   adminWaiting: 'hein hela',
   adminPassengers: 'pasajeiru',
   adminRefresh: 'Atualiza',
+  nowOnStreet: 'Agora iha {rua}',
+  shareTripStreet: '📍 Haʼu agora iha {rua}.',
 };

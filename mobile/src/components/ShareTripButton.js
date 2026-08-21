@@ -10,7 +10,7 @@ import { linkMapa } from '../lib/mapaLink.js';
 //
 // Usa a folha de partilha do sistema, por isso serve WhatsApp, SMS ou o
 // que a pessoa tiver — não obrigamos ninguém a instalar nada.
-export default function ShareTripButton({ ride, driverLocation }) {
+export default function ShareTripButton({ ride, driverLocation, driverPlace }) {
   const { t } = useI18n();
 
   async function partilhar() {
@@ -24,7 +24,11 @@ export default function ShareTripButton({ ride, driverLocation }) {
 
     const link = ponto ? linkMapa(ponto.lat, ponto.lng) : '';
 
-    const texto = t('shareTripText', {
+    // A rua vem primeiro no texto: quem recebe percebe logo onde estamos,
+    // sem ter de abrir o link. O link fica para quem quiser ver no mapa.
+    const linhaRua = driverPlace ? t('shareTripStreet', { rua: driverPlace }) + '\n' : '';
+
+    const texto = linhaRua + t('shareTripText', {
       driver: ride.driver?.name || '—',
       plate: ride.driver?.vehicle?.plate || '—',
       dest: ride.destLabel || '—',

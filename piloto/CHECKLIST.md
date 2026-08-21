@@ -111,6 +111,13 @@ código — são decisões que ainda não tomaste:
   espera longos. Escolher uma zona (Timor Plaza, Farol, Lecidere) e
   concentrar lá é melhor do que espalhar.
 - **Suporte.** Quando um motorista ligar às 21h, quem atende?
+- **Limite do Nominatim.** A pesquisa de sítios e o nome da rua em
+  movimento usam o serviço gratuito do OpenStreetMap, que aceita cerca de
+  1 pedido por segundo no total. Está limitado por distância (só pergunta
+  a rua depois de 150 m percorridos), o que dá cerca de 1 pedido cada 28 s
+  por viagem — folgado para 5 a 10 motoristas. **Acima de ~30 viagens em
+  simultâneo isto deixa de servir** e passa a ser preciso alojar um
+  Nominatim próprio ou pagar um serviço.
 - **iPhone — decidido em 21/08/2026: fica de fora do piloto.** Distribuir
   a iPhones exige o Apple Developer Program (99 USD/ano) e não há
   alternativa: a Apple não permite instalação fora da App Store nem do

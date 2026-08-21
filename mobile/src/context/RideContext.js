@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import { nomeDaRua, metrosEntre } from '../lib/geocode.js';
 import * as Location from 'expo-location';
 import { api } from '../api/client.js';
 import { createSocket } from '../socket.js';
@@ -8,6 +9,10 @@ import { useAuth } from './AuthContext.js';
 const RideContext = createContext(null);
 
 const FINAL = ['completed', 'cancelled'];
+
+// Metros que o veículo tem de percorrer para valer a pena perguntar a rua
+// outra vez. 150 m em Díli é cerca de um quarteirão.
+const DISTANCIA_NOVA_RUA = 150;
 
 export function RideProvider({ children }) {
   const { token, user } = useAuth();
@@ -22,6 +27,8 @@ export function RideProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [online, setOnlineState] = useState(!!user?.isOnline); // motorista disponível
   const [driverLocation, setDriverLocation] = useState(null); // posição vista pelo passageiro
+  const [driverPlace, setDriverPlace] = useState(null); // rua onde o veículo vai agora
+  const ultimoGeocode = useRef(null); // onde foi feita a última pergunta
 
   const socketRef = useRef(null);
   const rideIdRef = useRef(null); // id da viagem atual (para os handlers do socket)
@@ -64,6 +71,17 @@ export function RideProvider({ children }) {
     socket.on('ride:driverLocation', ({ rideId, lat, lng }) => {
       if (rideId !== rideIdRef.current) return;
       setDriverLocation({ lat, lng });
+
+      // A rua só se pergunta quando o veículo andou mesmo. Um carro parado
+      // num semáforo continua a enviar posição de 12 em 12 segundos e não
+      // tem rua nova para dizer — e o Nominatim é gratuito e partilhado,
+      // aceita cerca de um pedido por segundo no total.
+      const agora = { lat, lng };
+      if (metrosEntre(ultimoGeocode.current, agora) < DISTANCIA_NOVA_RUA) return;
+      ultimoGeocode.current = agora;
+      nomeDaRua(lat, lng)
+        .then((rua) => rua && setDriverPlace(rua))
+        .catch(() => {});
     });
     socket.on('message:new', (msg) => {
       if (msg.rideId !== rideIdRef.current) return;
@@ -124,6 +142,10 @@ export function RideProvider({ children }) {
     setUnread(0);
     setRated(false);
     setDriverLocation(null);
+    // A rua pertence à viagem: guardá-la entre viagens mostraria ao
+    // passageiro seguinte onde andou o anterior.
+    setDriverPlace(null);
+    ultimoGeocode.current = null;
     if (activeId && hasDriver && token) {
       api
         .listMessages(token, activeId)
@@ -247,6 +269,7 @@ export function RideProvider({ children }) {
         online,
         toggleOnline,
         driverLocation,
+        driverPlace,
         requestRide,
         acceptRide,
         advanceStatus,

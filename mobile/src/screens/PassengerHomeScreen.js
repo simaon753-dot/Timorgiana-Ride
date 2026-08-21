@@ -29,7 +29,8 @@ import { colors, spacing, fontSize, radius } from '../theme.js';
 export default function PassengerHomeScreen({ navigation }) {
   const { t } = useI18n();
   const { user, logout } = useAuth();
-  const { activeRide, isFinal, cancelRide, dismissRide, loading, driverLocation } = useRides();
+  const { activeRide, isFinal, cancelRide, dismissRide, loading, driverLocation, driverPlace } =
+    useRides();
 
   const vehicleLabel = (v) => (v?.type === 'motorbike' ? t('vehicleMotorbike') : t('vehicleCar'));
   const markers = activeRide ? rideMarkers(activeRide) : [];
@@ -92,9 +93,11 @@ export default function PassengerHomeScreen({ navigation }) {
 
             {markers.length > 0 ? (
               <View style={{ marginTop: spacing.md }}>
-                <OSMMap markers={markers} height={190} liveMarker={driverLocation} />
+                <OSMMap markers={markers} height={190} liveMarker={driverLocation} liveLabel={driverPlace} />
                 {driverLocation ? (
-                  <Text style={styles.driverMoving}>{t('driverOnMap')}</Text>
+                  <Text style={styles.driverMoving}>
+                    {driverPlace ? t('nowOnStreet', { rua: driverPlace }) : t('driverOnMap')}
+                  </Text>
                 ) : null}
               </View>
             ) : null}
@@ -141,7 +144,11 @@ export default function PassengerHomeScreen({ navigation }) {
 
             {withDriver ? (
               <View style={{ marginTop: spacing.md, gap: spacing.sm }}>
-                <ShareTripButton ride={activeRide} driverLocation={driverLocation} />
+                <ShareTripButton
+                  ride={activeRide}
+                  driverLocation={driverLocation}
+                  driverPlace={driverPlace}
+                />
                 <SosButton rideId={activeRide.id} />
               </View>
             ) : null}

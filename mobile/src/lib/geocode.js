@@ -62,3 +62,41 @@ export async function nomeDoLugar(lat, lng) {
 }
 
 export const rotuloCoordenadas = (lat, lng) => `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+// Nome da RUA onde está um ponto. Usado para acompanhar o veículo em
+// movimento: o que interessa a quem vai no carro — e a quem quer avisar
+// alguém — é "estou na Avenida de Portugal", não uma coordenada.
+//
+// zoom=17 e addressdetails=1 para vir o campo `road`; sem isso o Nominatim
+// devolve o bairro, que muda pouco e não ajuda a localizar.
+export async function nomeDaRua(lat, lng) {
+  try {
+    const r = await fetch(
+      `${BASE}/reverse?format=json&zoom=17&addressdetails=1&lat=${lat}&lon=${lng}`,
+      { headers: { Accept: 'application/json', 'User-Agent': UA } }
+    );
+    if (!r.ok) return null;
+    const j = await r.json();
+    const a = j?.address || {};
+    const rua = a.road || a.pedestrian || a.residential || a.suburb || a.village;
+    if (rua) return rua;
+    return j?.display_name ? nomeCurto(j.display_name) : null;
+  } catch {
+    return null;
+  }
+}
+
+// Metros entre dois pontos. Serve para não repetir a pergunta ao Nominatim
+// enquanto o veículo não sair do sítio — um carro parado num semáforo não
+// tem rua nova para nos dizer, e o serviço é gratuito e partilhado.
+export function metrosEntre(a, b) {
+  if (!a || !b) return Infinity;
+  const R = 6371000;
+  const rad = (x) => (x * Math.PI) / 180;
+  const dLat = rad(b.lat - a.lat);
+  const dLng = rad(b.lng - a.lng);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}

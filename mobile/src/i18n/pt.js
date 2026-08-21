@@ -242,4 +242,6 @@ export default {
   adminWaiting: 'à espera',
   adminPassengers: 'passageiros',
   adminRefresh: 'Actualizar',
+  nowOnStreet: 'Vais agora na {rua}',
+  shareTripStreet: '📍 Estou agora na {rua}.',
 };
