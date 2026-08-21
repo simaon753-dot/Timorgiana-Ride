@@ -22,8 +22,20 @@ app.use(express.json({ limit: '6mb' }));
 // Saúde real: confirma que a base de dados responde. Verificar apenas que
 // o processo está vivo daria "ok" com o servidor incapaz de autenticar
 // alguém — os painéis verdes e os utilizadores à porta.
+// Qual é a versão que está mesmo no ar? Já perdemos tempo várias vezes a
+// testar contra um servidor que ainda tinha o código anterior — o Render
+// demora minutos a reconstruir depois de um push. O Render expõe o commit
+// em RENDER_GIT_COMMIT; localmente não existe e dizemos 'local'.
+const VERSAO = (process.env.RENDER_GIT_COMMIT || 'local').slice(0, 7);
+const ARRANQUE = new Date().toISOString();
+
 app.get('/api/health', async (req, res) => {
-  const base = { service: 'TimorgianaRide', time: new Date().toISOString() };
+  const base = {
+    service: 'TimorgianaRide',
+    time: new Date().toISOString(),
+    versao: VERSAO,
+    desde: ARRANQUE,
+  };
   try {
     await query('SELECT 1');
     res.json({ ...base, ok: true, database: 'ok' });
