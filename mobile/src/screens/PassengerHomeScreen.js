@@ -108,6 +108,10 @@ export default function PassengerHomeScreen({ navigation }) {
                   height={190}
                   liveMarker={driverLocation}
                   liveLabel={driverPlace}
+                  info={{ km: activeRide.distanceKm, min: activeRide.durationMin }}
+                  aviso={
+                    minChegada != null ? t('etaArrivalShort', { min: minChegada }) : null
+                  }
                 />
                 {driverLocation ? (
                   <Text style={styles.driverMoving}>

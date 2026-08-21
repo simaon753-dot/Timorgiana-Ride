@@ -250,4 +250,5 @@ export default {
   etaTrip: 'Depois, viajen',
   etaTripValue: '{min} min · {km} km',
   expandMap: 'Haree mapa tomak',
+  etaArrivalShort: '🚗 Toʼo iha {min} min',
 };

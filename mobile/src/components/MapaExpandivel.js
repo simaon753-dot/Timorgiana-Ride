@@ -11,14 +11,36 @@ import { useI18n } from '../i18n/index.js';
 // ecrã o motorista, o preço e os botões. Mas um mapa baixo não serve para
 // perceber o trajeto — daí o botão. São duas necessidades diferentes e
 // não há um tamanho que sirva as duas.
-export default function MapaExpandivel({ markers, liveMarker, liveLabel, height = 190, rodape }) {
+export default function MapaExpandivel({
+  markers,
+  liveMarker,
+  liveLabel,
+  height = 190,
+  info, // { km, min } da viagem — mostrado sobre o mapa
+  aviso, // linha destacada, ex.: quanto falta para o motorista chegar
+}) {
   const { t } = useI18n();
   const [aberto, setAberto] = useState(false);
+
+  // O crachá é o mesmo nos dois tamanhos: quem abre o mapa inteiro não
+  // deve perder a informação que estava a ver no pequeno.
+  const cracha =
+    info?.km != null || info?.min != null || aviso ? (
+      <View style={styles.cracha} pointerEvents="none">
+        {aviso ? <Text style={styles.crachaAviso}>{aviso}</Text> : null}
+        {info?.min != null ? (
+          <Text style={styles.crachaTexto}>
+            {t('tripInfo', { km: info.km ?? '—', min: info.min })}
+          </Text>
+        ) : null}
+      </View>
+    ) : null;
 
   return (
     <View>
       <View style={styles.caixa}>
         <OSMMap markers={markers} liveMarker={liveMarker} liveLabel={liveLabel} height={height} />
+        {cracha}
         <Pressable style={styles.expandir} onPress={() => setAberto(true)} hitSlop={8}>
           <Text style={styles.expandirIcone}>⤢</Text>
         </Pressable>
@@ -30,11 +52,12 @@ export default function MapaExpandivel({ markers, liveMarker, liveLabel, height 
               mostrar o trajeto inteiro em vez da faixa do cartão. */}
           <View style={{ flex: 1 }}>
             <OSMMap markers={markers} liveMarker={liveMarker} liveLabel={liveLabel} fill />
+            {cracha}
             <Pressable style={styles.fechar} onPress={() => setAberto(false)} hitSlop={10}>
               <Text style={styles.fecharIcone}>✕</Text>
             </Pressable>
           </View>
-          {rodape ? <View style={styles.rodape}>{rodape}</View> : null}
+
         </SafeAreaView>
       </Modal>
     </View>
@@ -43,6 +66,18 @@ export default function MapaExpandivel({ markers, liveMarker, liveLabel, height 
 
 const styles = StyleSheet.create({
   caixa: { position: 'relative' },
+  cracha: {
+    position: 'absolute',
+    top: spacing.sm,
+    left: spacing.sm,
+    backgroundColor: 'rgba(28,36,33,0.88)',
+    borderRadius: radius.md,
+    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+    maxWidth: '80%',
+  },
+  crachaAviso: { color: '#FFC7B4', fontSize: fontSize.sm, fontWeight: '800' },
+  crachaTexto: { color: '#FFFFFF', fontSize: fontSize.sm, fontWeight: '600' },
   expandir: {
     position: 'absolute',
     right: spacing.sm,
@@ -78,11 +113,4 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   fecharIcone: { fontSize: 18, color: colors.text, fontWeight: '700' },
-  rodape: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.white,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
 });

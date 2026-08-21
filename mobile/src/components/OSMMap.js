@@ -104,7 +104,10 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
 <div id="map"></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-  var map = L.map('map',{zoomControl:true,attributionControl:false}).setView([${center.lat},${center.lng}], 14);
+  var map = L.map('map',{zoomControl:false,attributionControl:false}).setView([${center.lat},${center.lng}], 14);
+  // Zoom em baixo à esquerda: em cima colidia com o crachá de distância
+  // e tempo, e à direita com os botões de expandir e fechar.
+  L.control.zoom({ position: 'bottomleft' }).addTo(map);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
   var pts = ${JSON.stringify(pts)};
   pts.forEach(function(p){

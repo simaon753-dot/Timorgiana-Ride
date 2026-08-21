@@ -249,4 +249,5 @@ export default {
   etaTrip: 'Depois, a viagem',
   etaTripValue: '{min} min · {km} km',
   expandMap: 'Ver mapa inteiro',
+  etaArrivalShort: '🚗 Chega em {min} min',
 };

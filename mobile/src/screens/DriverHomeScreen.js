@@ -180,7 +180,11 @@ function ActiveRideCard({ ride, isFinal, navigation, onArriving, onComplete, onC
 
       {markers.length > 0 ? (
         <View style={{ marginTop: spacing.md }}>
-          <MapaExpandivel markers={markers} height={170} />
+          <MapaExpandivel
+            markers={markers}
+            height={170}
+            info={{ km: ride.distanceKm, min: ride.durationMin }}
+          />
         </View>
       ) : null}
 
