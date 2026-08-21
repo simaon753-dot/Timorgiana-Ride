@@ -51,6 +51,10 @@ export default function RootNavigator() {
       <NavigationContainer theme={navTheme}>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="DriverPending" component={DriverPendingScreen} />
+          {/* Quem gere o serviço pode também querer conduzir. Sem isto,
+              a conta ficaria presa no ecrã de espera — à espera de uma
+              aprovação que só ela própria pode dar. */}
+          {user.isAdmin ? <Stack.Screen name="Admin" component={AdminScreen} /> : null}
         </Stack.Navigator>
       </NavigationContainer>
     );

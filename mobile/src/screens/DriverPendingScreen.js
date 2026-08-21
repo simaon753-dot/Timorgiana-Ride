@@ -20,7 +20,7 @@ const TIPOS = [
 // Ecrã que o motorista vê enquanto a conta não está aprovada. Sem isto,
 // alguém acabado de registar via a lista de pedidos vazia e concluía que
 // a app estava avariada — em vez de perceber que falta ser aprovado.
-export default function DriverPendingScreen() {
+export default function DriverPendingScreen({ navigation }) {
   const { t } = useI18n();
   const { user, token, logout, refreshUser } = useAuth();
   const [docs, setDocs] = useState([]);
@@ -89,7 +89,14 @@ export default function DriverPendingScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.topBar}>
           <Logo size="sm" />
-          <LanguageToggle />
+          <View style={styles.topBarDireita}>
+            {user?.isAdmin ? (
+              <Pressable onPress={() => navigation.navigate('Admin')} style={styles.adminLink}>
+                <Text style={styles.adminLinkText}>⚙</Text>
+              </Pressable>
+            ) : null}
+            <LanguageToggle />
+          </View>
         </View>
 
         <View style={[styles.card, rejected && styles.cardRejected]}>
@@ -155,6 +162,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: spacing.lg,
   },
+  topBarDireita: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  adminLink: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.white,
+  },
+  adminLinkText: { fontSize: 18, color: colors.teal },
   card: {
     backgroundColor: '#FFF8F0',
     borderWidth: 1,

@@ -96,3 +96,23 @@ export async function notificarAdminsSOS({ nome, rideId, lat, lng }) {
     }))
   );
 }
+
+// Avisa os administradores de que um motorista completou os documentos.
+// Sem isto, um motorista pode ficar dias à espera só porque ninguém foi
+// olhar para o painel — e um motorista que espera dois dias desiste.
+export async function notificarAdminsMotoristaPronto({ nome, telefone }) {
+  const admins = await query(
+    'SELECT push_token FROM users WHERE is_admin = TRUE AND push_token IS NOT NULL'
+  );
+  if (!admins.length) return { enviadas: 0 };
+  return enviar(
+    admins.map((a) => ({
+      to: a.push_token,
+      sound: 'default',
+      title: 'Motorista à espera de aprovação',
+      body: `${nome || 'Um motorista'} enviou os documentos${telefone ? ` · ${telefone}` : ''}`,
+      data: { tipo: 'driver:pronto' },
+      priority: 'high',
+    }))
+  );
+}

@@ -3,6 +3,7 @@ import { requireAuth, requireRole } from '../auth.js';
 import { saveDocument, listDocuments } from '../documents.js';
 import { setOnline, savePushToken } from '../drivers.js';
 import { toPublicUser } from '../users.js';
+import { notificarAdminsMotoristaPronto } from '../push.js';
 
 export const driverRouter = Router();
 driverRouter.use(requireAuth, requireRole('driver'));
@@ -61,6 +62,18 @@ driverRouter.post(
 
     try {
       const doc = await saveDocument({ userId: req.user.id, kind, mime, base64 });
+
+      // Só avisa quando o conjunto ficar completo. Avisar a cada ficheiro
+      // daria três notificações pela mesma pessoa e ensinaria a ignorá-las.
+      const todos = await listDocuments(req.user.id);
+      const tipos = new Set(todos.map((d) => d.kind));
+      const completo = ['licence', 'vehicle', 'photo'].every((k) => tipos.has(k));
+      if (completo && (req.user.driver_status || 'pending') === 'pending') {
+        req.app.get('io').to('admins').emit('driver:pronto', { id: req.user.id });
+        notificarAdminsMotoristaPronto({ nome: req.user.name, telefone: req.user.phone })
+          .catch(() => {});
+      }
+
       return res.status(201).json({
         document: { kind: doc.kind, sizeBytes: doc.size_bytes, createdAt: doc.created_at },
       });
