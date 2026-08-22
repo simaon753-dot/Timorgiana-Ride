@@ -1,8 +1,13 @@
 import { query, one } from './db.js';
 
 // Estados que ainda contam como "viagem a decorrer"
-const ACTIVE_PASSENGER = ['requested', 'accepted', 'arriving'];
-const ACTIVE_DRIVER = ['accepted', 'arriving'];
+// Estados em que a viagem AINDA ESTÁ A ACONTECER e tem de aparecer ao
+// abrir a app. Faltar aqui um estado faz a viagem desaparecer do ecrã de
+// quem a está a fazer — foi o que aconteceu com 'in_progress': no
+// instante em que o passageiro entrava no carro, os dois perdiam o mapa,
+// a conversa, o botão de emergência e o botão de concluir.
+const ACTIVE_PASSENGER = ['requested', 'accepted', 'arriving', 'in_progress'];
+const ACTIVE_DRIVER = ['accepted', 'arriving', 'in_progress'];
 
 function num(v) {
   return v != null && v !== '' && !Number.isNaN(Number(v)) ? Number(v) : null;
