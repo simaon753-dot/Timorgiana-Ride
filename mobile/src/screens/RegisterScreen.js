@@ -18,6 +18,10 @@ import SegmentedPicker from '../components/SegmentedPicker.js';
 import LanguageToggle from '../components/LanguageToggle.js';
 import { useI18n } from '../i18n/index.js';
 import AceitarTermos from '../components/AceitarTermos.js';
+import EscolherModelo from '../components/EscolherModelo.js';
+import EscolherCor from '../components/EscolherCor.js';
+import EscolherLugares from '../components/EscolherLugares.js';
+import { LUGARES } from '../dados/veiculos.js';
 import { VERSAO_TERMOS } from '../termos/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { colors, spacing, fontSize } from '../theme.js';
@@ -35,6 +39,7 @@ export default function RegisterScreen({ navigation, route }) {
   const [vModel, setVModel] = useState('');
   const [vPlate, setVPlate] = useState('');
   const [vColor, setVColor] = useState('');
+  const [vSeats, setVSeats] = useState(null);
 
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -46,6 +51,7 @@ export default function RegisterScreen({ navigation, route }) {
     if (phone.replace(/[\s()-]/g, '').length < 7) return setError(t('errPhoneRequired'));
     if (password.length < 6) return setError(t('errPasswordShort'));
     if (role === 'driver' && !vPlate.trim()) return setError(t('errPlateRequired'));
+    if (role === 'driver' && vType === 'car' && !vSeats) return setError(t('errSeatsRequired'));
     if (!aceitou) return setError(t('errTermsRequired'));
 
     const payload = {
@@ -56,7 +62,15 @@ export default function RegisterScreen({ navigation, route }) {
       role,
       termsVersion: VERSAO_TERMOS,
       ...(role === 'driver'
-        ? { vehicle: { type: vType, model: vModel, plate: vPlate, color: vColor } }
+        ? {
+            vehicle: {
+              type: vType,
+              model: vModel,
+              plate: vPlate,
+              color: vColor,
+              ...(vType === 'car' && vSeats ? { seats: vSeats } : {}),
+            },
+          }
         : {}),
     };
 
@@ -142,16 +156,21 @@ export default function RegisterScreen({ navigation, route }) {
                 />
                 <View style={{ height: spacing.md }} />
 
-                <TextField
-                  label={t('vehicleModel')}
-                  value={vModel}
-                  onChangeText={setVModel}
-                  placeholder={
-                    vType === 'motorbike'
-                      ? t('vehicleModelPlaceholderBike')
-                      : t('vehicleModelPlaceholder')
-                  }
+                <Text style={styles.rotulo}>{t('vehicleModel')}</Text>
+                <EscolherModelo
+                  tipo={vType}
+                  valor={vModel}
+                  onEscolher={(nome, lugares) => {
+                    setVModel(nome);
+                    // Se o modelo é da lista, já sabemos os lugares — não
+                    // vale a pena perguntar o que se pode responder.
+                    if (lugares) setVSeats(lugares);
+                  }}
                 />
+
+                {/* Só a matrícula se escreve à mão: é única por veículo e
+                    não há lista possível. */}
+                <View style={{ height: spacing.md }} />
                 <TextField
                   label={t('vehiclePlate')}
                   value={vPlate}
@@ -159,12 +178,18 @@ export default function RegisterScreen({ navigation, route }) {
                   placeholder={t('vehiclePlatePlaceholder')}
                   autoCapitalize="characters"
                 />
-                <TextField
-                  label={t('vehicleColor')}
-                  value={vColor}
-                  onChangeText={setVColor}
-                  placeholder={t('vehicleColorPlaceholder')}
-                />
+
+                {vType === 'car' ? (
+                  <>
+                    <Text style={styles.rotulo}>{t('vehicleSeats')}</Text>
+                    <Text style={styles.ajuda}>{t('vehicleSeatsHelp')}</Text>
+                    <EscolherLugares opcoes={LUGARES} valor={vSeats} onEscolher={setVSeats} />
+                    <View style={{ height: spacing.md }} />
+                  </>
+                ) : null}
+
+                <Text style={styles.rotulo}>{t('vehicleColor')}</Text>
+                <EscolherCor valor={vColor} onEscolher={setVColor} />
               </View>
             ) : null}
 
@@ -200,6 +225,14 @@ export default function RegisterScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
+  rotulo: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1C2421',
+    marginBottom: 6,
+    marginTop: 4,
+  },
+  ajuda: { fontSize: 12, color: '#6B756F', marginBottom: 8 },
   safe: { flex: 1, backgroundColor: colors.paper },
   scroll: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
   topBar: {

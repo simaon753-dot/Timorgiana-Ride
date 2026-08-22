@@ -28,6 +28,12 @@ projecto pessoal no momento em que um motorista real enviar a primeira foto.
       Nenhum motorista real deve aceitar isto antes de o teres lido.
       A versão está em `termos/versao.js` — muda-a se alterares o texto,
       senão quem aceitou o antigo fica marcado como tendo aceite o novo.
+- [ ] **Corrigir a lista de veículos.** `mobile/src/dados/veiculos.js` tem
+      29 motorizadas e 40 carros, montados a partir do mercado indonésio —
+      **não é um registo oficial de Timor-Leste**. Vale a pena olhares para
+      a rua e dizeres o que falta e o que lá está a mais. Os lugares de
+      cada carro também são estimativa minha. Há sempre "Outro" com
+      escrita livre, por isso ninguém fica bloqueado.
 - [ ] **Revisão do tétum dos termos por falante nativo.** É mais urgente
       aqui do que no resto da app: uma palavra mal escolhida muda o que a
       pessoa julga estar a aceitar.

@@ -5,6 +5,8 @@ import { StatusBar } from 'expo-status-bar';
 import * as Location from 'expo-location';
 import OSMMap from '../components/OSMMap.js';
 import PlaceSearch from '../components/PlaceSearch.js';
+import EscolherLugares from '../components/EscolherLugares.js';
+import { LUGARES } from '../dados/veiculos.js';
 import { nomeDoLugar, rotuloCoordenadas } from '../lib/geocode.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
@@ -22,6 +24,7 @@ export default function RequestRideScreen({ navigation }) {
   const [orcamento, setOrcamento] = useState(null);
   const [aCalcular, setACalcular] = useState(false);
   const [veiculo, setVeiculo] = useState('car');
+  const [pessoas, setPessoas] = useState(1);
   const [gps, setGps] = useState(false);
   const [erro, setErro] = useState(null);
   const [aPedir, setAPedir] = useState(false);
@@ -114,6 +117,7 @@ export default function RequestRideScreen({ navigation }) {
         originLat: origem.lat,
         originLng: origem.lng,
         vehicleType: veiculo,
+        ...(veiculo === 'car' ? { passengers: pessoas } : {}),
       });
       navigation.goBack();
     } catch (e) {
@@ -203,6 +207,17 @@ export default function RequestRideScreen({ navigation }) {
                   t={t}
                 />
               ))}
+              {/* Só em carro: numa motorizada vai sempre uma pessoa, e
+                  perguntar seria fazer perder tempo com uma resposta que
+                  já se sabe. */}
+              {veiculo === 'car' ? (
+                <>
+                  <Text style={styles.seccao}>{t('howManyPeople')}</Text>
+                  <EscolherLugares opcoes={LUGARES} valor={pessoas} onEscolher={setPessoas} />
+                  <View style={{ height: spacing.md }} />
+                </>
+              ) : null}
+
               <View style={styles.pagamento}>
                 <Text style={styles.pagamentoTexto}>💵 {t('payCash')}</Text>
               </View>

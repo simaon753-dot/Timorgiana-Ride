@@ -39,6 +39,7 @@ export function toPublicRide(row) {
     originLat: row.origin_lat ?? null,
     originLng: row.origin_lng ?? null,
     vehicleType: row.vehicle_type || null,
+    passengers: row.passengers ?? null,
     fareUsd: row.fare_usd ?? null,
     distanceKm: row.distance_km ?? null,
     durationMin: row.duration_min ?? null,
@@ -72,13 +73,13 @@ export function getRideById(id) {
 export async function createRide({
   passengerId, destLabel, destLat, destLng,
   originLabel, originLat, originLng, vehicleType, fareUsd,
-  distanceKm = null, durationMin = null,
+  distanceKm = null, durationMin = null, passengers = null,
 }) {
   const inserted = await one(
     `INSERT INTO rides
        (passenger_id, dest_label, dest_lat, dest_lng, origin_label, origin_lat, origin_lng,
-        vehicle_type, fare_usd, distance_km, duration_min, status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'requested')
+        vehicle_type, fare_usd, distance_km, duration_min, passengers, status)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'requested')
      RETURNING id`,
     [
       passengerId,
@@ -92,6 +93,7 @@ export async function createRide({
       num(fareUsd),
       num(distanceKm),
       durationMin != null ? Math.round(Number(durationMin)) : null,
+      passengers != null ? Math.max(1, Math.min(8, Number(passengers))) : null,
     ]
   );
   return getRideById(inserted.id);
@@ -125,37 +127,55 @@ export function getRideHistoryForUser(user, limit = 50) {
 // ao mais distante. Todos os elegíveis continuam a ver todos os pedidos —
 // com poucos motoristas, enviar só ao mais próximo arrisca que um pedido
 // fique sem resposta se essa pessoa estiver distraída.
-export function getAvailableRidesForDriver(driverVehicleType, driverLat, driverLng) {
-  const temPosicao = typeof driverLat === 'number' && typeof driverLng === 'number';
+// `driverSeats` = lugares do carro. Um pedido de 5 pessoas não deve
+// sequer aparecer a quem tem 4 lugares: mostrar e depois recusar seria
+// fazer o motorista perder tempo e o passageiro perder a viagem.
+export function getAvailableRidesForDriver(driverVehicleType, driverLat, driverLng, driverSeats) {
+  // Uma só forma de consulta, sempre com os mesmos quatro parâmetros. A
+  // versão anterior montava o SQL de duas maneiras conforme houvesse
+  // posição, e no caso sem posição sobravam parâmetros que a consulta não
+  // referia — o PostgreSQL não consegue inferir o tipo de um parâmetro que
+  // não é usado, e recusava tudo. Guardar a variação DENTRO do SQL, com
+  // casts explícitos, evita duas formas que podem divergir.
   return query(
-    `SELECT sub.*, ${
-      temPosicao
-        ? `CASE WHEN sub.origin_lat IS NULL THEN NULL ELSE
-             6371 * 2 * asin(sqrt(
-               power(sin(radians($2 - sub.origin_lat) / 2), 2) +
-               cos(radians(sub.origin_lat)) * cos(radians($2)) *
-               power(sin(radians($3 - sub.origin_lng) / 2), 2)
-             )) END`
-        : 'NULL::float'
-    } AS pickup_km
+    `SELECT sub.*,
+       CASE
+         WHEN sub.origin_lat IS NULL OR $2::float IS NULL THEN NULL
+         ELSE 6371 * 2 * asin(sqrt(
+                power(sin(radians($2::float - sub.origin_lat) / 2), 2) +
+                cos(radians(sub.origin_lat)) * cos(radians($2::float)) *
+                power(sin(radians($3::float - sub.origin_lng) / 2), 2)
+              ))
+       END AS pickup_km
      FROM (${RIDE_SELECT}
        WHERE r.status = 'requested' AND r.driver_id IS NULL
-         AND (r.vehicle_type IS NULL OR r.vehicle_type = $1)) sub
+         AND (r.vehicle_type IS NULL OR r.vehicle_type = $1)
+         AND (r.passengers IS NULL OR $4::int IS NULL OR r.passengers <= $4::int)) sub
      ORDER BY pickup_km ASC NULLS LAST, sub.id ASC`,
-    temPosicao ? [driverVehicleType, driverLat, driverLng] : [driverVehicleType]
+    [
+      driverVehicleType,
+      typeof driverLat === 'number' ? driverLat : null,
+      typeof driverLng === 'number' ? driverLng : null,
+      driverSeats ?? null,
+    ]
   );
 }
 
 // Aceitar de forma ATÓMICA: a condição vai DENTRO do UPDATE, por isso se
 // dois motoristas carregarem ao mesmo tempo só um encontra a linha livre.
-export async function acceptRide(rideId, driverId, fareUsd) {
+export async function acceptRide(rideId, driverId, fareUsd, driverSeats) {
+  // A condição dos lugares vai DENTRO do UPDATE, tal como a da corrida já
+  // estar livre. A app filtra a lista, mas isso é conveniência — um
+  // telemóvel modificado aceitaria à mesma, e ficariam pessoas de fé em
+  // pé na rua.
   const updated = await one(
     `UPDATE rides
      SET driver_id = $1, fare_usd = COALESCE($2, fare_usd),
          status = 'accepted', updated_at = NOW()
      WHERE id = $3 AND status = 'requested' AND driver_id IS NULL
+       AND (passengers IS NULL OR $4::int IS NULL OR passengers <= $4::int)
      RETURNING id`,
-    [driverId, num(fareUsd), rideId]
+    [driverId, num(fareUsd), rideId, driverSeats ?? null]
   );
   if (!updated) return null; // já aceite por outro, ou inexistente
   return getRideById(rideId);

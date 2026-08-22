@@ -55,8 +55,11 @@ ridesRouter.post(
   '/',
   requireRole('passenger'),
   wrap(async (req, res) => {
-    const { destLabel, destLat, destLng, originLabel, originLat, originLng, vehicleType, fareUsd } =
-      req.body || {};
+    const {
+      destLabel, destLat, destLng,
+      originLabel, originLat, originLng,
+      vehicleType, fareUsd, passengers,
+    } = req.body || {};
     if (!destLabel || !destLabel.trim()) {
       return res.status(400).json({ error: 'Indica o destino.' });
     }
@@ -95,6 +98,8 @@ ridesRouter.post(
       fareUsd: precoFinal,
       distanceKm: kmViagem,
       durationMin: minViagem,
+      // Só em carro: numa motorizada vai sempre uma pessoa.
+      passengers: vehicleType === 'car' ? passengers : null,
     });
     const ride = toPublicRide(row);
 
@@ -136,7 +141,8 @@ ridesRouter.get(
     const rows = await getAvailableRidesForDriver(
       req.user.vehicle_type || 'car',
       req.user.last_lat,
-      req.user.last_lng
+      req.user.last_lng,
+      req.user.vehicle_seats
     );
     return res.json({ rides: rows.map(toPublicRide) });
   })
@@ -154,8 +160,23 @@ ridesRouter.post(
       return res.status(400).json({ error: 'Tarifa inválida.' });
     }
 
-    const row = await acceptRide(rideId, req.user.id, fare);
-    if (!row) return res.status(409).json({ error: 'Esta viagem já não está disponível.' });
+    const row = await acceptRide(rideId, req.user.id, fare, req.user.vehicle_seats);
+    if (!row) {
+      // Duas causas possíveis; distingui-las poupa uma chamada de telefone
+      // ao motorista a perguntar porque é que não conseguiu aceitar.
+      const atual = await getRideById(rideId);
+      if (
+        atual?.status === 'requested' &&
+        atual.passengers != null &&
+        req.user.vehicle_seats != null &&
+        atual.passengers > req.user.vehicle_seats
+      ) {
+        return res
+          .status(409)
+          .json({ error: `Esta viagem é para ${atual.passengers} pessoas e o teu carro leva ${req.user.vehicle_seats}.` });
+      }
+      return res.status(409).json({ error: 'Esta viagem já não está disponível.' });
+    }
 
     const io = req.app.get('io');
     const ride = toPublicRide(row);

@@ -23,6 +23,7 @@ import MotivoCancelamento from '../components/MotivoCancelamento.js';
 import ShareTripButton from '../components/ShareTripButton.js';
 import RatingPanel from '../components/RatingPanel.js';
 import { rideMarkers } from '../lib/rideMarkers.js';
+import { nomeDaCor, hexDaCor } from '../lib/corVeiculo.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
@@ -119,6 +120,27 @@ export default function PassengerHomeScreen({ navigation }) {
                 ) : null}
                 {activeRide.driver.vehicle?.plate ? (
                   <InfoRow label={t('vehiclePlate')} value={activeRide.driver.vehicle.plate} />
+                ) : null}
+                {/* A cor é o que se vê primeiro na rua, antes da matrícula.
+                    Leva amostra: um quadrado branco identifica-se de longe,
+                    a palavra "Branco" tem de ser lida. */}
+                {activeRide.driver.vehicle?.color ? (
+                  <View style={styles.linhaCor}>
+                    <Text style={styles.corRotulo}>{t('vehicleColor')}</Text>
+                    <View style={styles.corValor}>
+                      {hexDaCor(activeRide.driver.vehicle.color) ? (
+                        <View
+                          style={[
+                            styles.corAmostra,
+                            { backgroundColor: hexDaCor(activeRide.driver.vehicle.color) },
+                          ]}
+                        />
+                      ) : null}
+                      <Text style={styles.corTexto}>
+                        {nomeDaCor(activeRide.driver.vehicle.color, t)}
+                      </Text>
+                    </View>
+                  </View>
                 ) : null}
                 {minChegada != null ? (
                   <InfoRow
@@ -222,6 +244,22 @@ function InfoRow({ label, value, strong }) {
 }
 
 const styles = StyleSheet.create({
+  linhaCor: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+  },
+  corRotulo: { fontSize: fontSize.sm, color: colors.textMuted },
+  corValor: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  corAmostra: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  corTexto: { fontSize: fontSize.sm, color: colors.text, fontWeight: '600' },
   safe: { flex: 1, backgroundColor: colors.paper },
   scroll: { flexGrow: 1, padding: spacing.lg },
   topBar: {

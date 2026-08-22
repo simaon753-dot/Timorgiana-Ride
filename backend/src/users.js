@@ -28,6 +28,7 @@ export function toPublicUser(row) {
       model: row.vehicle_model || null,
       plate: row.vehicle_plate || null,
       color: row.vehicle_color || null,
+      seats: row.vehicle_seats ?? null,
     };
   }
   if (row.is_admin) base.isAdmin = true;
@@ -55,8 +56,8 @@ export async function createUser({ name, phone, email, password, role, vehicle, 
   return one(
     `INSERT INTO users
        (name, phone, email, password_hash, role, vehicle_type, vehicle_model, vehicle_plate,
-        vehicle_color, driver_status, terms_version, terms_accepted_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,NOW())
+        vehicle_color, vehicle_seats, driver_status, terms_version, terms_accepted_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NOW())
      RETURNING *`,
     [
       name.trim(),
@@ -68,6 +69,9 @@ export async function createUser({ name, phone, email, password, role, vehicle, 
       vehicle?.model?.trim() || null,
       vehicle?.plate?.trim() || null,
       vehicle?.color?.trim() || null,
+      role === 'driver' && vehicleType === 'car' && vehicle?.seats
+        ? Math.max(1, Math.min(12, Number(vehicle.seats)))
+        : null,
       role === 'driver' ? 'pending' : null,
       termsVersion || null,
     ]

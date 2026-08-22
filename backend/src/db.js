@@ -182,6 +182,11 @@ export async function initSchema() {
   // Porque é que a viagem foi cancelada. Guardado como código curto e não
   // como texto livre: serve para contar padrões, não para ler histórias.
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS cancel_reason TEXT`);
+  // Quantas pessoas vão na viagem. Só faz sentido em carro — numa
+  // motorizada vai sempre uma.
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS passengers INTEGER`);
+  // Lugares do carro, SEM contar o motorista.
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS vehicle_seats INTEGER`);
   // Mensagens automáticas do serviço não têm remetente humano.
   await query(`ALTER TABLE messages ALTER COLUMN sender_id DROP NOT NULL`);
   await query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS kind TEXT`);
