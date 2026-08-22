@@ -55,7 +55,7 @@ export default function WelcomeScreen({ navigation }) {
             onPress={() => navigation.navigate('Register', { role: 'driver' })}
             accessibilityRole="button"
           >
-            <Text style={styles.registoIcone}>🛵</Text>
+            <Text style={[styles.registoIcone, styles.registoIconeDuplo]}>🚗🛵</Text>
             <Text style={styles.registoTexto}>{t('driver')}</Text>
           </Pressable>
         </View>
@@ -113,6 +113,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   registoIcone: { fontSize: 24, marginBottom: 2 },
+  // Dois emoji lado a lado ficariam mais largos do que um; baixar um pouco
+  // mantém as duas caixas com a mesma altura de linha.
+  registoIconeDuplo: { fontSize: 21, letterSpacing: 1 },
   registoTexto: { color: colors.white, fontSize: fontSize.sm, fontWeight: '700' },
 
   premido: { opacity: 0.75 },
