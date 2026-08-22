@@ -14,10 +14,6 @@ export default {
   // Benvindu
   welcomeTitle: 'Benvindu',
   welcomeSubtitle: 'Husu viajen lalais. La iha komisaun — selu ho osan ba motorista.',
-  iAmPassenger: 'Haʼu pasajeiru',
-  iAmDriver: 'Haʼu motorista',
-  alreadyHaveAccount: 'Iha ona konta?',
-  goToLogin: 'Tama',
 
   // Halo konta
   registerTitle: 'Halo konta',

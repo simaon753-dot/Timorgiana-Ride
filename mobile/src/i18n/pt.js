@@ -13,10 +13,6 @@ export default {
   // Boas-vindas
   welcomeTitle: 'Bem-vindo',
   welcomeSubtitle: 'Pede uma viagem em poucos toques. Sem comissões — pagas em dinheiro ao motorista.',
-  iAmPassenger: 'Sou passageiro',
-  iAmDriver: 'Sou motorista',
-  alreadyHaveAccount: 'Já tens conta?',
-  goToLogin: 'Iniciar sessão',
 
   // Registo
   registerTitle: 'Criar conta',

@@ -3,10 +3,9 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Logo from '../components/Logo.js';
-import Button from '../components/Button.js';
 import LanguageToggle from '../components/LanguageToggle.js';
 import { useI18n } from '../i18n/index.js';
-import { colors, spacing, fontSize } from '../theme.js';
+import { colors, spacing, fontSize, radius } from '../theme.js';
 
 export default function WelcomeScreen({ navigation }) {
   const { t } = useI18n();
@@ -28,23 +27,36 @@ export default function WelcomeScreen({ navigation }) {
       </View>
 
       <View style={styles.actions}>
-        <Button
-          title={t('iAmPassenger')}
-          variant="primary"
-          onPress={() => navigation.navigate('Register', { role: 'passenger' })}
-        />
-        <View style={{ height: spacing.sm }} />
-        <Button
-          title={t('iAmDriver')}
-          variant="secondary"
-          style={styles.driverBtn}
-          onPress={() => navigation.navigate('Register', { role: 'driver' })}
-        />
+        {/* Entrar é a acção grande. Depois da primeira semana, quase todos
+            os toques neste ecrã são de quem já tem conta — o registo faz-se
+            uma vez, a entrada faz-se sempre. */}
+        <Pressable
+          style={({ pressed }) => [styles.entrar, pressed && styles.premido]}
+          onPress={() => navigation.navigate('Login')}
+          accessibilityRole="button"
+        >
+          <Text style={styles.entrarTexto}>{t('loginTitle')}</Text>
+        </Pressable>
 
-        <View style={styles.loginRow}>
-          <Text style={styles.loginText}>{t('alreadyHaveAccount')} </Text>
-          <Pressable onPress={() => navigation.navigate('Login')} hitSlop={8}>
-            <Text style={styles.loginLink}>{t('goToLogin')}</Text>
+        <Text style={styles.registarRotulo}>{t('noAccountQuestion')}</Text>
+
+        <View style={styles.registos}>
+          <Pressable
+            style={({ pressed }) => [styles.registo, pressed && styles.premido]}
+            onPress={() => navigation.navigate('Register', { role: 'passenger' })}
+            accessibilityRole="button"
+          >
+            <Text style={styles.registoIcone}>🧍</Text>
+            <Text style={styles.registoTexto}>{t('passenger')}</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.registo, pressed && styles.premido]}
+            onPress={() => navigation.navigate('Register', { role: 'driver' })}
+            accessibilityRole="button"
+          >
+            <Text style={styles.registoIcone}>🛵</Text>
+            <Text style={styles.registoTexto}>{t('driver')}</Text>
           </Pressable>
         </View>
       </View>
@@ -72,13 +84,36 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   actions: { paddingHorizontal: spacing.lg, paddingBottom: spacing.lg },
-  driverBtn: { borderColor: colors.onTeal, backgroundColor: colors.tealDark },
-  loginRow: { flexDirection: 'row', justifyContent: 'center', marginTop: spacing.lg },
-  loginText: { color: colors.onTeal, fontSize: fontSize.md },
-  loginLink: {
-    color: colors.white,
-    fontSize: fontSize.md,
-    fontWeight: '800',
-    textDecorationLine: 'underline',
+
+  entrar: {
+    backgroundColor: colors.coral,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+  entrarTexto: { color: '#22100A', fontSize: fontSize.lg, fontWeight: '800' },
+
+  registarRotulo: {
+    color: colors.onTeal,
+    fontSize: fontSize.sm,
+    textAlign: 'center',
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+    opacity: 0.9,
+  },
+  registos: { flexDirection: 'row', gap: spacing.sm },
+  registo: {
+    flex: 1,
+    backgroundColor: colors.tealDark,
+    borderWidth: 1.5,
+    borderColor: colors.tealLight,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  registoIcone: { fontSize: 24, marginBottom: 2 },
+  registoTexto: { color: colors.white, fontSize: fontSize.sm, fontWeight: '700' },
+
+  premido: { opacity: 0.75 },
 });
