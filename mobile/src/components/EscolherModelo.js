@@ -30,14 +30,14 @@ export default function EscolherModelo({ tipo, valor, onEscolher }) {
   }, [todos, termo]);
 
   function escolher(v) {
-    onEscolher(v.etiqueta, v.lugares);
+    onEscolher(v.etiqueta);
     setAberto(false);
     setTermo('');
   }
 
   function escolherLivre() {
     if (!livre.trim()) return;
-    onEscolher(livre.trim(), null);
+    onEscolher(livre.trim());
     setAberto(false);
     setLivre('');
     setTermo('');
@@ -74,12 +74,7 @@ export default function EscolherModelo({ tipo, valor, onEscolher }) {
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.lista}>
             {filtrados.map((v) => (
               <Pressable key={v.etiqueta} style={styles.opcao} onPress={() => escolher(v)}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.opcaoNome}>{v.etiqueta}</Text>
-                  {v.lugares ? (
-                    <Text style={styles.opcaoLugares}>{t('seatsN', { n: v.lugares })}</Text>
-                  ) : null}
-                </View>
+                <Text style={styles.opcaoNome}>{v.etiqueta}</Text>
               </Pressable>
             ))}
 
@@ -154,7 +149,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   opcaoNome: { fontSize: fontSize.md, color: colors.text, fontWeight: '600' },
-  opcaoLugares: { fontSize: fontSize.xs, color: colors.textMuted, marginTop: 1 },
   outroRotulo: {
     fontSize: fontSize.sm,
     color: colors.textMuted,

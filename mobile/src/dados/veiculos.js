@@ -55,98 +55,99 @@ export const MOTORIZADAS = [
   },
 ];
 
-// `lugares` = passageiros que cabem, SEM contar o motorista. É esse o
-// número que interessa a quem pede: "somos quatro" quer dizer quatro a
-// entrar, não três mais o condutor.
+// Só marcas e modelos. Os lugares NÃO estão aqui de propósito: quantos
+// passageiros cabem depende da versão e do estado do carro, e um número
+// meu a preencher o campo sozinho gravaria um palpite como se fosse
+// resposta do motorista. É ele que responde.
 export const CARROS = [
   {
     marca: 'Toyota',
     modelos: [
-      { nome: 'Avanza', lugares: 6 },
-      { nome: 'Innova', lugares: 6 },
-      { nome: 'Rush', lugares: 6 },
-      { nome: 'Kijang', lugares: 6 },
-      { nome: 'Fortuner', lugares: 6 },
-      { nome: 'Land Cruiser', lugares: 6 },
-      { nome: 'Hilux', lugares: 4 },
-      { nome: 'Vios', lugares: 4 },
-      { nome: 'Corolla', lugares: 4 },
-      { nome: 'Yaris', lugares: 4 },
+      'Avanza',
+      'Innova',
+      'Rush',
+      'Kijang',
+      'Fortuner',
+      'Land Cruiser',
+      'Hilux',
+      'Vios',
+      'Corolla',
+      'Yaris',
     ],
   },
   {
     marca: 'Mitsubishi',
     modelos: [
-      { nome: 'Xpander', lugares: 6 },
-      { nome: 'Pajero Sport', lugares: 6 },
-      { nome: 'Triton', lugares: 4 },
-      { nome: 'L300', lugares: 6 },
+      'Xpander',
+      'Pajero Sport',
+      'Triton',
+      'L300',
     ],
   },
   {
     marca: 'Suzuki',
     modelos: [
-      { nome: 'Ertiga', lugares: 6 },
-      { nome: 'APV', lugares: 6 },
-      { nome: 'Carry', lugares: 4 },
-      { nome: 'Jimny', lugares: 3 },
+      'Ertiga',
+      'APV',
+      'Carry',
+      'Jimny',
     ],
   },
   {
     marca: 'Daihatsu',
     modelos: [
-      { nome: 'Xenia', lugares: 6 },
-      { nome: 'Terios', lugares: 6 },
-      { nome: 'Gran Max', lugares: 6 },
-      { nome: 'Ayla', lugares: 4 },
+      'Xenia',
+      'Terios',
+      'Gran Max',
+      'Ayla',
     ],
   },
   {
     marca: 'Nissan',
     modelos: [
-      { nome: 'Grand Livina', lugares: 6 },
-      { nome: 'X-Trail', lugares: 4 },
-      { nome: 'Navara', lugares: 4 },
+      'Grand Livina',
+      'X-Trail',
+      'Navara',
     ],
   },
   {
     marca: 'Isuzu',
     modelos: [
-      { nome: 'D-Max', lugares: 4 },
-      { nome: 'MU-X', lugares: 6 },
-      { nome: 'Panther', lugares: 6 },
+      'D-Max',
+      'MU-X',
+      'Panther',
     ],
   },
   {
     marca: 'Mazda',
     modelos: [
-      { nome: 'Mazda 2', lugares: 4 },
-      { nome: 'Mazda 3', lugares: 4 },
-      { nome: 'CX-5', lugares: 4 },
-      { nome: 'BT-50', lugares: 4 },
+      'Mazda 2',
+      'Mazda 3',
+      'CX-5',
+      'BT-50',
     ],
   },
   {
     marca: 'Hyundai',
     modelos: [
-      { nome: 'Accent', lugares: 4 },
-      { nome: 'Tucson', lugares: 4 },
-      { nome: 'Starex', lugares: 8 },
+      'Accent',
+      'Tucson',
+      'Starex',
     ],
   },
   {
     marca: 'Ford',
     modelos: [
-      { nome: 'Ranger', lugares: 4 },
-      { nome: 'Everest', lugares: 6 },
+      'Ranger',
+      'Everest',
     ],
   },
   {
     marca: 'Kia',
     modelos: [
-      { nome: 'Picanto', lugares: 4 },
-      { nome: 'Sportage', lugares: 4 },
-      { nome: 'Carnival', lugares: 6 },
+      'Picanto',
+      'Sportage',
+      'Carnival',
     ],
   },
 ];
@@ -170,30 +171,14 @@ export const CORES = [
 // motorizada vai sempre uma pessoa.
 export const LUGARES = [1, 2, 3, 4, 5, 6];
 
-// Achar quantos lugares tem um modelo escolhido da lista, para não obrigar
-// o motorista a responder ao que já sabemos.
-export function lugaresDoModelo(nome) {
-  for (const marca of CARROS) {
-    const m = marca.modelos.find((x) => x.nome === nome);
-    if (m) return m.lugares;
-  }
-  return null;
-}
-
 // Lista plana para a pesquisa, com a marca à frente do modelo: escrever
 // "avanza" ou "toyota" tem de encontrar a mesma coisa.
 export function listaPlana(tipo) {
   const fonte = tipo === 'motorbike' ? MOTORIZADAS : CARROS;
   const saida = [];
   for (const { marca, modelos } of fonte) {
-    for (const m of modelos) {
-      const nome = typeof m === 'string' ? m : m.nome;
-      saida.push({
-        nome,
-        marca,
-        etiqueta: `${marca} ${nome}`,
-        lugares: typeof m === 'string' ? null : m.lugares,
-      });
+    for (const nome of modelos) {
+      saida.push({ nome, marca, etiqueta: `${marca} ${nome}` });
     }
   }
   return saida;

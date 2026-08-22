@@ -160,12 +160,7 @@ export default function RegisterScreen({ navigation, route }) {
                 <EscolherModelo
                   tipo={vType}
                   valor={vModel}
-                  onEscolher={(nome, lugares) => {
-                    setVModel(nome);
-                    // Se o modelo é da lista, já sabemos os lugares — não
-                    // vale a pena perguntar o que se pode responder.
-                    if (lugares) setVSeats(lugares);
-                  }}
+                  onEscolher={setVModel}
                 />
 
                 {/* Só a matrícula se escreve à mão: é única por veículo e
