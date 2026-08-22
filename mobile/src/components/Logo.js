@@ -1,36 +1,46 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { colors, fontSize, radius } from '../theme.js';
+import { Image, StyleSheet, View } from 'react-native';
 
-// Wordmark TimorgianaRide. onTeal=true para fundo escuro.
+// Marca TimorgianaRide.
+//
+// Quatro ficheiros, não um. Duas razões independentes:
+//
+// TAMANHO — a versão completa traz a palavra "timorgiana ride", que num
+// cabeçalho de 40 px de altura seria uma mancha. Aí usa-se só o TGA.
+//
+// FUNDO — o logótipo tem teal escuro, e vários ecrãs desta app SÃO teal
+// escuro. Sobre eles a palavra desaparecia. A variante clara sobe a
+// luminosidade dos teais e deixa o coral em paz, que já contrasta.
+const MARCA = require('../../assets/logo-marca.png');
+const MARCA_CLARA = require('../../assets/logo-marca-claro.png');
+const COMPLETO = require('../../assets/logo-completo.png');
+const COMPLETO_CLARO = require('../../assets/logo-completo-claro.png');
+
 export default function Logo({ size = 'lg', onTeal = false }) {
-  const big = size === 'lg';
-  const baseColor = onTeal ? colors.onTeal : colors.teal;
+  const grande = size === 'lg';
+  const fonte = grande
+    ? onTeal
+      ? COMPLETO_CLARO
+      : COMPLETO
+    : onTeal
+      ? MARCA_CLARA
+      : MARCA;
+
   return (
-    <View style={styles.row}>
-      <View style={[styles.mark, big ? styles.markLg : styles.markSm]}>
-        <Text style={[styles.markText, big ? styles.markTextLg : styles.markTextSm]}>T</Text>
-      </View>
-      <Text style={[styles.word, { fontSize: big ? fontSize.xl : fontSize.lg, color: baseColor }]}>
-        Timorgiana<Text style={{ color: colors.coral }}>Ride</Text>
-      </Text>
+    <View style={styles.caixa}>
+      <Image
+        source={fonte}
+        style={grande ? styles.grande : styles.pequeno}
+        resizeMode="contain"
+        accessibilityLabel="TimorgianaRide"
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center' },
-  mark: {
-    backgroundColor: colors.coral,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-    borderRadius: radius.md,
-  },
-  markLg: { width: 44, height: 44 },
-  markSm: { width: 32, height: 32, borderRadius: radius.sm },
-  markText: { color: colors.white, fontWeight: '900' },
-  markTextLg: { fontSize: 26 },
-  markTextSm: { fontSize: 18 },
-  word: { fontWeight: '800', letterSpacing: 0.2 },
+  caixa: { flexDirection: 'row', alignItems: 'center' },
+  // Proporções dos ficheiros: marca 256×201, completo 512×447.
+  grande: { width: 196, height: 171 },
+  pequeno: { width: 54, height: 42 },
 });
