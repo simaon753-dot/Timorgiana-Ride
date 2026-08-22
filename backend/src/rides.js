@@ -24,13 +24,19 @@ const RIDE_SELECT = `
 
 // Converte a linha (já com os JOINs) num objeto público.
 //
-// `paraPassageiro` decide se o código de recolha vai no resultado. Por
-// omissão NÃO vai: se o motorista o visse, o código deixava de provar seja
-// o que for — ele podia começar a viagem sem o passageiro estar no carro.
-// O valor por omissão é o seguro, para nenhum sítio novo o revelar por
-// esquecimento.
-export function toPublicRide(row, paraPassageiro = false) {
+// O código de recolha só sai se for pedido explicitamente. Se o motorista
+// o visse, deixava de provar o que quer que fosse — podia começar a viagem
+// sem o passageiro estar no carro.
+//
+// O segundo argumento é um OBJECTO e não um booleano, por uma razão
+// aprendida à força: `rows.map(toPublicRide)` passa o ÍNDICE como segundo
+// argumento. Com um booleano, o índice 0 era falso (seguro) e o 1 em
+// diante era verdadeiro — a partir da segunda viagem de qualquer lista, o
+// código vazava. Com um objecto, um número não tem a propriedade e o valor
+// seguro mantém-se, aconteça o que acontecer.
+export function toPublicRide(row, opcoes = {}) {
   if (!row) return null;
+  const paraPassageiro = opcoes?.paraPassageiro === true;
   return {
     ...(paraPassageiro && row.pickup_code ? { pickupCode: row.pickup_code } : {}),
     ...(row.my_stars !== undefined ? { myStars: row.my_stars } : {}),

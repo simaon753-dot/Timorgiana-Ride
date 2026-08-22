@@ -42,8 +42,8 @@ const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).cat
 // o motorista não. Enviar o mesmo objecto aos dois seria dar-lhe a senha
 // que ele tem de pedir.
 function notify(io, ride, event) {
-  io.to(`user:${ride.passenger_id}`).emit(event, toPublicRide(ride, true));
-  if (ride.driver_id) io.to(`user:${ride.driver_id}`).emit(event, toPublicRide(ride, false));
+  io.to(`user:${ride.passenger_id}`).emit(event, toPublicRide(ride, { paraPassageiro: true }));
+  if (ride.driver_id) io.to(`user:${ride.driver_id}`).emit(event, toPublicRide(ride));
 }
 
 async function rideForParticipant(rideId, userId) {
@@ -71,7 +71,12 @@ ridesRouter.post(
     if (existing) {
       return res
         .status(409)
-        .json({ error: 'Já tens uma viagem a decorrer.', ride: toPublicRide(existing) });
+        .json({
+        error: 'Já tens uma viagem a decorrer.',
+        // É a viagem dele: leva o código, senão quem reabre a app por aqui
+        // fica sem a senha que tem de dizer ao motorista.
+        ride: toPublicRide(existing, { paraPassageiro: true }),
+      });
     }
 
     // O preço é calculado AQUI, a partir da rota real. Se viesse da app,
@@ -105,9 +110,9 @@ ridesRouter.post(
       passengers: vehicleType === 'car' ? passengers : null,
     });
     // Quem criou a viagem é o passageiro: leva o código.
-    const ride = toPublicRide(row, true);
+    const ride = toPublicRide(row, { paraPassageiro: true });
     // O que vai para os motoristas não o leva.
-    const paraMotoristas = toPublicRide(row, false);
+    const paraMotoristas = toPublicRide(row);
 
     const io = req.app.get('io');
     io.to(row.vehicle_type ? `drivers:${row.vehicle_type}` : 'drivers').emit('ride:new', paraMotoristas);
@@ -129,7 +134,7 @@ ridesRouter.get(
     // Quem pergunta decide o que vê: só o passageiro da viagem leva o
     // código de recolha, mesmo que quem chame seja o motorista dela.
     const souOPassageiro = !!row && row.passenger_id === req.user.id;
-    return res.json({ ride: row ? toPublicRide(row, souOPassageiro) : null });
+    return res.json({ ride: row ? toPublicRide(row, { paraPassageiro: souOPassageiro }) : null });
   })
 );
 
@@ -138,7 +143,7 @@ ridesRouter.get(
   '/history',
   wrap(async (req, res) => {
     const rows = await getRideHistoryForUser(req.user);
-    return res.json({ rides: rows.map(toPublicRide) });
+    return res.json({ rides: rows.map((r) => toPublicRide(r)) });
   })
 );
 
@@ -153,7 +158,7 @@ ridesRouter.get(
       req.user.last_lng,
       req.user.vehicle_seats
     );
-    return res.json({ rides: rows.map(toPublicRide) });
+    return res.json({ rides: rows.map((r) => toPublicRide(r)) });
   })
 );
 

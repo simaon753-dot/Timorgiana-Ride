@@ -34,5 +34,5 @@ export async function addSystemMessage(rideId, codigo) {
 
 export async function listMessages(rideId) {
   const rows = await query('SELECT * FROM messages WHERE ride_id = $1 ORDER BY id ASC', [rideId]);
-  return rows.map(toPublicMessage);
+  return rows.map((m) => toPublicMessage(m));
 }
