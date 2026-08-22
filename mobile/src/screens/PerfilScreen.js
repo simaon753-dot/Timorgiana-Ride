@@ -3,6 +3,7 @@ import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import LanguageToggle from '../components/LanguageToggle.js';
+import Voltar from '../components/Voltar.js';
 import { colors, spacing, fontSize, radius } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
@@ -32,6 +33,10 @@ export default function PerfilScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.conteudo}>
+        {/* O Android tem botão de voltar no sistema; o iPhone não. Sem
+            isto, quem abre o perfil num iPhone fica sem saída. */}
+        <Voltar navigation={navigation} />
+
         <View style={styles.cabecalho}>
           <View style={styles.avatar}>
             <Text style={styles.iniciais}>{iniciais}</Text>
