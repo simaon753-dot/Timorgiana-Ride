@@ -6,6 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
 import LanguageToggle from '../components/LanguageToggle.js';
+import TextField from '../components/TextField.js';
 import { VERSAO_TERMOS_MOTORISTA } from '../termos/index.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
@@ -25,7 +26,8 @@ export default function DriverPendingScreen({ navigation }) {
   const { t } = useI18n();
   const { user, token, logout, refreshUser } = useAuth();
   const [docs, setDocs] = useState([]);
-  const [busy, setBusy] = useState(null); // que documento está a enviar
+  const [busy, setBusy] = useState(null);
+  const [validades, setValidades] = useState({}); // que documento está a enviar
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -54,8 +56,17 @@ export default function DriverPendingScreen({ navigation }) {
     return () => clearInterval(id);
   }, [refreshUser, rejected]);
 
+  // Só a carta e os papéis do veículo caducam. A fotografia não, por isso
+  // não se pergunta uma data que não existe.
+  function precisaValidade(kind) {
+    return kind === 'licence' || kind === 'vehicle';
+  }
+
   async function enviar(kind) {
     setError(null);
+    if (precisaValidade(kind) && !/^\d{4}-\d{2}-\d{2}$/.test((validades[kind] || '').trim())) {
+      return setError(t('docExpiryRequired'));
+    }
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) return setError(t('errPermissionPhotos'));
 
@@ -72,6 +83,7 @@ export default function DriverPendingScreen({ navigation }) {
         kind,
         mime: res.assets[0].mimeType || 'image/jpeg',
         base64: res.assets[0].base64,
+        ...(precisaValidade(kind) ? { expiresOn: validades[kind].trim() } : {}),
       });
       await carregar();
     } catch (e) {
@@ -117,13 +129,30 @@ export default function DriverPendingScreen({ navigation }) {
             ) : (
               TIPOS.map((tp) => {
                 const enviado = enviados.includes(tp.kind);
+                const doc = docs.find((d) => d.kind === tp.kind);
                 return (
-                  <View key={tp.kind} style={styles.docRow}>
+                  <View key={tp.kind}>
+                  <View style={styles.docRow}>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.docName}>{t(tp.label)}</Text>
                       <Text style={[styles.docState, enviado && styles.docStateOk]}>
                         {enviado ? `✓ ${t('docSent')}` : t('docMissing')}
                       </Text>
+                      {doc?.expiresOn ? (
+                        <Text
+                          style={[
+                            styles.docValidade,
+                            doc.expirado && styles.docValidadeMa,
+                            doc.aExpirar && styles.docValidadeAviso,
+                          ]}
+                        >
+                          {doc.expirado
+                            ? t('docExpired')
+                            : doc.aExpirar
+                              ? t('docExpiringSoon')
+                              : `${t('docExpiry')} ${doc.expiresOn}`}
+                        </Text>
+                      ) : null}
                     </View>
                     <Pressable
                       style={[styles.docBtn, enviado && styles.docBtnSecondary]}
@@ -134,6 +163,26 @@ export default function DriverPendingScreen({ navigation }) {
                         {busy === tp.kind ? t('docSending') : enviado ? t('docReplace') : t('docSend')}
                       </Text>
                     </Pressable>
+                  </View>
+
+                  {/* A data pede-se ANTES de escolher a fotografia: com o
+                      selector de imagens aberto o teclado não cabe, e
+                      pedi-la depois obrigaria a repetir tudo se estivesse
+                      errada. */}
+                  {precisaValidade(tp.kind) ? (
+                    <View style={styles.validadeCaixa}>
+                      <TextField
+                        label={t('docExpiry')}
+                        value={validades[tp.kind] || ''}
+                        onChangeText={(v) =>
+                          setValidades((a) => ({ ...a, [tp.kind]: v.replace(/[^\d-]/g, '').slice(0, 10) }))
+                        }
+                        placeholder="2028-03-10"
+                        keyboardType="numbers-and-punctuation"
+                      />
+                      <Text style={styles.validadeAjuda}>{t('docExpiryHelp')}</Text>
+                    </View>
+                  ) : null}
                   </View>
                 );
               })
@@ -175,6 +224,11 @@ export default function DriverPendingScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
+  docValidade: { fontSize: fontSize.xs, color: colors.textMuted, marginTop: 2 },
+  docValidadeAviso: { color: colors.coralDark, fontWeight: '700' },
+  docValidadeMa: { color: colors.danger, fontWeight: '700' },
+  validadeCaixa: { marginTop: -spacing.xs, marginBottom: spacing.sm },
+  validadeAjuda: { fontSize: 11, color: colors.textMuted, marginTop: -spacing.sm },
   termosCaixa: {
     backgroundColor: '#FFF8F0',
     borderWidth: 1,

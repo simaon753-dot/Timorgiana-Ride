@@ -22,10 +22,17 @@ const RIDE_SELECT = `
   LEFT JOIN users d ON d.id = r.driver_id
 `;
 
-// Converte a linha (já com os JOINs) num objeto público
-export function toPublicRide(row) {
+// Converte a linha (já com os JOINs) num objeto público.
+//
+// `paraPassageiro` decide se o código de recolha vai no resultado. Por
+// omissão NÃO vai: se o motorista o visse, o código deixava de provar seja
+// o que for — ele podia começar a viagem sem o passageiro estar no carro.
+// O valor por omissão é o seguro, para nenhum sítio novo o revelar por
+// esquecimento.
+export function toPublicRide(row, paraPassageiro = false) {
   if (!row) return null;
   return {
+    ...(paraPassageiro && row.pickup_code ? { pickupCode: row.pickup_code } : {}),
     ...(row.my_stars !== undefined ? { myStars: row.my_stars } : {}),
     ...(row.pickup_km !== undefined
       ? { pickupKm: row.pickup_km != null ? Math.round(row.pickup_km * 10) / 10 : null }
@@ -40,6 +47,7 @@ export function toPublicRide(row) {
     originLng: row.origin_lng ?? null,
     vehicleType: row.vehicle_type || null,
     passengers: row.passengers ?? null,
+    startedAt: row.started_at ?? null,
     fareUsd: row.fare_usd ?? null,
     distanceKm: row.distance_km ?? null,
     durationMin: row.duration_min ?? null,
@@ -75,11 +83,15 @@ export async function createRide({
   originLabel, originLat, originLng, vehicleType, fareUsd,
   distanceKm = null, durationMin = null, passengers = null,
 }) {
+  // Quatro dígitos, com zeros à frente. Não é um segredo criptográfico —
+  // é uma senha dita em voz alta à porta do carro, e vive uns minutos.
+  const codigo = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
   const inserted = await one(
     `INSERT INTO rides
        (passenger_id, dest_label, dest_lat, dest_lng, origin_label, origin_lat, origin_lng,
-        vehicle_type, fare_usd, distance_km, duration_min, passengers, status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'requested')
+        vehicle_type, fare_usd, distance_km, duration_min, passengers,
+        pickup_code, status)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'requested')
      RETURNING id`,
     [
       passengerId,
@@ -94,6 +106,7 @@ export async function createRide({
       num(distanceKm),
       durationMin != null ? Math.round(Number(durationMin)) : null,
       passengers != null ? Math.max(1, Math.min(8, Number(passengers))) : null,
+      codigo,
     ]
   );
   return getRideById(inserted.id);
@@ -178,6 +191,23 @@ export async function acceptRide(rideId, driverId, fareUsd, driverSeats) {
     [driverId, num(fareUsd), rideId, driverSeats ?? null]
   );
   if (!updated) return null; // já aceite por outro, ou inexistente
+  return getRideById(rideId);
+}
+
+// Começa a viagem SE o código estiver certo. A comparação vai dentro do
+// UPDATE, como a da aceitação: assim não há um instante entre verificar e
+// escrever em que outra coisa possa acontecer.
+export async function iniciarViagem(rideId, driverId, codigo) {
+  const linha = await one(
+    `UPDATE rides
+     SET status = 'in_progress', started_at = NOW(), updated_at = NOW()
+     WHERE id = $1 AND driver_id = $2
+       AND status IN ('accepted','arriving')
+       AND pickup_code = $3
+     RETURNING id`,
+    [rideId, driverId, String(codigo || '').trim()]
+  );
+  if (!linha) return null;
   return getRideById(rideId);
 }
 

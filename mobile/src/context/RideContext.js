@@ -204,6 +204,16 @@ export function RideProvider({ children }) {
     [token]
   );
 
+  // Começar a viagem com o código que o passageiro leu em voz alta.
+  const startRide = useCallback(
+    async (id, code) => {
+      const { ride } = await api.startRide(token, id, code);
+      setActiveRide(ride);
+      return ride;
+    },
+    [token]
+  );
+
   const sendMessage = useCallback(
     async (body) => {
       if (!activeId) return;
@@ -273,6 +283,7 @@ export function RideProvider({ children }) {
         requestRide,
         acceptRide,
         advanceStatus,
+        startRide,
         updateFare,
         cancelRide,
         sendMessage,

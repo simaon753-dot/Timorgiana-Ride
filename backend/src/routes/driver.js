@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { one, query } from '../db.js';
 import { requireAuth, requireRole } from '../auth.js';
-import { saveDocument, listDocuments } from '../documents.js';
+import { saveDocument, listDocuments, podeTrabalhar } from '../documents.js';
+import { temFotoDeHoje, guardarFotoDeTurno } from '../turnos.js';
 import { setOnline, savePushToken } from '../drivers.js';
 import { toPublicUser } from '../users.js';
 import { notificarAdminsMotoristaPronto } from '../push.js';
@@ -16,13 +17,22 @@ driverRouter.get(
   '/status',
   wrap(async (req, res) => {
     const docs = await listDocuments(req.user.id);
+    const [apto, fotoHoje] = await Promise.all([
+      podeTrabalhar(req.user.id),
+      temFotoDeHoje(req.user.id),
+    ]);
     res.json({
       user: toPublicUser(req.user),
       documents: docs.map((d) => ({
         kind: d.kind,
         sizeBytes: d.size_bytes,
         createdAt: d.created_at,
+        expiresOn: d.expires_on || null,
+        expirado: !!d.caducado,
+        aExpirar: !!d.a_caducar && !d.caducado,
       })),
+      apto,
+      fotoDeHoje: fotoHoje,
     });
   })
 );
@@ -38,6 +48,28 @@ driverRouter.post(
     if ((req.user.driver_status || 'pending') !== 'approved') {
       return res.status(403).json({ error: 'A tua conta ainda não foi aprovada.' });
     }
+
+    // As condições só se verificam para FICAR disponível. Ficar
+    // indisponível tem de funcionar sempre: se um motorista com a carta
+    // caducada não conseguisse desligar-se, ficaria preso a receber
+    // pedidos — exactamente o contrário do que se pretende.
+    if (online) {
+      const apto = await podeTrabalhar(req.user.id);
+      if (!apto.pode) {
+        return res.status(403).json({
+          error:
+            apto.motivo === 'documento_caducado'
+              ? `O teu documento (${apto.qual}) caducou em ${apto.ate}.`
+              : 'Faltam documentos na tua conta.',
+          motivo: apto.motivo,
+          qual: apto.qual,
+        });
+      }
+      if (!(await temFotoDeHoje(req.user.id))) {
+        return res.status(428).json({ error: 'Tira uma fotografia para começar o dia.', motivo: 'foto_de_turno' });
+      }
+    }
+
     const row = await setOnline(req.user.id, online);
 
     // Manter as salas do tempo real em sintonia com a base de dados.
@@ -114,6 +146,21 @@ driverRouter.get(
   })
 );
 
+// POST /api/driver/shift-photo — a selfie de quem vai conduzir hoje
+driverRouter.post(
+  '/shift-photo',
+  wrap(async (req, res) => {
+    const { mime, base64 } = req.body || {};
+    if (!base64) return res.status(400).json({ error: 'Fotografia em falta.' });
+    try {
+      const r = await guardarFotoDeTurno({ userId: req.user.id, mime, base64 });
+      return res.status(201).json({ ok: true, dia: r.dia });
+    } catch (e) {
+      return res.status(400).json({ error: e.message });
+    }
+  })
+);
+
 // POST /api/driver/terms — aceitar os termos específicos de motorista
 //
 // Separado do registo de propósito: os termos de motorista falam de seguro,
@@ -138,11 +185,11 @@ driverRouter.post(
 driverRouter.post(
   '/documents',
   wrap(async (req, res) => {
-    const { kind, mime, base64 } = req.body || {};
+    const { kind, mime, base64, expiresOn } = req.body || {};
     if (!base64) return res.status(400).json({ error: 'Ficheiro em falta.' });
 
     try {
-      const doc = await saveDocument({ userId: req.user.id, kind, mime, base64 });
+      const doc = await saveDocument({ userId: req.user.id, kind, mime, base64, expiresOn });
 
       // Só avisa quando o conjunto ficar completo. Avisar a cada ficheiro
       // daria três notificações pela mesma pessoa e ensinaria a ignorá-las.

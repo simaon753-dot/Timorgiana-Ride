@@ -4,6 +4,7 @@ import { query, one } from '../db.js';
 import { getDocument } from '../documents.js';
 import { toPublicUser } from '../users.js';
 import { alertasAbertos, resolverAlerta } from '../sos.js';
+import { fotosDeHoje, getFotoDeTurno } from '../turnos.js';
 
 export const adminRouter = Router();
 adminRouter.use(requireAuth);
@@ -27,7 +28,10 @@ adminRouter.get(
 
     const rows = await query(
       `SELECT u.*, (
-         SELECT json_agg(json_build_object('id', d.id, 'kind', d.kind, 'mime', d.mime))
+         SELECT json_agg(json_build_object(
+           'id', d.id, 'kind', d.kind, 'mime', d.mime,
+           'expiresOn', TO_CHAR(d.expires_on,'YYYY-MM-DD'),
+           'expirado', (d.expires_on IS NOT NULL AND d.expires_on < CURRENT_DATE)))
          FROM driver_documents d WHERE d.user_id = u.id
        ) AS docs
        FROM users u
@@ -129,5 +133,35 @@ adminRouter.get(
         (SELECT COUNT(*) FROM rides WHERE status='requested')::int AS esperando
     `);
     res.json({ resumo: n });
+  })
+);
+
+// GET /api/admin/turnos — quem está ao volante hoje
+adminRouter.get(
+  '/turnos',
+  wrap(async (_req, res) => {
+    const rows = await fotosDeHoje();
+    res.json({
+      turnos: rows.map((r) => ({
+        id: r.id,
+        userId: r.user_id,
+        nome: r.name,
+        telefone: r.phone,
+        quando: r.created_at,
+        // Para comparar lado a lado com a foto do registo
+        fotoRegistoId: r.foto_registo,
+      })),
+    });
+  })
+);
+
+// GET /api/admin/turnos/:id/foto
+adminRouter.get(
+  '/turnos/:id/foto',
+  wrap(async (req, res) => {
+    const f = await getFotoDeTurno(Number(req.params.id));
+    if (!f) return res.status(404).json({ error: 'Fotografia não encontrada.' });
+    res.setHeader('Content-Type', f.mime);
+    res.send(f.bytes);
   })
 );

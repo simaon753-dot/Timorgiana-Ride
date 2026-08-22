@@ -305,4 +305,29 @@ export default {
   cor_amarelo: 'Amarelo',
   cor_laranja: 'Laranja',
   cor_castanho: 'Castanho',
+  // Código de recolha
+  statusInProgress: 'Viagem a decorrer',
+  pickupCodeLabel: 'Código para o motorista',
+  pickupCodeHelp: 'Diz estes números ao motorista antes de entrares.',
+  startRide: 'Começar viagem',
+  askCodeTitle: 'Código do passageiro',
+  askCodeHelp: 'Pergunta ao passageiro os quatro algarismos que aparecem no telemóvel dele.',
+  askCodeConfirm: 'Começar',
+
+  // Foto do turno
+  shiftPhotoTitle: 'Fotografia de hoje',
+  shiftPhotoExplain:
+    'Antes de começares o dia, tira uma fotografia tua. Serve para confirmarmos que és tu ao volante — é o que dá segurança ao passageiro.',
+  shiftPhotoTake: 'Tirar fotografia',
+  shiftPhotoDone: '✓ Fotografia de hoje enviada',
+  shiftPhotoNeeded: 'Tira a fotografia de hoje para ficares disponível.',
+  errCameraPermission: 'Sem permissão para usar a câmara.',
+
+  // Validade dos documentos
+  docExpiry: 'Válido até',
+  docExpiryHelp: 'Data que está no documento (ano-mês-dia).',
+  docExpired: '⚠ Caducado',
+  docExpiringSoon: '⚠ Caduca em breve',
+  docExpiryRequired: 'Indica a data de validade.',
+  cannotGoOnlineExpired: 'Não podes ficar disponível: há um documento caducado.',
 };

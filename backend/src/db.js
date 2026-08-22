@@ -92,7 +92,7 @@ export async function initSchema() {
       fare_usd     REAL,
       vehicle_type TEXT CHECK (vehicle_type IN ('car','motorbike')),
       status       TEXT NOT NULL DEFAULT 'requested'
-                   CHECK (status IN ('requested','accepted','arriving','completed','cancelled')),
+                   CHECK (status IN ('requested','accepted','arriving','in_progress','completed','cancelled')),
       cancelled_by INTEGER REFERENCES users(id),
       created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -187,6 +187,42 @@ export async function initSchema() {
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS passengers INTEGER`);
   // Lugares do carro, SEM contar o motorista.
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS vehicle_seats INTEGER`);
+
+  // Código que o passageiro diz ao motorista para a viagem começar. Prova
+  // que quem entrou no carro é quem pediu, e impede o motorista de marcar
+  // viagens que não fez.
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS pickup_code TEXT`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ`);
+  // A restrição original não conhecia 'in_progress'. Substituí-la em vez
+  // de a apagar: uma coluna de estado sem restrição aceita erros de
+  // escrita para sempre e só se descobre quando a app não sabe desenhar
+  // um estado que não existe.
+  await query(`ALTER TABLE rides DROP CONSTRAINT IF EXISTS rides_status_check`);
+  await query(`
+    ALTER TABLE rides ADD CONSTRAINT rides_status_check
+    CHECK (status IN ('requested','accepted','arriving','in_progress','completed','cancelled'))
+  `);
+
+  // Validade dos documentos. Guardar a imagem sem a data dá aparência de
+  // legalidade sem a substância: uma carta caducada é pior do que nenhuma,
+  // porque passou por uma verificação.
+  await query(`ALTER TABLE driver_documents ADD COLUMN IF NOT EXISTS expires_on DATE`);
+
+  // Foto do turno: quem está ao volante HOJE. Os documentos verificam a
+  // conta; isto verifica a pessoa. Um motorista aprovado que empresta o
+  // telemóvel ao primo é o problema mais comum deste negócio.
+  await query(`
+    CREATE TABLE IF NOT EXISTS driver_shifts (
+      id         SERIAL PRIMARY KEY,
+      user_id    INTEGER NOT NULL REFERENCES users(id),
+      dia        DATE NOT NULL,
+      mime       TEXT NOT NULL,
+      bytes      BYTEA NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (user_id, dia)
+    )
+  `);
+  await query('CREATE INDEX IF NOT EXISTS idx_turnos_dia ON driver_shifts(dia DESC)');
   // Mensagens automáticas do serviço não têm remetente humano.
   await query(`ALTER TABLE messages ALTER COLUMN sender_id DROP NOT NULL`);
   await query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS kind TEXT`);

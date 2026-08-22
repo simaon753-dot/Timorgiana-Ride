@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,9 @@ import BarraTopo from '../components/BarraTopo.js';
 import StatusBadge from '../components/StatusBadge.js';
 import MapaExpandivel from '../components/MapaExpandivel.js';
 import MotivoCancelamento from '../components/MotivoCancelamento.js';
+import PedirCodigo from '../components/PedirCodigo.js';
+import FotoDeTurno from '../components/FotoDeTurno.js';
+import { api } from '../api/client.js';
 import ChatButton from '../components/ChatButton.js';
 import SosButton from '../components/SosButton.js';
 import RatingPanel from '../components/RatingPanel.js';
@@ -28,13 +31,33 @@ import { colors, spacing, fontSize, radius } from '../theme.js';
 
 export default function DriverHomeScreen({ navigation }) {
   const { t } = useI18n();
-  const { logout } = useAuth();
+  const { logout, token } = useAuth();
+  // Se já há foto de hoje. Enquanto não se sabe fica `null`, para não
+  // piscar o cartão de fotografia a quem já a tirou.
+  const [fotoDeHoje, setFotoDeHoje] = useState(null);
+  const [avisoDocs, setAvisoDocs] = useState(null);
+
+  const verEstado = useCallback(async () => {
+    try {
+      const r = await api.driverStatus(token);
+      setFotoDeHoje(!!r.fotoDeHoje);
+      setAvisoDocs(r.apto?.pode === false ? r.apto : null);
+    } catch {
+      /* sem rede: não bloqueamos nada com base em desconhecimento */
+    }
+  }, [token]);
+
+  useEffect(() => {
+    verEstado();
+    return navigation.addListener('focus', verEstado);
+  }, [verEstado, navigation]);
   const {
     activeRide,
     isFinal,
     requests,
     acceptRide,
     advanceStatus,
+    startRide,
     cancelRide,
     dismissRide,
     loading,
@@ -48,6 +71,23 @@ export default function DriverHomeScreen({ navigation }) {
       <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.scroll}>
         <BarraTopo navigation={navigation} />
+
+        {/* A fotografia do dia vem ANTES do interruptor: sem ela o
+            interruptor não funciona, e um botão que recusa sem explicar
+            gera um telefonema. */}
+        {!activeRide && fotoDeHoje === false ? (
+          <View style={{ marginBottom: spacing.md }}>
+            <FotoDeTurno feita={false} onFeita={verEstado} />
+          </View>
+        ) : null}
+
+        {!activeRide && avisoDocs ? (
+          <Text style={styles.avisoDocs}>
+            {avisoDocs.motivo === 'documento_caducado'
+              ? t('cannotGoOnlineExpired')
+              : t('docsIncomplete')}
+          </Text>
+        ) : null}
 
         {/* Interruptor de disponibilidade. Um motorista a almoçar não deve
             receber pedidos: para o passageiro, um pedido que ninguém atende
@@ -77,6 +117,7 @@ export default function DriverHomeScreen({ navigation }) {
             isFinal={isFinal}
             navigation={navigation}
             onArriving={() => advanceStatus(activeRide.id, 'arriving')}
+            onStart={(codigo) => startRide(activeRide.id, codigo)}
             onComplete={() => advanceStatus(activeRide.id, 'completed')}
             onCancel={(motivo) => cancelRide(activeRide.id, motivo)}
             onDismiss={dismissRide}
@@ -153,11 +194,27 @@ function RequestCard({ ride, onAccept }) {
 }
 
 // ---- Cartão da viagem ativa do motorista ----
-function ActiveRideCard({ ride, isFinal, navigation, onArriving, onComplete, onCancel, onDismiss }) {
+function ActiveRideCard({ ride, isFinal, navigation, onArriving, onStart, onComplete, onCancel, onDismiss }) {
   const { t } = useI18n();
   const [aCancelar, setACancelar] = useState(false);
+  const [aPedirCodigo, setAPedirCodigo] = useState(false);
+  const [erroCodigo, setErroCodigo] = useState(null);
+  const [aIniciar, setAIniciar] = useState(false);
+
+  async function comecar(codigo) {
+    setErroCodigo(null);
+    setAIniciar(true);
+    try {
+      await onStart(codigo);
+      setAPedirCodigo(false);
+    } catch (e) {
+      setErroCodigo(e?.message === 'NETWORK' ? t('errNetwork') : e?.message || t('errGeneric'));
+    } finally {
+      setAIniciar(false);
+    }
+  }
   const markers = rideMarkers(ride);
-  const active = ['accepted', 'arriving'].includes(ride.status);
+  const active = ['accepted', 'arriving', 'in_progress'].includes(ride.status);
 
   return (
     <View style={styles.card}>
@@ -235,6 +292,14 @@ function ActiveRideCard({ ride, isFinal, navigation, onArriving, onComplete, onC
           <View style={{ height: spacing.sm }} />
           <Button title={t('cancelRide')} variant="outline" onPress={() => setACancelar(true)} />
         </>
+      ) : ride.status === 'arriving' ? (
+        <>
+          {/* Só depois do código é que a viagem começa. Concluir sem
+              começar deixou de ser possível. */}
+          <Button title={t('startRide')} onPress={() => setAPedirCodigo(true)} />
+          <View style={{ height: spacing.sm }} />
+          <Button title={t('cancelRide')} variant="outline" onPress={() => setACancelar(true)} />
+        </>
       ) : (
         <>
           <Button title={t('completeRide')} variant="secondary" onPress={onComplete} />
@@ -242,6 +307,17 @@ function ActiveRideCard({ ride, isFinal, navigation, onArriving, onComplete, onC
           <Button title={t('cancelRide')} variant="outline" onPress={() => setACancelar(true)} />
         </>
       )}
+
+      <PedirCodigo
+        visivel={aPedirCodigo}
+        erro={erroCodigo}
+        aEnviar={aIniciar}
+        onFechar={() => {
+          setAPedirCodigo(false);
+          setErroCodigo(null);
+        }}
+        onConfirmar={comecar}
+      />
 
       <MotivoCancelamento
         visivel={aCancelar}
@@ -259,6 +335,15 @@ function ActiveRideCard({ ride, isFinal, navigation, onArriving, onComplete, onC
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
+  avisoDocs: {
+    backgroundColor: '#FDECEA',
+    borderRadius: radius.md,
+    padding: spacing.md,
+    color: colors.danger,
+    fontWeight: '700',
+    fontSize: fontSize.sm,
+    marginBottom: spacing.md,
+  },
   scroll: { flexGrow: 1, padding: spacing.lg },
   topBar: {
     flexDirection: 'row',

@@ -306,4 +306,29 @@ export default {
   cor_amarelo: 'Kinur',
   cor_laranja: 'Laranja',
   cor_castanho: 'Kastañu',
+  // Kódigu foti nian
+  statusInProgress: 'Viajen laʼo hela',
+  pickupCodeLabel: 'Kódigu ba motorista',
+  pickupCodeHelp: 'Hatete númeru sira neʼe ba motorista molok tama.',
+  startRide: 'Hahú viajen',
+  askCodeTitle: 'Kódigu pasajeiru nian',
+  askCodeHelp: 'Husu pasajeiru númeru haat neʼebé mosu iha nia telemóvel.',
+  askCodeConfirm: 'Hahú',
+
+  // Foto loron nian
+  shiftPhotoTitle: 'Foto ohin loron',
+  shiftPhotoExplain:
+    'Molok hahú loron, foti ita-nia foto. Neʼe atu ami konfirma katak ita mak lori kareta — neʼe mak fó seguransa ba pasajeiru.',
+  shiftPhotoTake: 'Foti foto',
+  shiftPhotoDone: '✓ Foto ohin haruka ona',
+  shiftPhotoNeeded: 'Foti foto ohin nian atu sai disponivel.',
+  errCameraPermission: 'La iha permisaun atu uza kámera.',
+
+  // Validade dokumentu nian
+  docExpiry: 'Válidu toʼo',
+  docExpiryHelp: 'Data neʼebé iha dokumentu (tinan-fulan-loron).',
+  docExpired: '⚠ Remata ona',
+  docExpiringSoon: '⚠ Sei remata lalais',
+  docExpiryRequired: 'Hatama data validade nian.',
+  cannotGoOnlineExpired: 'La bele sai disponivel: iha dokumentu ida remata ona.',
 };

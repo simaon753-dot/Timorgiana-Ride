@@ -12,6 +12,8 @@ export function statusMeta(status) {
       return { key: 'statusAccepted', bg: '#E9F2F0', fg: colors.teal, icon: '🚗' };
     case 'arriving':
       return { key: 'statusArriving', bg: '#E9F2F0', fg: colors.teal, icon: '📍' };
+    case 'in_progress':
+      return { key: 'statusInProgress', bg: '#E9F2F0', fg: colors.teal, icon: '🛣️' };
     case 'completed':
       return { key: 'statusCompleted', bg: '#E4F1EA', fg: colors.success, icon: '✓' };
     case 'cancelled':

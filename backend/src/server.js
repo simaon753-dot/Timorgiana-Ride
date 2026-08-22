@@ -4,6 +4,8 @@ import cors from 'cors';
 import { Server as SocketServer } from 'socket.io';
 
 import { config } from './config.js';
+import { podeTrabalhar } from './documents.js';
+import { temFotoDeHoje } from './turnos.js';
 import { initSchema, pool, query } from './db.js';
 import { authRouter } from './routes/auth.js';
 import { ridesRouter } from './routes/rides.js';
@@ -120,6 +122,16 @@ io.on('connection', (socket) => {
   socket.on('driver:setOnline', async (online, ack) => {
     if (!podeReceberPedidos) return;
     try {
+      // As mesmas condições da rota HTTP. Existirem dois caminhos para
+      // ficar disponível e só um verificar seria o mesmo que não
+      // verificar: bastava usar o outro.
+      if (online) {
+        const apto = await podeTrabalhar(user.id);
+        if (!apto.pode) return ack?.({ ok: false, motivo: apto.motivo, qual: apto.qual });
+        if (!(await temFotoDeHoje(user.id))) {
+          return ack?.({ ok: false, motivo: 'foto_de_turno' });
+        }
+      }
       await setOnline(user.id, online);
       user.isOnline = !!online;
       if (online) entrarNasSalas();

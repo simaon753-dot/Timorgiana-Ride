@@ -11,6 +11,7 @@ import {
   setRideStatus,
   setRideFare,
   toPublicRide,
+  iniciarViagem,
 } from '../rides.js';
 import { addMessage, addSystemMessage, listMessages } from '../messages.js';
 import { addRating, hasRated } from '../ratings.js';
@@ -37,10 +38,12 @@ ridesRouter.use(requireAuth);
 // encaminha qualquer erro para o tratamento normal.
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
+// Cada lado recebe uma versão sua. O passageiro leva o código de recolha;
+// o motorista não. Enviar o mesmo objecto aos dois seria dar-lhe a senha
+// que ele tem de pedir.
 function notify(io, ride, event) {
-  const pub = toPublicRide(ride);
-  io.to(`user:${ride.passenger_id}`).emit(event, pub);
-  if (ride.driver_id) io.to(`user:${ride.driver_id}`).emit(event, pub);
+  io.to(`user:${ride.passenger_id}`).emit(event, toPublicRide(ride, true));
+  if (ride.driver_id) io.to(`user:${ride.driver_id}`).emit(event, toPublicRide(ride, false));
 }
 
 async function rideForParticipant(rideId, userId) {
@@ -101,15 +104,18 @@ ridesRouter.post(
       // Só em carro: numa motorizada vai sempre uma pessoa.
       passengers: vehicleType === 'car' ? passengers : null,
     });
-    const ride = toPublicRide(row);
+    // Quem criou a viagem é o passageiro: leva o código.
+    const ride = toPublicRide(row, true);
+    // O que vai para os motoristas não o leva.
+    const paraMotoristas = toPublicRide(row, false);
 
     const io = req.app.get('io');
-    io.to(row.vehicle_type ? `drivers:${row.vehicle_type}` : 'drivers').emit('ride:new', ride);
+    io.to(row.vehicle_type ? `drivers:${row.vehicle_type}` : 'drivers').emit('ride:new', paraMotoristas);
 
     // Notificação para quem tem a app fechada. Deliberadamente sem await:
     // se o serviço de notificações estiver lento, o passageiro não fica à
     // espera — o pedido já foi criado e entregue em tempo real.
-    notificarPedidoNovo(ride).catch(() => {});
+    notificarPedidoNovo(paraMotoristas).catch(() => {});
 
     return res.status(201).json({ ride });
   })
@@ -120,7 +126,10 @@ ridesRouter.get(
   '/active',
   wrap(async (req, res) => {
     const row = await getActiveRideForUser(req.user);
-    return res.json({ ride: row ? toPublicRide(row) : null });
+    // Quem pergunta decide o que vê: só o passageiro da viagem leva o
+    // código de recolha, mesmo que quem chame seja o motorista dela.
+    const souOPassageiro = !!row && row.passenger_id === req.user.id;
+    return res.json({ ride: row ? toPublicRide(row, souOPassageiro) : null });
   })
 );
 
@@ -218,11 +227,49 @@ ridesRouter.post(
     if (!row || row.driver_id !== req.user.id) {
       return res.status(404).json({ error: 'Viagem não encontrada.' });
     }
-    if (!['accepted', 'arriving'].includes(row.status)) {
+    // 'arriving' só a caminho; 'completed' só depois de a viagem ter
+    // começado — ou de estados antigos, para não travar viagens que já
+    // estavam em curso quando isto foi acrescentado.
+    const permitido =
+      status === 'arriving'
+        ? ['accepted']
+        : ['in_progress', 'accepted', 'arriving'];
+    if (!permitido.includes(row.status)) {
       return res.status(409).json({ error: 'Não é possível mudar o estado desta viagem.' });
     }
 
     const updated = await setRideStatus(rideId, status);
+    notify(req.app.get('io'), updated, 'ride:update');
+    return res.json({ ride: toPublicRide(updated) });
+  })
+);
+
+// POST /api/rides/:id/start — começar a viagem com o código do passageiro
+//
+// É aqui que se prova que quem entrou no carro é quem pediu. O motorista
+// nunca vê o código: pergunta-o em voz alta e escreve o que ouvir.
+ridesRouter.post(
+  '/:id/start',
+  requireApprovedDriver,
+  wrap(async (req, res) => {
+    const rideId = Number(req.params.id);
+    const { code } = req.body || {};
+    if (!/^\d{4}$/.test(String(code || '').trim())) {
+      return res.status(400).json({ error: 'O código tem quatro algarismos.' });
+    }
+
+    const updated = await iniciarViagem(rideId, req.user.id, code);
+    if (!updated) {
+      const atual = await getRideById(rideId);
+      if (!atual || atual.driver_id !== req.user.id) {
+        return res.status(404).json({ error: 'Viagem não encontrada.' });
+      }
+      if (!['accepted', 'arriving'].includes(atual.status)) {
+        return res.status(409).json({ error: 'Esta viagem já começou ou terminou.' });
+      }
+      return res.status(403).json({ error: 'Código errado. Pergunta outra vez ao passageiro.' });
+    }
+
     notify(req.app.get('io'), updated, 'ride:update');
     return res.json({ ride: toPublicRide(updated) });
   })

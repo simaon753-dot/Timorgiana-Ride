@@ -84,6 +84,14 @@ export const api = {
   availableRides: (token) => request('/rides/available', { token }),
   acceptRide: (token, id, fareUsd) =>
     request(`/rides/${id}/accept`, { method: 'POST', body: { fareUsd }, token }),
+  startRide: (token, id, code) =>
+    request(`/rides/${id}/start`, { method: 'POST', body: { code }, token }),
+
+  shiftPhoto: (token, { mime, base64 }) =>
+    request('/driver/shift-photo', { method: 'POST', body: { mime, base64 }, token }),
+
+  adminTurnos: (token) => request('/admin/turnos', { token }),
+
   setRideStatus: (token, id, status) =>
     request(`/rides/${id}/status`, { method: 'POST', body: { status }, token }),
   cancelRide: (token, id, reason) =>
@@ -100,8 +108,8 @@ export const api = {
 
   // Motorista: estado da conta e documentos
   driverStatus: (token) => request('/driver/status', { token }),
-  uploadDocument: (token, { kind, mime, base64 }) =>
-    request('/driver/documents', { method: 'POST', body: { kind, mime, base64 }, token }),
+  uploadDocument: (token, { kind, mime, base64, expiresOn }) =>
+    request('/driver/documents', { method: 'POST', body: { kind, mime, base64, expiresOn }, token }),
   setAvailability: (token, online) =>
     request('/driver/availability', { method: 'POST', body: { online }, token }),
 

@@ -19,6 +19,7 @@ import MapaExpandivel from '../components/MapaExpandivel.js';
 import { minutosAte, horaDeChegada } from '../lib/estimativa.js';
 import ChatButton from '../components/ChatButton.js';
 import SosButton from '../components/SosButton.js';
+import CodigoRecolha from '../components/CodigoRecolha.js';
 import MotivoCancelamento from '../components/MotivoCancelamento.js';
 import ShareTripButton from '../components/ShareTripButton.js';
 import RatingPanel from '../components/RatingPanel.js';
@@ -38,7 +39,7 @@ export default function PassengerHomeScreen({ navigation }) {
   const vehicleLabel = (v) => (v?.type === 'motorbike' ? t('vehicleMotorbike') : t('vehicleCar'));
   const markers = activeRide ? rideMarkers(activeRide) : [];
   const withDriver =
-    activeRide?.driver && ['accepted', 'arriving'].includes(activeRide.status);
+    activeRide?.driver && ['accepted', 'arriving', 'in_progress'].includes(activeRide.status);
 
   // O motorista ainda vem a caminho: quanto falta até estar à porta.
   const minChegada =
@@ -177,6 +178,14 @@ export default function PassengerHomeScreen({ navigation }) {
             {withDriver ? (
               <View style={{ marginTop: spacing.md }}>
                 <ChatButton navigation={navigation} />
+              </View>
+            ) : null}
+
+            {/* Só até a viagem começar. Depois de estar no carro, o
+                código já não serve para nada e só ocupa o ecrã. */}
+            {activeRide.pickupCode && activeRide.status !== 'in_progress' ? (
+              <View style={{ marginTop: spacing.md }}>
+                <CodigoRecolha codigo={activeRide.pickupCode} />
               </View>
             ) : null}
 
