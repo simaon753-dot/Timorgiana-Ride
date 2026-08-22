@@ -272,4 +272,25 @@ export default {
 
   // Mensajen automátiku
   sysMsg_aceite: 'Motorista simu viajen no mai hela. Bele kombina iha neʼe fatin hasoru nian.',
+  // Barra navegasaun nian
+  tabHome: 'Uma',
+  tabTrips: 'Viajen',
+  tabEarnings: 'Rendimentu',
+
+  // Perfíl
+  profileApp: 'Aplikasaun',
+  profileHelp: 'Ajuda',
+  profileCallSupport: '📞 Telefone ba apoiu',
+  profileEmergency: '🚨 Emerjénsia · 112',
+  logoutConfirm: 'Sai husi konta?',
+  logoutConfirmExplain: 'Ita presiza númeru no senha atu tama fila fali.',
+
+  // Rendimentu
+  earningsToday: 'Ohin ita simu',
+  earningsWeek: 'Loron 7 ikus',
+  earningsTotal: 'Total',
+  earningsTrips: 'viajen {n}',
+  earningsLastDays: 'Kada loron',
+  earningsEmpty: 'Seidauk remata viajen ida.',
+  earningsNote: 'Osan mai husi pasajeiru liuhusi liman. Neʼe soma husi viajen neʼebé ita remata — TimorgianaRide la rai no la kobra buat ida.',
 };

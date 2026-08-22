@@ -271,4 +271,25 @@ export default {
 
   // Mensagens automáticas
   sysMsg_aceite: 'O motorista aceitou a viagem e vem a caminho. Podem combinar aqui o ponto exacto de encontro.',
+  // Barra de navegação
+  tabHome: 'Início',
+  tabTrips: 'Viagens',
+  tabEarnings: 'Ganhos',
+
+  // Perfil
+  profileApp: 'Aplicação',
+  profileHelp: 'Ajuda',
+  profileCallSupport: '📞 Ligar ao apoio',
+  profileEmergency: '🚨 Emergência · 112',
+  logoutConfirm: 'Terminar sessão?',
+  logoutConfirmExplain: 'Vais precisar do teu número e palavra-passe para voltar a entrar.',
+
+  // Ganhos
+  earningsToday: 'Ganhaste hoje',
+  earningsWeek: 'Últimos 7 dias',
+  earningsTotal: 'Desde sempre',
+  earningsTrips: '{n} viagens',
+  earningsLastDays: 'Por dia',
+  earningsEmpty: 'Ainda não concluíste nenhuma viagem.',
+  earningsNote: 'O dinheiro é entregue em mão pelo passageiro. Isto é a soma das viagens que concluíste — a TimorgianaRide não guarda nem cobra nada.',
 };

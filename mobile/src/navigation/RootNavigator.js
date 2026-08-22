@@ -7,15 +7,14 @@ import { RideProvider } from '../context/RideContext.js';
 import WelcomeScreen from '../screens/WelcomeScreen.js';
 import LoginScreen from '../screens/LoginScreen.js';
 import RegisterScreen from '../screens/RegisterScreen.js';
-import PassengerHomeScreen from '../screens/PassengerHomeScreen.js';
 import RequestRideScreen from '../screens/RequestRideScreen.js';
-import DriverHomeScreen from '../screens/DriverHomeScreen.js';
 import DriverPendingScreen from '../screens/DriverPendingScreen.js';
 import ChatScreen from '../screens/ChatScreen.js';
-import HistoryScreen from '../screens/HistoryScreen.js';
 import ServerScreen from '../screens/ServerScreen.js';
 import AdminScreen from '../screens/AdminScreen.js';
 import TermosScreen from '../screens/TermosScreen.js';
+import PerfilScreen from '../screens/PerfilScreen.js';
+import Tabuladores from './Tabuladores.js';
 import LoadingScreen from '../screens/LoadingScreen.js';
 import { colors } from '../theme.js';
 
@@ -68,16 +67,15 @@ export default function RootNavigator() {
         // Área autenticada (com estado de viagens em tempo real)
         <RideProvider>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {/* Os tabuladores são o ecrã de base; tudo o resto abre por
+                cima deles, para a barra não aparecer onde estorva — num
+                mapa a ocupar o ecrã, numa conversa, nos termos. */}
+            <Stack.Screen name="Tabs" component={Tabuladores} />
             {user.role === 'passenger' ? (
-              <>
-                <Stack.Screen name="PassengerHome" component={PassengerHomeScreen} />
-                <Stack.Screen name="RequestRide" component={RequestRideScreen} />
-              </>
-            ) : (
-              <Stack.Screen name="DriverHome" component={DriverHomeScreen} />
-            )}
+              <Stack.Screen name="RequestRide" component={RequestRideScreen} />
+            ) : null}
             <Stack.Screen name="Chat" component={ChatScreen} />
-            <Stack.Screen name="History" component={HistoryScreen} />
+            <Stack.Screen name="Perfil" component={PerfilScreen} />
             <Stack.Screen name="Server" component={ServerScreen} />
             <Stack.Screen name="Termos" component={TermosScreen} />
             {/* Só existe para administradores. Não estar registado é a

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { one } from '../db.js';
+import { one, query } from '../db.js';
 import { requireAuth, requireRole } from '../auth.js';
 import { saveDocument, listDocuments } from '../documents.js';
 import { setOnline, savePushToken } from '../drivers.js';
@@ -51,6 +51,66 @@ driverRouter.post(
     else await alvo.socketsLeave(salas);
 
     res.json({ online: !!row?.is_online });
+  })
+);
+
+// GET /api/driver/ganhos — quanto o motorista fez
+//
+// O dinheiro nunca passa por nós: é entregue em mão. Isto não é uma conta
+// bancária, é a soma das viagens que ele concluiu — serve para ele saber
+// se valeu a pena o dia, que é a pergunta que um motorista faz ao jantar.
+//
+// Os intervalos usam a hora de Díli (UTC+9). Sem isso, "hoje" acabava às
+// 15h da tarde, porque o servidor pensa em UTC.
+driverRouter.get(
+  '/ganhos',
+  wrap(async (req, res) => {
+    const [n] = await query(
+      `WITH minhas AS (
+         SELECT fare_usd, (created_at AT TIME ZONE 'Asia/Dili') AS quando
+         FROM rides WHERE driver_id = $1 AND status = 'completed'
+       )
+       SELECT
+         COALESCE(SUM(fare_usd) FILTER (WHERE quando::date = (NOW() AT TIME ZONE 'Asia/Dili')::date), 0)::float AS hoje,
+         COUNT(*) FILTER (WHERE quando::date = (NOW() AT TIME ZONE 'Asia/Dili')::date)::int AS viagensHoje,
+         COALESCE(SUM(fare_usd) FILTER (WHERE quando > (NOW() AT TIME ZONE 'Asia/Dili') - INTERVAL '7 days'), 0)::float AS semana,
+         COUNT(*) FILTER (WHERE quando > (NOW() AT TIME ZONE 'Asia/Dili') - INTERVAL '7 days')::int AS viagensSemana,
+         COALESCE(SUM(fare_usd), 0)::float AS total,
+         COUNT(*)::int AS viagensTotal
+       FROM minhas`,
+      [req.user.id]
+    );
+
+    // Últimos 7 dias, para o motorista ver que dias rendem mais
+    const dias = await query(
+      // Texto e não data: um 'date' viaja como instante e a app volta a
+      // interpretá-lo no fuso dela, trocando o dia. 'YYYY-MM-DD' não tem
+      // fuso nenhum para interpretar mal.
+      `SELECT TO_CHAR((created_at AT TIME ZONE 'Asia/Dili')::date, 'YYYY-MM-DD') AS dia,
+              COALESCE(SUM(fare_usd),0)::float AS valor,
+              COUNT(*)::int AS viagens
+       FROM rides
+       WHERE driver_id = $1 AND status = 'completed'
+         AND created_at > NOW() - INTERVAL '7 days'
+       GROUP BY 1 ORDER BY 1 DESC`,
+      [req.user.id]
+    );
+
+    res.json({
+      ganhos: {
+        hoje: Math.round(n.hoje * 100) / 100,
+        viagensHoje: n.viagenshoje,
+        semana: Math.round(n.semana * 100) / 100,
+        viagensSemana: n.viagenssemana,
+        total: Math.round(n.total * 100) / 100,
+        viagensTotal: n.viagenstotal,
+        dias: dias.map((d) => ({
+          dia: d.dia,
+          valor: Math.round(d.valor * 100) / 100,
+          viagens: d.viagens,
+        })),
+      },
+    });
   })
 );
 

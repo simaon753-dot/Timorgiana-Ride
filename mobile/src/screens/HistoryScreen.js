@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import BarraTopo from '../components/BarraTopo.js';
 import StatusBadge from '../components/StatusBadge.js';
 import StarRating from '../components/StarRating.js';
 import { useI18n } from '../i18n/index.js';
@@ -36,15 +37,9 @@ export default function HistoryScreen({ navigation }) {
     user?.role === 'passenger' ? r.driver?.name : r.passenger?.name;
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <StatusBar style="dark" />
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={10}>
-          <Text style={styles.back}>‹ {t('back')}</Text>
-        </Pressable>
-        <Text style={styles.title}>{t('historyTitle')}</Text>
-        <View style={{ width: 60 }} />
-      </View>
+      <BarraTopo navigation={navigation} titulo={t('historyTitle')} />
 
       {loading ? (
         <ActivityIndicator color={colors.teal} style={{ marginTop: spacing.xxl }} />

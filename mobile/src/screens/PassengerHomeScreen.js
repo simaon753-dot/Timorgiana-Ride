@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
-import LanguageToggle from '../components/LanguageToggle.js';
+import BarraTopo from '../components/BarraTopo.js';
 import StatusBadge from '../components/StatusBadge.js';
 import MapaExpandivel from '../components/MapaExpandivel.js';
 import { minutosAte, horaDeChegada } from '../lib/estimativa.js';
@@ -65,17 +65,7 @@ export default function PassengerHomeScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.topBar}>
-          <Logo size="sm" />
-          <View style={styles.topBarDireita}>
-            {user?.isAdmin ? (
-              <Pressable onPress={() => navigation.navigate('Admin')} style={styles.adminLink}>
-                <Text style={styles.adminLinkText}>⚙</Text>
-              </Pressable>
-            ) : null}
-            <LanguageToggle />
-          </View>
-        </View>
+        <BarraTopo navigation={navigation} />
 
         {loading ? (
           <ActivityIndicator color={colors.teal} style={{ marginTop: spacing.xxl }} />
@@ -216,13 +206,6 @@ export default function PassengerHomeScreen({ navigation }) {
         )}
 
         <View style={{ flex: 1, minHeight: spacing.xl }} />
-        <Button
-          title={`🧾 ${t('history')}`}
-          variant="outline"
-          onPress={() => navigation.navigate('History')}
-        />
-        <View style={{ height: spacing.sm }} />
-        <Button title={t('logout')} variant="ghost" onPress={logout} />
       </ScrollView>
     </SafeAreaView>
   );

@@ -108,6 +108,8 @@ export const api = {
   sos: (token, rideId, body) =>
     request(`/rides/${rideId || 0}/sos`, { method: 'POST', body, token }),
 
+  ganhos: (token) => request('/driver/ganhos', { token }),
+
   acceptDriverTerms: (token, version) =>
     request('/driver/terms', { method: 'POST', body: { version }, token }),
 

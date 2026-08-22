@@ -13,7 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
 import TextField from '../components/TextField.js';
-import LanguageToggle from '../components/LanguageToggle.js';
+import BarraTopo from '../components/BarraTopo.js';
 import StatusBadge from '../components/StatusBadge.js';
 import MapaExpandivel from '../components/MapaExpandivel.js';
 import MotivoCancelamento from '../components/MotivoCancelamento.js';
@@ -47,10 +47,7 @@ export default function DriverHomeScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.topBar}>
-          <Logo size="sm" />
-          <LanguageToggle />
-        </View>
+        <BarraTopo navigation={navigation} />
 
         {/* Interruptor de disponibilidade. Um motorista a almoçar não deve
             receber pedidos: para o passageiro, um pedido que ninguém atende
@@ -102,13 +99,6 @@ export default function DriverHomeScreen({ navigation }) {
 
         <View style={{ flex: 1, minHeight: spacing.xl }} />
         {!connected ? <Text style={styles.offline}>{t('liveOff')}</Text> : null}
-        <Button
-          title={`🧾 ${t('history')}`}
-          variant="outline"
-          onPress={() => navigation.navigate('History')}
-        />
-        <View style={{ height: spacing.sm }} />
-        <Button title={t('logout')} variant="ghost" onPress={logout} />
       </ScrollView>
     </SafeAreaView>
   );
