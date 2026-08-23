@@ -9,7 +9,7 @@
     "web": "expo start --web",
     "testar": "EXPO_PUBLIC_API_URL=https://timorgiana-ride.onrender.com expo start --clear",
     "testar-tunel": "EXPO_PUBLIC_API_URL=https://timorgiana-ride.onrender.com expo start --clear --tunnel",
-    "publicar": "EAS_UPDATE=1 EXPO_PUBLIC_API_URL=https://timorgiana-ride.onrender.com npx eas-cli@latest update --branch preview --non-interactive"
+    "publicar": "EAS_UPDATE=1 EXPO_PUBLIC_API_URL=https://timorgiana-ride.onrender.com npx eas-cli@latest update --branch preview --non-interactive --message \"$(git log -1 --pretty=%s)\""
   },
   "dependencies": {
     "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
