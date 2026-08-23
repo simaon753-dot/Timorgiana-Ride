@@ -30,6 +30,7 @@ export function toPublicUser(row) {
   // para o ecrã de análise de documentos.
   base.driverStatus = row.driver_status || null;
   base.podeConduzir = row.driver_status === 'approved';
+  if (row.driver_status_motivo) base.driverStatusMotivo = row.driver_status_motivo;
   if (row.vehicle_plate) {
     base.vehicle = {
       type: row.vehicle_type || 'car',

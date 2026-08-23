@@ -130,8 +130,11 @@ export const api = {
   adminSos: (token) => request('/admin/sos', { token }),
   adminResolverSos: (token, id) => request(`/admin/sos/${id}/resolver`, { method: 'POST', token }),
   adminDrivers: (token, status) => request(`/admin/drivers?status=${status}`, { token }),
-  adminDecidir: (token, id, decision) =>
-    request(`/admin/drivers/${id}/decision`, { method: 'POST', body: { decision }, token }),
+  adminDecidir: (token, id, decision, motivo) =>
+    request(`/admin/drivers/${id}/decision`, { method: 'POST', body: { decision, motivo }, token }),
+
+  adminViagens: (token, horas = 24) => request(`/admin/viagens?horas=${horas}`, { token }),
+  adminEstatisticas: (token, dias = 7) => request(`/admin/estatisticas?dias=${dias}`, { token }),
 
   savePushToken: (token, pushToken) =>
     request('/auth/push-token', { method: 'POST', body: { token: pushToken }, token }),

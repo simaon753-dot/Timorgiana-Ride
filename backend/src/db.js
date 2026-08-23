@@ -63,7 +63,7 @@ export async function initSchema() {
       vehicle_color TEXT,
       -- Só motoristas: pending -> approved | rejected.
       -- Um motorista só recebe pedidos depois de aprovado.
-      driver_status TEXT CHECK (driver_status IN ('pending','approved','rejected')),
+      driver_status TEXT CHECK (driver_status IN ('pending','approved','rejected','suspended')),
       is_admin      BOOLEAN NOT NULL DEFAULT FALSE,
       -- Só motoristas: se está a aceitar pedidos neste momento
       is_online     BOOLEAN NOT NULL DEFAULT FALSE,
@@ -238,6 +238,20 @@ export async function initSchema() {
   // Que tipo de emergência foi pedida. Sem isto, quem responde não sabe
   // se manda uma ambulância ou chama a polícia.
   await query(`ALTER TABLE sos_alerts ADD COLUMN IF NOT EXISTS tipo TEXT`);
+
+  // Suspender não é recusar. Recusar é "nunca entraste"; suspender é
+  // "entraste e há um problema" — e um problema pode resolver-se. Sem este
+  // estado, uma queixa séria só tinha duas respostas: ignorar ou expulsar.
+  await query(`ALTER TABLE users DROP CONSTRAINT IF EXISTS users_driver_status_check`);
+  await query(`
+    ALTER TABLE users ADD CONSTRAINT users_driver_status_check
+    CHECK (driver_status IS NULL OR driver_status IN ('pending','approved','rejected','suspended'))
+  `);
+  // Porquê e por quem. Uma decisão sobre a vida de alguém não pode ser um
+  // campo sem historial.
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS driver_status_motivo TEXT`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS driver_status_em TIMESTAMPTZ`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS driver_status_por INTEGER REFERENCES users(id)`);
   await query('CREATE INDEX IF NOT EXISTS idx_sos_aberto ON sos_alerts(resolved, created_at DESC)');
   await query('CREATE INDEX IF NOT EXISTS idx_users_online ON users(is_online) WHERE role = \'driver\'');
 

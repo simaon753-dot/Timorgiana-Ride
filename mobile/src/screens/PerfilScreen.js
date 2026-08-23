@@ -24,9 +24,6 @@ export default function PerfilScreen({ navigation }) {
   const pediuParaConduzir = !!user?.driverStatus;
   const veiculo = user?.vehicle;
 
-  const iniciais = (user?.name || '?')
-    .trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
-
   function sair() {
     Alert.alert(t('logoutConfirm'), t('logoutConfirmExplain'), [
       { text: t('cancel'), style: 'cancel' },
@@ -58,7 +55,7 @@ export default function PerfilScreen({ navigation }) {
 
         <View style={styles.cabecalho}>
           <View style={styles.avatar}>
-            <Text style={styles.iniciais}>{iniciais}</Text>
+            <Text style={styles.iniciais}>👤</Text>
           </View>
           <Text style={styles.nome}>{user?.name}</Text>
           <Text style={styles.telefone}>{user?.phone}</Text>
@@ -182,7 +179,7 @@ const criarEstilos = () =>
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iniciais: { color: colors.onTeal, fontWeight: '800', fontSize: 28 },
+  iniciais: { fontSize: 38, lineHeight: 46 },
   nome: { fontSize: fontSize.lg, fontWeight: '800', color: colors.text, marginTop: spacing.md },
   telefone: { fontSize: fontSize.sm, color: colors.textMuted, marginTop: 2 },
   estrelas: { fontSize: fontSize.sm, color: colors.teal, fontWeight: '700', marginTop: spacing.sm },

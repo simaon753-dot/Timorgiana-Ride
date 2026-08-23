@@ -4,22 +4,14 @@ import Logo from './Logo.js';
 import { colors, spacing, fontSize, registarEstilos } from '../theme.js';
 import { useAuth } from '../context/AuthContext.js';
 
-// Barra de cima: a marca à esquerda, a pessoa à direita.
+// Barra de cima: a marca à esquerda, o perfil à direita.
 //
-// O avatar leva as iniciais em vez de um ícone genérico — num serviço onde
-// duas pessoas se encontram na rua, ver o próprio nome ali confirma logo
-// que se está na conta certa. Já perdemos tempo com pedidos feitos da
-// conta errada.
+// Levou iniciais durante algum tempo, com a ideia de confirmar a conta de
+// relance. Na prática o Simão preferiu o ícone: com três línguas e nomes
+// timorenses longos, duas letras dizem menos do que uma silhueta que toda
+// a gente reconhece como "eu".
 export default function BarraTopo({ navigation, titulo }) {
   const { user } = useAuth();
-  const iniciais = (user?.name || '?')
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join('')
-    .toUpperCase();
-
   return (
     <View style={styles.barra}>
       {titulo ? <Text style={styles.titulo}>{titulo}</Text> : <Logo size="sm" />}
@@ -31,7 +23,7 @@ export default function BarraTopo({ navigation, titulo }) {
         accessibilityRole="button"
         accessibilityLabel={user?.name}
       >
-        <Text style={styles.iniciais}>{iniciais}</Text>
+        <Text style={styles.iniciais}>👤</Text>
       </Pressable>
     </View>
   );
@@ -56,7 +48,7 @@ const criarEstilos = () =>
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iniciais: { color: colors.onTeal, fontWeight: '800', fontSize: 14 },
+  iniciais: { fontSize: 19, lineHeight: 23 },
 });
 
 let styles = criarEstilos();
