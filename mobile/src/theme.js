@@ -103,9 +103,48 @@ export function paletaEmUso() {
   return paletaActual;
 }
 
-export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48 };
-export const radius = { sm: 8, md: 12, lg: 18, pill: 999 };
-export const fontSize = { xs: 12, sm: 14, md: 16, lg: 20, xl: 26, xxl: 34 };
+// Espaçamento em passos de 4, com um passo extra em baixo: 2 px existe
+// para separações finas onde 4 já é uma folga visível.
+export const spacing = { xxs: 2, xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48 };
+
+// Raios menos arredondados do que antes. Cantos muito redondos lêem-se
+// como aplicação de lazer; esta é uma app em que se confia dinheiro e
+// segurança pessoal. `lg` desceu de 18 para 14 por essa razão.
+export const radius = { xs: 6, sm: 10, md: 12, lg: 14, xl: 20, pill: 999 };
+
+// Elevação. Três níveis e não mais — cada sombra extra é uma decisão que
+// alguém tem de repetir noutro ecrã, e é assim que as interfaces perdem
+// coerência. As sombras são MUITO subtis de propósito: a hierarquia faz-se
+// com espaço e tipografia, e a sombra só confirma o que já se percebeu.
+export const elevacao = {
+  // Cartões pousados na página.
+  plana: {
+    shadowColor: '#0B1F1B',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  // Elementos que flutuam sobre o mapa.
+  flutuante: {
+    shadowColor: '#0B1F1B',
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
+  },
+  // Painéis que sobem do fundo do ecrã.
+  painel: {
+    shadowColor: '#0B1F1B',
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: -6 },
+    elevation: 12,
+  },
+};
+
+// Mantido enquanto os ecrãs migram para os papéis tipográficos.
+export const fontSize = { xs: 12, sm: 13.5, md: 15, lg: 21, xl: 27, xxl: 34 };
 
 export const theme = { colors, spacing, radius, fontSize };
 export default theme;

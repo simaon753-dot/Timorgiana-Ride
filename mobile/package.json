@@ -12,6 +12,7 @@
     "publicar": "EAS_UPDATE=1 EXPO_PUBLIC_API_URL=https://timorgiana-ride.onrender.com npx eas-cli@latest update --branch preview --non-interactive"
   },
   "dependencies": {
+    "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/bottom-tabs": "^7.18.17",
     "@react-navigation/native": "^7.3.16",
@@ -20,6 +21,7 @@
     "expo-build-properties": "~1.0.10",
     "expo-constants": "~18.0.14",
     "expo-device": "~8.0.10",
+    "expo-font": "~14.0.12",
     "expo-image-picker": "~17.0.11",
     "expo-location": "~19.0.8",
     "expo-notifications": "~0.32.17",

@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
-import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
+import { colors, radius, spacing, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
+
+// Campo de texto.
+//
+// O estado de foco marca-se com o TEAL e não com uma sombra ou um brilho:
+// é a cor da marca a dizer "é aqui que estás a escrever". O erro usa o
+// vermelho e desce a mensagem por baixo, nunca substitui o rótulo — quem
+// erra precisa de continuar a ver o que o campo pede.
 
 export default function TextField({
   label,
@@ -59,23 +67,23 @@ export default function TextField({
 const criarEstilos = () =>
   StyleSheet.create({
   wrap: { marginBottom: spacing.md },
-  label: { fontSize: fontSize.sm, fontWeight: '600', color: colors.text, marginBottom: spacing.xs },
-  optional: { fontWeight: '400', color: colors.textMuted, fontSize: fontSize.xs },
+  label: { ...tipo.etiqueta, color: colors.textMuted, marginBottom: spacing.sm },
+  optional: { ...tipo.legenda, color: colors.textMuted, textTransform: 'none', letterSpacing: 0 },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.inputBg,
     borderWidth: 1.5,
     borderColor: colors.border,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     paddingHorizontal: spacing.md,
   },
   inputFocused: { borderColor: colors.teal },
   inputError: { borderColor: colors.danger },
-  input: { flex: 1, paddingVertical: 14, fontSize: fontSize.md, color: colors.text },
+  input: { flex: 1, ...tipo.corpo, color: colors.text, paddingVertical: 14 },
   toggle: { fontSize: 18, paddingLeft: spacing.sm },
-  hint: { fontSize: fontSize.xs, color: colors.textMuted, marginTop: spacing.xs },
-  errorText: { fontSize: fontSize.xs, color: colors.danger, marginTop: spacing.xs },
+  hint: { ...tipo.legenda, color: colors.textMuted, marginTop: spacing.xs },
+  errorText: { ...tipo.legenda, color: colors.danger, marginTop: spacing.xs },
 });
 
 let styles = criarEstilos();
