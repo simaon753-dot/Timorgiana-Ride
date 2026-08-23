@@ -339,4 +339,6 @@ export default {
   driverApplicationRejected: 'Registo de motorista não aprovado',
   driverApplicationOk: 'Podes conduzir',
   vehicleRegister: 'Registar veículo',
+  requestIfNeeded: 'Pedir se for necessário',
+  backToDriving: 'Voltar a conduzir',
 };

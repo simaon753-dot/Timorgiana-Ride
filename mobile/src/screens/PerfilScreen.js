@@ -7,6 +7,7 @@ import Voltar from '../components/Voltar.js';
 import { colors, spacing, fontSize, radius } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
+import { useModo } from '../context/ModoContext.js';
 
 // Perfil: tudo o que é sobre a PESSOA e não sobre a viagem.
 //
@@ -17,6 +18,7 @@ import { useAuth } from '../context/AuthContext.js';
 export default function PerfilScreen({ navigation }) {
   const { t } = useI18n();
   const { user, logout } = useAuth();
+  const { setModo } = useModo();
 
   // Já não é o papel do registo: é o que a conta pode fazer HOJE.
   const podeConduzir = !!user?.podeConduzir;
@@ -69,6 +71,22 @@ export default function PerfilScreen({ navigation }) {
 
         {/* Conduzir: ou é uma coisa que já se faz, ou um convite. Nunca
             uma parede — quem espera aprovação continua a pedir viagens. */}
+        {/* Para quem conduz, pedir uma viagem é uma necessidade
+            ocasional — a mota avaria, o carro está na oficina. Fica aqui e
+            não num interruptor permanente no topo: quem está a trabalhar
+            não deve ter de olhar para uma escolha que faz uma vez por mês. */}
+        {podeConduzir ? (
+          <Seccao titulo={t('modeRide')}>
+            <Item
+              texto={t('requestIfNeeded')}
+              onPress={() => {
+                setModo('passageiro');
+                navigation.navigate('RequestRide');
+              }}
+            />
+          </Seccao>
+        ) : null}
+
         <Seccao titulo={t('modeDrive')}>
           {!pediuParaConduzir ? (
             <Item
@@ -90,7 +108,7 @@ export default function PerfilScreen({ navigation }) {
         </Seccao>
 
         <Seccao titulo={t('profileApp')}>
-          <Linha esquerda={t('language')} direita={<LanguageToggle />} />
+          <Linha esquerda={t('language')} direita={<LanguageToggle compacto />} />
           <Item
             texto={t('termsTitle')}
             onPress={() => navigation.navigate('Termos', { quem: user?.role })}

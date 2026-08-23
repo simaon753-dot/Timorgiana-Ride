@@ -34,6 +34,11 @@ projecto pessoal no momento em que um motorista real enviar a primeira foto.
       a rua e dizeres o que falta e o que lá está a mais. Os lugares de
       cada carro também são estimativa minha. Há sempre "Outro" com
       escrita livre, por isso ninguém fica bloqueado.
+- [ ] **Rever o inglês dos termos.** A app passou a ter três línguas
+      (2026-08-22) porque a comunidade internacional em Díli — ONU, ONG,
+      embaixadas, visitantes — é um segmento de passageiros com poder de
+      compra. Os termos em inglês são tradução minha do português e têm o
+      mesmo estatuto: rascunho a rever.
 - [ ] **Revisão do tétum dos termos por falante nativo.** É mais urgente
       aqui do que no resto da app: uma palavra mal escolhida muda o que a
       pessoa julga estar a aceitar.

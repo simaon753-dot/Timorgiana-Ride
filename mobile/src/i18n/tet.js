@@ -340,4 +340,6 @@ export default {
   driverApplicationRejected: 'Rejistu motorista la aprova',
   driverApplicationOk: 'Ita bele lori kareta',
   vehicleRegister: 'Rejista veíkulu',
+  requestIfNeeded: 'Husu se presiza',
+  backToDriving: 'Fila ba lori kareta',
 };

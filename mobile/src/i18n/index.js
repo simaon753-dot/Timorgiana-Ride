@@ -2,11 +2,16 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import pt from './pt.js';
 import tet from './tet.js';
+import en from './en.js';
 
-const dictionaries = { pt, tet };
+const dictionaries = { pt, tet, en };
+// Cada língua no seu próprio nome — quem procura inglês procura "English",
+// não "Inglês". Com três, os nomes completos deixam de caber no cabeçalho,
+// por isso há também uma forma curta para os sítios apertados.
 export const LANGUAGES = [
-  { code: 'pt', label: 'Português' },
-  { code: 'tet', label: 'Tetun' },
+  { code: 'pt', label: 'Português', curto: 'PT' },
+  { code: 'tet', label: 'Tetun', curto: 'TET' },
+  { code: 'en', label: 'English', curto: 'EN' },
 ];
 
 const STORAGE_KEY = 'tgr.lang';

@@ -14,6 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
 import BarraTopo from '../components/BarraTopo.js';
+import { useModo } from '../context/ModoContext.js';
 import StatusBadge from '../components/StatusBadge.js';
 import MapaExpandivel from '../components/MapaExpandivel.js';
 import { minutosAte, horaDeChegada } from '../lib/estimativa.js';
@@ -33,6 +34,7 @@ import { colors, spacing, fontSize, radius } from '../theme.js';
 export default function PassengerHomeScreen({ navigation }) {
   const { t } = useI18n();
   const { user, logout } = useAuth();
+  const { podeConduzir, setModo } = useModo();
   const {
     activeRide: viagemBruta,
     isFinal,
@@ -80,6 +82,15 @@ export default function PassengerHomeScreen({ navigation }) {
       <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.scroll}>
         <BarraTopo navigation={navigation} />
+
+        {/* Um motorista que veio aqui pedir uma viagem tem de saber como
+            volta ao trabalho. Sem isto ficaria a olhar para o ecrã errado
+            sem perceber porquê. */}
+        {podeConduzir ? (
+          <Pressable style={styles.voltarConduzir} onPress={() => setModo('motorista')}>
+            <Text style={styles.voltarConduzirTexto}>← {t('backToDriving')}</Text>
+          </Pressable>
+        ) : null}
 
         {loading ? (
           <ActivityIndicator color={colors.teal} style={{ marginTop: spacing.xxl }} />
@@ -290,6 +301,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   topBarDireita: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  voltarConduzir: {
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.md,
+    alignSelf: 'flex-start',
+  },
+  voltarConduzirTexto: { color: colors.teal, fontWeight: '700', fontSize: fontSize.sm },
   adminLink: {
     width: 34,
     height: 34,
