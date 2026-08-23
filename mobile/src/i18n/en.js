@@ -183,6 +183,7 @@ export default {
   sosSentExplain: 'TimorgianaRide has been alerted. Do you want to call the police now?',
   sosOnlyAlert: 'No, thanks',
   sosCall: 'Call {n}',
+  emgAlso: 'or {n}',
   sosOffline: 'No connection',
   sosOfflineExplain:
     "We couldn't alert TimorgianaRide. You can call the police directly.",

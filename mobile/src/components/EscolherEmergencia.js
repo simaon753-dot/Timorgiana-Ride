@@ -1,8 +1,14 @@
-import React from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
-import { useI18n } from '../i18n/index.js';
+import React from "react";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  colors,
+  spacing,
+  fontSize,
+  radius,
+  registarEstilos,
+} from "../theme.js";
+import { useI18n } from "../i18n/index.js";
 
 // Que tipo de emergência.
 //
@@ -14,21 +20,31 @@ import { useI18n } from '../i18n/index.js';
 // emergência mais provável dentro de um carro com um desconhecido, e a
 // que mais depressa piora.
 export const TIPOS_EMERGENCIA = [
-  { id: 'policia', icone: '🚔', chave: 'emgCrime', ajuda: 'emgCrimeHelp' },
-  { id: 'medica', icone: '🚑', chave: 'emgMedical', ajuda: 'emgMedicalHelp' },
-  { id: 'protecao', icone: '🚒', chave: 'emgFire', ajuda: 'emgFireHelp' },
+  { id: "policia", icone: "🚔", chave: "emgCrime", ajuda: "emgCrimeHelp" },
+  { id: "medica", icone: "🚑", chave: "emgMedical", ajuda: "emgMedicalHelp" },
+  { id: "protecao", icone: "🚒", chave: "emgFire", ajuda: "emgFireHelp" },
 ];
 
-export default function EscolherEmergencia({ visivel, numeros, onFechar, onEscolher }) {
+export default function EscolherEmergencia({
+  visivel,
+  numeros,
+  onFechar,
+  onEscolher,
+}) {
   const { t } = useI18n();
 
   return (
-    <Modal visible={visivel} animationType="slide" transparent onRequestClose={onFechar}>
+    <Modal
+      visible={visivel}
+      animationType="slide"
+      transparent
+      onRequestClose={onFechar}
+    >
       <View style={styles.fundo}>
-        <SafeAreaView edges={['bottom']} style={styles.painel}>
+        <SafeAreaView edges={["bottom"]} style={styles.painel}>
           <View style={styles.puxador} />
-          <Text style={styles.titulo}>{t('emgTitle')}</Text>
-          <Text style={styles.ajuda}>{t('emgHelp')}</Text>
+          <Text style={styles.titulo}>{t("emgTitle")}</Text>
+          <Text style={styles.ajuda}>{t("emgHelp")}</Text>
 
           <View style={styles.lista}>
             {TIPOS_EMERGENCIA.map((tp) => (
@@ -45,13 +61,24 @@ export default function EscolherEmergencia({ visivel, numeros, onFechar, onEscol
                 </View>
                 {/* O número à vista: se a app falhar a marcar, a pessoa
                     ainda o pode marcar à mão. */}
-                <Text style={styles.numero}>{numeros?.[tp.id] || '—'}</Text>
+                <View style={styles.numeros}>
+                  <Text style={styles.numero}>{numeros?.[tp.id] || "—"}</Text>
+                  {/* A ambulância tem duas linhas: o número curto e o fixo
+                      do serviço. Um número que não atende vale zero numa
+                      emergência, e é aí que ninguém se lembra de procurar
+                      o alternativo — por isso está aqui, à partida. */}
+                  {tp.id === "medica" && numeros?.medicaAlternativa ? (
+                    <Text style={styles.alternativo}>
+                      {t("emgAlso", { n: numeros.medicaAlternativa })}
+                    </Text>
+                  ) : null}
+                </View>
               </Pressable>
             ))}
           </View>
 
           <Pressable style={styles.cancelar} onPress={onFechar}>
-            <Text style={styles.cancelarTexto}>{t('cancel')}</Text>
+            <Text style={styles.cancelarTexto}>{t("cancel")}</Text>
           </Pressable>
         </SafeAreaView>
       </View>
@@ -61,7 +88,11 @@ export default function EscolherEmergencia({ visivel, numeros, onFechar, onEscol
 
 const criarEstilos = () =>
   StyleSheet.create({
-    fundo: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
+    fundo: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.55)",
+      justifyContent: "flex-end",
+    },
     painel: {
       backgroundColor: colors.paper,
       borderTopLeftRadius: 20,
@@ -75,15 +106,20 @@ const criarEstilos = () =>
       height: 4,
       borderRadius: 2,
       backgroundColor: colors.border,
-      alignSelf: 'center',
+      alignSelf: "center",
       marginBottom: spacing.md,
     },
-    titulo: { fontSize: fontSize.lg, fontWeight: '800', color: colors.danger },
-    ajuda: { fontSize: fontSize.sm, color: colors.textMuted, marginTop: 2, lineHeight: 19 },
+    titulo: { fontSize: fontSize.lg, fontWeight: "800", color: colors.danger },
+    ajuda: {
+      fontSize: fontSize.sm,
+      color: colors.textMuted,
+      marginTop: 2,
+      lineHeight: 19,
+    },
     lista: { marginTop: spacing.md, gap: spacing.sm },
     opcao: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       gap: spacing.md,
       backgroundColor: colors.white,
       borderRadius: radius.md,
@@ -93,16 +129,36 @@ const criarEstilos = () =>
       paddingHorizontal: spacing.md,
     },
     icone: { fontSize: 30 },
-    nome: { fontSize: fontSize.md, fontWeight: '800', color: colors.text },
-    exemplo: { fontSize: fontSize.xs, color: colors.textMuted, marginTop: 1, lineHeight: 16 },
+    nome: { fontSize: fontSize.md, fontWeight: "800", color: colors.text },
+    exemplo: {
+      fontSize: fontSize.xs,
+      color: colors.textMuted,
+      marginTop: 1,
+      lineHeight: 16,
+    },
+    numeros: { alignItems: "flex-end" },
+    alternativo: {
+      fontSize: fontSize.xs,
+      color: colors.textMuted,
+      fontVariant: ["tabular-nums"],
+      marginTop: 1,
+    },
     numero: {
       fontSize: fontSize.lg,
-      fontWeight: '800',
+      fontWeight: "800",
       color: colors.danger,
-      fontVariant: ['tabular-nums'],
+      fontVariant: ["tabular-nums"],
     },
-    cancelar: { alignItems: 'center', paddingVertical: spacing.md, marginTop: spacing.sm },
-    cancelarTexto: { color: colors.textMuted, fontWeight: '700', fontSize: fontSize.md },
+    cancelar: {
+      alignItems: "center",
+      paddingVertical: spacing.md,
+      marginTop: spacing.sm,
+    },
+    cancelarTexto: {
+      color: colors.textMuted,
+      fontWeight: "700",
+      fontSize: fontSize.md,
+    },
   });
 
 let styles = criarEstilos();

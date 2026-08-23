@@ -71,8 +71,7 @@ export default function WelcomeScreen({ navigation }) {
             onPress={() => navigation.navigate('Register', { role: 'passenger' })}
           />
           <Escolha
-            emoji="🚗🛵"
-            duplo
+            emoji="🚗 🛵"
             texto={t('driver')}
             onPress={() => navigation.navigate('Register', { role: 'driver' })}
           />
@@ -82,20 +81,22 @@ export default function WelcomeScreen({ navigation }) {
   );
 }
 
-// As duas escolhas de registo. O emoji vive dentro de um círculo próprio
-// em vez de assentar solto sobre o cartão: um emoji sem contentor muda de
-// tamanho e de linha de base conforme o telemóvel, e desalinhava as duas
-// caixas uma em relação à outra.
-function Escolha({ emoji, texto, duplo, onPress }) {
+// As duas escolhas de registo. Só o ícone, sem círculo por trás.
+//
+// O círculo tinha 46 px de largura fixa e o ícone do motorista são DOIS
+// emoji: não cabiam, e o Android cortava o segundo — daí a motorizada ter
+// desaparecido e ficar só o carro. Sem contentor de largura fixa, o texto
+// ocupa o que precisa e os dois aparecem.
+function Escolha({ emoji, texto, onPress }) {
   return (
     <Pressable
       style={({ pressed }) => [styles.escolha, pressed && styles.premido]}
       onPress={onPress}
       accessibilityRole="button"
     >
-      <View style={styles.disco}>
-        <Text style={[styles.emoji, duplo && styles.emojiDuplo]}>{emoji}</Text>
-      </View>
+      <Text style={styles.emoji} numberOfLines={1}>
+        {emoji}
+      </Text>
       <Text style={styles.escolhaTexto}>{texto}</Text>
     </Pressable>
   );
@@ -159,19 +160,9 @@ const criarEstilos = () =>
       paddingVertical: spacing.md,
       ...elevacao.plana,
     },
-    disco: {
-      width: 46,
-      height: 46,
-      borderRadius: radius.pill,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.teal,
-      marginBottom: spacing.sm,
-    },
-    emoji: { fontSize: 22 },
-    // Dois emoji lado a lado ficam mais largos do que um; baixar o tamanho
-    // mantém os dois discos com o mesmo peso visual.
-    emojiDuplo: { fontSize: 17, letterSpacing: 0.5 },
+    // `lineHeight` fixo para as duas caixas terem a mesma altura mesmo
+    // que um emoji tenha métricas diferentes do outro no telemóvel.
+    emoji: { fontSize: 26, lineHeight: 34, marginBottom: spacing.xs },
     escolhaTexto: { ...tipo.corpoForte, color: colors.text },
 
     premido: { opacity: 0.9, transform: [{ scale: 0.99 }] },

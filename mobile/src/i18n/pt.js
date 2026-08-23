@@ -189,6 +189,7 @@ export default {
   sosSentExplain: 'A TimorgianaRide foi avisada. Queres ligar à polícia agora?',
   sosOnlyAlert: 'Não, obrigado',
   sosCall: 'Ligar {n}',
+  emgAlso: 'ou {n}',
   sosOffline: 'Sem ligação',
   sosOfflineExplain: 'Não conseguimos avisar a TimorgianaRide. Podes ligar à polícia directamente.',
   shareTrip: 'Partilhar viagem',

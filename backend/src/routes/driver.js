@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { one, query } from '../db.js';
 import { requireAuth } from '../auth.js';
-import { saveDocument, listDocuments, podeTrabalhar } from '../documents.js';
+import { saveDocument, listDocuments, podeTrabalhar, getOwnDocument } from '../documents.js';
 import { temFotoDeHoje, guardarFotoDeTurno } from '../turnos.js';
 import { setOnline, savePushToken } from '../drivers.js';
 import { toPublicUser } from '../users.js';
@@ -221,6 +221,28 @@ driverRouter.post(
       [String(version), req.user.id]
     );
     res.json({ user: toPublicUser(row) });
+  })
+);
+
+// GET /api/driver/documents/:kind/imagem — ver o próprio documento
+//
+// O painel de administração já servia estas imagens, mas só a
+// administradores. O motorista não tinha maneira nenhuma de rever o que
+// enviou — nem sequer a própria fotografia de perfil.
+//
+// Sem :id na rota, de propósito: o dono vem da sessão e o tipo do caminho.
+// Não há número nenhum que se possa trocar para chegar ao ficheiro de
+// outra pessoa.
+driverRouter.get(
+  '/documents/:kind/imagem',
+  wrap(async (req, res) => {
+    const doc = await getOwnDocument(req.user.id, req.params.kind);
+    if (!doc) return res.status(404).json({ error: 'Documento não encontrado.' });
+    // Privado: é um documento de identificação. Sem isto, um servidor
+    // intermédio podia guardar a imagem e servi-la a outra pessoa.
+    res.setHeader('Cache-Control', 'private, max-age=300');
+    res.setHeader('Content-Type', doc.mime);
+    res.send(doc.bytes);
   })
 );
 

@@ -45,6 +45,11 @@ export const config = {
   // minutos no servidor, não em dias à espera de um APK novo.
   numerosEmergencia: {
     medica: process.env.EMERGENCY_MEDICAL || '110',
+    // Segunda linha da ambulância, confirmada localmente. O 110 é o
+    // número curto; quando não atende, este é o fixo do serviço. Numa
+    // emergência, um número que não atende vale zero — e é justamente
+    // quando ninguém se lembra de procurar o alternativo.
+    medicaAlternativa: process.env.EMERGENCY_MEDICAL_ALT || '3311044',
     policia: process.env.EMERGENCY_POLICE || '112',
     protecao: process.env.EMERGENCY_CIVIL || '115',
   },

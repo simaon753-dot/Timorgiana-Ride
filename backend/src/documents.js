@@ -53,6 +53,15 @@ export function getDocument(id) {
   return one('SELECT * FROM driver_documents WHERE id = $1', [id]);
 }
 
+// O documento de uma pessoa, procurado pelo DONO e pelo tipo — nunca pelo
+// id. Procurar por id obrigava a app a conhecer o número do documento, e
+// bastaria trocar esse número para pedir o documento de outra pessoa. Com
+// o dono na própria pesquisa, o pedido errado não devolve nada.
+export function getOwnDocument(userId, kind) {
+  if (!isValidKind(kind)) return Promise.resolve(null);
+  return one('SELECT * FROM driver_documents WHERE user_id = $1 AND kind = $2', [userId, kind]);
+}
+
 // Documentos que caducam. A foto do motorista não caduca; a carta e os
 // papéis do veículo sim, e são justamente os que dão legitimidade.
 export const COM_VALIDADE = ['licence', 'vehicle'];

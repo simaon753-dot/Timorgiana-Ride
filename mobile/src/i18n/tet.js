@@ -190,6 +190,7 @@ export default {
   sosSentExplain: 'TimorgianaRide hatene ona. Ita hakarak telefone ba polísia agora?',
   sosOnlyAlert: 'Lae, obrigadu',
   sosCall: 'Telefone {n}',
+  emgAlso: 'ka {n}',
   sosOffline: 'La iha ligasaun',
   sosOfflineExplain: 'Ami la bele avisa TimorgianaRide. Ita bele telefone ba polísia diretamente.',
   shareTrip: 'Fahe viajen',
