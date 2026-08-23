@@ -171,15 +171,10 @@ const criarEstilos = () =>
   engrenagemIcone: { fontSize: 19, color: colors.teal },
 
   cabecalho: { alignItems: 'center', paddingBottom: spacing.lg },
-  avatar: {
-    width: 78,
-    height: 78,
-    borderRadius: 39,
-    backgroundColor: colors.teal,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iniciais: { fontSize: 38, lineHeight: 46 },
+  // Sem círculo, pela mesma razão da barra de cima: a silhueta é clara e
+  // sobre o teal escuro perdia-se.
+  avatar: { width: 78, height: 78, alignItems: 'center', justifyContent: 'center' },
+  iniciais: { fontSize: 62, lineHeight: 74 },
   nome: { fontSize: fontSize.lg, fontWeight: '800', color: colors.text, marginTop: spacing.md },
   telefone: { fontSize: fontSize.sm, color: colors.textMuted, marginTop: 2 },
   estrelas: { fontSize: fontSize.sm, color: colors.teal, fontWeight: '700', marginTop: spacing.sm },

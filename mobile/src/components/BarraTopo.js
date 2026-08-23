@@ -10,6 +10,11 @@ import { useAuth } from '../context/AuthContext.js';
 // relance. Na prática o Simão preferiu o ícone: com três línguas e nomes
 // timorenses longos, duas letras dizem menos do que uma silhueta que toda
 // a gente reconhece como "eu".
+//
+// Sem círculo por trás. O emoji 👤 é uma silhueta CLARA, e sobre o círculo
+// teal escuro quase desaparecia — parecia uma mancha. Sozinho lê-se nos
+// dois temas; a falta de fundo compensa-se com tamanho, e a área de toque
+// mantém-se pelo hitSlop.
 export default function BarraTopo({ navigation, titulo }) {
   const { user } = useAuth();
   return (
@@ -19,7 +24,7 @@ export default function BarraTopo({ navigation, titulo }) {
       <Pressable
         onPress={() => navigation.navigate('Perfil')}
         style={styles.avatar}
-        hitSlop={8}
+        hitSlop={14}
         accessibilityRole="button"
         accessibilityLabel={user?.name}
       >
@@ -40,15 +45,8 @@ const criarEstilos = () =>
     paddingBottom: spacing.md,
   },
   titulo: { fontSize: fontSize.lg, fontWeight: '800', color: colors.text },
-  avatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: colors.teal,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iniciais: { fontSize: 19, lineHeight: 23 },
+  avatar: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
+  iniciais: { fontSize: 27, lineHeight: 32 },
 });
 
 let styles = criarEstilos();
