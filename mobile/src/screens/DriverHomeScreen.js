@@ -19,6 +19,7 @@ import MapaExpandivel from '../components/MapaExpandivel.js';
 import MotivoCancelamento from '../components/MotivoCancelamento.js';
 import PedirCodigo from '../components/PedirCodigo.js';
 import FotoDeTurno from '../components/FotoDeTurno.js';
+import BotaoPower from '../components/BotaoPower.js';
 import { api } from '../api/client.js';
 import ChatButton from '../components/ChatButton.js';
 import SosButton from '../components/SosButton.js';
@@ -36,6 +37,7 @@ export default function DriverHomeScreen({ navigation }) {
   // piscar o cartão de fotografia a quem já a tirou.
   const [fotoDeHoje, setFotoDeHoje] = useState(null);
   const [avisoDocs, setAvisoDocs] = useState(null);
+  const [centroMapa, setCentroMapa] = useState(null);
 
   // Espelho do ecrã do passageiro: aqui só entram viagens que EU conduzo.
   const activeRide = viagemBruta && viagemBruta.driver?.id === user?.id ? viagemBruta : null;
@@ -54,6 +56,10 @@ export default function DriverHomeScreen({ navigation }) {
     verEstado();
     return navigation.addListener('focus', verEstado);
   }, [verEstado, navigation]);
+
+  useEffect(() => {
+    if (minhaPosicao && !centroMapa) setCentroMapa(minhaPosicao);
+  }, [minhaPosicao, centroMapa]);
   const {
     activeRide: viagemBruta,
     isFinal,
@@ -67,6 +73,7 @@ export default function DriverHomeScreen({ navigation }) {
     connected,
     online,
     toggleOnline,
+    minhaPosicao,
   } = useRides();
 
   return (
@@ -92,24 +99,28 @@ export default function DriverHomeScreen({ navigation }) {
           </Text>
         ) : null}
 
-        {/* Interruptor de disponibilidade. Um motorista a almoçar não deve
-            receber pedidos: para o passageiro, um pedido que ninguém atende
-            é pior do que nenhum. */}
-        {!activeRide ? (
-          <Pressable
-            style={[styles.onlineCard, online && styles.onlineCardOn]}
-            onPress={() => toggleOnline(!online)}
-          >
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.onlineTitle, online && styles.onlineTitleOn]}>
-                {online ? `🟢 ${t('online')}` : `⚪ ${t('offline')}`}
-              </Text>
-              <Text style={styles.onlineHint}>{online ? t('onlineHint') : t('offlineHint')}</Text>
-            </View>
-            <View style={[styles.switchTrack, online && styles.switchTrackOn]}>
-              <View style={[styles.switchThumb, online && styles.switchThumbOn]} />
-            </View>
-          </Pressable>
+        {/* Ligar e desligar o trabalho. Um motorista a almoçar não deve
+            receber pedidos: para o passageiro, um pedido que ninguém
+            atende é pior do que nenhum. */}
+        {!activeRide ? <BotaoPower ligado={online} onPress={() => toggleOnline(!online)} /> : null}
+
+        {/* O mapa também do lado do motorista: sem ele, ele sabe o NOME do
+            sítio de recolha mas não onde fica em relação a si. Com viagem
+            mostra recolha e destino; sem viagem mostra só onde ele está,
+            que já chega para se situar. */}
+        {minhaPosicao || activeRide ? (
+          <View style={{ marginBottom: spacing.md }}>
+            <MapaExpandivel
+              markers={activeRide ? rideMarkers(activeRide) : []}
+              center={activeRide ? undefined : centroMapa}
+              liveMarker={minhaPosicao}
+              liveLabel={t('myLocation')}
+              height={activeRide ? 150 : 190}
+              info={
+                activeRide ? { km: activeRide.distanceKm, min: activeRide.durationMin } : undefined
+              }
+            />
+          </View>
         ) : null}
 
         {loading ? (
@@ -216,7 +227,6 @@ function ActiveRideCard({ ride, isFinal, navigation, onArriving, onStart, onComp
       setAIniciar(false);
     }
   }
-  const markers = rideMarkers(ride);
   const active = ['accepted', 'arriving', 'in_progress'].includes(ride.status);
 
   return (
@@ -228,16 +238,6 @@ function ActiveRideCard({ ride, isFinal, navigation, onArriving, onStart, onComp
         <Text style={styles.origin}>
           {t('originField')}: {ride.originLabel}
         </Text>
-      ) : null}
-
-      {markers.length > 0 ? (
-        <View style={{ marginTop: spacing.md }}>
-          <MapaExpandivel
-            markers={markers}
-            height={170}
-            info={{ km: ride.distanceKm, min: ride.durationMin }}
-          />
-        </View>
       ) : null}
 
       <View style={styles.passengerBox}>
@@ -447,29 +447,6 @@ const criarEstilos = () =>
     marginTop: spacing.md,
   },
   fareSaveBtn: { paddingHorizontal: spacing.lg, marginBottom: spacing.md },
-  onlineCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  onlineCardOn: { borderColor: colors.success, backgroundColor: '#F1F8F4' },
-  onlineTitle: { fontSize: fontSize.md, fontWeight: '800', color: colors.textMuted },
-  onlineTitleOn: { color: colors.success },
-  onlineHint: { fontSize: fontSize.xs, color: colors.textMuted, marginTop: 2 },
-  switchTrack: {
-    width: 52, height: 30, borderRadius: 15,
-    backgroundColor: colors.border, padding: 3, justifyContent: 'center',
-  },
-  switchTrackOn: { backgroundColor: colors.success },
-  switchThumb: {
-    width: 24, height: 24, borderRadius: 12, backgroundColor: colors.white,
-  },
-  switchThumbOn: { alignSelf: 'flex-end' },
   offline: {
     textAlign: 'center',
     color: colors.textMuted,

@@ -160,12 +160,6 @@ export default {
   docsIncomplete: 'Faltam documentos.',
   errPermissionPhotos: 'Sem permissão para aceder às fotos.',
   // Disponibilidade
-  online: 'Disponível',
-  offline: 'Indisponível',
-  onlineHint: 'Estás a receber pedidos',
-  offlineHint: 'Não recebes pedidos enquanto estiveres assim',
-  goOnline: 'Ficar disponível',
-  goOffline: 'Ficar indisponível',
   driverOnMap: 'O motorista está a aproximar-se',
   pickupDistance: 'a {km} km de ti',
   whereTo: 'Para onde vais?',
@@ -392,4 +386,7 @@ export default {
   admLast24h: 'Últimas 24 horas',
   admSeconds: '{n} s',
   admMinutes: '{n} min',
+  ready: 'Ready',
+  notReady: 'Not Ready',
+  myLocation: 'Estás aqui',
 };

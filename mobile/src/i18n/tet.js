@@ -161,12 +161,6 @@ export default {
   docsIncomplete: 'Falta dokumentu.',
   errPermissionPhotos: 'La iha permisaun atu asesu foto.',
   // Disponibilidade
-  online: 'Disponivel',
-  offline: 'La disponivel',
-  onlineHint: 'Ita simu pedidu hela',
-  offlineHint: 'La simu pedidu bainhira nune',
-  goOnline: 'Sai disponivel',
-  goOffline: 'Sai la disponivel',
   driverOnMap: 'Motorista besik hela',
   pickupDistance: 'dook {km} km husi ita',
   whereTo: 'Ita ba neebé?',
@@ -393,4 +387,7 @@ export default {
   admLast24h: 'Oras 24 ikus',
   admSeconds: 'segundu {n}',
   admMinutes: 'minutu {n}',
+  ready: 'Ready',
+  notReady: 'Not Ready',
+  myLocation: 'Ita iha neʼe',
 };

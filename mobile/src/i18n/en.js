@@ -154,12 +154,6 @@ export default {
   docsIncomplete: 'Documents missing.',
   errPermissionPhotos: 'No permission to access photos.',
 
-  online: 'Available',
-  offline: 'Unavailable',
-  onlineHint: 'You are receiving requests',
-  offlineHint: 'You will not receive requests while set to this',
-  goOnline: 'Go available',
-  goOffline: 'Go unavailable',
   driverOnMap: 'The driver is getting closer',
   pickupDistance: '{km} km from you',
 
@@ -384,4 +378,7 @@ export default {
   admLast24h: 'Last 24 hours',
   admSeconds: '{n} s',
   admMinutes: '{n} min',
+  ready: 'Ready',
+  notReady: 'Not Ready',
+  myLocation: 'You are here',
 };

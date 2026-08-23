@@ -31,6 +31,9 @@ export function RideProvider({ children }) {
   const [online, setOnlineState] = useState(!!user?.isOnline); // motorista disponível
   const [driverLocation, setDriverLocation] = useState(null); // posição vista pelo passageiro
   const [driverPlace, setDriverPlace] = useState(null); // rua onde o veículo vai agora
+  // A minha própria posição, quando sou eu o motorista. Era enviada e
+  // deitada fora; guardá-la deixa-me desenhá-la no meu mapa.
+  const [minhaPosicao, setMinhaPosicao] = useState(null);
   const ultimoGeocode = useRef(null); // onde foi feita a última pergunta
 
   const socketRef = useRef(null);
@@ -119,10 +122,9 @@ export function RideProvider({ children }) {
         const pos = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
         });
-        socketRef.current?.emit('driver:location', {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        });
+        const aqui = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setMinhaPosicao(aqui);
+        socketRef.current?.emit('driver:location', aqui);
       } catch {
         /* sem GPS agora — tenta outra vez no próximo ciclo */
       }
@@ -283,6 +285,7 @@ export function RideProvider({ children }) {
         toggleOnline,
         driverLocation,
         driverPlace,
+        minhaPosicao,
         requestRide,
         acceptRide,
         advanceStatus,

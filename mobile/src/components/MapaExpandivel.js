@@ -15,6 +15,9 @@ export default function MapaExpandivel({
   markers,
   liveMarker,
   liveLabel,
+  // Onde centrar quando não há marcadores de viagem — o caso do motorista
+  // parado, que só quer ver onde está.
+  center,
   height = 190,
   info, // { km, min } da viagem — mostrado sobre o mapa
   aviso, // linha destacada, ex.: quanto falta para o motorista chegar
@@ -39,7 +42,13 @@ export default function MapaExpandivel({
   return (
     <View>
       <View style={styles.caixa}>
-        <OSMMap markers={markers} liveMarker={liveMarker} liveLabel={liveLabel} height={height} />
+        <OSMMap
+          markers={markers}
+          center={center}
+          liveMarker={liveMarker}
+          liveLabel={liveLabel}
+          height={height}
+        />
         {cracha}
         <Pressable style={styles.expandir} onPress={() => setAberto(true)} hitSlop={8}>
           <Text style={styles.expandirIcone}>⤢</Text>
@@ -51,7 +60,7 @@ export default function MapaExpandivel({
           {/* O mapa é remontado aqui — é um mapa novo, com espaço para
               mostrar o trajeto inteiro em vez da faixa do cartão. */}
           <View style={{ flex: 1 }}>
-            <OSMMap markers={markers} liveMarker={liveMarker} liveLabel={liveLabel} fill />
+            <OSMMap markers={markers} center={center} liveMarker={liveMarker} liveLabel={liveLabel} fill />
             {cracha}
             <Pressable style={styles.fechar} onPress={() => setAberto(false)} hitSlop={10}>
               <Text style={styles.fecharIcone}>✕</Text>
