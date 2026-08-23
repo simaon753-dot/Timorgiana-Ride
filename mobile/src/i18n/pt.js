@@ -330,4 +330,13 @@ export default {
   docExpiringSoon: '⚠ Caduca em breve',
   docExpiryRequired: 'Indica a data de validade.',
   cannotGoOnlineExpired: 'Não podes ficar disponível: há um documento caducado.',
+  // Modo
+  modeRide: 'Pedir',
+  modeDrive: 'Conduzir',
+  wantToDrive: 'Quero conduzir',
+  wantToDriveHelp: 'Regista o teu veículo e envia os documentos. Continuas a poder pedir viagens enquanto esperas.',
+  driverApplicationPending: 'Registo de motorista em análise',
+  driverApplicationRejected: 'Registo de motorista não aprovado',
+  driverApplicationOk: 'Podes conduzir',
+  vehicleRegister: 'Registar veículo',
 };

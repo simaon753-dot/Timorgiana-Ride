@@ -23,7 +23,11 @@ export default function ChatScreen({ navigation }) {
   const [text, setText] = useState('');
   const scrollRef = useRef(null);
 
-  const other = user?.role === 'passenger' ? activeRide?.driver?.name : activeRide?.passenger?.name;
+  // Quem é "o outro" depende do meu lugar NESTA viagem, não do papel do
+  // registo. A mesma conta pode conduzir uma viagem e ser passageira na
+  // seguinte, e olhar para o papel mostrava-lhe o próprio nome.
+  const souMotorista = activeRide?.driver?.id === user?.id;
+  const other = souMotorista ? activeRide?.passenger?.name : activeRide?.driver?.name;
 
   // Marcar como lidas sempre que o ecrã está aberto e chegam mensagens
   useEffect(() => {

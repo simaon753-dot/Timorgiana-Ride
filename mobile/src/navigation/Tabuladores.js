@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import PassengerHomeScreen from '../screens/PassengerHomeScreen.js';
@@ -7,6 +7,8 @@ import HistoryScreen from '../screens/HistoryScreen.js';
 import GanhosScreen from '../screens/GanhosScreen.js';
 import { colors, fontSize } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
+import { useModo } from '../context/ModoContext.js';
+import { useRides } from '../context/RideContext.js';
 import { useAuth } from '../context/AuthContext.js';
 
 const Tab = createBottomTabNavigator();
@@ -20,7 +22,18 @@ const icone = (glifo) => ({ color }) => (
 export default function Tabuladores() {
   const { t } = useI18n();
   const { user } = useAuth();
-  const motorista = user?.role === 'driver';
+  const { modo, setModo, podeConduzir } = useModo();
+  const { activeRide } = useRides();
+
+  // Se estou a conduzir uma viagem AGORA, o modo não é uma preferência —
+  // é um facto. Deixar alguém ver o ecrã de pedir viagens enquanto tem um
+  // passageiro no carro seria esconder-lhe o botão de concluir.
+  const aConduzirAgora = !!activeRide && activeRide.driver?.id === user?.id;
+  useEffect(() => {
+    if (aConduzirAgora && modo !== 'motorista') setModo('motorista');
+  }, [aConduzirAgora, modo, setModo]);
+
+  const motorista = podeConduzir && (modo === 'motorista' || aConduzirAgora);
 
   return (
     <Tab.Navigator

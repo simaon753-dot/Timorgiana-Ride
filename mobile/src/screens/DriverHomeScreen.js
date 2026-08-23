@@ -31,11 +31,14 @@ import { colors, spacing, fontSize, radius } from '../theme.js';
 
 export default function DriverHomeScreen({ navigation }) {
   const { t } = useI18n();
-  const { logout, token } = useAuth();
+  const { logout, token, user } = useAuth();
   // Se já há foto de hoje. Enquanto não se sabe fica `null`, para não
   // piscar o cartão de fotografia a quem já a tirou.
   const [fotoDeHoje, setFotoDeHoje] = useState(null);
   const [avisoDocs, setAvisoDocs] = useState(null);
+
+  // Espelho do ecrã do passageiro: aqui só entram viagens que EU conduzo.
+  const activeRide = viagemBruta && viagemBruta.driver?.id === user?.id ? viagemBruta : null;
 
   const verEstado = useCallback(async () => {
     try {
@@ -52,7 +55,7 @@ export default function DriverHomeScreen({ navigation }) {
     return navigation.addListener('focus', verEstado);
   }, [verEstado, navigation]);
   const {
-    activeRide,
+    activeRide: viagemBruta,
     isFinal,
     requests,
     acceptRide,

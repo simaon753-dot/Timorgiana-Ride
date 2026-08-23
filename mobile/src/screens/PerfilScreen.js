@@ -18,7 +18,10 @@ export default function PerfilScreen({ navigation }) {
   const { t } = useI18n();
   const { user, logout } = useAuth();
 
-  const motorista = user?.role === 'driver';
+  // Já não é o papel do registo: é o que a conta pode fazer HOJE.
+  const podeConduzir = !!user?.podeConduzir;
+  const pediuParaConduzir = !!user?.driverStatus;
+  const motorista = podeConduzir;
   const iniciais = (user?.name || '?')
     .trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
 
@@ -63,6 +66,28 @@ export default function PerfilScreen({ navigation }) {
             </Text>
           </View>
         ) : null}
+
+        {/* Conduzir: ou é uma coisa que já se faz, ou um convite. Nunca
+            uma parede — quem espera aprovação continua a pedir viagens. */}
+        <Seccao titulo={t('modeDrive')}>
+          {!pediuParaConduzir ? (
+            <Item
+              texto={t('wantToDrive')}
+              onPress={() => navigation.navigate('DriverPending')}
+            />
+          ) : (
+            <Item
+              texto={
+                user.driverStatus === 'approved'
+                  ? t('driverApplicationOk')
+                  : user.driverStatus === 'rejected'
+                    ? t('driverApplicationRejected')
+                    : t('driverApplicationPending')
+              }
+              onPress={() => navigation.navigate('DriverPending')}
+            />
+          )}
+        </Seccao>
 
         <Seccao titulo={t('profileApp')}>
           <Linha esquerda={t('language')} direita={<LanguageToggle />} />

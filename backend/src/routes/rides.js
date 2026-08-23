@@ -56,7 +56,8 @@ async function rideForParticipant(rideId, userId) {
 // POST /api/rides — passageiro pede uma viagem
 ridesRouter.post(
   '/',
-  requireRole('passenger'),
+  // Sem guarda de papel: toda a gente pode pedir uma viagem, incluindo
+  // quem também conduz.
   wrap(async (req, res) => {
     const {
       destLabel, destLat, destLng,

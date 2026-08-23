@@ -87,6 +87,9 @@ export const api = {
   startRide: (token, id, code) =>
     request(`/rides/${id}/start`, { method: 'POST', body: { code }, token }),
 
+  registarVeiculo: (token, veiculo) =>
+    request('/driver/vehicle', { method: 'POST', body: veiculo, token }),
+
   shiftPhoto: (token, { mime, base64 }) =>
     request('/driver/shift-photo', { method: 'POST', body: { mime, base64 }, token }),
 

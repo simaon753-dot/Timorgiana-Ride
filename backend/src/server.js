@@ -85,7 +85,7 @@ io.use(async (socket, next) => {
       role: user.role,
       name: user.name,
       vehicleType: user.vehicle_type || 'car',
-      driverStatus: user.driver_status || 'pending',
+      driverStatus: user.driver_status || null,
       isOnline: !!user.is_online,
       isAdmin: !!user.is_admin,
     };
@@ -103,7 +103,10 @@ io.on('connection', (socket) => {
   // Os administradores ficam sempre numa sala própria para receberem os
   // pedidos de ajuda no instante em que acontecem.
   if (user.isAdmin) socket.join('admins');
-  const podeReceberPedidos = user.role === 'driver' && user.driverStatus === 'approved';
+  // Receber pedidos depende de estar aprovado, não do papel escolhido no
+  // registo. Quem nunca pediu para conduzir tem driverStatus a 'pending'
+  // por omissão e não entra nas salas — o que está certo.
+  const podeReceberPedidos = user.driverStatus === 'approved';
 
   const entrarNasSalas = () => {
     socket.join('drivers');

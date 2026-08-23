@@ -123,14 +123,24 @@ export async function createRide({
   return getRideById(inserted.id);
 }
 
-// Viagem ativa do utilizador (para restaurar o estado ao abrir a app)
+// Viagem ativa do utilizador, seja de que lado for.
+//
+// Já não se pergunta "esta pessoa é passageiro ou motorista?" — pergunta-se
+// "esta pessoa está nalguma viagem a decorrer?". A mesma conta pode pedir
+// hoje e conduzir amanhã, e nenhum dos dois casos deve esconder o outro.
+//
+// A ordem importa: uma viagem que EU conduzo tem precedência sobre uma que
+// eu pedi, porque estar ao volante é o que exige atenção imediata. Na
+// prática não acontecem as duas ao mesmo tempo, mas se acontecerem é essa
+// que tem de aparecer.
 export function getActiveRideForUser(user) {
-  const isPassenger = user.role === 'passenger';
-  const states = isPassenger ? ACTIVE_PASSENGER : ACTIVE_DRIVER;
-  const col = isPassenger ? 'r.passenger_id' : 'r.driver_id';
   return one(
-    `${RIDE_SELECT} WHERE ${col} = $1 AND r.status = ANY($2) ORDER BY r.id DESC LIMIT 1`,
-    [user.id, states]
+    `${RIDE_SELECT}
+     WHERE (r.driver_id = $1 AND r.status = ANY($2))
+        OR (r.passenger_id = $1 AND r.status = ANY($3))
+     ORDER BY (r.driver_id = $1) DESC, r.id DESC
+     LIMIT 1`,
+    [user.id, ACTIVE_DRIVER, ACTIVE_PASSENGER]
   );
 }
 

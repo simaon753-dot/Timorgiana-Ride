@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { useAuth } from '../context/AuthContext.js';
 import { RideProvider } from '../context/RideContext.js';
+import { ModoProvider } from '../context/ModoContext.js';
 import WelcomeScreen from '../screens/WelcomeScreen.js';
 import LoginScreen from '../screens/LoginScreen.js';
 import RegisterScreen from '../screens/RegisterScreen.js';
@@ -41,39 +42,24 @@ export default function RootNavigator() {
 
   if (restoring) return <LoadingScreen />;
 
-  // Motorista por aprovar não entra na área de viagens: não tem nada
-  // para fazer lá, e o backend recusaria tudo à mesma.
-  const motoristaPorAprovar =
-    user?.role === 'driver' && (user.driverStatus || 'pending') !== 'approved';
-
-  if (motoristaPorAprovar) {
-    return (
-      <NavigationContainer theme={navTheme}>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="DriverPending" component={DriverPendingScreen} />
-          <Stack.Screen name="Termos" component={TermosScreen} />
-          {/* Quem gere o serviço pode também querer conduzir. Sem isto,
-              a conta ficaria presa no ecrã de espera — à espera de uma
-              aprovação que só ela própria pode dar. */}
-          {user.isAdmin ? <Stack.Screen name="Admin" component={AdminScreen} /> : null}
-        </Stack.Navigator>
-      </NavigationContainer>
-    );
-  }
-
   return (
     <NavigationContainer theme={navTheme}>
       {user ? (
         // Área autenticada (com estado de viagens em tempo real)
+        <ModoProvider>
         <RideProvider>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             {/* Os tabuladores são o ecrã de base; tudo o resto abre por
                 cima deles, para a barra não aparecer onde estorva — num
                 mapa a ocupar o ecrã, numa conversa, nos termos. */}
             <Stack.Screen name="Tabs" component={Tabuladores} />
-            {user.role === 'passenger' ? (
-              <Stack.Screen name="RequestRide" component={RequestRideScreen} />
-            ) : null}
+            {/* Sem condição de papel: qualquer conta pode pedir uma
+                viagem, incluindo quem também conduz. */}
+            <Stack.Screen name="RequestRide" component={RequestRideScreen} />
+            {/* O registo de motorista deixou de ser uma prisão: quem
+                espera aprovação continua a poder pedir viagens, e chega
+                aqui pelo perfil quando quiser ver como está. */}
+            <Stack.Screen name="DriverPending" component={DriverPendingScreen} />
             <Stack.Screen name="Chat" component={ChatScreen} />
             <Stack.Screen name="Perfil" component={PerfilScreen} />
             <Stack.Screen name="Server" component={ServerScreen} />
@@ -83,6 +69,7 @@ export default function RootNavigator() {
             {user.isAdmin ? <Stack.Screen name="Admin" component={AdminScreen} /> : null}
           </Stack.Navigator>
         </RideProvider>
+        </ModoProvider>
       ) : (
         // Área pública
         <Stack.Navigator screenOptions={{ headerShown: false }}>

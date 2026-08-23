@@ -331,4 +331,13 @@ export default {
   docExpiringSoon: '⚠ Sei remata lalais',
   docExpiryRequired: 'Hatama data validade nian.',
   cannotGoOnlineExpired: 'La bele sai disponivel: iha dokumentu ida remata ona.',
+  // Modu
+  modeRide: 'Husu',
+  modeDrive: 'Lori',
+  wantToDrive: 'Haʼu hakarak lori kareta',
+  wantToDriveHelp: 'Rejista ita-nia veíkulu no haruka dokumentu. Ita bele kontinua husu viajen bainhira hein.',
+  driverApplicationPending: 'Rejistu motorista iha análize',
+  driverApplicationRejected: 'Rejistu motorista la aprova',
+  driverApplicationOk: 'Ita bele lori kareta',
+  vehicleRegister: 'Rejista veíkulu',
 };

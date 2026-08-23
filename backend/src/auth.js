@@ -45,14 +45,18 @@ export function requireRole(role) {
 // Motorista aprovado. Sem isto, alguém que se registasse como motorista
 // começava a receber pedidos de imediato — sem carta, sem verificação,
 // com passageiros reais a entrar no veículo.
+// Conduzir depende de ter sido APROVADO, não do papel escolhido no
+// registo. Uma pessoa em Díli tem no máximo três números de telemóvel; se
+// o papel fosse uma parede, um motorista com a mota avariada teria de
+// gastar um deles numa segunda conta só para pedir uma viagem.
 export function requireApprovedDriver(req, res, next) {
-  if (!req.user || req.user.role !== 'driver') {
+  if (!req.user) {
     return res.status(403).json({ error: 'Sem permissão para esta ação.' });
   }
-  if ((req.user.driver_status || 'pending') !== 'approved') {
+  if (req.user.driver_status !== 'approved') {
     return res.status(403).json({
       error: 'A tua conta de motorista ainda não foi aprovada.',
-      driverStatus: req.user.driver_status || 'pending',
+      driverStatus: req.user.driver_status || null,
     });
   }
   next();

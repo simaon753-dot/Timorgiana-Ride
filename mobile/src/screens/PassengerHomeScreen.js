@@ -33,8 +33,20 @@ import { colors, spacing, fontSize, radius } from '../theme.js';
 export default function PassengerHomeScreen({ navigation }) {
   const { t } = useI18n();
   const { user, logout } = useAuth();
-  const { activeRide, isFinal, cancelRide, dismissRide, loading, driverLocation, driverPlace } =
-    useRides();
+  const {
+    activeRide: viagemBruta,
+    isFinal,
+    cancelRide,
+    dismissRide,
+    loading,
+    driverLocation,
+    driverPlace,
+  } = useRides();
+
+  // Só mostra viagens em que EU sou o passageiro. Sem isto, quem conduz e
+  // caia neste ecrã por um instante veria "o teu motorista: <o próprio
+  // nome>", que é absurdo e mina a confiança no resto.
+  const activeRide = viagemBruta && viagemBruta.driver?.id !== user?.id ? viagemBruta : null;
 
   const vehicleLabel = (v) => (v?.type === 'motorbike' ? t('vehicleMotorbike') : t('vehicleCar'));
   const markers = activeRide ? rideMarkers(activeRide) : [];

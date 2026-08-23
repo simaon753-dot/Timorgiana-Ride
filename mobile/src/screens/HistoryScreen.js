@@ -34,7 +34,7 @@ export default function HistoryScreen({ navigation }) {
 
   // O "outro" participante depende de quem está a ver
   const otherName = (r) =>
-    user?.role === 'passenger' ? r.driver?.name : r.passenger?.name;
+    r.driver?.id === user?.id ? r.passenger?.name : r.driver?.name;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>

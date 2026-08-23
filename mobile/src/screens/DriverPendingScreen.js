@@ -7,6 +7,8 @@ import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
 import LanguageToggle from '../components/LanguageToggle.js';
 import TextField from '../components/TextField.js';
+import FormularioVeiculo from '../components/FormularioVeiculo.js';
+import Voltar from '../components/Voltar.js';
 import { VERSAO_TERMOS_MOTORISTA } from '../termos/index.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
@@ -101,7 +103,7 @@ export default function DriverPendingScreen({ navigation }) {
       <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.topBar}>
-          <Logo size="sm" />
+          <Voltar navigation={navigation} />
           <View style={styles.topBarDireita}>
             {user?.isAdmin ? (
               <Pressable onPress={() => navigation.navigate('Admin')} style={styles.adminLink}>
@@ -112,6 +114,13 @@ export default function DriverPendingScreen({ navigation }) {
           </View>
         </View>
 
+        {/* Sem veículo declarado, não há documentos a pedir: primeiro
+            diz-se o que se conduz. É este o caminho de quem se registou
+            como passageiro e mais tarde quis conduzir. */}
+        {!user?.vehicle?.plate ? (
+          <FormularioVeiculo onPronto={carregar} />
+        ) : (
+          <>
         <View style={[styles.card, rejected && styles.cardRejected]}>
           <Text style={styles.icon}>{rejected ? '⛔' : '⏳'}</Text>
           <Text style={styles.title}>{rejected ? t('rejectedTitle') : t('pendingTitle')}</Text>
@@ -216,7 +225,8 @@ export default function DriverPendingScreen({ navigation }) {
         ) : null}
 
         <View style={{ height: spacing.lg }} />
-        <Button title={t('logout')} variant="ghost" onPress={logout} />
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

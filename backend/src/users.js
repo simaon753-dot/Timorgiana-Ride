@@ -21,8 +21,16 @@ export function toPublicUser(row) {
     ratingCount: row.rating_count,
     createdAt: row.created_at,
   };
-  if (row.role === 'driver') {
-    base.driverStatus = row.driver_status || 'pending';
+  // A capacidade de conduzir deixou de depender do papel escolhido no
+  // registo. Três estados diferentes, e a diferença importa:
+  //   null        — nunca pediu para conduzir (a maioria das pessoas)
+  //   'pending'   — pediu e aguarda decisão
+  //   'approved'  — pode conduzir
+  // Tratar "nunca pediu" como "à espera" mandaria todos os passageiros
+  // para o ecrã de análise de documentos.
+  base.driverStatus = row.driver_status || null;
+  base.podeConduzir = row.driver_status === 'approved';
+  if (row.vehicle_plate) {
     base.vehicle = {
       type: row.vehicle_type || 'car',
       model: row.vehicle_model || null,

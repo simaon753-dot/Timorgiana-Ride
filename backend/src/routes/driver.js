@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { one, query } from '../db.js';
-import { requireAuth, requireRole } from '../auth.js';
+import { requireAuth } from '../auth.js';
 import { saveDocument, listDocuments, podeTrabalhar } from '../documents.js';
 import { temFotoDeHoje, guardarFotoDeTurno } from '../turnos.js';
 import { setOnline, savePushToken } from '../drivers.js';
@@ -8,7 +8,10 @@ import { toPublicUser } from '../users.js';
 import { notificarAdminsMotoristaPronto } from '../push.js';
 
 export const driverRouter = Router();
-driverRouter.use(requireAuth, requireRole('driver'));
+// Sem guarda de papel: é por aqui que uma conta de passageiro se torna
+// motorista. As rotas que exigem estar aprovado verificam-no elas próprias
+// — /availability recusa quem não está, e é essa a barreira que conta.
+driverRouter.use(requireAuth);
 
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
@@ -45,7 +48,7 @@ driverRouter.post(
     if (typeof online !== 'boolean') {
       return res.status(400).json({ error: 'Valor inválido.' });
     }
-    if ((req.user.driver_status || 'pending') !== 'approved') {
+    if (req.user.driver_status !== 'approved') {
       return res.status(403).json({ error: 'A tua conta ainda não foi aprovada.' });
     }
 
@@ -146,6 +149,46 @@ driverRouter.get(
   })
 );
 
+// POST /api/driver/vehicle — declarar o veículo depois do registo
+//
+// Quem se registou só como passageiro não tinha onde pôr estes dados. Sem
+// isto, tornar-se motorista obrigava a criar outra conta — e uma pessoa em
+// Timor-Leste só tem três números de telemóvel.
+driverRouter.post(
+  '/vehicle',
+  wrap(async (req, res) => {
+    const { type, model, plate, color, seats } = req.body || {};
+    if (!plate || !String(plate).trim()) {
+      return res.status(400).json({ error: 'Indica a matrícula do veículo.' });
+    }
+    const tipo = type === 'motorbike' ? 'motorbike' : 'car';
+    if (tipo === 'car' && !seats) {
+      return res.status(400).json({ error: 'Indica quantos passageiros o carro leva.' });
+    }
+
+    const row = await one(
+      `UPDATE users
+       SET vehicle_type = $1, vehicle_model = $2, vehicle_plate = $3,
+           vehicle_color = $4, vehicle_seats = $5,
+           -- Só passa a "à espera" se ainda não tinha pedido nada. Um
+           -- motorista já aprovado que corrija a matrícula não deve
+           -- recomeçar a análise do zero.
+           driver_status = COALESCE(driver_status, 'pending')
+       WHERE id = $6
+       RETURNING *`,
+      [
+        tipo,
+        model?.trim() || null,
+        String(plate).trim(),
+        color?.trim() || null,
+        tipo === 'car' ? Math.max(1, Math.min(12, Number(seats))) : null,
+        req.user.id,
+      ]
+    );
+    res.json({ user: toPublicUser(row) });
+  })
+);
+
 // POST /api/driver/shift-photo — a selfie de quem vai conduzir hoje
 driverRouter.post(
   '/shift-photo',
@@ -196,7 +239,10 @@ driverRouter.post(
       const todos = await listDocuments(req.user.id);
       const tipos = new Set(todos.map((d) => d.kind));
       const completo = ['licence', 'vehicle', 'photo'].every((k) => tipos.has(k));
-      if (completo && (req.user.driver_status || 'pending') === 'pending') {
+      // Só avisa quem pediu MESMO para conduzir. Com o registo aberto a
+      // qualquer conta, `null || 'pending'` faria soar o alarme por
+      // alguém que enviou documentos sem sequer declarar um veículo.
+      if (completo && req.user.driver_status === 'pending') {
         req.app.get('io').to('admins').emit('driver:pronto', { id: req.user.id });
         notificarAdminsMotoristaPronto({ nome: req.user.name, telefone: req.user.phone })
           .catch(() => {});

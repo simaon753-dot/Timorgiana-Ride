@@ -16,7 +16,10 @@ const DISTANCIA_NOVA_RUA = 150;
 
 export function RideProvider({ children }) {
   const { token, user } = useAuth();
-  const isDriver = user?.role === 'driver';
+  // Buscar pedidos e enviar a posição são coisas de quem PODE conduzir,
+  // não de quem escolheu "motorista" no registo. Um passageiro que se
+  // tornou motorista tem de as receber; um motorista por aprovar não.
+  const isDriver = !!user?.podeConduzir;
 
   const [activeRide, setActiveRide] = useState(null);
   const [requests, setRequests] = useState([]); // só motoristas
