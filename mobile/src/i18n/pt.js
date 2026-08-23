@@ -341,7 +341,6 @@ export default {
   vehicleRegister: 'Registar veículo',
   requestIfNeeded: 'Pedir se for necessário',
   backToDriving: 'Voltar a conduzir',
-  tabProfile: 'Perfil',
   settingsTitle: 'Opções',
   profileVehicle: 'O meu veículo',
   profileAccount: 'A minha conta',

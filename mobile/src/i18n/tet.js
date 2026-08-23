@@ -342,7 +342,6 @@ export default {
   vehicleRegister: 'Rejista veíkulu',
   requestIfNeeded: 'Husu se presiza',
   backToDriving: 'Fila ba lori kareta',
-  tabProfile: 'Perfíl',
   settingsTitle: 'Opsaun',
   profileVehicle: 'Haʼu-nia veíkulu',
   profileAccount: 'Haʼu-nia konta',

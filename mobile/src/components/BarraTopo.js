@@ -25,7 +25,7 @@ export default function BarraTopo({ navigation, titulo }) {
       {titulo ? <Text style={styles.titulo}>{titulo}</Text> : <Logo size="sm" />}
 
       <Pressable
-        onPress={() => navigation.navigate('PerfilTab')}
+        onPress={() => navigation.navigate('Perfil')}
         style={styles.avatar}
         hitSlop={8}
         accessibilityRole="button"

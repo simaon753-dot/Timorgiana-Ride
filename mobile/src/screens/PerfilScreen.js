@@ -7,6 +7,7 @@ import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useModo } from '../context/ModoContext.js';
 import { nomeDaCor, hexDaCor } from '../lib/corVeiculo.js';
+import Voltar from '../components/Voltar.js';
 
 // Perfil: quem eu sou e o que conduzo. Só isso.
 //
@@ -39,7 +40,11 @@ export default function PerfilScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.conteudo}>
         {/* A roda dentada fica ao lado do perfil, como pediste: as
             definições pertencem-lhe, mas não lhe ocupam o espaço. */}
+        {/* Voltou a ser um ecrã empilhado quando saiu da barra de baixo,
+            por isso volta a precisar de saída visível — no iPhone não há
+            botão de sistema. */}
         <View style={styles.topo}>
+          <Voltar navigation={navigation} />
           <Pressable
             onPress={() => navigation.navigate('Opcoes')}
             hitSlop={12}
@@ -157,7 +162,7 @@ const criarEstilos = () =>
   StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
   conteudo: { padding: spacing.lg, paddingBottom: spacing.xxl },
-  topo: { flexDirection: 'row', justifyContent: 'flex-end' },
+  topo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   engrenagem: {
     width: 38,
     height: 38,

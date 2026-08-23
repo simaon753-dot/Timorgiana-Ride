@@ -32,30 +32,47 @@ export const PALETAS = {
     onTeal: '#F2F8F6',
   },
 
+  // Escolhida pelo Simão: letras laranja, fundo preto, e o verde da marca
+  // em tudo o resto. Não é a paleta clara com o brilho baixado — é uma
+  // identidade própria para a noite, que é quando os motoristas conduzem.
   escuro: {
-    // O teal claro passa a ser a cor de destaque; o escuro fica para os
-    // fundos que antes eram claros.
-    teal: '#4FB3A5',
-    tealDark: '#0E1F1C',
-    tealLight: '#2F7D72',
-    coral: '#FF7E5E',
-    coralDark: '#FF9C82',
-    paper: '#101A18',
+    // O verde é o "resto": botões, crachás, contornos, destaques.
+    teal: '#2E9E7E',
+    tealDark: '#0E5C54',
+    tealLight: '#4FD4AC',
 
-    // `white` deixou de ser branco: é o que se usa para SUPERFÍCIES sobre
-    // o fundo — cartões, campos, listas. No escuro, uma superfície é mais
-    // clara que o fundo, não branca.
-    white: '#182522',
-    text: '#ECF2EF',
-    textMuted: '#93A39D',
-    border: '#27352F',
-    inputBg: '#182522',
+    coral: '#FF8552',
+    coralDark: '#FF6B2C',
 
-    danger: '#FF6B5E',
-    success: '#4FBF8B',
+    // Preto. Não um cinzento escuro — preto, como pedido.
+    paper: '#000000',
+    // `white` são as SUPERFÍCIES sobre o fundo: cartões, campos, listas.
+    // O fundo é preto, por isso a superfície tem de ser um pouco mais
+    // clara — com o primeiro valor que escolhi (#111614) os cartões
+    // desapareciam no fundo e o ecrã ficava uma mancha sem estrutura.
+    // Este destaca-se o suficiente para se ver onde acaba cada bloco, e
+    // mantém o toque de verde da marca.
+    white: '#202825',
+
+    // As letras.
+    text: '#FF8552',
+    // O secundário é o mesmo laranja mais apagado, e não um cinzento: um
+    // cinzento ao lado de laranja lê-se como texto desactivado.
+    textMuted: '#C97F55',
+
+    // O contorno faz metade do trabalho de separar os blocos, por isso é
+    // mais claro do que a superfície onde assenta.
+    border: '#3D4C45',
+    inputBg: '#202825',
+
+    // Vermelho afastado do laranja, senão o perigo confunde-se com texto
+    // normal — que é o pior sítio para uma confusão.
+    danger: '#FF5252',
+    success: '#4FD4AC',
     star: '#F4B400',
 
-    onTeal: '#0B1513',
+    // Texto sobre o verde.
+    onTeal: '#04120E',
   },
 };
 
