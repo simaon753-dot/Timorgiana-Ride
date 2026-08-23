@@ -365,7 +365,7 @@ ridesRouter.post(
   '/:id/sos',
   wrap(async (req, res) => {
     const rideId = Number(req.params.id) || null;
-    const { lat, lng, note } = req.body || {};
+    const { lat, lng, note, tipo } = req.body || {};
 
     if (rideId) {
       const row = await getRideById(rideId);
@@ -379,13 +379,20 @@ ridesRouter.post(
       lat: lat != null ? Number(lat) : null,
       lng: lng != null ? Number(lng) : null,
       note,
+      tipo,
     });
 
     // Toca a todos os administradores em simultâneo, por socket e por push.
     req.app.get('io').to('admins').emit('sos:novo', { id: alerta.id });
     notificarAdminsSOS({ nome: req.user.name, rideId, lat, lng }).catch(() => {});
 
-    return res.status(201).json({ alerta: { id: alerta.id }, emergencia: config.numeroEmergencia });
+    return res.status(201).json({
+      alerta: { id: alerta.id, tipo: alerta.tipo },
+      // Os números vão na resposta para o telemóvel poder marcar o certo
+      // mesmo que os seus valores embutidos estejam desactualizados.
+      numeros: config.numerosEmergencia,
+      emergencia: config.numerosEmergencia.policia,
+    });
   })
 );
 

@@ -33,9 +33,23 @@ export const config = {
   },
 
   // Só os motoristas a esta distância do passageiro são avisados
-  // Emergência em Timor-Leste. Configurável por ambiente porque o número
-  // certo pode mudar e não queremos gerar um APK novo por causa disso.
-  numeroEmergencia: process.env.EMERGENCY_NUMBER || '112',
+  // Emergência em Timor-Leste. Três serviços diferentes, porque marcar o
+  // número errado numa emergência custa minutos que ninguém tem.
+  //
+  //   115 — Protecção Civil (DNPC). Confirmado no sítio do Governo:
+  //         incêndios, cheias, árvores caídas, acidentes.
+  //   112 — Polícia. Fonte não oficial, A CONFIRMAR localmente.
+  //   110 — Ambulância / emergência médica. Idem.
+  //
+  // Alteráveis por ambiente de propósito: um número errado corrige-se em
+  // minutos no servidor, não em dias à espera de um APK novo.
+  numerosEmergencia: {
+    medica: process.env.EMERGENCY_MEDICAL || '110',
+    policia: process.env.EMERGENCY_POLICE || '112',
+    protecao: process.env.EMERGENCY_CIVIL || '115',
+  },
+  // Mantido para não partir quem já o lia; aponta para a polícia.
+  numeroEmergencia: process.env.EMERGENCY_NUMBER || process.env.EMERGENCY_POLICE || '112',
   avisoCancelamentos: Number(process.env.CANCEL_WARN_AFTER) || 3,
 
   raioAvisoKm: Number(process.env.NOTIFY_RADIUS_KM) || 10,

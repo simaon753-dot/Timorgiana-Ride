@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Alert, Linking, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import * as Location from 'expo-location';
 import { colors, radius, spacing, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
+import EscolherEmergencia from './EscolherEmergencia.js';
 
 // Botão de emergência. Duas coisas acontecem quando se carrega, por esta
 // ordem: o alerta é registado no servidor (para ficar prova de que houve
@@ -12,12 +13,28 @@ import { api } from '../api/client.js';
 //
 // Pede confirmação porque um SOS acidental gasta a confiança de toda a
 // gente — mas a confirmação é UM toque, não um formulário.
+// Números embutidos, iguais aos do servidor. Existem para o caso de não
+// haver rede no momento em que fazem falta — que é precisamente quando
+// fazem mais falta.
+const NUMEROS_POR_OMISSAO = { medica: '110', policia: '112', protecao: '115' };
+
 export default function SosButton({ rideId, compact }) {
   const { t } = useI18n();
   const { token } = useAuth();
   const [aEnviar, setAEnviar] = useState(false);
+  const [aEscolher, setAEscolher] = useState(false);
+  const [numeros, setNumeros] = useState(NUMEROS_POR_OMISSAO);
 
-  async function enviar() {
+  // Vai buscar os números ao servidor uma vez. Se algum estiver errado,
+  // corrige-se lá e chega aos telemóveis sem novo APK.
+  useEffect(() => {
+    api
+      .numerosEmergencia()
+      .then((r) => r?.numeros && setNumeros({ ...NUMEROS_POR_OMISSAO, ...r.numeros }))
+      .catch(() => {});
+  }, []);
+
+  async function enviar(tipo) {
     setAEnviar(true);
     let lat = null;
     let lng = null;
@@ -40,10 +57,11 @@ export default function SosButton({ rideId, compact }) {
       /* sem posição, seguimos na mesma */
     }
 
-    let numero = '112';
+    let numero = numeros[tipo] || numeros.policia;
     try {
-      const r = await api.sos(token, rideId, { lat, lng });
-      numero = r?.emergencia || numero;
+      const r = await api.sos(token, rideId, { lat, lng, tipo });
+      // O servidor é a autoridade sobre os números.
+      if (r?.numeros?.[tipo]) numero = r.numeros[tipo];
     } catch {
       // Nem o servidor pode travar isto: se a rede falhar, a pessoa tem de
       // conseguir ligar à polícia à mesma.
@@ -62,17 +80,28 @@ export default function SosButton({ rideId, compact }) {
     ]);
   }
 
-  function confirmar() {
-    Alert.alert(t('sosConfirmTitle'), t('sosConfirmExplain'), [
-      { text: t('cancel'), style: 'cancel' },
-      { text: t('sosConfirmYes'), style: 'destructive', onPress: enviar },
-    ]);
+  // Sem confirmação genérica: escolher o TIPO já é o acto deliberado que
+  // evita um toque acidental, e poupa um passo a quem está com pressa.
+  function abrirEscolha() {
+    setAEscolher(true);
+  }
+
+  function escolhido(tipo) {
+    setAEscolher(false);
+    enviar(tipo);
   }
 
   return (
+    <>
+    <EscolherEmergencia
+      visivel={aEscolher}
+      numeros={numeros}
+      onFechar={() => setAEscolher(false)}
+      onEscolher={escolhido}
+    />
     <TouchableOpacity
       style={[styles.botao, compact && styles.compacto]}
-      onPress={confirmar}
+      onPress={abrirEscolha}
       disabled={aEnviar}
       accessibilityRole="button"
       accessibilityLabel={t('sos')}
@@ -81,6 +110,7 @@ export default function SosButton({ rideId, compact }) {
         {aEnviar ? '…' : compact ? 'SOS' : `🚨  ${t('sos')}`}
       </Text>
     </TouchableOpacity>
+    </>
   );
 }
 

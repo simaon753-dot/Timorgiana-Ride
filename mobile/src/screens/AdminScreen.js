@@ -119,6 +119,17 @@ export default function AdminScreen({ navigation }) {
             {alertas.map((a) => (
               <View key={a.id} style={styles.cartaoSos}>
                 <Text style={styles.sosNome}>{a.quem}</Text>
+                {/* O tipo primeiro: quem responde precisa de saber se
+                    manda uma ambulância ou chama a polícia. */}
+                <Text style={styles.sosTipo}>
+                  {a.tipo === 'policia'
+                    ? `🚔 ${t('emgTypePolicia')}`
+                    : a.tipo === 'medica'
+                      ? `🚑 ${t('emgTypeMedica')}`
+                      : a.tipo === 'protecao'
+                        ? `🚒 ${t('emgTypeProtecao')}`
+                        : t('emgTypeOutro')}
+                </Text>
                 <Text style={styles.sosMeta}>
                   {new Date(a.quando).toLocaleString('pt-PT')}
                   {a.destino ? ` · ${a.destino}` : ''}
@@ -253,6 +264,7 @@ const criarEstilos = () =>
     marginBottom: spacing.sm,
   },
   sosNome: { fontWeight: '700', color: colors.text, fontSize: fontSize.md },
+  sosTipo: { fontWeight: '800', color: colors.danger, fontSize: fontSize.sm, marginTop: 2 },
   sosMeta: { color: colors.textMuted, fontSize: fontSize.sm, marginTop: 2 },
   linhaAcoes: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm, flexWrap: 'wrap' },
   accaoSos: {

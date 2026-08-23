@@ -3,11 +3,20 @@ import { query, one } from './db.js';
 // Regista um pedido de ajuda. Nunca falha por falta de posição: se o GPS
 // não responder no momento, o alerta chega na mesma — saber que alguém
 // pediu ajuda é mais importante do que saber exactamente onde.
-export function criarAlerta({ rideId, userId, lat, lng, note }) {
+const TIPOS = ['medica', 'policia', 'protecao', 'outro'];
+
+export function criarAlerta({ rideId, userId, lat, lng, note, tipo }) {
   return one(
-    `INSERT INTO sos_alerts (ride_id, user_id, lat, lng, note)
-     VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-    [rideId || null, userId, lat ?? null, lng ?? null, note || null]
+    `INSERT INTO sos_alerts (ride_id, user_id, lat, lng, note, tipo)
+     VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+    [
+      rideId || null,
+      userId,
+      lat ?? null,
+      lng ?? null,
+      note || null,
+      TIPOS.includes(tipo) ? tipo : 'outro',
+    ]
   );
 }
 

@@ -94,6 +94,7 @@ adminRouter.get(
         id: r.id,
         rideId: r.ride_id,
         quem: r.quem,
+        tipo: r.tipo || 'outro',
         telefone: r.telefone,
         papel: r.papel,
         destino: r.dest_label,

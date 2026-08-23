@@ -235,6 +235,9 @@ export async function initSchema() {
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS duration_min INTEGER`);
 
   await query('CREATE INDEX IF NOT EXISTS idx_docs_user ON driver_documents(user_id)');
+  // Que tipo de emergência foi pedida. Sem isto, quem responde não sabe
+  // se manda uma ambulância ou chama a polícia.
+  await query(`ALTER TABLE sos_alerts ADD COLUMN IF NOT EXISTS tipo TEXT`);
   await query('CREATE INDEX IF NOT EXISTS idx_sos_aberto ON sos_alerts(resolved, created_at DESC)');
   await query('CREATE INDEX IF NOT EXISTS idx_users_online ON users(is_online) WHERE role = \'driver\'');
 

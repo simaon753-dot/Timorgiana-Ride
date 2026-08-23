@@ -339,4 +339,17 @@ export default {
   themeTitle: 'App colour',
   themeLight: 'Light',
   themeDark: 'Dark',
+  // Emergency types
+  emgTitle: 'What kind of emergency?',
+  emgHelp: 'Choose so we call the right service. If you are in immediate danger, call first.',
+  emgCrime: 'Crime or violence',
+  emgCrimeHelp: 'Robbery, assault, threat',
+  emgMedical: 'Accident or illness',
+  emgMedicalHelp: 'Injury, fainting, ambulance',
+  emgFire: 'Fire or disaster',
+  emgFireHelp: 'Fire, flood, fallen tree',
+  emgTypePolicia: 'Police',
+  emgTypeMedica: 'Ambulance',
+  emgTypeProtecao: 'Civil Protection',
+  emgTypeOutro: 'Not specified',
 };

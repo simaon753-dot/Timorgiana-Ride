@@ -54,6 +54,12 @@ app.get('/api/config/fares', (req, res) => {
   res.json({ fares: config.tarifas, currency: 'USD' });
 });
 
+// Números de emergência. Sem autenticação de propósito: uma pessoa em
+// perigo pode ter a sessão expirada, e nada aqui é privado.
+app.get('/api/config/emergencia', (req, res) => {
+  res.json({ numeros: config.numerosEmergencia });
+});
+
 app.use('/api/auth', authRouter);
 app.use('/api/rides', ridesRouter);
 app.use('/api/driver', driverRouter);

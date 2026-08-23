@@ -347,4 +347,17 @@ export default {
   themeTitle: 'Cor da aplicação',
   themeLight: 'Clara',
   themeDark: 'Escura',
+  // Tipos de emergência
+  emgTitle: 'Que tipo de emergência?',
+  emgHelp: 'Escolhe para ligarmos ao serviço certo. Se estiveres em perigo imediato, liga primeiro.',
+  emgCrime: 'Crime ou violência',
+  emgCrimeHelp: 'Assalto, agressão, ameaça',
+  emgMedical: 'Acidente ou doente',
+  emgMedicalHelp: 'Ferido, desmaio, ambulância',
+  emgFire: 'Incêndio ou desastre',
+  emgFireHelp: 'Fogo, cheia, árvore caída',
+  emgTypePolicia: 'Polícia',
+  emgTypeMedica: 'Ambulância',
+  emgTypeProtecao: 'Protecção Civil',
+  emgTypeOutro: 'Não especificado',
 };

@@ -348,4 +348,17 @@ export default {
   themeTitle: 'Kór aplikasaun nian',
   themeLight: 'Naroman',
   themeDark: 'Nakukun',
+  // Tipu emerjénsia
+  emgTitle: 'Emerjénsia tipu saida?',
+  emgHelp: 'Hili atu ami telefone ba serbisu loos. Se ita iha perigu kedas, telefone uluk.',
+  emgCrime: 'Krime ka violénsia',
+  emgCrimeHelp: 'Naʼok, baku, ameasa',
+  emgMedical: 'Asidente ka moras',
+  emgMedicalHelp: 'Kanek, monu, ambuláncia',
+  emgFire: 'Ahi ka dezastre',
+  emgFireHelp: 'Ahi, inundasaun, ai monu',
+  emgTypePolicia: 'Polísia',
+  emgTypeMedica: 'Ambuláncia',
+  emgTypeProtecao: 'Protesaun Sivíl',
+  emgTypeOutro: 'La espesifika',
 };

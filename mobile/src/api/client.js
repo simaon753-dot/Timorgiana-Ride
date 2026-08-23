@@ -116,6 +116,8 @@ export const api = {
   setAvailability: (token, online) =>
     request('/driver/availability', { method: 'POST', body: { online }, token }),
 
+  numerosEmergencia: () => request('/config/emergencia'),
+
   sos: (token, rideId, body) =>
     request(`/rides/${rideId || 0}/sos`, { method: 'POST', body, token }),
 
