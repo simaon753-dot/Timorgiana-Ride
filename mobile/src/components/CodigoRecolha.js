@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 
 // O código que o passageiro diz ao motorista.
@@ -22,7 +22,8 @@ export default function CodigoRecolha({ codigo }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   caixa: {
     backgroundColor: colors.teal,
     borderRadius: radius.lg,
@@ -47,4 +48,9 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   ajuda: { color: colors.onTeal, fontSize: fontSize.xs, opacity: 0.85, textAlign: 'center' },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

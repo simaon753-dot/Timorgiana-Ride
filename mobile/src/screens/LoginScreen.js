@@ -16,7 +16,7 @@ import TextField from '../components/TextField.js';
 import LanguageToggle from '../components/LanguageToggle.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
-import { colors, spacing, fontSize } from '../theme.js';
+import { colors, spacing, fontSize, registarEstilos } from '../theme.js';
 
 export default function LoginScreen({ navigation }) {
   const { t } = useI18n();
@@ -107,7 +107,8 @@ export default function LoginScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
   scroll: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
   topBar: {
@@ -130,4 +131,9 @@ const styles = StyleSheet.create({
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: spacing.lg },
   footerText: { color: colors.textMuted, fontSize: fontSize.md },
   footerLink: { color: colors.coral, fontSize: fontSize.md, fontWeight: '800' },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

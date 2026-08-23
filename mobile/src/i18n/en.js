@@ -333,4 +333,11 @@ export default {
   vehicleRegister: 'Register vehicle',
   requestIfNeeded: 'Book a ride if you need one',
   backToDriving: 'Back to driving',
+  tabProfile: 'Profile',
+  settingsTitle: 'Settings',
+  profileVehicle: 'My vehicle',
+  profileAccount: 'My account',
+  themeTitle: 'App colour',
+  themeLight: 'Light',
+  themeDark: 'Dark',
 };

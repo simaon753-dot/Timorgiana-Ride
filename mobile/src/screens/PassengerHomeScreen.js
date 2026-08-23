@@ -29,7 +29,7 @@ import { nomeDaCor, hexDaCor } from '../lib/corVeiculo.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 
 export default function PassengerHomeScreen({ navigation }) {
   const { t } = useI18n();
@@ -275,7 +275,8 @@ function InfoRow({ label, value, strong }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   linhaCor: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -388,4 +389,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.xs,
   },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

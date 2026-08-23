@@ -13,7 +13,7 @@ import { VERSAO_TERMOS_MOTORISTA } from '../termos/index.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 
 const TIPOS = [
   { kind: 'licence', label: 'docLicence' },
@@ -232,7 +232,8 @@ export default function DriverPendingScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
   docValidade: { fontSize: fontSize.xs, color: colors.textMuted, marginTop: 2 },
   docValidadeAviso: { color: colors.coralDark, fontWeight: '700' },
@@ -326,4 +327,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   statusOk: { color: colors.success, fontWeight: '600' },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

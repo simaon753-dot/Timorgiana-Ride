@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { colors, radius, spacing, fontSize } from '../theme.js';
+import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
 
 // Centro por omissão: Díli, Timor-Leste
 const DILI = { lat: -8.5569, lng: 125.5603 };
@@ -188,7 +188,8 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
 </body></html>`;
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   wrap: {
     borderRadius: radius.md,
     overflow: 'hidden',
@@ -201,4 +202,9 @@ const styles = StyleSheet.create({
   fallback: { alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
   fallbackIcon: { fontSize: 32, marginBottom: spacing.sm },
   fallbackText: { color: colors.textMuted, fontSize: fontSize.sm, textAlign: 'center' },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

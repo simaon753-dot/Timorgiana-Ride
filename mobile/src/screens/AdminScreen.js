@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { colors, radius, spacing, fontSize } from '../theme.js';
+import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
@@ -228,7 +228,8 @@ function Numero({ valor, etiqueta, destaque }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   ecra: { flex: 1, backgroundColor: colors.paper },
   centro: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper },
   conteudo: { padding: spacing.lg, paddingBottom: spacing.xxl },
@@ -296,4 +297,9 @@ const styles = StyleSheet.create({
   semDocs: { marginTop: spacing.sm, color: colors.danger, fontSize: fontSize.sm },
   botoes: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
   metade: { flex: 1 },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

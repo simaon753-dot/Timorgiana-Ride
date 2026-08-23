@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Button from './Button.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
@@ -63,7 +63,8 @@ export default function FotoDeTurno({ feita, onFeita }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   caixa: {
     backgroundColor: '#FFF8F0',
     borderWidth: 1,
@@ -76,4 +77,9 @@ const styles = StyleSheet.create({
   feita: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   miniatura: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.border },
   feitaTexto: { color: colors.success, fontWeight: '700', fontSize: fontSize.sm },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

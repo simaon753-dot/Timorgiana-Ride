@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { colors } from '../theme.js';
+import { colors, registarEstilos } from '../theme.js';
 
 // Estrelas selecionáveis (ou só de leitura). value 0–5.
 export default function StarRating({ value = 0, onChange, size = 40, readOnly = false }) {
@@ -23,7 +23,13 @@ export default function StarRating({ value = 0, onChange, size = 40, readOnly = 
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
   star: { paddingHorizontal: 4 },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

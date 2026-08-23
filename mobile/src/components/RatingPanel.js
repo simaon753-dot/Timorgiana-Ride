@@ -4,7 +4,7 @@ import StarRating from './StarRating.js';
 import Button from './Button.js';
 import { useI18n } from '../i18n/index.js';
 import { useRides } from '../context/RideContext.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 
 // Painel de avaliação mostrado quando a viagem fica concluída.
 export default function RatingPanel({ ride, role }) {
@@ -45,7 +45,8 @@ export default function RatingPanel({ ride, role }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   box: {
     marginTop: spacing.lg,
     backgroundColor: '#FFF8F0',
@@ -58,4 +59,9 @@ const styles = StyleSheet.create({
   title: { fontSize: fontSize.md, fontWeight: '800', color: colors.text },
   subtitle: { fontSize: fontSize.sm, color: colors.textMuted, marginTop: spacing.xs },
   thanks: { fontSize: fontSize.md, fontWeight: '700', color: colors.success, textAlign: 'center' },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

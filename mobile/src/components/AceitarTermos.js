@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 import { textoTermos } from '../termos/index.js';
 
@@ -41,7 +41,8 @@ function partir(s) {
   return [p[0] || '', p[1] || '', p[2] || ''];
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   linha: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   caixa: {
     width: 24,
@@ -58,4 +59,9 @@ const styles = StyleSheet.create({
   visto: { color: colors.white, fontWeight: '900', fontSize: 14, lineHeight: 16 },
   texto: { flex: 1, fontSize: fontSize.sm, color: colors.text, lineHeight: 20 },
   link: { color: colors.teal, fontWeight: '800', textDecorationLine: 'underline' },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

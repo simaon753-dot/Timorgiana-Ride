@@ -12,7 +12,7 @@ import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
 import { api } from '../api/client.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 
 export default function RequestRideScreen({ navigation }) {
   const { t } = useI18n();
@@ -279,7 +279,8 @@ function CartaoVeiculo({ opcao, ativo, onPress, t }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
   mapa: { flex: 1, position: 'relative' },
   // display:none em vez de não renderizar: mantém o painel montado, para
@@ -382,4 +383,9 @@ const styles = StyleSheet.create({
   },
   botaoInativo: { backgroundColor: colors.border },
   botaoTexto: { color: colors.white, fontSize: fontSize.md, fontWeight: '800' },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

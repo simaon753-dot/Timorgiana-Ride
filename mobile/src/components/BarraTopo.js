@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Logo from './Logo.js';
-import { colors, spacing, fontSize } from '../theme.js';
+import { colors, spacing, fontSize, registarEstilos } from '../theme.js';
 import { useAuth } from '../context/AuthContext.js';
 
 // Barra de cima: a marca à esquerda, a pessoa à direita.
@@ -25,7 +25,7 @@ export default function BarraTopo({ navigation, titulo }) {
       {titulo ? <Text style={styles.titulo}>{titulo}</Text> : <Logo size="sm" />}
 
       <Pressable
-        onPress={() => navigation.navigate('Perfil')}
+        onPress={() => navigation.navigate('PerfilTab')}
         style={styles.avatar}
         hitSlop={8}
         accessibilityRole="button"
@@ -37,7 +37,8 @@ export default function BarraTopo({ navigation, titulo }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   barra: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -56,4 +57,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iniciais: { color: colors.onTeal, fontWeight: '800', fontSize: 14 },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

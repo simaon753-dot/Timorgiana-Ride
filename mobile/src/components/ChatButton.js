@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, Text, View, StyleSheet } from 'react-native';
 import { useI18n } from '../i18n/index.js';
 import { useRides } from '../context/RideContext.js';
-import { colors, radius, spacing, fontSize } from '../theme.js';
+import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
 
 export default function ChatButton({ navigation }) {
   const { t } = useI18n();
@@ -19,7 +19,8 @@ export default function ChatButton({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   btn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -42,4 +43,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   badgeText: { color: colors.white, fontSize: fontSize.xs, fontWeight: '800' },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

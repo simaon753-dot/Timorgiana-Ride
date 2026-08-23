@@ -3,7 +3,7 @@ import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View }
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import BarraTopo from '../components/BarraTopo.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
@@ -107,7 +107,8 @@ function formatarDia(iso) {
   return `${d}/${m}`;
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
   conteudo: { padding: spacing.lg, paddingBottom: spacing.xxl },
   hoje: {
@@ -177,4 +178,9 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     textAlign: 'center',
   },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

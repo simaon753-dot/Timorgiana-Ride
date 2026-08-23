@@ -7,7 +7,7 @@ import EscolherModelo from './EscolherModelo.js';
 import EscolherCor from './EscolherCor.js';
 import EscolherLugares from './EscolherLugares.js';
 import { LUGARES } from '../dados/veiculos.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
@@ -99,7 +99,8 @@ export default function FormularioVeiculo({ onPronto }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   caixa: {
     backgroundColor: colors.white,
     borderRadius: radius.lg,
@@ -109,4 +110,9 @@ const styles = StyleSheet.create({
   rotulo: { fontSize: 13, fontWeight: '700', color: colors.text, marginBottom: 6, marginTop: 4 },
   ajuda: { fontSize: 12, color: colors.textMuted, marginBottom: 8, lineHeight: 17 },
   erro: { color: colors.danger, fontSize: fontSize.sm, marginTop: spacing.sm },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

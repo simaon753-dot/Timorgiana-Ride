@@ -1,29 +1,28 @@
 import React from 'react';
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import LanguageToggle from '../components/LanguageToggle.js';
-import Voltar from '../components/Voltar.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useModo } from '../context/ModoContext.js';
+import { nomeDaCor, hexDaCor } from '../lib/corVeiculo.js';
 
-// Perfil: tudo o que é sobre a PESSOA e não sobre a viagem.
+// Perfil: quem eu sou e o que conduzo. Só isso.
 //
-// Antes isto estava espalhado — a língua no canto do ecrã principal, o
-// servidor num ícone do ecrã de entrada, o histórico num botão, o terminar
-// sessão no fundo de uma lista. Juntar num sítio só faz com que se
-// encontre, que é metade do trabalho de uma definição.
+// As definições saíram daqui para um ecrã próprio, atrás da roda dentada no
+// canto. A razão: idioma, servidor e termos não são "quem eu sou" — são
+// como a aplicação se comporta. Misturá-los obrigava a passar por cima
+// deles para chegar ao que interessa.
 export default function PerfilScreen({ navigation }) {
   const { t } = useI18n();
   const { user, logout } = useAuth();
   const { setModo } = useModo();
 
-  // Já não é o papel do registo: é o que a conta pode fazer HOJE.
   const podeConduzir = !!user?.podeConduzir;
   const pediuParaConduzir = !!user?.driverStatus;
-  const motorista = podeConduzir;
+  const veiculo = user?.vehicle;
+
   const iniciais = (user?.name || '?')
     .trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
 
@@ -35,12 +34,22 @@ export default function PerfilScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.conteudo}>
-        {/* O Android tem botão de voltar no sistema; o iPhone não. Sem
-            isto, quem abre o perfil num iPhone fica sem saída. */}
-        <Voltar navigation={navigation} />
+        {/* A roda dentada fica ao lado do perfil, como pediste: as
+            definições pertencem-lhe, mas não lhe ocupam o espaço. */}
+        <View style={styles.topo}>
+          <Pressable
+            onPress={() => navigation.navigate('Opcoes')}
+            hitSlop={12}
+            style={styles.engrenagem}
+            accessibilityRole="button"
+            accessibilityLabel={t('settingsTitle')}
+          >
+            <Text style={styles.engrenagemIcone}>⚙</Text>
+          </Pressable>
+        </View>
 
         <View style={styles.cabecalho}>
           <View style={styles.avatar}>
@@ -48,33 +57,37 @@ export default function PerfilScreen({ navigation }) {
           </View>
           <Text style={styles.nome}>{user?.name}</Text>
           <Text style={styles.telefone}>{user?.phone}</Text>
-          <View style={styles.crachas}>
-            <Text style={styles.cracha}>{motorista ? t('driver') : t('passenger')}</Text>
-            {user?.ratingAvg ? (
-              <Text style={styles.cracha}>
-                ⭐ {Number(user.ratingAvg).toFixed(1)}
-                {user.ratingCount ? ` (${user.ratingCount})` : ''}
-              </Text>
-            ) : null}
-          </View>
+          {user?.ratingAvg ? (
+            <Text style={styles.estrelas}>
+              ⭐ {Number(user.ratingAvg).toFixed(1)}
+              {user.ratingCount ? ` · ${user.ratingCount}` : ''}
+            </Text>
+          ) : null}
         </View>
 
-        {motorista && user?.vehicle?.plate ? (
-          <View style={styles.veiculo}>
-            <Text style={styles.veiculoRotulo}>{t('vehicleSection')}</Text>
-            <Text style={styles.veiculoTexto}>
-              {user.vehicle.type === 'motorbike' ? t('vehicleMotorbike') : t('vehicleCar')}
-              {user.vehicle.model ? ` · ${user.vehicle.model}` : ''} · {user.vehicle.plate}
-            </Text>
-          </View>
+        {/* Veículo em secção própria, com a cor à vista: é por ela que o
+            passageiro encontra o carro na rua. */}
+        {veiculo?.plate ? (
+          <Seccao titulo={t('profileVehicle')}>
+            <Linha
+              rotulo={t('vehicleType')}
+              valor={veiculo.type === 'motorbike' ? t('vehicleMotorbike') : t('vehicleCar')}
+            />
+            {veiculo.model ? <Linha rotulo={t('vehicleModel')} valor={veiculo.model} /> : null}
+            <Linha rotulo={t('vehiclePlate')} valor={veiculo.plate} forte />
+            {veiculo.color ? (
+              <Linha
+                rotulo={t('vehicleColor')}
+                valor={nomeDaCor(veiculo.color, t)}
+                amostra={hexDaCor(veiculo.color)}
+              />
+            ) : null}
+            {veiculo.seats ? (
+              <Linha rotulo={t('vehicleSeats')} valor={String(veiculo.seats)} />
+            ) : null}
+          </Seccao>
         ) : null}
 
-        {/* Conduzir: ou é uma coisa que já se faz, ou um convite. Nunca
-            uma parede — quem espera aprovação continua a pedir viagens. */}
-        {/* Para quem conduz, pedir uma viagem é uma necessidade
-            ocasional — a mota avaria, o carro está na oficina. Fica aqui e
-            não num interruptor permanente no topo: quem está a trabalhar
-            não deve ter de olhar para uma escolha que faz uma vez por mês. */}
         {podeConduzir ? (
           <Seccao titulo={t('modeRide')}>
             <Item
@@ -88,57 +101,23 @@ export default function PerfilScreen({ navigation }) {
         ) : null}
 
         <Seccao titulo={t('modeDrive')}>
-          {!pediuParaConduzir ? (
-            <Item
-              texto={t('wantToDrive')}
-              onPress={() => navigation.navigate('DriverPending')}
-            />
-          ) : (
-            <Item
-              texto={
-                user.driverStatus === 'approved'
+          <Item
+            texto={
+              !pediuParaConduzir
+                ? t('wantToDrive')
+                : user.driverStatus === 'approved'
                   ? t('driverApplicationOk')
                   : user.driverStatus === 'rejected'
                     ? t('driverApplicationRejected')
                     : t('driverApplicationPending')
-              }
-              onPress={() => navigation.navigate('DriverPending')}
-            />
-          )}
-        </Seccao>
-
-        <Seccao titulo={t('profileApp')}>
-          <Linha esquerda={t('language')} direita={<LanguageToggle compacto />} />
-          <Item
-            texto={t('termsTitle')}
-            onPress={() => navigation.navigate('Termos', { quem: user?.role })}
-          />
-          <Item texto={t('serverSettings')} onPress={() => navigation.navigate('Server')} />
-        </Seccao>
-
-        <Seccao titulo={t('profileHelp')}>
-          <Item
-            texto={t('profileCallSupport')}
-            onPress={() => Linking.openURL('tel:+67074192857')}
-          />
-          <Item
-            texto={t('profileEmergency')}
-            destaque
-            onPress={() => Linking.openURL('tel:112')}
+            }
+            onPress={() => navigation.navigate('DriverPending')}
           />
         </Seccao>
-
-        {user?.isAdmin ? (
-          <Seccao titulo={t('admin')}>
-            <Item texto={t('adminTitle')} onPress={() => navigation.navigate('Admin')} />
-          </Seccao>
-        ) : null}
 
         <Pressable style={styles.sair} onPress={sair}>
           <Text style={styles.sairTexto}>{t('logout')}</Text>
         </Pressable>
-
-        <Text style={styles.rodape}>TimorgianaRide · Díli</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -153,58 +132,56 @@ function Seccao({ titulo, children }) {
   );
 }
 
-function Item({ texto, onPress, destaque }) {
+function Item({ texto, onPress }) {
   return (
     <Pressable style={styles.item} onPress={onPress}>
-      <Text style={[styles.itemTexto, destaque && styles.itemDestaque]}>{texto}</Text>
+      <Text style={styles.itemTexto}>{texto}</Text>
       <Text style={styles.seta}>›</Text>
     </Pressable>
   );
 }
 
-function Linha({ esquerda, direita }) {
+function Linha({ rotulo, valor, forte, amostra }) {
   return (
     <View style={styles.item}>
-      <Text style={styles.itemTexto}>{esquerda}</Text>
-      {direita}
+      <Text style={styles.linhaRotulo}>{rotulo}</Text>
+      <View style={styles.linhaValor}>
+        {amostra ? <View style={[styles.amostra, { backgroundColor: amostra }]} /> : null}
+        <Text style={[styles.itemTexto, forte && styles.itemForte]}>{valor}</Text>
+      </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
   conteudo: { padding: spacing.lg, paddingBottom: spacing.xxl },
-  cabecalho: { alignItems: 'center', paddingVertical: spacing.lg },
+  topo: { flexDirection: 'row', justifyContent: 'flex-end' },
+  engrenagem: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  engrenagemIcone: { fontSize: 19, color: colors.teal },
+
+  cabecalho: { alignItems: 'center', paddingBottom: spacing.lg },
   avatar: {
-    width: 74,
-    height: 74,
-    borderRadius: 37,
+    width: 78,
+    height: 78,
+    borderRadius: 39,
     backgroundColor: colors.teal,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iniciais: { color: colors.onTeal, fontWeight: '800', fontSize: 26 },
+  iniciais: { color: colors.onTeal, fontWeight: '800', fontSize: 28 },
   nome: { fontSize: fontSize.lg, fontWeight: '800', color: colors.text, marginTop: spacing.md },
   telefone: { fontSize: fontSize.sm, color: colors.textMuted, marginTop: 2 },
-  crachas: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
-  cracha: {
-    backgroundColor: colors.white,
-    borderRadius: radius.pill,
-    paddingVertical: 5,
-    paddingHorizontal: spacing.md,
-    fontSize: fontSize.xs,
-    fontWeight: '700',
-    color: colors.teal,
-    overflow: 'hidden',
-  },
-  veiculo: {
-    backgroundColor: colors.white,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  veiculoRotulo: { fontSize: fontSize.xs, color: colors.textMuted, fontWeight: '700' },
-  veiculoTexto: { fontSize: fontSize.md, color: colors.text, marginTop: 2, fontWeight: '600' },
+  estrelas: { fontSize: fontSize.sm, color: colors.teal, fontWeight: '700', marginTop: spacing.sm },
+
   seccao: { marginBottom: spacing.lg },
   seccaoTitulo: {
     fontSize: fontSize.xs,
@@ -225,14 +202,23 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   itemTexto: { fontSize: fontSize.md, color: colors.text },
-  itemDestaque: { color: colors.danger, fontWeight: '700' },
+  itemForte: { fontWeight: '800' },
   seta: { fontSize: 22, color: colors.textMuted },
+  linhaRotulo: { fontSize: fontSize.sm, color: colors.textMuted },
+  linhaValor: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  amostra: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+
   sair: { alignItems: 'center', paddingVertical: spacing.md, marginTop: spacing.sm },
   sairTexto: { color: colors.danger, fontWeight: '700', fontSize: fontSize.md },
-  rodape: {
-    textAlign: 'center',
-    color: colors.textMuted,
-    fontSize: fontSize.xs,
-    marginTop: spacing.lg,
-  },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

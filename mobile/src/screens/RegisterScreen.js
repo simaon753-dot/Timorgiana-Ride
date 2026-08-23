@@ -24,7 +24,7 @@ import EscolherLugares from '../components/EscolherLugares.js';
 import { LUGARES } from '../dados/veiculos.js';
 import { VERSAO_TERMOS } from '../termos/index.js';
 import { useAuth } from '../context/AuthContext.js';
-import { colors, spacing, fontSize } from '../theme.js';
+import { colors, spacing, fontSize, registarEstilos } from '../theme.js';
 
 export default function RegisterScreen({ navigation, route }) {
   const { t } = useI18n();
@@ -219,7 +219,8 @@ export default function RegisterScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   rotulo: {
     fontSize: 13,
     fontWeight: '700',
@@ -273,4 +274,9 @@ const styles = StyleSheet.create({
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: spacing.lg },
   footerText: { color: colors.textMuted, fontSize: fontSize.md },
   footerLink: { color: colors.coral, fontSize: fontSize.md, fontWeight: '800' },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

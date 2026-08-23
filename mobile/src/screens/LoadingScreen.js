@@ -2,7 +2,7 @@ import React from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import Logo from '../components/Logo.js';
-import { colors, spacing } from '../theme.js';
+import { colors, spacing, registarEstilos } from '../theme.js';
 
 export default function LoadingScreen() {
   return (
@@ -14,11 +14,17 @@ export default function LoadingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.teal,
     alignItems: 'center',
     justifyContent: 'center',
   },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

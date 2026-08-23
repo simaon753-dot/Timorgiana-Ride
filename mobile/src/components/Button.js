@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { colors, radius, spacing, fontSize } from '../theme.js';
+import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
 
 // variant: 'primary' (coral) | 'secondary' (teal) | 'outline' | 'ghost'
 export default function Button({
@@ -42,7 +42,8 @@ const VARIANTS = {
   ghost: { bg: 'transparent', fg: colors.teal, border: 'transparent' },
 };
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   base: {
     minHeight: 52,
     borderRadius: radius.md,
@@ -54,4 +55,9 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.85, transform: [{ scale: 0.99 }] },
   disabled: { opacity: 0.5 },
   label: { fontSize: fontSize.md, fontWeight: '700' },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

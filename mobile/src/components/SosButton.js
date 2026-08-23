@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, Linking, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import * as Location from 'expo-location';
-import { colors, radius, spacing } from '../theme.js';
+import { colors, radius, spacing, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
@@ -84,7 +84,8 @@ export default function SosButton({ rideId, compact }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   botao: {
     backgroundColor: colors.danger,
     borderRadius: radius.md,
@@ -102,4 +103,9 @@ const styles = StyleSheet.create({
   },
   texto: { color: '#fff', fontWeight: '800', fontSize: 16, letterSpacing: 0.5 },
   textoCompacto: { fontSize: 13, letterSpacing: 0 },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

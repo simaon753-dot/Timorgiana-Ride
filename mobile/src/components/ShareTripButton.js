@@ -1,6 +1,6 @@
 import React from 'react';
 import { Share, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { colors, radius, spacing, fontSize } from '../theme.js';
+import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 import { linkMapa } from '../lib/mapaLink.js';
 
@@ -49,7 +49,8 @@ export default function ShareTripButton({ ride, driverLocation, driverPlace }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   botao: {
     borderWidth: 1.5,
     borderColor: colors.teal,
@@ -59,4 +60,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   texto: { color: colors.teal, fontWeight: '700', fontSize: fontSize.md },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

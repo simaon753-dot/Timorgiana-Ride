@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, Pressable, ActivityIndicator, ScrollView, StyleSheet } from 'react-native';
 import { pesquisarLugares } from '../lib/geocode.js';
 import { useI18n } from '../i18n/index.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 
 // Caixa de pesquisa com resultados, a flutuar POR CIMA do mapa.
 //
@@ -111,7 +111,8 @@ export default function PlaceSearch({ placeholder, onEscolher, onFechar, onUsarL
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   // Sem fundo: o que estiver por trás — o mapa — continua à vista.
   wrap: { ...StyleSheet.absoluteFillObject },
   barra: {
@@ -167,4 +168,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     lineHeight: 20,
   },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

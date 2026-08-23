@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import Logo from '../components/Logo.js';
 import LanguageToggle from '../components/LanguageToggle.js';
 import { useI18n } from '../i18n/index.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 
 export default function WelcomeScreen({ navigation }) {
   const { t } = useI18n();
@@ -64,7 +64,8 @@ export default function WelcomeScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.teal },
   header: {
     flexDirection: 'row',
@@ -119,4 +120,9 @@ const styles = StyleSheet.create({
   registoTexto: { color: colors.white, fontSize: fontSize.sm, fontWeight: '700' },
 
   premido: { opacity: 0.75 },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

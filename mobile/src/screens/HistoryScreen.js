@@ -8,7 +8,7 @@ import StarRating from '../components/StarRating.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 
 export default function HistoryScreen({ navigation }) {
   const { t } = useI18n();
@@ -96,7 +96,8 @@ function formatDate(s) {
   return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
   header: {
     flexDirection: 'row',
@@ -148,4 +149,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
     textAlign: 'center',
   },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

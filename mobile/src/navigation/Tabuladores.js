@@ -5,6 +5,7 @@ import PassengerHomeScreen from '../screens/PassengerHomeScreen.js';
 import DriverHomeScreen from '../screens/DriverHomeScreen.js';
 import HistoryScreen from '../screens/HistoryScreen.js';
 import GanhosScreen from '../screens/GanhosScreen.js';
+import PerfilScreen from '../screens/PerfilScreen.js';
 import { colors, fontSize } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 import { useModo } from '../context/ModoContext.js';
@@ -63,6 +64,14 @@ export default function Tabuladores() {
         name="Viagens"
         component={HistoryScreen}
         options={{ title: t('tabTrips'), tabBarIcon: icone('🕘') }}
+      />
+      {/* O perfil também na barra: chegar lá por um avatar pequeno no
+          canto obriga a saber que ele é tocável. Um separador não obriga
+          a saber nada. */}
+      <Tab.Screen
+        name="PerfilTab"
+        component={PerfilScreen}
+        options={{ title: t('tabProfile'), tabBarIcon: icone('👤') }}
       />
     </Tab.Navigator>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { colors, radius, spacing, fontSize } from '../theme.js';
+import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
 
 // Selector segmentado genérico.
 // options: [{ value, label, icon }]
@@ -24,7 +24,8 @@ export default function SegmentedPicker({ options, value, onChange }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   row: { flexDirection: 'row', gap: spacing.sm },
   option: {
     flex: 1,
@@ -39,4 +40,9 @@ const styles = StyleSheet.create({
   icon: { fontSize: 24, marginBottom: spacing.xs },
   label: { fontSize: fontSize.sm, fontWeight: '600', color: colors.textMuted },
   labelActive: { color: colors.teal },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

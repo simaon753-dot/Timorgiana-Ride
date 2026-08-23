@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { setSlowHandler } from '../api/client.js';
 import { useI18n } from '../i18n/index.js';
-import { colors, spacing, fontSize } from '../theme.js';
+import { colors, spacing, fontSize, registarEstilos } from '../theme.js';
 
 // Faixa que aparece quando um pedido está a demorar. Nos planos gratuitos
 // o servidor adormece e leva cerca de um minuto a acordar — sem este aviso
@@ -26,7 +26,8 @@ export default function SlowBanner() {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -37,4 +38,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   text: { color: colors.white, fontSize: fontSize.sm, fontWeight: '600' },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

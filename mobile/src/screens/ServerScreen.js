@@ -23,7 +23,7 @@ import {
   resetServer,
   testServer,
 } from '../serverUrl.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 
 // Permite apontar a app a outro servidor sem recompilar o APK.
 // Acessível a partir do ecrã de boas-vindas — tem de o ser, porque se o
@@ -136,7 +136,8 @@ export default function ServerScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
   scroll: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
   topBar: { paddingTop: spacing.sm },
@@ -173,4 +174,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     textAlign: 'center',
   },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

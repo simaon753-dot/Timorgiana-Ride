@@ -14,7 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 
 export default function ChatScreen({ navigation }) {
   const { t } = useI18n();
@@ -123,7 +123,8 @@ export default function ChatScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
   header: {
     flexDirection: 'row',
@@ -203,4 +204,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sendText: { color: colors.white, fontWeight: '700', fontSize: fontSize.md },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

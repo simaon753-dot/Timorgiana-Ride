@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
-import { colors, radius, spacing, fontSize } from '../theme.js';
+import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
 
 export default function TextField({
   label,
@@ -56,7 +56,8 @@ export default function TextField({
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   wrap: { marginBottom: spacing.md },
   label: { fontSize: fontSize.sm, fontWeight: '600', color: colors.text, marginBottom: spacing.xs },
   optional: { fontWeight: '400', color: colors.textMuted, fontSize: fontSize.xs },
@@ -75,4 +76,9 @@ const styles = StyleSheet.create({
   toggle: { fontSize: 18, paddingLeft: spacing.sm },
   hint: { fontSize: fontSize.xs, color: colors.textMuted, marginTop: spacing.xs },
   errorText: { fontSize: fontSize.xs, color: colors.danger, marginTop: spacing.xs },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

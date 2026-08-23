@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from './Button.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 
 // Onde o motorista escreve o código que o passageiro lhe disse.
@@ -59,7 +59,8 @@ export default function PedirCodigo({ visivel, onFechar, onConfirmar, erro, aEnv
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   fundo: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
   painel: {
     backgroundColor: colors.paper,
@@ -90,4 +91,9 @@ const styles = StyleSheet.create({
   },
   erro: { color: colors.danger, fontSize: fontSize.sm, marginTop: spacing.sm, textAlign: 'center' },
   botoes: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

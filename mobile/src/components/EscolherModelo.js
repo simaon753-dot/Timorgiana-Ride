@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { listaPlana } from '../dados/veiculos.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 
 // Escolher o modelo de uma lista em vez de escrever.
@@ -103,7 +103,8 @@ export default function EscolherModelo({ tipo, valor, onEscolher }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   campo: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -176,4 +177,9 @@ const styles = StyleSheet.create({
   },
   outroBotaoInativo: { backgroundColor: colors.border },
   outroBotaoTexto: { color: colors.white, fontSize: 20, fontWeight: '800' },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

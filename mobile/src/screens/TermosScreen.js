@@ -3,7 +3,7 @@ import { Alert, ScrollView, StyleSheet, Text, View, Pressable } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Button from '../components/Button.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 import { textoTermos, VERSAO_TERMOS_MOTORISTA } from '../termos/index.js';
 import { useAuth } from '../context/AuthContext.js';
@@ -89,7 +89,8 @@ function Paragrafos({ texto }) {
   ));
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
   topo: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   voltar: { color: colors.teal, fontSize: fontSize.md, fontWeight: '600' },
@@ -117,4 +118,9 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     paddingTop: spacing.lg,
   },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

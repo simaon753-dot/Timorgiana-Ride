@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
-import { colors, spacing, fontSize } from '../theme.js';
+import { colors, spacing, fontSize, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 
 // Saída de um ecrã empilhado.
@@ -26,7 +26,13 @@ export default function Voltar({ navigation, style }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   area: { alignSelf: 'flex-start', paddingVertical: spacing.xs, paddingRight: spacing.md },
   texto: { color: colors.teal, fontSize: fontSize.md, fontWeight: '600' },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from './Button.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 
 // Motivos possíveis, por papel. São os mesmos códigos que o servidor
@@ -67,7 +67,8 @@ export default function MotivoCancelamento({ visivel, papel, aCaminho, onFechar,
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   fundo: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
   painel: {
     backgroundColor: colors.paper,
@@ -112,4 +113,9 @@ const styles = StyleSheet.create({
   opcaoTexto: { flex: 1, fontSize: fontSize.md, color: colors.text },
   opcaoTextoEscolhida: { fontWeight: '700' },
   botoes: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

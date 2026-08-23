@@ -27,7 +27,7 @@ import { rideMarkers } from '../lib/rideMarkers.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 
 export default function DriverHomeScreen({ navigation }) {
   const { t } = useI18n();
@@ -336,7 +336,8 @@ function ActiveRideCard({ ride, isFinal, navigation, onArriving, onStart, onComp
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
   avisoDocs: {
     backgroundColor: '#FDECEA',
@@ -475,4 +476,9 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     marginBottom: spacing.sm,
   },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

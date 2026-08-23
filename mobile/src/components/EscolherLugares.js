@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 
 // Quantos lugares / quantas pessoas. Botões e não uma lista: são poucos
 // números e vê-se todos de uma vez, sem abrir nada.
@@ -37,7 +37,8 @@ export default function EscolherLugares({ opcoes, valor, onEscolher, maximo }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   linha: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
   bola: {
     width: 46,
@@ -54,4 +55,9 @@ const styles = StyleSheet.create({
   numero: { fontSize: fontSize.md, fontWeight: '700', color: colors.text },
   numeroActivo: { color: colors.white },
   numeroImpossivel: { color: colors.textMuted },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

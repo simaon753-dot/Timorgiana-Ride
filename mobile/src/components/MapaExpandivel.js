@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import OSMMap from './OSMMap.js';
-import { colors, radius, spacing, fontSize } from '../theme.js';
+import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 
 // Mapa pequeno com um botão para o ver em ecrã inteiro.
@@ -64,7 +64,8 @@ export default function MapaExpandivel({
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   caixa: { position: 'relative' },
   cracha: {
     position: 'absolute',
@@ -113,4 +114,9 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   fecharIcone: { fontSize: 18, color: colors.text, fontWeight: '700' },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });

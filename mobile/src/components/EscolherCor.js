@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { CORES } from '../dados/veiculos.js';
-import { colors, spacing, fontSize, radius } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 
 // Cores em amostras. O quadrado não precisa de língua nenhuma, e é por ele
@@ -49,7 +49,8 @@ function escuro(hex) {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.6;
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = () =>
+  StyleSheet.create({
   grelha: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   item: {
     width: '22%',
@@ -72,4 +73,9 @@ const styles = StyleSheet.create({
   visto: { fontWeight: '900', fontSize: 16 },
   nome: { fontSize: 11, color: colors.textMuted, marginTop: 4 },
   nomeActivo: { color: colors.teal, fontWeight: '700' },
+});
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
 });
