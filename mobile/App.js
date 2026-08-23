@@ -19,16 +19,14 @@ export default function App() {
     <SafeAreaProvider>
       <TemaProvider>
         <I18nProvider>
-        <AuthProvider>
-          {/* A faixa fica por cima de tudo: avisa que o servidor está a
+          <AuthProvider>
+            {/* A faixa fica por cima de tudo: avisa que o servidor está a
               acordar, em qualquer ecrã onde o utilizador esteja. */}
-          <View style={{ flex: 1 }}>
-            <SlowBanner />
             <View style={{ flex: 1 }}>
-              {letraPronta ? <RootNavigator /> : <LoadingScreen />}
+              <SlowBanner />
+              <View style={{ flex: 1 }}>{letraPronta ? <RootNavigator /> : <LoadingScreen />}</View>
             </View>
-          </View>
-        </AuthProvider>
+          </AuthProvider>
         </I18nProvider>
       </TemaProvider>
     </SafeAreaProvider>

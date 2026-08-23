@@ -9,7 +9,6 @@ import {
   Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
 import TextField from '../components/TextField.js';
@@ -29,6 +28,8 @@ import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
+import BarraEstado from '../design/BarraEstado.js';
 
 export default function DriverHomeScreen({ navigation }) {
   const { t } = useI18n();
@@ -78,7 +79,7 @@ export default function DriverHomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <StatusBar style="dark" />
+      <BarraEstado />
       <ScrollView contentContainerStyle={styles.scroll}>
         <BarraTopo navigation={navigation} />
 
@@ -208,7 +209,16 @@ function RequestCard({ ride, onAccept }) {
 }
 
 // ---- Cartão da viagem ativa do motorista ----
-function ActiveRideCard({ ride, isFinal, navigation, onArriving, onStart, onComplete, onCancel, onDismiss }) {
+function ActiveRideCard({
+  ride,
+  isFinal,
+  navigation,
+  onArriving,
+  onStart,
+  onComplete,
+  onCancel,
+  onDismiss,
+}) {
   const { t } = useI18n();
   const [aCancelar, setACancelar] = useState(false);
   const [aPedirCodigo, setAPedirCodigo] = useState(false);
@@ -338,122 +348,100 @@ function ActiveRideCard({ ride, isFinal, navigation, onArriving, onStart, onComp
 
 const criarEstilos = () =>
   StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.paper },
-  avisoDocs: {
-    backgroundColor: '#FDECEA',
-    borderRadius: radius.md,
-    padding: spacing.md,
-    color: colors.danger,
-    fontWeight: '700',
-    fontSize: fontSize.sm,
-    marginBottom: spacing.md,
-  },
-  scroll: { flexGrow: 1, padding: spacing.lg },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.lg,
-  },
-  heading: {
-    fontSize: fontSize.lg,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: spacing.md,
-  },
-  empty: {
-    backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    alignItems: 'center',
-  },
-  emptyTitle: { fontSize: fontSize.md, fontWeight: '700', color: colors.text },
-  emptyHint: {
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-    marginTop: spacing.xs,
-    textAlign: 'center',
-  },
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: spacing.md,
-  },
-  destLabel: {
-    fontSize: fontSize.xs,
-    color: colors.textMuted,
-    marginTop: spacing.md,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  destValue: { fontSize: fontSize.lg, fontWeight: '800', color: colors.text },
-  origin: { fontSize: fontSize.sm, color: colors.textMuted, marginTop: spacing.xs },
-  metaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  passenger: { fontSize: fontSize.sm, color: colors.text, fontWeight: '600' },
-  wants: { fontSize: fontSize.sm, color: colors.teal, fontWeight: '700' },
-  passengerBox: {
-    marginTop: spacing.lg,
-    backgroundColor: '#F0F5F4',
-    borderRadius: radius.md,
-    padding: spacing.md,
-  },
-  boxTitle: {
-    fontSize: fontSize.sm,
-    fontWeight: '700',
-    color: colors.teal,
-    marginBottom: spacing.xs,
-  },
-  passengerName: {
-    fontSize: fontSize.lg,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
-  rowLabel: { color: colors.textMuted, fontSize: fontSize.sm },
-  rowValue: { fontSize: fontSize.sm, fontWeight: '600', color: colors.text },
-  rowValueStrong: { fontSize: fontSize.md, fontWeight: '800', color: colors.teal },
-  callBtn: {
-    marginTop: spacing.md,
-    backgroundColor: colors.teal,
-    borderRadius: radius.md,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  callBtnText: { color: colors.onTeal, fontWeight: '700', fontSize: fontSize.sm },
-  precoLinha: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  precoRotulo: { fontSize: fontSize.sm, color: colors.textMuted },
-  precoValor: { fontSize: fontSize.xl, fontWeight: '800', color: colors.teal },
-  fareEditor: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: spacing.sm,
-    marginTop: spacing.md,
-  },
-  fareSaveBtn: { paddingHorizontal: spacing.lg, marginBottom: spacing.md },
-  offline: {
-    textAlign: 'center',
-    color: colors.textMuted,
-    fontSize: fontSize.xs,
-    marginBottom: spacing.sm,
-  },
-});
+    safe: { flex: 1, backgroundColor: colors.paper },
+    avisoDocs: {
+      ...tipo.corpoForte,
+      backgroundColor: colors.tintaPerigo,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      color: colors.danger,
+      marginBottom: spacing.md,
+    },
+    scroll: { flexGrow: 1, padding: spacing.lg },
+    topBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: spacing.lg,
+    },
+    heading: { ...tipo.titulo, color: colors.text, marginBottom: spacing.md },
+    empty: {
+      backgroundColor: colors.white,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+      alignItems: 'center',
+    },
+    emptyTitle: { ...tipo.subtitulo, color: colors.text },
+    emptyHint: {
+      ...tipo.pequeno,
+      color: colors.textMuted,
+      marginTop: spacing.xs,
+      textAlign: 'center',
+    },
+    card: {
+      backgroundColor: colors.white,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: spacing.md,
+    },
+    destLabel: { ...tipo.etiqueta, color: colors.textMuted, marginTop: spacing.md },
+    destValue: { ...tipo.titulo, color: colors.text },
+    origin: { ...tipo.pequeno, color: colors.textMuted, marginTop: spacing.xs },
+    metaRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: spacing.sm,
+      marginBottom: spacing.md,
+    },
+    passenger: { ...tipo.corpoForte, color: colors.text },
+    wants: { ...tipo.corpoForte, color: colors.teal },
+    passengerBox: {
+      marginTop: spacing.lg,
+      backgroundColor: colors.tintaTeal,
+      borderRadius: radius.md,
+      padding: spacing.md,
+    },
+    boxTitle: { ...tipo.corpoForte, color: colors.teal, marginBottom: spacing.xs },
+    passengerName: { ...tipo.titulo, color: colors.text, marginBottom: spacing.sm },
+    row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
+    rowLabel: { ...tipo.pequeno, color: colors.textMuted },
+    rowValue: { ...tipo.corpoForte, color: colors.text },
+    rowValueStrong: { ...tipo.subtitulo, color: colors.teal },
+    callBtn: {
+      marginTop: spacing.md,
+      backgroundColor: colors.teal,
+      borderRadius: radius.md,
+      paddingVertical: 12,
+      alignItems: 'center',
+    },
+    callBtnText: { ...tipo.corpoForte, color: colors.onTeal },
+    precoLinha: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: spacing.sm,
+      marginBottom: spacing.sm,
+    },
+    precoRotulo: { ...tipo.pequeno, color: colors.textMuted },
+    precoValor: { ...tipo.displayPequeno, color: colors.teal },
+    fareEditor: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      gap: spacing.sm,
+      marginTop: spacing.md,
+    },
+    fareSaveBtn: { paddingHorizontal: spacing.lg, marginBottom: spacing.md },
+    offline: {
+      ...tipo.legenda,
+      textAlign: 'center',
+      color: colors.textMuted,
+      marginBottom: spacing.sm,
+    },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

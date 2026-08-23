@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 
 // Mapa estado -> aparência
@@ -37,14 +38,14 @@ export default function StatusBadge({ status }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  badge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: spacing.md,
-    paddingVertical: 7,
-    borderRadius: radius.pill,
-  },
-  text: { fontSize: fontSize.sm, fontWeight: '700' },
-});
+    badge: {
+      alignSelf: 'flex-start',
+      paddingHorizontal: spacing.md,
+      paddingVertical: 7,
+      borderRadius: radius.pill,
+    },
+    text: { ...tipo.corpoForte },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

@@ -123,8 +123,7 @@ export default {
   // Konfigurasaun servidór
   serverSettings: 'Servidór',
   serverTitle: 'Endereçu servidór',
-  serverExplain:
-    'Endereçu servidór TimorgianaRide. Troka deʼit se aplikasaun la bele liga.',
+  serverExplain: 'Endereçu servidór TimorgianaRide. Troka deʼit se aplikasaun la bele liga.',
   serverField: 'Endereçu',
   serverPlaceholder: 'Ezemplu: 10.0.0.5:4000 ka haʼu-nia-servidor.com',
   serverTest: 'Testa ligasaun',
@@ -145,8 +144,7 @@ export default {
   pendingExplain:
     'Molok simu viajen, ami presiza konfirma ita-nia identidade. Haruka dokumentu sira iha kraik — ami analiza no avisa ita.',
   rejectedTitle: 'Konta la aprova',
-  rejectedExplain:
-    'Ita-nia konta motorista la aprova. Se ita hanoin katak iha sala, kontakta ami.',
+  rejectedExplain: 'Ita-nia konta motorista la aprova. Se ita hanoin katak iha sala, kontakta ami.',
   approvedNow: '🎉 Ita-nia konta aprova ona! Bele simu viajen.',
   docLicence: 'Karta kondusaun',
   docVehicle: 'Dokumentu veíkulu',
@@ -280,7 +278,8 @@ export default {
   earningsTrips: 'viajen {n}',
   earningsLastDays: 'Kada loron',
   earningsEmpty: 'Seidauk remata viajen ida.',
-  earningsNote: 'Osan mai husi pasajeiru liuhusi liman. Neʼe soma husi viajen neʼebé ita remata — TimorgianaRide la rai no la kobra buat ida.',
+  earningsNote:
+    'Osan mai husi pasajeiru liuhusi liman. Neʼe soma husi viajen neʼebé ita remata — TimorgianaRide la rai no la kobra buat ida.',
   // Veíkulu
   vehiclePickModel: 'Hili modelu',
   vehicleSearchModel: 'Buka marka ka modelu…',
@@ -330,7 +329,8 @@ export default {
   modeRide: 'Husu',
   modeDrive: 'Lori',
   wantToDrive: 'Haʼu hakarak lori kareta',
-  wantToDriveHelp: 'Rejista ita-nia veíkulu no haruka dokumentu. Ita bele kontinua husu viajen bainhira hein.',
+  wantToDriveHelp:
+    'Rejista ita-nia veíkulu no haruka dokumentu. Ita bele kontinua husu viajen bainhira hein.',
   driverApplicationPending: 'Rejistu motorista iha análize',
   driverApplicationRejected: 'Rejistu motorista la aprova',
   driverApplicationOk: 'Ita bele lori kareta',
@@ -367,7 +367,8 @@ export default {
   admSuspend: 'Suspende',
   admReactivate: 'Fila fali',
   admSuspendTitle: 'Suspende motorista neʼe?',
-  admSuspendExplain: 'Nia la simu viajen ona no sai la disponivel kedas. Ita bele fila fali depois.',
+  admSuspendExplain:
+    'Nia la simu viajen ona no sai la disponivel kedas. Ita bele fila fali depois.',
   admReasonLabel: 'Razaun (rai iha rejistu)',
   admReasonRequired: 'Hakerek razaun.',
   admStatusPending: 'Hein',

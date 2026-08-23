@@ -185,8 +185,7 @@ export default {
   sosCall: 'Call {n}',
   emgAlso: 'or {n}',
   sosOffline: 'No connection',
-  sosOfflineExplain:
-    "We couldn't alert TimorgianaRide. You can call the police directly.",
+  sosOfflineExplain: "We couldn't alert TimorgianaRide. You can call the police directly.",
   shareTrip: 'Share ride',
   shareTripText:
     'I am on a TimorgianaRide trip.\nDriver: {driver} ({plate})\nDestination: {dest}\nLocation: {link}',
@@ -358,7 +357,8 @@ export default {
   admSuspend: 'Suspend',
   admReactivate: 'Reactivate',
   admSuspendTitle: 'Suspend this driver?',
-  admSuspendExplain: 'They stop receiving rides and go unavailable immediately. You can reactivate them later.',
+  admSuspendExplain:
+    'They stop receiving rides and go unavailable immediately. You can reactivate them later.',
   admReasonLabel: 'Reason (kept on record)',
   admReasonRequired: 'Please write the reason.',
   admStatusPending: 'Waiting',

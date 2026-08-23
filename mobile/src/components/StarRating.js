@@ -25,9 +25,9 @@ export default function StarRating({ value = 0, onChange, size = 40, readOnly = 
 
 const criarEstilos = () =>
   StyleSheet.create({
-  row: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-  star: { paddingHorizontal: 4 },
-});
+    row: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+    star: { paddingHorizontal: 4 },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

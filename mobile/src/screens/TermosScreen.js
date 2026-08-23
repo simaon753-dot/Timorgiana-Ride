@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import Button from '../components/Button.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
+import BarraEstado from '../design/BarraEstado.js';
 import { useI18n } from '../i18n/index.js';
 import { textoTermos, VERSAO_TERMOS_MOTORISTA } from '../termos/index.js';
 import { useAuth } from '../context/AuthContext.js';
@@ -41,7 +42,7 @@ export default function TermosScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <StatusBar style="dark" />
+      <BarraEstado />
       <View style={styles.topo}>
         <Pressable onPress={() => navigation.goBack()} hitSlop={10}>
           <Text style={styles.voltar}>‹ {t('back')}</Text>
@@ -91,34 +92,24 @@ function Paragrafos({ texto }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.paper },
-  topo: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
-  voltar: { color: colors.teal, fontSize: fontSize.md, fontWeight: '600' },
-  conteudo: { padding: spacing.lg, paddingBottom: spacing.xxl },
-  titulo: { fontSize: fontSize.xl, fontWeight: '800', color: colors.text },
-  subtitulo: { fontSize: fontSize.md, color: colors.text, marginTop: spacing.xs },
-  versao: { fontSize: fontSize.xs, color: colors.textMuted, marginTop: spacing.xs },
-  seccao: { marginTop: spacing.lg },
-  seccaoTitulo: {
-    fontSize: fontSize.md,
-    fontWeight: '800',
-    color: colors.teal,
-    marginBottom: spacing.xs,
-  },
-  paragrafo: {
-    fontSize: fontSize.sm,
-    lineHeight: 21,
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  forte: { fontWeight: '800' },
-  aceitarCaixa: {
-    marginTop: spacing.xl,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingTop: spacing.lg,
-  },
-});
+    safe: { flex: 1, backgroundColor: colors.paper },
+    topo: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
+    voltar: { ...tipo.subtitulo, color: colors.teal },
+    conteudo: { padding: spacing.lg, paddingBottom: spacing.xxl },
+    titulo: { ...tipo.displayPequeno, color: colors.text },
+    subtitulo: { ...tipo.corpo, color: colors.text, marginTop: spacing.xs },
+    versao: { ...tipo.legenda, color: colors.textMuted, marginTop: spacing.xs },
+    seccao: { marginTop: spacing.lg },
+    seccaoTitulo: { ...tipo.subtitulo, color: colors.teal, marginBottom: spacing.xs },
+    paragrafo: { ...tipo.pequeno, lineHeight: 21, color: colors.text, marginBottom: spacing.sm },
+    forte: { fontWeight: '800' },
+    aceitarCaixa: {
+      marginTop: spacing.xl,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingTop: spacing.lg,
+    },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

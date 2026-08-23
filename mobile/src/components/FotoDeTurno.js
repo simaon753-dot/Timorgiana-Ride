@@ -3,6 +3,7 @@ import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Button from './Button.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
@@ -65,19 +66,19 @@ export default function FotoDeTurno({ feita, onFeita }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  caixa: {
-    backgroundColor: '#FFF8F0',
-    borderWidth: 1,
-    borderColor: colors.coral,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-  },
-  titulo: { fontSize: fontSize.md, fontWeight: '800', color: colors.text },
-  explica: { fontSize: fontSize.sm, color: colors.textMuted, marginTop: 4, lineHeight: 19 },
-  feita: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  miniatura: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.border },
-  feitaTexto: { color: colors.success, fontWeight: '700', fontSize: fontSize.sm },
-});
+    caixa: {
+      backgroundColor: colors.tintaCoral,
+      borderWidth: 1,
+      borderColor: colors.coral,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+    },
+    titulo: { ...tipo.subtitulo, color: colors.text },
+    explica: { ...tipo.pequeno, color: colors.textMuted, marginTop: 4, lineHeight: 19 },
+    feita: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    miniatura: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.border },
+    feitaTexto: { ...tipo.corpoForte, color: colors.success },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

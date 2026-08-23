@@ -56,29 +56,29 @@ export default function RootNavigator() {
       {user ? (
         // Área autenticada (com estado de viagens em tempo real)
         <ModoProvider>
-        <RideProvider>
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {/* Os tabuladores são o ecrã de base; tudo o resto abre por
+          <RideProvider>
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+              {/* Os tabuladores são o ecrã de base; tudo o resto abre por
                 cima deles, para a barra não aparecer onde estorva — num
                 mapa a ocupar o ecrã, numa conversa, nos termos. */}
-            <Stack.Screen name="Tabs" component={Tabuladores} />
-            {/* Sem condição de papel: qualquer conta pode pedir uma
+              <Stack.Screen name="Tabs" component={Tabuladores} />
+              {/* Sem condição de papel: qualquer conta pode pedir uma
                 viagem, incluindo quem também conduz. */}
-            <Stack.Screen name="RequestRide" component={RequestRideScreen} />
-            {/* O registo de motorista deixou de ser uma prisão: quem
+              <Stack.Screen name="RequestRide" component={RequestRideScreen} />
+              {/* O registo de motorista deixou de ser uma prisão: quem
                 espera aprovação continua a poder pedir viagens, e chega
                 aqui pelo perfil quando quiser ver como está. */}
-            <Stack.Screen name="DriverPending" component={DriverPendingScreen} />
-            <Stack.Screen name="Chat" component={ChatScreen} />
-            <Stack.Screen name="Perfil" component={PerfilScreen} />
-            <Stack.Screen name="Opcoes" component={OpcoesScreen} />
-            <Stack.Screen name="Server" component={ServerScreen} />
-            <Stack.Screen name="Termos" component={TermosScreen} />
-            {/* Só existe para administradores. Não estar registado é a
+              <Stack.Screen name="DriverPending" component={DriverPendingScreen} />
+              <Stack.Screen name="Chat" component={ChatScreen} />
+              <Stack.Screen name="Perfil" component={PerfilScreen} />
+              <Stack.Screen name="Opcoes" component={OpcoesScreen} />
+              <Stack.Screen name="Server" component={ServerScreen} />
+              <Stack.Screen name="Termos" component={TermosScreen} />
+              {/* Só existe para administradores. Não estar registado é a
                 melhor protecção: não há ecrã para navegar até ele. */}
-            {user.isAdmin ? <Stack.Screen name="Admin" component={AdminScreen} /> : null}
-          </Stack.Navigator>
-        </RideProvider>
+              {user.isAdmin ? <Stack.Screen name="Admin" component={AdminScreen} /> : null}
+            </Stack.Navigator>
+          </RideProvider>
         </ModoProvider>
       ) : (
         // Área pública

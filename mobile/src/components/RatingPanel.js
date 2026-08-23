@@ -5,6 +5,7 @@ import Button from './Button.js';
 import { useI18n } from '../i18n/index.js';
 import { useRides } from '../context/RideContext.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
 
 // Painel de avaliação mostrado quando a viagem fica concluída.
 export default function RatingPanel({ ride, role }) {
@@ -47,19 +48,19 @@ export default function RatingPanel({ ride, role }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  box: {
-    marginTop: spacing.lg,
-    backgroundColor: '#FFF8F0',
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: '#F0E2CF',
-    padding: spacing.lg,
-    alignItems: 'center',
-  },
-  title: { fontSize: fontSize.md, fontWeight: '800', color: colors.text },
-  subtitle: { fontSize: fontSize.sm, color: colors.textMuted, marginTop: spacing.xs },
-  thanks: { fontSize: fontSize.md, fontWeight: '700', color: colors.success, textAlign: 'center' },
-});
+    box: {
+      marginTop: spacing.lg,
+      backgroundColor: colors.tintaCoral,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.contornoCoral,
+      padding: spacing.lg,
+      alignItems: 'center',
+    },
+    title: { ...tipo.subtitulo, color: colors.text },
+    subtitle: { ...tipo.pequeno, color: colors.textMuted, marginTop: spacing.xs },
+    thanks: { ...tipo.subtitulo, color: colors.success, textAlign: 'center' },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

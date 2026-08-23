@@ -23,14 +23,14 @@ export default function LoadingScreen() {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.teal,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tais: { position: 'absolute', bottom: 0, left: 0, right: 0 },
-});
+    container: {
+      flex: 1,
+      backgroundColor: colors.teal,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    tais: { position: 'absolute', bottom: 0, left: 0, right: 0 },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

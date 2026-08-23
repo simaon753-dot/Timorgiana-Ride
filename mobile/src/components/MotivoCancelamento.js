@@ -3,6 +3,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from './Button.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 
 // Motivos possíveis, por papel. São os mesmos códigos que o servidor
@@ -10,8 +11,20 @@ import { useI18n } from '../i18n/index.js';
 // metade dos motoristas cancela por "passageiro não aparece", isso muda o
 // produto, não é uma queixa isolada.
 const MOTIVOS = {
-  passenger: ['mudei_de_ideias', 'motorista_demora', 'enganei_destino', 'outro_transporte', 'outro'],
-  driver: ['longe_demais', 'passageiro_nao_aparece', 'problema_veiculo', 'destino_inacessivel', 'outro'],
+  passenger: [
+    'mudei_de_ideias',
+    'motorista_demora',
+    'enganei_destino',
+    'outro_transporte',
+    'outro',
+  ],
+  driver: [
+    'longe_demais',
+    'passageiro_nao_aparece',
+    'problema_veiculo',
+    'destino_inacessivel',
+    'outro',
+  ],
 };
 
 export default function MotivoCancelamento({ visivel, papel, aCaminho, onFechar, onConfirmar }) {
@@ -69,51 +82,51 @@ export default function MotivoCancelamento({ visivel, papel, aCaminho, onFechar,
 
 const criarEstilos = () =>
   StyleSheet.create({
-  fundo: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
-  painel: {
-    backgroundColor: colors.paper,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.md,
-    maxHeight: '82%',
-  },
-  puxador: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.border,
-    alignSelf: 'center',
-    marginBottom: spacing.md,
-  },
-  titulo: { fontSize: fontSize.lg, fontWeight: '800', color: colors.text },
-  aviso: { fontSize: fontSize.sm, color: colors.textMuted, marginTop: spacing.xs, lineHeight: 19 },
-  lista: { marginTop: spacing.md, flexGrow: 0 },
-  opcao: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    gap: spacing.md,
-  },
-  opcaoEscolhida: { borderColor: colors.teal, backgroundColor: '#F0F5F4' },
-  bola: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: colors.border,
-  },
-  bolaEscolhida: { borderColor: colors.teal, borderWidth: 6 },
-  opcaoTexto: { flex: 1, fontSize: fontSize.md, color: colors.text },
-  opcaoTextoEscolhida: { fontWeight: '700' },
-  botoes: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
-});
+    fundo: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
+    painel: {
+      backgroundColor: colors.paper,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.md,
+      maxHeight: '82%',
+    },
+    puxador: {
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.border,
+      alignSelf: 'center',
+      marginBottom: spacing.md,
+    },
+    titulo: { ...tipo.titulo, color: colors.text },
+    aviso: { ...tipo.pequeno, color: colors.textMuted, marginTop: spacing.xs, lineHeight: 19 },
+    lista: { marginTop: spacing.md, flexGrow: 0 },
+    opcao: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.white,
+      borderRadius: radius.md,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+      gap: spacing.md,
+    },
+    opcaoEscolhida: { borderColor: colors.teal, backgroundColor: colors.tintaTeal },
+    bola: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: colors.border,
+    },
+    bolaEscolhida: { borderColor: colors.teal, borderWidth: 6 },
+    opcaoTexto: { ...tipo.corpo, flex: 1, color: colors.text },
+    opcaoTextoEscolhida: { fontWeight: '700' },
+    botoes: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

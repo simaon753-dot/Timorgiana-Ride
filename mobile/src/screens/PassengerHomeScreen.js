@@ -10,7 +10,8 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
+import BarraEstado from '../design/BarraEstado.js';
+import { tipo } from '../design/tipografia.js';
 import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
 import BarraTopo from '../components/BarraTopo.js';
@@ -29,7 +30,7 @@ import { nomeDaCor, hexDaCor } from '../lib/corVeiculo.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
-import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { colors, spacing, radius, elevacao, registarEstilos } from '../theme.js';
 
 export default function PassengerHomeScreen({ navigation }) {
   const { t } = useI18n();
@@ -79,7 +80,7 @@ export default function PassengerHomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <StatusBar style="dark" />
+      <BarraEstado />
       <ScrollView contentContainerStyle={styles.scroll}>
         <BarraTopo navigation={navigation} />
 
@@ -114,10 +115,11 @@ export default function PassengerHomeScreen({ navigation }) {
                   height={190}
                   liveMarker={driverLocation}
                   liveLabel={driverPlace}
-                  info={{ km: activeRide.distanceKm, min: activeRide.durationMin }}
-                  aviso={
-                    minChegada != null ? t('etaArrivalShort', { min: minChegada }) : null
-                  }
+                  info={{
+                    km: activeRide.distanceKm,
+                    min: activeRide.durationMin,
+                  }}
+                  aviso={minChegada != null ? t('etaArrivalShort', { min: minChegada }) : null}
                 />
                 {driverLocation ? (
                   <Text style={styles.driverMoving}>
@@ -138,25 +140,30 @@ export default function PassengerHomeScreen({ navigation }) {
               <View style={styles.driverBox}>
                 <Text style={styles.boxTitle}>{t('yourDriver')}</Text>
                 <Text style={styles.driverName}>{activeRide.driver.name}</Text>
-                <InfoRow label={t('vehicleType')} value={vehicleLabel(activeRide.driver.vehicle)} />
-                {activeRide.driver.vehicle?.model ? (
-                  <InfoRow label={t('vehicleModel')} value={activeRide.driver.vehicle.model} />
-                ) : null}
-                {activeRide.driver.vehicle?.plate ? (
-                  <InfoRow label={t('vehiclePlate')} value={activeRide.driver.vehicle.plate} />
-                ) : null}
-                {/* A cor é o que se vê primeiro na rua, antes da matrícula.
-                    Leva amostra: um quadrado branco identifica-se de longe,
-                    a palavra "Branco" tem de ser lida. */}
-                {activeRide.driver.vehicle?.color ? (
-                  <View style={styles.linhaCor}>
-                    <Text style={styles.corRotulo}>{t('vehicleColor')}</Text>
-                    <View style={styles.corValor}>
+
+                {/* Identificação do veículo, em bloco próprio.
+                    Quem espera na rua faz sempre a mesma sequência: vê a
+                    COR ao longe, e confirma a MATRÍCULA de perto. Estavam
+                    as duas perdidas numa lista de linhas iguais, ao lado
+                    do preço e da hora. Aqui saem da lista e ficam do
+                    tamanho do trabalho que fazem. */}
+                <View style={styles.identificacao}>
+                  {activeRide.driver.vehicle?.plate ? (
+                    <View style={styles.matriculaCaixa}>
+                      <Text style={styles.matriculaRotulo}>{t('vehiclePlate')}</Text>
+                      <Text style={styles.matricula}>{activeRide.driver.vehicle.plate}</Text>
+                    </View>
+                  ) : null}
+
+                  {activeRide.driver.vehicle?.color ? (
+                    <View style={styles.corBloco}>
                       {hexDaCor(activeRide.driver.vehicle.color) ? (
                         <View
                           style={[
                             styles.corAmostra,
-                            { backgroundColor: hexDaCor(activeRide.driver.vehicle.color) },
+                            {
+                              backgroundColor: hexDaCor(activeRide.driver.vehicle.color),
+                            },
                           ]}
                         />
                       ) : null}
@@ -164,12 +171,20 @@ export default function PassengerHomeScreen({ navigation }) {
                         {nomeDaCor(activeRide.driver.vehicle.color, t)}
                       </Text>
                     </View>
-                  </View>
+                  ) : null}
+                </View>
+
+                <InfoRow label={t('vehicleType')} value={vehicleLabel(activeRide.driver.vehicle)} />
+                {activeRide.driver.vehicle?.model ? (
+                  <InfoRow label={t('vehicleModel')} value={activeRide.driver.vehicle.model} />
                 ) : null}
                 {minChegada != null ? (
                   <InfoRow
                     label={t('etaArrival')}
-                    value={t('etaMinutes', { min: minChegada, hora: horaDeChegada(minChegada) })}
+                    value={t('etaMinutes', {
+                      min: minChegada,
+                      hora: horaDeChegada(minChegada),
+                    })}
                     strong
                   />
                 ) : null}
@@ -248,14 +263,29 @@ export default function PassengerHomeScreen({ navigation }) {
           </View>
         ) : (
           // ---- Sem viagem: pedir ----
-          <View style={styles.heroCard}>
-            <Text style={styles.hello}>{t('homeHello', { name: user?.name || '' })}</Text>
-            <Text style={styles.prompt}>{t('passengerPrompt')}</Text>
-            <Button
-              title={t('requestRide')}
+          //
+          // Este é o estado em que a app abre quase sempre, e era o mais
+          // fraco do ecrã: um cartão pequeno com uma saudação e um botão.
+          //
+          // Agora a saudação respira e a acção tem a forma de uma barra de
+          // procura com um ponto coral à esquerda. Não é decoração: é a
+          // forma que toda a gente já associa a "escrever para onde vou",
+          // e diz o que vai acontecer antes de se lhe tocar. Um botão que
+          // diz "Pedir viagem" obriga a adivinhar o passo seguinte.
+          <View style={styles.inicio}>
+            <Text style={styles.saudacao}>{t('homeHello', { name: user?.name || '' })}</Text>
+            <Text style={styles.convite}>{t('passengerPrompt')}</Text>
+
+            <Pressable
+              style={({ pressed }) => [styles.barraDestino, pressed && styles.premido]}
               onPress={() => navigation.navigate('RequestRide')}
-              style={{ marginTop: spacing.lg }}
-            />
+              accessibilityRole="button"
+              accessibilityLabel={t('requestRide')}
+            >
+              <View style={styles.pontoPartida} />
+              <Text style={styles.barraTexto}>{t('whereTo')}</Text>
+              <Text style={styles.barraSeta}>›</Text>
+            </Pressable>
           </View>
         )}
 
@@ -277,119 +307,135 @@ function InfoRow({ label, value, strong }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  linhaCor: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 6,
-  },
-  corRotulo: { fontSize: fontSize.sm, color: colors.textMuted },
-  corValor: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  corAmostra: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  corTexto: { fontSize: fontSize.sm, color: colors.text, fontWeight: '600' },
-  safe: { flex: 1, backgroundColor: colors.paper },
-  scroll: { flexGrow: 1, padding: spacing.lg },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.xl,
-  },
-  topBarDireita: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  voltarConduzir: {
-    backgroundColor: colors.white,
-    borderRadius: radius.md,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.md,
-    alignSelf: 'flex-start',
-  },
-  voltarConduzirTexto: { color: colors.teal, fontWeight: '700', fontSize: fontSize.sm },
-  adminLink: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.white,
-  },
-  adminLinkText: { fontSize: 18, color: colors.teal },
-  heroCard: {
-    backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  hello: { fontSize: fontSize.xl, fontWeight: '800', color: colors.text },
-  prompt: { fontSize: fontSize.md, color: colors.textMuted, marginTop: spacing.xs },
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  destLabel: {
-    fontSize: fontSize.xs,
-    color: colors.textMuted,
-    marginTop: spacing.md,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  destValue: { fontSize: fontSize.xl, fontWeight: '800', color: colors.text },
-  origin: { fontSize: fontSize.sm, color: colors.textMuted, marginTop: spacing.xs },
-  searching: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.lg,
-    gap: spacing.sm,
-  },
-  searchingText: { fontSize: fontSize.md, color: colors.coralDark, fontWeight: '600' },
-  driverBox: {
-    marginTop: spacing.lg,
-    backgroundColor: '#F0F5F4',
-    borderRadius: radius.md,
-    padding: spacing.md,
-  },
-  boxTitle: {
-    fontSize: fontSize.sm,
-    fontWeight: '700',
-    color: colors.teal,
-    marginBottom: spacing.xs,
-  },
-  driverName: {
-    fontSize: fontSize.lg,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
-  rowLabel: { color: colors.textMuted, fontSize: fontSize.sm },
-  rowValue: { color: colors.text, fontSize: fontSize.sm, fontWeight: '600' },
-  rowValueStrong: { fontSize: fontSize.md, fontWeight: '800', color: colors.teal },
-  callBtn: {
-    marginTop: spacing.md,
-    backgroundColor: colors.teal,
-    borderRadius: radius.md,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  callBtnText: { color: colors.onTeal, fontWeight: '700', fontSize: fontSize.sm },
-  driverMoving: {
-    fontSize: fontSize.xs,
-    color: colors.teal,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginTop: spacing.xs,
-  },
-});
+    // A amostra é grande de propósito: identifica-se de longe, enquanto a
+    // palavra "Branco" tem primeiro de ser lida.
+    corAmostra: {
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    corTexto: { ...tipo.legenda, color: colors.text },
+    // ---- Estado sem viagem ----
+    inicio: { paddingTop: spacing.sm },
+    saudacao: { ...tipo.display, color: colors.text },
+    convite: { ...tipo.corpo, color: colors.textMuted, marginTop: spacing.xs },
+    barraDestino: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      marginTop: spacing.xl,
+      backgroundColor: colors.white,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.lg,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.md,
+      ...elevacao.plana,
+    },
+    // O ponto é a única coisa coral do ecrã em repouso. Marca onde a
+    // viagem começa, e é o que faz a barra ler-se como um mapa e não como
+    // um campo de texto qualquer.
+    pontoPartida: {
+      width: 11,
+      height: 11,
+      borderRadius: radius.pill,
+      backgroundColor: colors.coral,
+    },
+    barraTexto: { ...tipo.corpoForte, color: colors.text, flex: 1 },
+    barraSeta: { fontSize: 24, color: colors.textMuted, marginTop: -2 },
+    premido: { opacity: 0.92, transform: [{ scale: 0.995 }] },
+
+    // ---- Identificação do veículo ----
+    identificacao: { flexDirection: 'row', gap: spacing.sm, marginVertical: spacing.md },
+    matriculaCaixa: {
+      flex: 1,
+      backgroundColor: colors.paper,
+      borderWidth: 1.5,
+      borderColor: colors.teal,
+      borderRadius: radius.md,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+    },
+    matriculaRotulo: { ...tipo.etiqueta, color: colors.textMuted },
+    // Espaçamento largo: uma matrícula lê-se caracter a caracter, não como
+    // palavra, e é assim que se compara com o carro que está à frente.
+    matricula: { ...tipo.titulo, color: colors.text, letterSpacing: 1.5, marginTop: 1 },
+    corBloco: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.xs,
+      paddingHorizontal: spacing.md,
+      backgroundColor: colors.paper,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+    },
+
+    safe: { flex: 1, backgroundColor: colors.paper },
+    scroll: { flexGrow: 1, padding: spacing.lg },
+    voltarConduzir: {
+      backgroundColor: colors.white,
+      borderRadius: radius.md,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      marginBottom: spacing.md,
+      alignSelf: 'flex-start',
+    },
+    voltarConduzirTexto: { ...tipo.corpoForte, color: colors.teal },
+    card: {
+      backgroundColor: colors.white,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    destLabel: { ...tipo.etiqueta, color: colors.textMuted, marginTop: spacing.md },
+    destValue: { ...tipo.displayPequeno, color: colors.text },
+    origin: { ...tipo.pequeno, color: colors.textMuted, marginTop: spacing.xs },
+    searching: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: spacing.lg,
+      gap: spacing.sm,
+    },
+    searchingText: { ...tipo.corpoForte, color: colors.coralDark },
+    // Era '#F0F5F4' fixo — um creme esverdeado que no tema escuro ficava um
+    // rectângulo claro dentro do ecrã preto.
+    driverBox: {
+      marginTop: spacing.lg,
+      backgroundColor: colors.white,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+    },
+    boxTitle: { ...tipo.etiqueta, color: colors.teal, marginBottom: spacing.xs },
+    driverName: { ...tipo.titulo, color: colors.text },
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: 4,
+    },
+    rowLabel: { ...tipo.pequeno, color: colors.textMuted },
+    rowValue: { ...tipo.corpoForte, color: colors.text },
+    rowValueStrong: { ...tipo.subtitulo, color: colors.teal },
+    callBtn: {
+      marginTop: spacing.md,
+      backgroundColor: colors.teal,
+      borderRadius: radius.md,
+      paddingVertical: 12,
+      alignItems: 'center',
+    },
+    callBtnText: { ...tipo.corpoForte, color: colors.onTeal },
+    driverMoving: {
+      ...tipo.legenda,
+      color: colors.teal,
+      textAlign: 'center',
+      marginTop: spacing.xs,
+    },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

@@ -9,7 +9,6 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import Button from '../components/Button.js';
 import TextField from '../components/TextField.js';
 import Logo from '../components/Logo.js';
@@ -24,6 +23,8 @@ import {
   testServer,
 } from '../serverUrl.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
+import BarraEstado from '../design/BarraEstado.js';
 
 // Permite apontar a app a outro servidor sem recompilar o APK.
 // Acessível a partir do ecrã de boas-vindas — tem de o ser, porque se o
@@ -66,7 +67,7 @@ export default function ServerScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <StatusBar style="dark" />
+      <BarraEstado />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -129,7 +130,9 @@ export default function ServerScreen({ navigation }) {
             </>
           ) : null}
 
-          <Text style={styles.hint}>{t('serverDefault')}: {getDefaultUrl()}</Text>
+          <Text style={styles.hint}>
+            {t('serverDefault')}: {getDefaultUrl()}
+          </Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -138,43 +141,33 @@ export default function ServerScreen({ navigation }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.paper },
-  scroll: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
-  topBar: { paddingTop: spacing.sm },
-  back: { color: colors.teal, fontSize: fontSize.md, fontWeight: '700' },
-  brand: { marginTop: spacing.lg, marginBottom: spacing.md },
-  title: { fontSize: fontSize.xl, fontWeight: '800', color: colors.text },
-  explain: {
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-    marginTop: spacing.xs,
-    marginBottom: spacing.lg,
-    lineHeight: 20,
-  },
-  currentBox: {
-    backgroundColor: '#EFEAE1',
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  currentLabel: { fontSize: fontSize.xs, color: colors.textMuted, textTransform: 'uppercase' },
-  currentValue: {
-    fontSize: fontSize.md,
-    fontWeight: '700',
-    color: colors.teal,
-    marginTop: 2,
-  },
-  currentSource: { fontSize: fontSize.xs, color: colors.textMuted, marginTop: 2 },
-  result: { fontSize: fontSize.sm, marginBottom: spacing.md, fontWeight: '600' },
-  resultOk: { color: colors.success },
-  resultFail: { color: colors.danger },
-  hint: {
-    fontSize: fontSize.xs,
-    color: colors.textMuted,
-    marginTop: spacing.lg,
-    textAlign: 'center',
-  },
-});
+    safe: { flex: 1, backgroundColor: colors.paper },
+    scroll: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
+    topBar: { paddingTop: spacing.sm },
+    back: { ...tipo.subtitulo, color: colors.teal },
+    brand: { marginTop: spacing.lg, marginBottom: spacing.md },
+    title: { ...tipo.displayPequeno, color: colors.text },
+    explain: {
+      ...tipo.pequeno,
+      color: colors.textMuted,
+      marginTop: spacing.xs,
+      marginBottom: spacing.lg,
+      lineHeight: 20,
+    },
+    currentBox: {
+      backgroundColor: colors.tintaTeal,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.lg,
+    },
+    currentLabel: { ...tipo.etiqueta, color: colors.textMuted },
+    currentValue: { ...tipo.subtitulo, color: colors.teal, marginTop: 2 },
+    currentSource: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
+    result: { ...tipo.corpoForte, marginBottom: spacing.md },
+    resultOk: { color: colors.success },
+    resultFail: { color: colors.danger },
+    hint: { ...tipo.legenda, color: colors.textMuted, marginTop: spacing.lg, textAlign: 'center' },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

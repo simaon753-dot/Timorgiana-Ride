@@ -1,9 +1,17 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import BarraTopo from '../components/BarraTopo.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
+import BarraEstado from '../design/BarraEstado.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
@@ -39,7 +47,7 @@ export default function GanhosScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <StatusBar style="dark" />
+      <BarraEstado />
       <BarraTopo navigation={navigation} titulo={t('tabEarnings')} />
 
       {aCarregar ? (
@@ -54,9 +62,7 @@ export default function GanhosScreen({ navigation }) {
           <View style={styles.hoje}>
             <Text style={styles.hojeRotulo}>{t('earningsToday')}</Text>
             <Text style={styles.hojeValor}>${(g?.hoje ?? 0).toFixed(2)}</Text>
-            <Text style={styles.hojeViagens}>
-              {t('earningsTrips', { n: g?.viagensHoje ?? 0 })}
-            </Text>
+            <Text style={styles.hojeViagens}>{t('earningsTrips', { n: g?.viagensHoje ?? 0 })}</Text>
           </View>
 
           <View style={styles.par}>
@@ -109,76 +115,71 @@ function formatarDia(iso) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.paper },
-  conteudo: { padding: spacing.lg, paddingBottom: spacing.xxl },
-  hoje: {
-    backgroundColor: colors.teal,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    alignItems: 'center',
-  },
-  hojeRotulo: { color: colors.onTeal, fontSize: fontSize.sm, opacity: 0.85, fontWeight: '600' },
-  hojeValor: {
-    color: colors.onTeal,
-    fontSize: 46,
-    fontWeight: '800',
-    marginVertical: 2,
-    fontVariant: ['tabular-nums'],
-  },
-  hojeViagens: { color: colors.onTeal, fontSize: fontSize.sm, opacity: 0.85 },
-  par: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
-  cartao: {
-    flex: 1,
-    backgroundColor: colors.white,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    alignItems: 'center',
-  },
-  cartaoRotulo: { fontSize: fontSize.xs, color: colors.textMuted, fontWeight: '700' },
-  cartaoValor: {
-    fontSize: fontSize.lg,
-    fontWeight: '800',
-    color: colors.text,
-    marginTop: 2,
-    fontVariant: ['tabular-nums'],
-  },
-  cartaoViagens: { fontSize: 11, color: colors.textMuted },
-  seccao: {
-    fontSize: fontSize.xs,
-    fontWeight: '800',
-    color: colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginTop: spacing.xl,
-    marginBottom: spacing.sm,
-  },
-  caixa: { backgroundColor: colors.white, borderRadius: radius.md, padding: spacing.md },
-  dia: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.sm },
-  diaData: {
-    width: 44,
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-    fontVariant: ['tabular-nums'],
-  },
-  barraFundo: { flex: 1, height: 10, backgroundColor: colors.paper, borderRadius: 5 },
-  barra: { height: 10, backgroundColor: colors.coral, borderRadius: 5 },
-  diaValor: {
-    width: 62,
-    textAlign: 'right',
-    fontSize: fontSize.sm,
-    fontWeight: '700',
-    color: colors.text,
-    fontVariant: ['tabular-nums'],
-  },
-  vazio: { color: colors.textMuted, fontSize: fontSize.sm, textAlign: 'center', paddingVertical: spacing.lg },
-  nota: {
-    fontSize: fontSize.xs,
-    color: colors.textMuted,
-    marginTop: spacing.lg,
-    lineHeight: 17,
-    textAlign: 'center',
-  },
-});
+    safe: { flex: 1, backgroundColor: colors.paper },
+    conteudo: { padding: spacing.lg, paddingBottom: spacing.xxl },
+    hoje: {
+      backgroundColor: colors.teal,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      alignItems: 'center',
+    },
+    hojeRotulo: { ...tipo.corpoForte, color: colors.onTeal, opacity: 0.85 },
+    hojeValor: {
+      color: colors.onTeal,
+      fontSize: 46,
+      fontWeight: '800',
+      marginVertical: 2,
+      fontVariant: ['tabular-nums'],
+    },
+    hojeViagens: { ...tipo.pequeno, color: colors.onTeal, opacity: 0.85 },
+    par: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+    cartao: {
+      flex: 1,
+      backgroundColor: colors.white,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      alignItems: 'center',
+    },
+    cartaoRotulo: { ...tipo.legenda, color: colors.textMuted },
+    cartaoValor: {
+      ...tipo.titulo,
+      color: colors.text,
+      marginTop: 2,
+      fontVariant: ['tabular-nums'],
+    },
+    cartaoViagens: { fontSize: 11, color: colors.textMuted },
+    seccao: {
+      ...tipo.etiqueta,
+      color: colors.textMuted,
+      marginTop: spacing.xl,
+      marginBottom: spacing.sm,
+    },
+    caixa: { backgroundColor: colors.white, borderRadius: radius.md, padding: spacing.md },
+    dia: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.sm },
+    diaData: { ...tipo.pequeno, width: 44, color: colors.textMuted, fontVariant: ['tabular-nums'] },
+    barraFundo: { flex: 1, height: 10, backgroundColor: colors.paper, borderRadius: 5 },
+    barra: { height: 10, backgroundColor: colors.coral, borderRadius: 5 },
+    diaValor: {
+      ...tipo.corpoForte,
+      width: 62,
+      textAlign: 'right',
+      color: colors.text,
+      fontVariant: ['tabular-nums'],
+    },
+    vazio: {
+      ...tipo.pequeno,
+      color: colors.textMuted,
+      textAlign: 'center',
+      paddingVertical: spacing.lg,
+    },
+    nota: {
+      ...tipo.legenda,
+      color: colors.textMuted,
+      marginTop: spacing.lg,
+      lineHeight: 17,
+      textAlign: 'center',
+    },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

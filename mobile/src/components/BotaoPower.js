@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, spacing, fontSize, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 
 // Ligar e desligar o trabalho.
@@ -21,11 +22,7 @@ export default function BotaoPower({ ligado, aMudar, onPress }) {
       <Pressable
         onPress={onPress}
         disabled={aMudar}
-        style={({ pressed }) => [
-          styles.botao,
-          { borderColor: cor },
-          pressed && styles.premido,
-        ]}
+        style={({ pressed }) => [styles.botao, { borderColor: cor }, pressed && styles.premido]}
         accessibilityRole="switch"
         accessibilityState={{ checked: !!ligado, disabled: !!aMudar }}
         accessibilityLabel={t(ligado ? 'ready' : 'notReady')}
@@ -59,13 +56,7 @@ const criarEstilos = () =>
     },
     premido: { opacity: 0.6 },
     simbolo: { fontSize: 42, lineHeight: 50, fontWeight: '300' },
-    estado: {
-      marginTop: spacing.sm,
-      fontSize: fontSize.xs,
-      fontWeight: '800',
-      letterSpacing: 1,
-      textTransform: 'uppercase',
-    },
+    estado: { ...tipo.etiqueta, marginTop: spacing.sm },
   });
 
 let styles = criarEstilos();

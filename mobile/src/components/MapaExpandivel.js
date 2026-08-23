@@ -3,6 +3,7 @@ import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import OSMMap from './OSMMap.js';
 import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 
 // Mapa pequeno com um botão para o ver em ecrã inteiro.
@@ -60,13 +61,18 @@ export default function MapaExpandivel({
           {/* O mapa é remontado aqui — é um mapa novo, com espaço para
               mostrar o trajeto inteiro em vez da faixa do cartão. */}
           <View style={{ flex: 1 }}>
-            <OSMMap markers={markers} center={center} liveMarker={liveMarker} liveLabel={liveLabel} fill />
+            <OSMMap
+              markers={markers}
+              center={center}
+              liveMarker={liveMarker}
+              liveLabel={liveLabel}
+              fill
+            />
             {cracha}
             <Pressable style={styles.fechar} onPress={() => setAberto(false)} hitSlop={10}>
               <Text style={styles.fecharIcone}>✕</Text>
             </Pressable>
           </View>
-
         </SafeAreaView>
       </Modal>
     </View>
@@ -75,55 +81,58 @@ export default function MapaExpandivel({
 
 const criarEstilos = () =>
   StyleSheet.create({
-  caixa: { position: 'relative' },
-  cracha: {
-    position: 'absolute',
-    top: spacing.sm,
-    left: spacing.sm,
-    backgroundColor: 'rgba(28,36,33,0.88)',
-    borderRadius: radius.md,
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md,
-    maxWidth: '80%',
-  },
-  crachaAviso: { color: '#FFC7B4', fontSize: fontSize.sm, fontWeight: '800' },
-  crachaTexto: { color: '#FFFFFF', fontSize: fontSize.sm, fontWeight: '600' },
-  expandir: {
-    position: 'absolute',
-    right: spacing.sm,
-    bottom: spacing.sm,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.22,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 4,
-  },
-  expandirIcone: { fontSize: 17, color: colors.teal, fontWeight: '700' },
-  cheio: { flex: 1, backgroundColor: colors.paper },
-  fechar: {
-    position: 'absolute',
-    top: spacing.md,
-    right: spacing.md,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.22,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 5,
-  },
-  fecharIcone: { fontSize: 18, color: colors.text, fontWeight: '700' },
-});
+    caixa: { position: 'relative' },
+    cracha: {
+      position: 'absolute',
+      top: spacing.sm,
+      left: spacing.sm,
+      backgroundColor: 'rgba(28,36,33,0.88)',
+      borderRadius: radius.md,
+      paddingVertical: 6,
+      paddingHorizontal: spacing.md,
+      maxWidth: '80%',
+    },
+    // Branco fixo, e certo: assenta sobre uma superfície que é escura
+    // nos dois temas. Um token de tema aqui trocaria o texto por laranja
+    // sobre vermelho.
+    crachaAviso: { ...tipo.corpoForte, color: '#FFC7B4' },
+    crachaTexto: { ...tipo.corpoForte, color: '#FFFFFF' },
+    expandir: {
+      position: 'absolute',
+      right: spacing.sm,
+      bottom: spacing.sm,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.white,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOpacity: 0.22,
+      shadowRadius: 5,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 4,
+    },
+    expandirIcone: { fontSize: 17, color: colors.teal, fontWeight: '700' },
+    cheio: { flex: 1, backgroundColor: colors.paper },
+    fechar: {
+      position: 'absolute',
+      top: spacing.md,
+      right: spacing.md,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.white,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOpacity: 0.22,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 5,
+    },
+    fecharIcone: { fontSize: 18, color: colors.text, fontWeight: '700' },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

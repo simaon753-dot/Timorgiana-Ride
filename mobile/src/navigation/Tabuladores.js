@@ -15,9 +15,9 @@ const Tab = createBottomTabNavigator();
 
 // Ícones em texto e não uma biblioteca de ícones: poupa uma dependência e
 // um tipo de letra inteiro no APK, e nestes tamanhos lê-se igual.
-const icone = (glifo) => ({ color }) => (
-  <Text style={{ fontSize: 20, color, lineHeight: 24 }}>{glifo}</Text>
-);
+const icone =
+  (glifo) =>
+  ({ color }) => <Text style={{ fontSize: 20, color, lineHeight: 24 }}>{glifo}</Text>;
 
 export default function Tabuladores() {
   const { t } = useI18n();

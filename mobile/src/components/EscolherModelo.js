@@ -3,6 +3,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { listaPlana } from '../dados/veiculos.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 
 // Escolher o modelo de uma lista em vez de escrever.
@@ -105,79 +106,79 @@ export default function EscolherModelo({ tipo, valor, onEscolher }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  campo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.inputBg,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 14,
-  },
-  campoTexto: { flex: 1, fontSize: fontSize.md, color: colors.text },
-  campoVazio: { color: colors.textMuted },
-  seta: { fontSize: 14, color: colors.textMuted },
+    campo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.inputBg,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 14,
+    },
+    campoTexto: { ...tipo.corpo, flex: 1, color: colors.text },
+    campoVazio: { color: colors.textMuted },
+    seta: { fontSize: 14, color: colors.textMuted },
 
-  ecra: { flex: 1, backgroundColor: colors.paper },
-  topo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  fechar: { fontSize: 20, color: colors.text, width: 24 },
-  titulo: { fontSize: fontSize.md, fontWeight: '800', color: colors.text },
-  procurar: {
-    backgroundColor: colors.white,
-    borderWidth: 1.5,
-    borderColor: colors.teal,
-    borderRadius: radius.md,
-    marginHorizontal: spacing.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    fontSize: fontSize.md,
-    color: colors.text,
-  },
-  lista: { padding: spacing.lg },
-  opcao: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  opcaoNome: { fontSize: fontSize.md, color: colors.text, fontWeight: '600' },
-  outroRotulo: {
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
-  },
-  outroLinha: { flexDirection: 'row', gap: spacing.sm },
-  outroCampo: {
-    flex: 1,
-    backgroundColor: colors.white,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    fontSize: fontSize.md,
-    color: colors.text,
-  },
-  outroBotao: {
-    width: 52,
-    borderRadius: radius.md,
-    backgroundColor: colors.teal,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  outroBotaoInativo: { backgroundColor: colors.border },
-  outroBotaoTexto: { color: colors.white, fontSize: 20, fontWeight: '800' },
-});
+    ecra: { flex: 1, backgroundColor: colors.paper },
+    topo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+    },
+    fechar: { fontSize: 20, color: colors.text, width: 24 },
+    titulo: { ...tipo.subtitulo, color: colors.text },
+    procurar: {
+      ...tipo.corpo,
+      backgroundColor: colors.white,
+      borderWidth: 1.5,
+      borderColor: colors.teal,
+      borderRadius: radius.md,
+      marginHorizontal: spacing.lg,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 12,
+      color: colors.text,
+    },
+    lista: { padding: spacing.lg },
+    opcao: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.white,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    opcaoNome: { ...tipo.subtitulo, color: colors.text },
+    outroRotulo: {
+      ...tipo.pequeno,
+      color: colors.textMuted,
+      marginTop: spacing.lg,
+      marginBottom: spacing.sm,
+    },
+    outroLinha: { flexDirection: 'row', gap: spacing.sm },
+    outroCampo: {
+      ...tipo.corpo,
+      flex: 1,
+      backgroundColor: colors.white,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 12,
+      color: colors.text,
+    },
+    outroBotao: {
+      width: 52,
+      borderRadius: radius.md,
+      backgroundColor: colors.teal,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    outroBotaoInativo: { backgroundColor: colors.border },
+    outroBotaoTexto: { color: colors.white, fontSize: 20, fontWeight: '800' },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

@@ -46,7 +46,13 @@ export function ModoProvider({ children }) {
 
   return (
     <ModoContext.Provider
-      value={{ modo: efetivo, setModo, podeConduzir, carregado, aConduzir: efetivo === 'motorista' }}
+      value={{
+        modo: efetivo,
+        setModo,
+        podeConduzir,
+        carregado,
+        aConduzir: efetivo === 'motorista',
+      }}
     >
       {children}
     </ModoContext.Provider>

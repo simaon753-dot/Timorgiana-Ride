@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import BarraTopo from '../components/BarraTopo.js';
 import StatusBadge from '../components/StatusBadge.js';
 import StarRating from '../components/StarRating.js';
@@ -9,6 +8,8 @@ import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
+import BarraEstado from '../design/BarraEstado.js';
 
 export default function HistoryScreen({ navigation }) {
   const { t } = useI18n();
@@ -33,12 +34,11 @@ export default function HistoryScreen({ navigation }) {
   }, [token]);
 
   // O "outro" participante depende de quem está a ver
-  const otherName = (r) =>
-    r.driver?.id === user?.id ? r.passenger?.name : r.driver?.name;
+  const otherName = (r) => (r.driver?.id === user?.id ? r.passenger?.name : r.driver?.name);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <StatusBar style="dark" />
+      <BarraEstado />
       <BarraTopo navigation={navigation} titulo={t('historyTitle')} />
 
       {loading ? (
@@ -98,58 +98,58 @@ function formatDate(s) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.paper },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  back: { color: colors.teal, fontSize: fontSize.md, fontWeight: '700', width: 60 },
-  title: { fontSize: fontSize.md, fontWeight: '800', color: colors.text },
-  list: { padding: spacing.lg },
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-  },
-  cardTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.sm,
-  },
-  fare: { fontSize: fontSize.lg, fontWeight: '800', color: colors.teal },
-  dest: { fontSize: fontSize.md, fontWeight: '700', color: colors.text },
-  origin: { fontSize: fontSize.sm, color: colors.textMuted, marginTop: 2 },
-  with: { fontSize: fontSize.sm, color: colors.textMuted, marginTop: spacing.xs },
-  cardBottom: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingTop: spacing.sm,
-  },
-  date: { fontSize: fontSize.xs, color: colors.textMuted },
-  notRated: { fontSize: fontSize.xs, color: colors.textMuted, fontStyle: 'italic' },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
-  emptyIcon: { fontSize: 40, marginBottom: spacing.md },
-  emptyTitle: { fontSize: fontSize.md, fontWeight: '700', color: colors.text },
-  emptyHint: {
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-    marginTop: spacing.xs,
-    textAlign: 'center',
-  },
-});
+    safe: { flex: 1, backgroundColor: colors.paper },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    back: { ...tipo.subtitulo, color: colors.teal, width: 60 },
+    title: { ...tipo.subtitulo, color: colors.text },
+    list: { padding: spacing.lg },
+    card: {
+      backgroundColor: colors.white,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.md,
+      marginBottom: spacing.md,
+    },
+    cardTop: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: spacing.sm,
+    },
+    fare: { ...tipo.titulo, color: colors.teal },
+    dest: { ...tipo.subtitulo, color: colors.text },
+    origin: { ...tipo.pequeno, color: colors.textMuted, marginTop: 2 },
+    with: { ...tipo.pequeno, color: colors.textMuted, marginTop: spacing.xs },
+    cardBottom: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingTop: spacing.sm,
+    },
+    date: { ...tipo.legenda, color: colors.textMuted },
+    notRated: { ...tipo.legenda, color: colors.textMuted, fontStyle: 'italic' },
+    empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
+    emptyIcon: { fontSize: 40, marginBottom: spacing.md },
+    emptyTitle: { ...tipo.subtitulo, color: colors.text },
+    emptyHint: {
+      ...tipo.pequeno,
+      color: colors.textMuted,
+      marginTop: spacing.xs,
+      textAlign: 'center',
+    },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

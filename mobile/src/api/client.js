@@ -112,7 +112,11 @@ export const api = {
   // Motorista: estado da conta e documentos
   driverStatus: (token) => request('/driver/status', { token }),
   uploadDocument: (token, { kind, mime, base64, expiresOn }) =>
-    request('/driver/documents', { method: 'POST', body: { kind, mime, base64, expiresOn }, token }),
+    request('/driver/documents', {
+      method: 'POST',
+      body: { kind, mime, base64, expiresOn },
+      token,
+    }),
   setAvailability: (token, online) =>
     request('/driver/availability', { method: 'POST', body: { online }, token }),
 

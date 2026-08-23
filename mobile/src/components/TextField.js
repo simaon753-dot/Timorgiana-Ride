@@ -30,7 +30,7 @@ export default function TextField({
       {label ? (
         <Text style={styles.label}>
           {label}
-          {optionalLabel ? <Text style={styles.optional}>  ·  {optionalLabel}</Text> : null}
+          {optionalLabel ? <Text style={styles.optional}>{'  ·  '}{optionalLabel}</Text> : null}
         </Text>
       ) : null}
 
@@ -66,25 +66,25 @@ export default function TextField({
 
 const criarEstilos = () =>
   StyleSheet.create({
-  wrap: { marginBottom: spacing.md },
-  label: { ...tipo.etiqueta, color: colors.textMuted, marginBottom: spacing.sm },
-  optional: { ...tipo.legenda, color: colors.textMuted, textTransform: 'none', letterSpacing: 0 },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.inputBg,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-  },
-  inputFocused: { borderColor: colors.teal },
-  inputError: { borderColor: colors.danger },
-  input: { flex: 1, ...tipo.corpo, color: colors.text, paddingVertical: 14 },
-  toggle: { fontSize: 18, paddingLeft: spacing.sm },
-  hint: { ...tipo.legenda, color: colors.textMuted, marginTop: spacing.xs },
-  errorText: { ...tipo.legenda, color: colors.danger, marginTop: spacing.xs },
-});
+    wrap: { marginBottom: spacing.md },
+    label: { ...tipo.etiqueta, color: colors.textMuted, marginBottom: spacing.sm },
+    optional: { ...tipo.legenda, color: colors.textMuted, textTransform: 'none', letterSpacing: 0 },
+    inputRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.inputBg,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      borderRadius: radius.lg,
+      paddingHorizontal: spacing.md,
+    },
+    inputFocused: { borderColor: colors.teal },
+    inputError: { borderColor: colors.danger },
+    input: { flex: 1, ...tipo.corpo, color: colors.text, paddingVertical: 14 },
+    toggle: { fontSize: 18, paddingLeft: spacing.sm },
+    hint: { ...tipo.legenda, color: colors.textMuted, marginTop: spacing.xs },
+    errorText: { ...tipo.legenda, color: colors.danger, marginTop: spacing.xs },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

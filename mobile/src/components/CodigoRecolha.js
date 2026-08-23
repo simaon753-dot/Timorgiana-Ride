@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 
 // O código que o passageiro diz ao motorista.
@@ -24,31 +25,24 @@ export default function CodigoRecolha({ codigo }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  caixa: {
-    backgroundColor: colors.teal,
-    borderRadius: radius.lg,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    alignItems: 'center',
-  },
-  rotulo: {
-    color: colors.onTeal,
-    fontSize: fontSize.xs,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    opacity: 0.85,
-  },
-  numero: {
-    color: colors.white,
-    fontSize: 40,
-    fontWeight: '800',
-    letterSpacing: 4,
-    marginVertical: 2,
-    fontVariant: ['tabular-nums'],
-  },
-  ajuda: { color: colors.onTeal, fontSize: fontSize.xs, opacity: 0.85, textAlign: 'center' },
-});
+    caixa: {
+      backgroundColor: colors.teal,
+      borderRadius: radius.lg,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.lg,
+      alignItems: 'center',
+    },
+    rotulo: { ...tipo.etiqueta, color: colors.onTeal, opacity: 0.85 },
+    numero: {
+      color: colors.white,
+      fontSize: 40,
+      fontWeight: '800',
+      letterSpacing: 4,
+      marginVertical: 2,
+      fontVariant: ['tabular-nums'],
+    },
+    ajuda: { ...tipo.legenda, color: colors.onTeal, opacity: 0.85, textAlign: 'center' },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

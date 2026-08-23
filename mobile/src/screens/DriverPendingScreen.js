@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
 import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
@@ -14,6 +13,8 @@ import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
+import BarraEstado from '../design/BarraEstado.js';
 
 const TIPOS = [
   { kind: 'licence', label: 'docLicence' },
@@ -100,7 +101,7 @@ export default function DriverPendingScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <StatusBar style="dark" />
+      <BarraEstado />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.topBar}>
           <Voltar navigation={navigation} />
@@ -121,110 +122,117 @@ export default function DriverPendingScreen({ navigation }) {
           <FormularioVeiculo onPronto={carregar} />
         ) : (
           <>
-        <View style={[styles.card, rejected && styles.cardRejected]}>
-          <Text style={styles.icon}>{rejected ? '⛔' : '⏳'}</Text>
-          <Text style={styles.title}>{rejected ? t('rejectedTitle') : t('pendingTitle')}</Text>
-          <Text style={styles.explain}>
-            {rejected ? t('rejectedExplain') : t('pendingExplain')}
-          </Text>
-        </View>
+            <View style={[styles.card, rejected && styles.cardRejected]}>
+              <Text style={styles.icon}>{rejected ? '⛔' : '⏳'}</Text>
+              <Text style={styles.title}>{rejected ? t('rejectedTitle') : t('pendingTitle')}</Text>
+              <Text style={styles.explain}>
+                {rejected ? t('rejectedExplain') : t('pendingExplain')}
+              </Text>
+            </View>
 
-        {!rejected ? (
-          <>
-            <Text style={styles.hint}>{t('docHint')}</Text>
+            {!rejected ? (
+              <>
+                <Text style={styles.hint}>{t('docHint')}</Text>
 
-            {loading ? (
-              <ActivityIndicator color={colors.teal} style={{ marginTop: spacing.lg }} />
-            ) : (
-              TIPOS.map((tp) => {
-                const enviado = enviados.includes(tp.kind);
-                const doc = docs.find((d) => d.kind === tp.kind);
-                return (
-                  <View key={tp.kind}>
-                  <View style={styles.docRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.docName}>{t(tp.label)}</Text>
-                      <Text style={[styles.docState, enviado && styles.docStateOk]}>
-                        {enviado ? `✓ ${t('docSent')}` : t('docMissing')}
-                      </Text>
-                      {doc?.expiresOn ? (
-                        <Text
-                          style={[
-                            styles.docValidade,
-                            doc.expirado && styles.docValidadeMa,
-                            doc.aExpirar && styles.docValidadeAviso,
-                          ]}
-                        >
-                          {doc.expirado
-                            ? t('docExpired')
-                            : doc.aExpirar
-                              ? t('docExpiringSoon')
-                              : `${t('docExpiry')} ${doc.expiresOn}`}
-                        </Text>
-                      ) : null}
-                    </View>
-                    <Pressable
-                      style={[styles.docBtn, enviado && styles.docBtnSecondary]}
-                      onPress={() => enviar(tp.kind)}
-                      disabled={busy === tp.kind}
-                    >
-                      <Text style={[styles.docBtnText, enviado && styles.docBtnTextSecondary]}>
-                        {busy === tp.kind ? t('docSending') : enviado ? t('docReplace') : t('docSend')}
-                      </Text>
-                    </Pressable>
-                  </View>
+                {loading ? (
+                  <ActivityIndicator color={colors.teal} style={{ marginTop: spacing.lg }} />
+                ) : (
+                  TIPOS.map((tp) => {
+                    const enviado = enviados.includes(tp.kind);
+                    const doc = docs.find((d) => d.kind === tp.kind);
+                    return (
+                      <View key={tp.kind}>
+                        <View style={styles.docRow}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.docName}>{t(tp.label)}</Text>
+                            <Text style={[styles.docState, enviado && styles.docStateOk]}>
+                              {enviado ? `✓ ${t('docSent')}` : t('docMissing')}
+                            </Text>
+                            {doc?.expiresOn ? (
+                              <Text
+                                style={[
+                                  styles.docValidade,
+                                  doc.expirado && styles.docValidadeMa,
+                                  doc.aExpirar && styles.docValidadeAviso,
+                                ]}
+                              >
+                                {doc.expirado
+                                  ? t('docExpired')
+                                  : doc.aExpirar
+                                    ? t('docExpiringSoon')
+                                    : `${t('docExpiry')} ${doc.expiresOn}`}
+                              </Text>
+                            ) : null}
+                          </View>
+                          <Pressable
+                            style={[styles.docBtn, enviado && styles.docBtnSecondary]}
+                            onPress={() => enviar(tp.kind)}
+                            disabled={busy === tp.kind}
+                          >
+                            <Text
+                              style={[styles.docBtnText, enviado && styles.docBtnTextSecondary]}
+                            >
+                              {busy === tp.kind
+                                ? t('docSending')
+                                : enviado
+                                  ? t('docReplace')
+                                  : t('docSend')}
+                            </Text>
+                          </Pressable>
+                        </View>
 
-                  {/* A data pede-se ANTES de escolher a fotografia: com o
+                        {/* A data pede-se ANTES de escolher a fotografia: com o
                       selector de imagens aberto o teclado não cabe, e
                       pedi-la depois obrigaria a repetir tudo se estivesse
                       errada. */}
-                  {precisaValidade(tp.kind) ? (
-                    <View style={styles.validadeCaixa}>
-                      <TextField
-                        label={t('docExpiry')}
-                        value={validades[tp.kind] || ''}
-                        onChangeText={(v) =>
-                          setValidades((a) => ({ ...a, [tp.kind]: v.replace(/[^\d-]/g, '').slice(0, 10) }))
-                        }
-                        placeholder="2028-03-10"
-                        keyboardType="numbers-and-punctuation"
-                      />
-                      <Text style={styles.validadeAjuda}>{t('docExpiryHelp')}</Text>
-                    </View>
-                  ) : null}
-                  </View>
-                );
-              })
-            )}
+                        {precisaValidade(tp.kind) ? (
+                          <View style={styles.validadeCaixa}>
+                            <TextField
+                              label={t('docExpiry')}
+                              value={validades[tp.kind] || ''}
+                              onChangeText={(v) =>
+                                setValidades((a) => ({
+                                  ...a,
+                                  [tp.kind]: v.replace(/[^\d-]/g, '').slice(0, 10),
+                                }))
+                              }
+                              placeholder="2028-03-10"
+                              keyboardType="numbers-and-punctuation"
+                            />
+                            <Text style={styles.validadeAjuda}>{t('docExpiryHelp')}</Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    );
+                  })
+                )}
 
-            {error ? <Text style={styles.error}>{error}</Text> : null}
+                {error ? <Text style={styles.error}>{error}</Text> : null}
 
-            <Text style={[styles.status, completo && styles.statusOk]}>
-              {completo ? t('docsComplete') : t('docsIncomplete')}
-            </Text>
-          </>
-        ) : null}
+                <Text style={[styles.status, completo && styles.statusOk]}>
+                  {completo ? t('docsComplete') : t('docsIncomplete')}
+                </Text>
+              </>
+            ) : null}
 
-        <View style={{ flex: 1, minHeight: spacing.xl }} />
-        {/* Os termos de motorista vêm DEPOIS dos documentos, de propósito:
+            <View style={{ flex: 1, minHeight: spacing.xl }} />
+            {/* Os termos de motorista vêm DEPOIS dos documentos, de propósito:
             falam de seguro e de documentos válidos, e aceitá-los antes de
             os entregar seria aceitar no abstracto. */}
-        {completo && user?.driverTermsVersion !== VERSAO_TERMOS_MOTORISTA ? (
-          <View style={styles.termosCaixa}>
-            <Text style={styles.termosTexto}>{t('driverTermsPending')}</Text>
-            <View style={{ height: spacing.sm }} />
-            <Button
-              title={t('driverTermsRead')}
-              onPress={() =>
-                navigation.navigate('Termos', { quem: 'driver', aceitavel: true })
-              }
-            />
-          </View>
-        ) : completo ? (
-          <Text style={styles.termosFeitos}>{t('driverTermsDone')}</Text>
-        ) : null}
+            {completo && user?.driverTermsVersion !== VERSAO_TERMOS_MOTORISTA ? (
+              <View style={styles.termosCaixa}>
+                <Text style={styles.termosTexto}>{t('driverTermsPending')}</Text>
+                <View style={{ height: spacing.sm }} />
+                <Button
+                  title={t('driverTermsRead')}
+                  onPress={() => navigation.navigate('Termos', { quem: 'driver', aceitavel: true })}
+                />
+              </View>
+            ) : completo ? (
+              <Text style={styles.termosFeitos}>{t('driverTermsDone')}</Text>
+            ) : null}
 
-        <View style={{ height: spacing.lg }} />
+            <View style={{ height: spacing.lg }} />
           </>
         )}
       </ScrollView>
@@ -234,100 +242,99 @@ export default function DriverPendingScreen({ navigation }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.paper },
-  docValidade: { fontSize: fontSize.xs, color: colors.textMuted, marginTop: 2 },
-  docValidadeAviso: { color: colors.coralDark, fontWeight: '700' },
-  docValidadeMa: { color: colors.danger, fontWeight: '700' },
-  validadeCaixa: { marginTop: -spacing.xs, marginBottom: spacing.sm },
-  validadeAjuda: { fontSize: 11, color: colors.textMuted, marginTop: -spacing.sm },
-  termosCaixa: {
-    backgroundColor: '#FFF8F0',
-    borderWidth: 1,
-    borderColor: colors.coral,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    marginTop: spacing.lg,
-  },
-  termosTexto: { color: colors.text, fontSize: fontSize.sm, fontWeight: '600' },
-  termosFeitos: {
-    color: colors.success,
-    fontSize: fontSize.sm,
-    fontWeight: '700',
-    marginTop: spacing.lg,
-    textAlign: 'center',
-  },
-  scroll: { flexGrow: 1, padding: spacing.lg },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.lg,
-  },
-  topBarDireita: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  adminLink: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.white,
-  },
-  adminLinkText: { fontSize: 18, color: colors.teal },
-  card: {
-    backgroundColor: '#FFF8F0',
-    borderWidth: 1,
-    borderColor: '#F0E2CF',
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    alignItems: 'center',
-  },
-  cardRejected: { backgroundColor: '#FBEAE8', borderColor: '#F0CFCB' },
-  icon: { fontSize: 38, marginBottom: spacing.sm },
-  title: { fontSize: fontSize.lg, fontWeight: '800', color: colors.text, textAlign: 'center' },
-  explain: {
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-    textAlign: 'center',
-    marginTop: spacing.sm,
-    lineHeight: 21,
-  },
-  hint: {
-    fontSize: fontSize.xs,
-    color: colors.textMuted,
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
-  },
-  docRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  docName: { fontSize: fontSize.md, fontWeight: '600', color: colors.text },
-  docState: { fontSize: fontSize.xs, color: colors.textMuted, marginTop: 2 },
-  docStateOk: { color: colors.success, fontWeight: '600' },
-  docBtn: {
-    backgroundColor: colors.coral,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 9,
-  },
-  docBtnSecondary: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: colors.teal },
-  docBtnText: { color: colors.white, fontWeight: '700', fontSize: fontSize.sm },
-  docBtnTextSecondary: { color: colors.teal },
-  error: { color: colors.danger, fontSize: fontSize.sm, marginTop: spacing.sm },
-  status: {
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-    textAlign: 'center',
-    marginTop: spacing.md,
-  },
-  statusOk: { color: colors.success, fontWeight: '600' },
-});
+    safe: { flex: 1, backgroundColor: colors.paper },
+    docValidade: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
+    docValidadeAviso: { color: colors.coralDark, fontWeight: '700' },
+    docValidadeMa: { color: colors.danger, fontWeight: '700' },
+    validadeCaixa: { marginTop: -spacing.xs, marginBottom: spacing.sm },
+    validadeAjuda: { fontSize: 11, color: colors.textMuted, marginTop: -spacing.sm },
+    termosCaixa: {
+      backgroundColor: colors.tintaCoral,
+      borderWidth: 1,
+      borderColor: colors.coral,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      marginTop: spacing.lg,
+    },
+    termosTexto: { ...tipo.corpoForte, color: colors.text },
+    termosFeitos: {
+      ...tipo.corpoForte,
+      color: colors.success,
+      marginTop: spacing.lg,
+      textAlign: 'center',
+    },
+    scroll: { flexGrow: 1, padding: spacing.lg },
+    topBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: spacing.lg,
+    },
+    topBarDireita: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    adminLink: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.white,
+    },
+    adminLinkText: { fontSize: 18, color: colors.teal },
+    card: {
+      backgroundColor: colors.tintaCoral,
+      borderWidth: 1,
+      borderColor: colors.contornoCoral,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      alignItems: 'center',
+    },
+    cardRejected: { backgroundColor: colors.tintaPerigo, borderColor: colors.contornoPerigo },
+    icon: { fontSize: 38, marginBottom: spacing.sm },
+    title: { ...tipo.titulo, color: colors.text, textAlign: 'center' },
+    explain: {
+      ...tipo.pequeno,
+      color: colors.textMuted,
+      textAlign: 'center',
+      marginTop: spacing.sm,
+      lineHeight: 21,
+    },
+    hint: {
+      ...tipo.legenda,
+      color: colors.textMuted,
+      marginTop: spacing.lg,
+      marginBottom: spacing.sm,
+    },
+    docRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.white,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    docName: { ...tipo.subtitulo, color: colors.text },
+    docState: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
+    docStateOk: { color: colors.success, fontWeight: '600' },
+    docBtn: {
+      backgroundColor: colors.coral,
+      borderRadius: radius.sm,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 9,
+    },
+    docBtnSecondary: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: colors.teal },
+    docBtnText: { ...tipo.corpoForte, color: colors.white },
+    docBtnTextSecondary: { color: colors.teal },
+    error: { ...tipo.pequeno, color: colors.danger, marginTop: spacing.sm },
+    status: {
+      ...tipo.pequeno,
+      color: colors.textMuted,
+      textAlign: 'center',
+      marginTop: spacing.md,
+    },
+    statusOk: { color: colors.success, fontWeight: '600' },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

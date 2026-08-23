@@ -36,8 +36,7 @@ export async function registarParaNotificacoes() {
   if (status !== 'granted') return null;
 
   try {
-    const projectId =
-      Constants.expoConfig?.extra?.eas?.projectId || Constants.easConfig?.projectId;
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId || Constants.easConfig?.projectId;
     const { data } = await Notifications.getExpoPushTokenAsync(
       projectId ? { projectId } : undefined
     );

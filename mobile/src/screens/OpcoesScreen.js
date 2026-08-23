@@ -1,10 +1,11 @@
 import React from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import Voltar from '../components/Voltar.js';
 import LanguageToggle from '../components/LanguageToggle.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
+import BarraEstado from '../design/BarraEstado.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useTema } from '../context/TemaContext.js';
@@ -22,7 +23,7 @@ export default function OpcoesScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <StatusBar style={tema === 'escuro' ? 'light' : 'dark'} />
+      <BarraEstado />
       <ScrollView contentContainerStyle={styles.conteudo}>
         <Voltar navigation={navigation} />
         <Text style={styles.titulo}>{t('settingsTitle')}</Text>
@@ -115,21 +116,13 @@ const criarEstilos = () =>
     safe: { flex: 1, backgroundColor: colors.paper },
     conteudo: { padding: spacing.lg, paddingBottom: spacing.xxl },
     titulo: {
-      fontSize: fontSize.xl,
-      fontWeight: '800',
+      ...tipo.displayPequeno,
       color: colors.text,
       marginTop: spacing.sm,
       marginBottom: spacing.lg,
     },
     seccao: { marginBottom: spacing.lg },
-    seccaoTitulo: {
-      fontSize: fontSize.xs,
-      fontWeight: '800',
-      color: colors.textMuted,
-      letterSpacing: 0.8,
-      textTransform: 'uppercase',
-      marginBottom: spacing.sm,
-    },
+    seccaoTitulo: { ...tipo.etiqueta, color: colors.textMuted, marginBottom: spacing.sm },
     caixa: { backgroundColor: colors.white, borderRadius: radius.md, overflow: 'hidden' },
     linha: { padding: spacing.md, alignItems: 'flex-start' },
     item: {
@@ -141,7 +134,7 @@ const criarEstilos = () =>
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
     },
-    itemTexto: { fontSize: fontSize.md, color: colors.text },
+    itemTexto: { ...tipo.corpo, color: colors.text },
     itemDestaque: { color: colors.danger, fontWeight: '700' },
     seta: { fontSize: 22, color: colors.textMuted },
 
@@ -165,13 +158,13 @@ const criarEstilos = () =>
       padding: 6,
     },
     amostraBarra: { height: 8, borderRadius: 4 },
-    temaNome: { fontSize: fontSize.sm, color: colors.textMuted, marginTop: 6, fontWeight: '600' },
+    temaNome: { ...tipo.corpoForte, color: colors.textMuted, marginTop: 6 },
     temaNomeActivo: { color: colors.teal, fontWeight: '800' },
 
     rodape: {
+      ...tipo.legenda,
       textAlign: 'center',
       color: colors.textMuted,
-      fontSize: fontSize.xs,
       marginTop: spacing.lg,
     },
   });

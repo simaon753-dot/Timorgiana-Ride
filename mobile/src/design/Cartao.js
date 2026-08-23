@@ -1,12 +1,6 @@
-import React from "react";
-import { Pressable, StyleSheet, View } from "react-native";
-import {
-  colors,
-  radius,
-  spacing,
-  elevacao,
-  registarEstilos,
-} from "../theme.js";
+import React from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { colors, radius, spacing, elevacao, registarEstilos } from '../theme.js';
 
 // Cartão — a superfície onde quase tudo assenta.
 //
@@ -24,7 +18,7 @@ import {
 // tema escuro o fundo é preto e uma sombra sobre preto não existe. Um
 // desenho que só se segura com sombras parte-se metade do tempo.
 export default function Cartao({
-  nivel = "plano",
+  nivel = 'plano',
   children,
   style,
   onPress,
@@ -34,8 +28,8 @@ export default function Cartao({
   const corpo = [
     styles.base,
     compacto && styles.compacto,
-    nivel === "flutuante" && styles.flutuante,
-    nivel === "destaque" && styles.destaque,
+    nivel === 'flutuante' && styles.flutuante,
+    nivel === 'destaque' && styles.destaque,
     style,
   ];
 

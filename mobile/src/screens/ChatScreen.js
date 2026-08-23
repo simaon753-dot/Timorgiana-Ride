@@ -10,11 +10,12 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
+import BarraEstado from '../design/BarraEstado.js';
 
 export default function ChatScreen({ navigation }) {
   const { t } = useI18n();
@@ -53,7 +54,7 @@ export default function ChatScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <StatusBar style="dark" />
+      <BarraEstado />
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} hitSlop={10} style={styles.ladoEsquerdo}>
           <Text style={styles.back} numberOfLines={1}>
@@ -95,7 +96,10 @@ export default function ChatScreen({ navigation }) {
               }
               const mine = m.senderId === user?.id;
               return (
-                <View key={m.id} style={[styles.bubbleRow, mine ? styles.rowMine : styles.rowOther]}>
+                <View
+                  key={m.id}
+                  style={[styles.bubbleRow, mine ? styles.rowMine : styles.rowOther]}
+                >
                   <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther]}>
                     <Text style={[styles.bubbleText, mine && styles.bubbleTextMine]}>{m.body}</Text>
                   </View>
@@ -125,86 +129,81 @@ export default function ChatScreen({ navigation }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.paper },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  ladoEsquerdo: { flex: 1, alignItems: 'flex-start' },
-  ladoDireito: { flex: 1 },
-  centro: { flexShrink: 1, alignItems: 'center', paddingHorizontal: spacing.sm },
-  back: { color: colors.teal, fontSize: fontSize.md, fontWeight: '700' },
-  title: { fontSize: fontSize.md, fontWeight: '800', color: colors.text, textAlign: 'center' },
-  subtitle: { fontSize: fontSize.xs, color: colors.textMuted, textAlign: 'center' },
-  list: { padding: spacing.md, flexGrow: 1 },
-  sistema: {
-    textAlign: 'center',
-    color: colors.textMuted,
-    fontSize: fontSize.xs,
-    lineHeight: 18,
-    backgroundColor: colors.white,
-    borderRadius: radius.md,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.md,
-    overflow: 'hidden',
-  },
-  empty: {
-    textAlign: 'center',
-    color: colors.textMuted,
-    marginTop: spacing.xxl,
-    fontSize: fontSize.md,
-  },
-  bubbleRow: { marginVertical: 4, flexDirection: 'row' },
-  rowMine: { justifyContent: 'flex-end' },
-  rowOther: { justifyContent: 'flex-start' },
-  bubble: { maxWidth: '80%', paddingVertical: 9, paddingHorizontal: 13, borderRadius: 16 },
-  bubbleMine: { backgroundColor: colors.teal, borderBottomRightRadius: 4 },
-  bubbleOther: {
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderBottomLeftRadius: 4,
-  },
-  bubbleText: { fontSize: fontSize.md, color: colors.text },
-  bubbleTextMine: { color: colors.onTeal },
-  inputBar: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    padding: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.paper,
-    gap: spacing.sm,
-  },
-  input: {
-    flex: 1,
-    maxHeight: 120,
-    minHeight: 44,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingTop: 10,
-    fontSize: fontSize.md,
-    color: colors.text,
-  },
-  sendBtn: {
-    backgroundColor: colors.coral,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.lg,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sendText: { color: colors.white, fontWeight: '700', fontSize: fontSize.md },
-});
+    safe: { flex: 1, backgroundColor: colors.paper },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    ladoEsquerdo: { flex: 1, alignItems: 'flex-start' },
+    ladoDireito: { flex: 1 },
+    centro: { flexShrink: 1, alignItems: 'center', paddingHorizontal: spacing.sm },
+    back: { ...tipo.subtitulo, color: colors.teal },
+    title: { ...tipo.subtitulo, color: colors.text, textAlign: 'center' },
+    subtitle: { ...tipo.legenda, color: colors.textMuted, textAlign: 'center' },
+    list: { padding: spacing.md, flexGrow: 1 },
+    sistema: {
+      ...tipo.legenda,
+      textAlign: 'center',
+      color: colors.textMuted,
+      lineHeight: 18,
+      backgroundColor: colors.white,
+      borderRadius: radius.md,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      marginBottom: spacing.md,
+      overflow: 'hidden',
+    },
+    empty: { ...tipo.corpo, textAlign: 'center', color: colors.textMuted, marginTop: spacing.xxl },
+    bubbleRow: { marginVertical: 4, flexDirection: 'row' },
+    rowMine: { justifyContent: 'flex-end' },
+    rowOther: { justifyContent: 'flex-start' },
+    bubble: { maxWidth: '80%', paddingVertical: 9, paddingHorizontal: 13, borderRadius: 16 },
+    bubbleMine: { backgroundColor: colors.teal, borderBottomRightRadius: 4 },
+    bubbleOther: {
+      backgroundColor: colors.white,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderBottomLeftRadius: 4,
+    },
+    bubbleText: { ...tipo.corpo, color: colors.text },
+    bubbleTextMine: { color: colors.onTeal },
+    inputBar: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      padding: spacing.sm,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      backgroundColor: colors.paper,
+      gap: spacing.sm,
+    },
+    input: {
+      ...tipo.corpo,
+      flex: 1,
+      maxHeight: 120,
+      minHeight: 44,
+      backgroundColor: colors.white,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      paddingTop: 10,
+      color: colors.text,
+    },
+    sendBtn: {
+      backgroundColor: colors.coral,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.lg,
+      height: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sendText: { ...tipo.subtitulo, color: colors.white },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

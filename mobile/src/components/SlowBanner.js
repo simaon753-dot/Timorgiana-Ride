@@ -3,6 +3,7 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { setSlowHandler } from '../api/client.js';
 import { useI18n } from '../i18n/index.js';
 import { colors, spacing, fontSize, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
 
 // Faixa que aparece quando um pedido está a demorar. Nos planos gratuitos
 // o servidor adormece e leva cerca de um minuto a acordar — sem este aviso
@@ -28,17 +29,17 @@ export default function SlowBanner() {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  bar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.coral,
-    paddingVertical: 8,
-    paddingHorizontal: spacing.md,
-  },
-  text: { color: colors.white, fontSize: fontSize.sm, fontWeight: '600' },
-});
+    bar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.sm,
+      backgroundColor: colors.coral,
+      paddingVertical: 8,
+      paddingHorizontal: spacing.md,
+    },
+    text: { ...tipo.corpoForte, color: colors.white },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

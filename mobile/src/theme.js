@@ -30,6 +30,15 @@ export const PALETAS = {
     star: '#F4B400',
 
     onTeal: '#F2F8F6',
+
+    // Tintes: painéis coloridos de fundo suave. Estavam escritos à mão
+    // em catorze ficheiros, o que fazia deles o único sítio da app que
+    // não sabia que existe um segundo tema.
+    tintaTeal: '#F0F5F4',
+    tintaCoral: '#FFF8F0',
+    tintaPerigo: '#FDECEA',
+    contornoCoral: '#F0E2CF',
+    contornoPerigo: '#F0CFCB',
   },
 
   // Escolhida pelo Simão: letras laranja, fundo preto, e o verde da marca
@@ -73,6 +82,17 @@ export const PALETAS = {
 
     // Texto sobre o verde.
     onTeal: '#04120E',
+
+    // Os mesmos painéis, de noite. Não são os claros com o brilho
+    // baixado: são escuros com o MESMO desvio de matiz, para o painel de
+    // perigo continuar a ler-se como perigo. Todos verificados a
+    // destacar-se do preto — um tinte que se confunde com o fundo não é
+    // um painel, é um erro de desenho que ninguém consegue apontar.
+    tintaTeal: '#14201C',
+    tintaCoral: '#2C1B14',
+    tintaPerigo: '#2A1413',
+    contornoCoral: '#4A3324',
+    contornoPerigo: '#5A2A26',
   },
 };
 

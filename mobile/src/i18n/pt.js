@@ -12,7 +12,8 @@ export default {
 
   // Boas-vindas
   welcomeTitle: 'Bem-vindo',
-  welcomeSubtitle: 'Pede uma viagem em poucos toques. Sem comissões — pagas em dinheiro ao motorista.',
+  welcomeSubtitle:
+    'Pede uma viagem em poucos toques. Sem comissões — pagas em dinheiro ao motorista.',
 
   // Registo
   registerTitle: 'Criar conta',
@@ -198,7 +199,8 @@ export default {
 
   // Cancelamentos
   cancelConfirmTitle: 'Cancelar a viagem?',
-  cancelConfirmAccepted: 'O motorista já vem a caminho. Cancelar agora faz com que ele perca a viagem.',
+  cancelConfirmAccepted:
+    'O motorista já vem a caminho. Cancelar agora faz com que ele perca a viagem.',
   cancelConfirmRequested: 'Ainda não há motorista. Podes cancelar sem problema.',
   cancelKeep: 'Manter viagem',
   cancelYes: 'Sim, cancelar',
@@ -258,7 +260,8 @@ export default {
   cancelReason_outro: 'Outro motivo',
 
   // Mensagens automáticas
-  sysMsg_aceite: 'O motorista aceitou a viagem e vem a caminho. Podem combinar aqui o ponto exacto de encontro.',
+  sysMsg_aceite:
+    'O motorista aceitou a viagem e vem a caminho. Podem combinar aqui o ponto exacto de encontro.',
   // Barra de navegação
   tabHome: 'Início',
   tabTrips: 'Viagens',
@@ -279,7 +282,8 @@ export default {
   earningsTrips: '{n} viagens',
   earningsLastDays: 'Por dia',
   earningsEmpty: 'Ainda não concluíste nenhuma viagem.',
-  earningsNote: 'O dinheiro é entregue em mão pelo passageiro. Isto é a soma das viagens que concluíste — a TimorgianaRide não guarda nem cobra nada.',
+  earningsNote:
+    'O dinheiro é entregue em mão pelo passageiro. Isto é a soma das viagens que concluíste — a TimorgianaRide não guarda nem cobra nada.',
   // Veículo
   vehiclePickModel: 'Escolhe o modelo',
   vehicleSearchModel: 'Procurar marca ou modelo…',
@@ -329,7 +333,8 @@ export default {
   modeRide: 'Pedir',
   modeDrive: 'Conduzir',
   wantToDrive: 'Quero conduzir',
-  wantToDriveHelp: 'Regista o teu veículo e envia os documentos. Continuas a poder pedir viagens enquanto esperas.',
+  wantToDriveHelp:
+    'Regista o teu veículo e envia os documentos. Continuas a poder pedir viagens enquanto esperas.',
   driverApplicationPending: 'Registo de motorista em análise',
   driverApplicationRejected: 'Registo de motorista não aprovado',
   driverApplicationOk: 'Podes conduzir',
@@ -344,7 +349,8 @@ export default {
   themeDark: 'Escura',
   // Tipos de emergência
   emgTitle: 'Que tipo de emergência?',
-  emgHelp: 'Escolhe para ligarmos ao serviço certo. Se estiveres em perigo imediato, liga primeiro.',
+  emgHelp:
+    'Escolhe para ligarmos ao serviço certo. Se estiveres em perigo imediato, liga primeiro.',
   emgCrime: 'Crime ou violência',
   emgCrimeHelp: 'Assalto, agressão, ameaça',
   emgMedical: 'Acidente ou doente',
@@ -366,7 +372,8 @@ export default {
   admSuspend: 'Suspender',
   admReactivate: 'Reactivar',
   admSuspendTitle: 'Suspender este motorista?',
-  admSuspendExplain: 'Deixa de receber viagens e fica indisponível na hora. Podes reactivá-lo depois.',
+  admSuspendExplain:
+    'Deixa de receber viagens e fica indisponível na hora. Podes reactivá-lo depois.',
   admReasonLabel: 'Motivo (fica no registo)',
   admReasonRequired: 'Escreve o motivo.',
   admStatusPending: 'À espera',

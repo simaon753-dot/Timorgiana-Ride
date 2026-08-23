@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useI18n, LANGUAGES } from '../i18n/index.js';
 import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
 
 // Selector de língua. `onTeal` para fundos escuros; `compacto` para os
 // sítios apertados.
@@ -40,17 +41,17 @@ export default function LanguageToggle({ onTeal = false, compacto = false }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  row: { flexDirection: 'row', borderRadius: radius.pill, padding: 3 },
-  rowOnPaper: { backgroundColor: colors.border },
-  rowOnTeal: { backgroundColor: 'rgba(255,255,255,0.18)' },
-  chip: { paddingHorizontal: spacing.md, paddingVertical: 6, borderRadius: radius.pill },
-  chipCompacto: { paddingHorizontal: spacing.sm + 2 },
-  chipActive: { backgroundColor: colors.white },
-  text: { fontSize: fontSize.sm, fontWeight: '600' },
-  textOnPaper: { color: colors.textMuted },
-  textOnTeal: { color: colors.onTeal },
-  textActive: { color: colors.teal },
-});
+    row: { flexDirection: 'row', borderRadius: radius.pill, padding: 3 },
+    rowOnPaper: { backgroundColor: colors.border },
+    rowOnTeal: { backgroundColor: 'rgba(255,255,255,0.18)' },
+    chip: { paddingHorizontal: spacing.md, paddingVertical: 6, borderRadius: radius.pill },
+    chipCompacto: { paddingHorizontal: spacing.sm + 2 },
+    chipActive: { backgroundColor: colors.white },
+    text: { ...tipo.corpoForte },
+    textOnPaper: { color: colors.textMuted },
+    textOnTeal: { color: colors.onTeal },
+    textActive: { color: colors.teal },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

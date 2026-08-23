@@ -3,6 +3,7 @@ import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from './Button.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 
 // Onde o motorista escreve o código que o passageiro lhe disse.
@@ -61,37 +62,41 @@ export default function PedirCodigo({ visivel, onFechar, onConfirmar, erro, aEnv
 
 const criarEstilos = () =>
   StyleSheet.create({
-  fundo: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
-  painel: {
-    backgroundColor: colors.paper,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.md,
-  },
-  puxador: {
-    width: 40, height: 4, borderRadius: 2,
-    backgroundColor: colors.border, alignSelf: 'center', marginBottom: spacing.md,
-  },
-  titulo: { fontSize: fontSize.lg, fontWeight: '800', color: colors.text },
-  ajuda: { fontSize: fontSize.sm, color: colors.textMuted, marginTop: spacing.xs, lineHeight: 19 },
-  campo: {
-    backgroundColor: colors.white,
-    borderWidth: 2,
-    borderColor: colors.teal,
-    borderRadius: radius.md,
-    marginTop: spacing.md,
-    paddingVertical: spacing.md,
-    fontSize: 38,
-    fontWeight: '800',
-    letterSpacing: 12,
-    textAlign: 'center',
-    color: colors.text,
-  },
-  erro: { color: colors.danger, fontSize: fontSize.sm, marginTop: spacing.sm, textAlign: 'center' },
-  botoes: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
-});
+    fundo: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
+    painel: {
+      backgroundColor: colors.paper,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.md,
+    },
+    puxador: {
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.border,
+      alignSelf: 'center',
+      marginBottom: spacing.md,
+    },
+    titulo: { ...tipo.titulo, color: colors.text },
+    ajuda: { ...tipo.pequeno, color: colors.textMuted, marginTop: spacing.xs, lineHeight: 19 },
+    campo: {
+      backgroundColor: colors.white,
+      borderWidth: 2,
+      borderColor: colors.teal,
+      borderRadius: radius.md,
+      marginTop: spacing.md,
+      paddingVertical: spacing.md,
+      fontSize: 38,
+      fontWeight: '800',
+      letterSpacing: 12,
+      textAlign: 'center',
+      color: colors.text,
+    },
+    erro: { ...tipo.pequeno, color: colors.danger, marginTop: spacing.sm, textAlign: 'center' },
+    botoes: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

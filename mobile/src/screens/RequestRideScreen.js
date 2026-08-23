@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import * as Location from 'expo-location';
 import OSMMap from '../components/OSMMap.js';
 import PlaceSearch from '../components/PlaceSearch.js';
@@ -13,6 +12,8 @@ import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
 import { api } from '../api/client.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
+import BarraEstado from '../design/BarraEstado.js';
 
 export default function RequestRideScreen({ navigation }) {
   const { t } = useI18n();
@@ -128,14 +129,16 @@ export default function RequestRideScreen({ navigation }) {
   }
 
   const marcadores = [];
-  if (origem) marcadores.push({ lat: origem.lat, lng: origem.lng, label: origem.label, tipo: 'origem' });
-  if (destino) marcadores.push({ lat: destino.lat, lng: destino.lng, label: destino.label, tipo: 'destino' });
+  if (origem)
+    marcadores.push({ lat: origem.lat, lng: origem.lng, label: origem.label, tipo: 'origem' });
+  if (destino)
+    marcadores.push({ lat: destino.lat, lng: destino.lng, label: destino.label, tipo: 'destino' });
 
   const opcao = orcamento?.options?.find((o) => o.type === veiculo);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <StatusBar style="dark" />
+      <BarraEstado />
 
       {/* Mapa a ocupar o espaço todo até ao painel. Nunca é desmontado:
           além de manter o contexto visual durante a pesquisa, remontá-lo
@@ -264,7 +267,11 @@ function CartaoVeiculo({ opcao, ativo, onPress, t }) {
   const icone = opcao.type === 'motorbike' ? '🏍️' : '🚗';
   return (
     <Pressable
-      style={[styles.veiculo, ativo && styles.veiculoAtivo, !opcao.available && styles.veiculoIndisp]}
+      style={[
+        styles.veiculo,
+        ativo && styles.veiculoAtivo,
+        !opcao.available && styles.veiculoIndisp,
+      ]}
       onPress={onPress}
     >
       <Text style={styles.veiculoIcone}>{icone}</Text>
@@ -281,109 +288,102 @@ function CartaoVeiculo({ opcao, ativo, onPress, t }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.paper },
-  mapa: { flex: 1, position: 'relative' },
-  // display:none em vez de não renderizar: mantém o painel montado, para
-  // o veículo escolhido e o orçamento não se perderem ao abrir a pesquisa.
-  escondido: { display: 'none' },
-  voltar: {
-    position: 'absolute',
-    top: spacing.md,
-    left: spacing.md,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 3,
-  },
-  voltarTexto: { fontSize: 26, color: colors.teal, fontWeight: '800', marginTop: -4 },
-  rotaBadge: {
-    position: 'absolute',
-    top: spacing.md,
-    alignSelf: 'center',
-    backgroundColor: colors.teal,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 7,
-    borderRadius: radius.pill,
-  },
-  rotaTexto: { color: colors.onTeal, fontWeight: '700', fontSize: fontSize.sm },
+    safe: { flex: 1, backgroundColor: colors.paper },
+    mapa: { flex: 1, position: 'relative' },
+    // display:none em vez de não renderizar: mantém o painel montado, para
+    // o veículo escolhido e o orçamento não se perderem ao abrir a pesquisa.
+    escondido: { display: 'none' },
+    voltar: {
+      position: 'absolute',
+      top: spacing.md,
+      left: spacing.md,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.white,
+      alignItems: 'center',
+      justifyContent: 'center',
+      elevation: 3,
+    },
+    voltarTexto: { fontSize: 26, color: colors.teal, fontWeight: '800', marginTop: -4 },
+    rotaBadge: {
+      position: 'absolute',
+      top: spacing.md,
+      alignSelf: 'center',
+      backgroundColor: colors.teal,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 7,
+      borderRadius: radius.pill,
+    },
+    rotaTexto: { ...tipo.corpoForte, color: colors.onTeal },
 
-  painel: {
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.md,
-    maxHeight: '58%',
-  },
-  puxador: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.border,
-    alignSelf: 'center',
-    marginBottom: spacing.md,
-  },
-  ponto: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm },
-  bolinha: { width: 10, height: 10, borderRadius: 5, marginRight: spacing.md },
-  pontoRotulo: {
-    fontSize: fontSize.xs,
-    color: colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  pontoValor: { fontSize: fontSize.md, color: colors.text, fontWeight: '600' },
-  pontoVazio: { color: colors.textMuted, fontWeight: '400' },
-  linha: { height: 1, backgroundColor: colors.border, marginLeft: 26 },
+    painel: {
+      backgroundColor: colors.white,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.md,
+      maxHeight: '58%',
+    },
+    puxador: {
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.border,
+      alignSelf: 'center',
+      marginBottom: spacing.md,
+    },
+    ponto: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm },
+    bolinha: { width: 10, height: 10, borderRadius: 5, marginRight: spacing.md },
+    pontoRotulo: { ...tipo.etiqueta, color: colors.textMuted },
+    pontoValor: { ...tipo.subtitulo, color: colors.text },
+    pontoVazio: { color: colors.textMuted, fontWeight: '400' },
+    linha: { height: 1, backgroundColor: colors.border, marginLeft: 26 },
 
-  seccao: {
-    fontSize: fontSize.xs,
-    color: colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginTop: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  veiculo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  veiculoAtivo: { borderColor: colors.teal, backgroundColor: '#F0F5F4' },
-  veiculoIndisp: { opacity: 0.55 },
-  veiculoIcone: { fontSize: 26, marginRight: spacing.md },
-  veiculoNome: { fontSize: fontSize.md, fontWeight: '700', color: colors.text },
-  veiculoEta: { fontSize: fontSize.xs, color: colors.textMuted, marginTop: 1 },
-  veiculoPreco: { fontSize: fontSize.lg, fontWeight: '800', color: colors.teal },
+    seccao: {
+      ...tipo.etiqueta,
+      color: colors.textMuted,
+      marginTop: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    veiculo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    veiculoAtivo: { borderColor: colors.teal, backgroundColor: colors.tintaTeal },
+    veiculoIndisp: { opacity: 0.55 },
+    veiculoIcone: { fontSize: 26, marginRight: spacing.md },
+    veiculoNome: { ...tipo.subtitulo, color: colors.text },
+    veiculoEta: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },
+    veiculoPreco: { ...tipo.titulo, color: colors.teal },
 
-  pagamento: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    marginTop: spacing.xs,
-  },
-  pagamentoTexto: { fontSize: fontSize.md, color: colors.text, fontWeight: '600' },
+    pagamento: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: spacing.sm,
+      marginTop: spacing.xs,
+    },
+    pagamentoTexto: { ...tipo.subtitulo, color: colors.text },
 
-  erro: { color: colors.danger, fontSize: fontSize.sm, marginTop: spacing.sm },
+    erro: { ...tipo.pequeno, color: colors.danger, marginTop: spacing.sm },
 
-  botao: {
-    backgroundColor: colors.coral,
-    borderRadius: radius.md,
-    height: 54,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.md,
-  },
-  botaoInativo: { backgroundColor: colors.border },
-  botaoTexto: { color: colors.white, fontSize: fontSize.md, fontWeight: '800' },
-});
+    botao: {
+      backgroundColor: colors.coral,
+      borderRadius: radius.md,
+      height: 54,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: spacing.md,
+    },
+    botaoInativo: { backgroundColor: colors.border },
+    botaoTexto: { ...tipo.subtitulo, color: colors.white },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
 
 // Selector segmentado genérico.
 // options: [{ value, label, icon }]
@@ -26,21 +27,21 @@ export default function SegmentedPicker({ options, value, onChange }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  row: { flexDirection: 'row', gap: spacing.sm },
-  option: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.white,
-  },
-  optionActive: { borderColor: colors.teal, backgroundColor: '#E9F2F0' },
-  icon: { fontSize: 24, marginBottom: spacing.xs },
-  label: { fontSize: fontSize.sm, fontWeight: '600', color: colors.textMuted },
-  labelActive: { color: colors.teal },
-});
+    row: { flexDirection: 'row', gap: spacing.sm },
+    option: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: spacing.md,
+      borderRadius: radius.md,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      backgroundColor: colors.white,
+    },
+    optionActive: { borderColor: colors.teal, backgroundColor: colors.tintaTeal },
+    icon: { fontSize: 24, marginBottom: spacing.xs },
+    label: { ...tipo.corpoForte, color: colors.textMuted },
+    labelActive: { color: colors.teal },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

@@ -77,78 +77,39 @@ export const CARROS = [
   },
   {
     marca: 'Mitsubishi',
-    modelos: [
-      'Xpander',
-      'Pajero Sport',
-      'Triton',
-      'L300',
-    ],
+    modelos: ['Xpander', 'Pajero Sport', 'Triton', 'L300'],
   },
   {
     marca: 'Suzuki',
-    modelos: [
-      'Ertiga',
-      'APV',
-      'Carry',
-      'Jimny',
-    ],
+    modelos: ['Ertiga', 'APV', 'Carry', 'Jimny'],
   },
   {
     marca: 'Daihatsu',
-    modelos: [
-      'Xenia',
-      'Terios',
-      'Gran Max',
-      'Ayla',
-    ],
+    modelos: ['Xenia', 'Terios', 'Gran Max', 'Ayla'],
   },
   {
     marca: 'Nissan',
-    modelos: [
-      'Grand Livina',
-      'X-Trail',
-      'Navara',
-    ],
+    modelos: ['Grand Livina', 'X-Trail', 'Navara'],
   },
   {
     marca: 'Isuzu',
-    modelos: [
-      'D-Max',
-      'MU-X',
-      'Panther',
-    ],
+    modelos: ['D-Max', 'MU-X', 'Panther'],
   },
   {
     marca: 'Mazda',
-    modelos: [
-      'Mazda 2',
-      'Mazda 3',
-      'CX-5',
-      'BT-50',
-    ],
+    modelos: ['Mazda 2', 'Mazda 3', 'CX-5', 'BT-50'],
   },
   {
     marca: 'Hyundai',
-    modelos: [
-      'Accent',
-      'Tucson',
-      'Starex',
-    ],
+    modelos: ['Accent', 'Tucson', 'Starex'],
   },
   {
     marca: 'Ford',
-    modelos: [
-      'Ranger',
-      'Everest',
-    ],
+    modelos: ['Ranger', 'Everest'],
   },
   {
     marca: 'Kia',
-    modelos: [
-      'Picanto',
-      'Sportage',
-      'Carnival',
-    ],
+    modelos: ['Picanto', 'Sportage', 'Carnival'],
   },
 ];
 

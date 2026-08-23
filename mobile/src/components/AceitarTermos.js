@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 import { textoTermos } from '../termos/index.js';
 
@@ -43,23 +44,23 @@ function partir(s) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  linha: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
-  caixa: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: colors.teal,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.white,
-    marginTop: 1,
-  },
-  caixaMarcada: { backgroundColor: colors.teal },
-  visto: { color: colors.white, fontWeight: '900', fontSize: 14, lineHeight: 16 },
-  texto: { flex: 1, fontSize: fontSize.sm, color: colors.text, lineHeight: 20 },
-  link: { color: colors.teal, fontWeight: '800', textDecorationLine: 'underline' },
-});
+    linha: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+    caixa: {
+      width: 24,
+      height: 24,
+      borderRadius: 6,
+      borderWidth: 2,
+      borderColor: colors.teal,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.white,
+      marginTop: 1,
+    },
+    caixaMarcada: { backgroundColor: colors.teal },
+    visto: { color: colors.white, fontWeight: '900', fontSize: 14, lineHeight: 16 },
+    texto: { ...tipo.pequeno, flex: 1, color: colors.text, lineHeight: 20 },
+    link: { color: colors.teal, fontWeight: '800', textDecorationLine: 'underline' },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

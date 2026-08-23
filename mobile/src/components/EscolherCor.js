@@ -51,29 +51,29 @@ function escuro(hex) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  grelha: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  item: {
-    width: '22%',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    borderRadius: radius.md,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  itemActivo: { borderColor: colors.teal, backgroundColor: '#F0F5F4' },
-  amostra: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  visto: { fontWeight: '900', fontSize: 16 },
-  nome: { fontSize: 11, color: colors.textMuted, marginTop: 4 },
-  nomeActivo: { color: colors.teal, fontWeight: '700' },
-});
+    grelha: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+    item: {
+      width: '22%',
+      alignItems: 'center',
+      paddingVertical: spacing.sm,
+      borderRadius: radius.md,
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    itemActivo: { borderColor: colors.teal, backgroundColor: colors.tintaTeal },
+    amostra: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    visto: { fontWeight: '900', fontSize: 16 },
+    nome: { fontSize: 11, color: colors.textMuted, marginTop: 4 },
+    nomeActivo: { color: colors.teal, fontWeight: '700' },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

@@ -13,10 +13,11 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import Button from '../components/Button.js';
 import Voltar from '../components/Voltar.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
+import BarraEstado from '../design/BarraEstado.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
@@ -93,7 +94,6 @@ export default function AdminScreen({ navigation }) {
     }
   }
 
-
   async function resolverAlerta(id) {
     try {
       await api.adminResolverSos(token, id);
@@ -114,7 +114,7 @@ export default function AdminScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.ecra} edges={['top', 'bottom']}>
-      <StatusBar style="dark" />
+      <BarraEstado />
       <View style={styles.topo}>
         <Voltar navigation={navigation} />
         <Text style={styles.titulo}>{t('adminTitle')}</Text>
@@ -140,7 +140,13 @@ export default function AdminScreen({ navigation }) {
             style={[styles.aba, seccao === s && styles.abaActiva]}
           >
             <Text style={[styles.abaTexto, seccao === s && styles.abaTextoActivo]}>
-              {t(s === 'resumo' ? 'admSecResumo' : s === 'motoristas' ? 'admSecDrivers' : 'admSecRides')}
+              {t(
+                s === 'resumo'
+                  ? 'admSecResumo'
+                  : s === 'motoristas'
+                    ? 'admSecDrivers'
+                    : 'admSecRides'
+              )}
             </Text>
           </Pressable>
         ))}
@@ -193,10 +199,20 @@ export default function AdminScreen({ navigation }) {
                   token={token}
                   onAprovar={() => decidir(m, 'approved')}
                   onRecusar={() =>
-                    setPedido({ m, decision: 'rejected', titulo: t('adminRejectTitle'), explicacao: t('adminRejectExplain') })
+                    setPedido({
+                      m,
+                      decision: 'rejected',
+                      titulo: t('adminRejectTitle'),
+                      explicacao: t('adminRejectExplain'),
+                    })
                   }
                   onSuspender={() =>
-                    setPedido({ m, decision: 'suspended', titulo: t('admSuspendTitle'), explicacao: t('admSuspendExplain') })
+                    setPedido({
+                      m,
+                      decision: 'suspended',
+                      titulo: t('admSuspendTitle'),
+                      explicacao: t('admSuspendExplain'),
+                    })
                   }
                 />
               ))
@@ -275,10 +291,20 @@ function Resumo({ resumo, estat, t }) {
       <View style={styles.par}>
         <Cartao
           rotulo={t('admWaitTime')}
-          valor={seg == null ? '—' : seg < 120 ? t('admSeconds', { n: seg }) : t('admMinutes', { n: Math.round(seg / 60) })}
+          valor={
+            seg == null
+              ? '—'
+              : seg < 120
+                ? t('admSeconds', { n: seg })
+                : t('admMinutes', { n: Math.round(seg / 60) })
+          }
           mau={seg != null && seg > 180}
         />
-        <Cartao rotulo={t('admNoAnswer')} valor={String(estat?.semResposta ?? 0)} mau={(estat?.semResposta ?? 0) > 0} />
+        <Cartao
+          rotulo={t('admNoAnswer')}
+          valor={String(estat?.semResposta ?? 0)}
+          mau={(estat?.semResposta ?? 0) > 0}
+        />
       </View>
 
       {estat?.documentosACaducar?.length ? (
@@ -349,7 +375,9 @@ function Motorista({ m, t, token, onAprovar, onRecusar, onSuspender }) {
       <View style={styles.factos}>
         <Text style={styles.facto}>{t('admTripsCount', { n: m.viagens })}</Text>
         {m.cancelou > 0 ? (
-          <Text style={[styles.facto, styles.factoMau]}>{t('admCancelled', { n: m.cancelou })}</Text>
+          <Text style={[styles.facto, styles.factoMau]}>
+            {t('admCancelled', { n: m.cancelou })}
+          </Text>
         ) : null}
         <Text style={[styles.facto, !m.fotoHoje && styles.factoMau]}>
           {m.fotoHoje ? t('admPhotoToday') : t('admPhotoMissing')}
@@ -508,7 +536,12 @@ function Cartao({ rotulo, valor, mau }) {
 const criarEstilos = () =>
   StyleSheet.create({
     ecra: { flex: 1, backgroundColor: colors.paper },
-    centro: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper },
+    centro: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.paper,
+    },
     topo: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -516,10 +549,15 @@ const criarEstilos = () =>
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.sm,
     },
-    titulo: { fontSize: fontSize.lg, fontWeight: '800', color: colors.text },
+    titulo: { ...tipo.titulo, color: colors.text },
     conteudo: { padding: spacing.lg, paddingBottom: spacing.xxl },
 
-    abas: { flexDirection: 'row', paddingHorizontal: spacing.lg, gap: spacing.sm, marginTop: spacing.md },
+    abas: {
+      flexDirection: 'row',
+      paddingHorizontal: spacing.lg,
+      gap: spacing.sm,
+      marginTop: spacing.md,
+    },
     aba: {
       flex: 1,
       paddingVertical: spacing.sm,
@@ -528,11 +566,11 @@ const criarEstilos = () =>
       alignItems: 'center',
     },
     abaActiva: { backgroundColor: colors.teal },
-    abaTexto: { fontSize: fontSize.sm, fontWeight: '700', color: colors.textMuted },
+    abaTexto: { ...tipo.corpoForte, color: colors.textMuted },
     abaTextoActivo: { color: colors.onTeal },
 
     blocoSos: {
-      backgroundColor: '#FDECEA',
+      backgroundColor: colors.tintaPerigo,
       marginHorizontal: spacing.lg,
       marginTop: spacing.md,
       borderRadius: radius.lg,
@@ -540,10 +578,15 @@ const criarEstilos = () =>
       borderWidth: 2,
       borderColor: colors.danger,
     },
-    cartaoSos: { backgroundColor: colors.white, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.xs },
-    sosTipo: { fontWeight: '800', color: colors.danger, fontSize: fontSize.sm },
-    sosNome: { fontWeight: '700', color: colors.text, fontSize: fontSize.md, marginTop: 2 },
-    sosMeta: { color: colors.textMuted, fontSize: fontSize.xs, marginTop: 2 },
+    cartaoSos: {
+      backgroundColor: colors.white,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.xs,
+    },
+    sosTipo: { ...tipo.corpoForte, color: colors.danger },
+    sosNome: { ...tipo.subtitulo, color: colors.text, marginTop: 2 },
+    sosMeta: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
     linhaAcoes: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm, flexWrap: 'wrap' },
     accaoSos: {
       backgroundColor: colors.danger,
@@ -551,25 +594,36 @@ const criarEstilos = () =>
       paddingVertical: 6,
       paddingHorizontal: spacing.md,
     },
-    accaoSosTexto: { color: '#fff', fontWeight: '700', fontSize: fontSize.sm },
-    resolver: { color: colors.teal, fontWeight: '700', marginTop: spacing.sm, fontSize: fontSize.sm },
+    // Branco fixo, e certo: assenta sobre uma superfície que é escura
+    // nos dois temas. Um token de tema aqui trocaria o texto por laranja
+    // sobre vermelho.
+    accaoSosTexto: { ...tipo.corpoForte, color: '#fff' },
+    resolver: { ...tipo.corpoForte, color: colors.teal, marginTop: spacing.sm },
 
     numeros: { flexDirection: 'row', gap: spacing.sm },
-    numero: { flex: 1, backgroundColor: colors.white, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
-    numeroValor: { fontSize: fontSize.xl, fontWeight: '800', color: colors.teal },
+    numero: {
+      flex: 1,
+      backgroundColor: colors.white,
+      borderRadius: radius.md,
+      paddingVertical: spacing.md,
+      alignItems: 'center',
+    },
+    numeroValor: { ...tipo.displayPequeno, color: colors.teal },
     numeroEtiqueta: { fontSize: 11, color: colors.textMuted, marginTop: 2, textAlign: 'center' },
 
     par: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
-    cartaoNumero: { flex: 1, backgroundColor: colors.white, borderRadius: radius.md, padding: spacing.md },
+    cartaoNumero: {
+      flex: 1,
+      backgroundColor: colors.white,
+      borderRadius: radius.md,
+      padding: spacing.md,
+    },
     cartaoRotulo: { fontSize: 11, color: colors.textMuted, fontWeight: '700' },
-    cartaoValor: { fontSize: fontSize.lg, fontWeight: '800', color: colors.text, marginTop: 2 },
+    cartaoValor: { ...tipo.titulo, color: colors.text, marginTop: 2 },
 
     seccaoTitulo: {
-      fontSize: fontSize.xs,
-      fontWeight: '800',
+      ...tipo.etiqueta,
       color: colors.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: 0.8,
       marginTop: spacing.xl,
       marginBottom: spacing.sm,
     },
@@ -582,9 +636,9 @@ const criarEstilos = () =>
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
     },
-    linhaNome: { fontSize: fontSize.sm, color: colors.text, flex: 1 },
-    linhaValor: { fontSize: fontSize.sm, fontWeight: '800', color: colors.text },
-    linhaValorMau: { fontSize: fontSize.sm, fontWeight: '800', color: colors.danger },
+    linhaNome: { ...tipo.pequeno, color: colors.text, flex: 1 },
+    linhaValor: { ...tipo.corpoForte, color: colors.text },
+    linhaValorMau: { ...tipo.corpoForte, color: colors.danger },
 
     filtros: { flexDirection: 'row', gap: 6, marginBottom: spacing.md, flexWrap: 'wrap' },
     filtro: {
@@ -594,32 +648,53 @@ const criarEstilos = () =>
       backgroundColor: colors.white,
     },
     filtroActivo: { backgroundColor: colors.teal },
-    filtroTexto: { fontSize: fontSize.xs, fontWeight: '700', color: colors.textMuted },
+    filtroTexto: { ...tipo.legenda, color: colors.textMuted },
     filtroTextoActivo: { color: colors.onTeal },
 
-    vazio: { color: colors.textMuted, fontSize: fontSize.sm, textAlign: 'center', paddingVertical: spacing.xl },
-    cartao: { backgroundColor: colors.white, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
+    vazio: {
+      ...tipo.pequeno,
+      color: colors.textMuted,
+      textAlign: 'center',
+      paddingVertical: spacing.xl,
+    },
+    cartao: {
+      backgroundColor: colors.white,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      marginBottom: spacing.md,
+    },
     cabecalhoMotorista: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
-    nome: { fontSize: fontSize.md, fontWeight: '700', color: colors.text },
-    meta: { color: colors.textMuted, fontSize: fontSize.xs, marginTop: 2 },
+    nome: { ...tipo.subtitulo, color: colors.text },
+    meta: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
     estado: { fontSize: 11, fontWeight: '800', color: colors.textMuted },
     estadoOk: { color: colors.success },
     estadoMau: { color: colors.danger },
     factos: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
     facto: { fontSize: 11, color: colors.textMuted },
     factoMau: { color: colors.danger, fontWeight: '700' },
-    motivo: { fontSize: fontSize.xs, color: colors.danger, fontStyle: 'italic', marginTop: spacing.sm },
+    motivo: { ...tipo.legenda, color: colors.danger, fontStyle: 'italic', marginTop: spacing.sm },
     docs: { marginTop: spacing.md },
-    doc: { width: 84, height: 84, borderRadius: radius.sm, marginRight: spacing.sm, backgroundColor: colors.border },
+    doc: {
+      width: 84,
+      height: 84,
+      borderRadius: radius.sm,
+      marginRight: spacing.sm,
+      backgroundColor: colors.border,
+    },
     docMau: { position: 'absolute', top: 2, right: 10, fontSize: 16 },
-    semDocs: { marginTop: spacing.sm, color: colors.danger, fontSize: fontSize.xs },
+    semDocs: { ...tipo.legenda, marginTop: spacing.sm, color: colors.danger },
     botoes: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
     metade: { flex: 1 },
 
-    viagem: { backgroundColor: colors.white, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm },
+    viagem: {
+      backgroundColor: colors.white,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+    },
     viagemTopo: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.sm },
-    viagemDestino: { flex: 1, fontSize: fontSize.sm, fontWeight: '700', color: colors.text },
-    viagemPreco: { fontSize: fontSize.sm, fontWeight: '800', color: colors.teal },
+    viagemDestino: { ...tipo.corpoForte, flex: 1, color: colors.text },
+    viagemPreco: { ...tipo.corpoForte, color: colors.teal },
     viagemMeta: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
     viagemLinha: { flexDirection: 'row', gap: spacing.sm, marginTop: 4, flexWrap: 'wrap' },
     viagemEstado: { fontSize: 11, fontWeight: '800', color: colors.textMuted },
@@ -632,9 +707,10 @@ const criarEstilos = () =>
       padding: spacing.lg,
     },
     painelMotivo: { backgroundColor: colors.paper, borderRadius: radius.lg, padding: spacing.lg },
-    motivoTitulo: { fontSize: fontSize.md, fontWeight: '800', color: colors.text },
-    motivoExplica: { fontSize: fontSize.sm, color: colors.textMuted, marginTop: 4, lineHeight: 19 },
+    motivoTitulo: { ...tipo.subtitulo, color: colors.text },
+    motivoExplica: { ...tipo.pequeno, color: colors.textMuted, marginTop: 4, lineHeight: 19 },
     motivoCampo: {
+      ...tipo.corpo,
       backgroundColor: colors.white,
       borderWidth: 1.5,
       borderColor: colors.border,
@@ -643,7 +719,6 @@ const criarEstilos = () =>
       marginTop: spacing.md,
       minHeight: 74,
       color: colors.text,
-      fontSize: fontSize.md,
       textAlignVertical: 'top',
     },
   });

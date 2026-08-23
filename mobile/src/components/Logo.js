@@ -18,13 +18,7 @@ const COMPLETO_CLARO = require('../../assets/logo-completo-claro.png');
 
 export default function Logo({ size = 'lg', onTeal = false }) {
   const grande = size === 'lg';
-  const fonte = grande
-    ? onTeal
-      ? COMPLETO_CLARO
-      : COMPLETO
-    : onTeal
-      ? MARCA_CLARA
-      : MARCA;
+  const fonte = grande ? (onTeal ? COMPLETO_CLARO : COMPLETO) : onTeal ? MARCA_CLARA : MARCA;
 
   return (
     <View style={styles.caixa}>

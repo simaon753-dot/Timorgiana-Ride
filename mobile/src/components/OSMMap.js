@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
 
 // Centro por omissão: Díli, Timor-Leste
 const DILI = { lat: -8.5569, lng: 125.5603 };
@@ -82,7 +83,12 @@ export default function OSMMap({
 }
 
 function buildHtml({ center, markers, pickable }) {
-  const pts = markers.map((m) => ({ lat: m.lat, lng: m.lng, label: m.label || '', tipo: m.tipo || '' }));
+  const pts = markers.map((m) => ({
+    lat: m.lat,
+    lng: m.lng,
+    label: m.label || '',
+    tipo: m.tipo || '',
+  }));
   return `<!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -190,19 +196,19 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
 
 const criarEstilos = () =>
   StyleSheet.create({
-  wrap: {
-    borderRadius: radius.md,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: '#e9e4db',
-  },
-  fill: { flex: 1, borderRadius: 0, borderWidth: 0 },
-  web: { flex: 1, backgroundColor: 'transparent' },
-  fallback: { alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
-  fallbackIcon: { fontSize: 32, marginBottom: spacing.sm },
-  fallbackText: { color: colors.textMuted, fontSize: fontSize.sm, textAlign: 'center' },
-});
+    wrap: {
+      borderRadius: radius.md,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: '#e9e4db',
+    },
+    fill: { flex: 1, borderRadius: 0, borderWidth: 0 },
+    web: { flex: 1, backgroundColor: 'transparent' },
+    fallback: { alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
+    fallbackIcon: { fontSize: 32, marginBottom: spacing.sm },
+    fallbackText: { ...tipo.pequeno, color: colors.textMuted, textAlign: 'center' },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {

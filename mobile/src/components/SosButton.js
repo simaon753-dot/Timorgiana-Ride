@@ -1,17 +1,11 @@
-import React, { useState, useEffect } from "react";
-import {
-  Alert,
-  Linking,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from "react-native";
-import * as Location from "expo-location";
-import { colors, radius, spacing, registarEstilos } from "../theme.js";
-import { useI18n } from "../i18n/index.js";
-import { useAuth } from "../context/AuthContext.js";
-import { api } from "../api/client.js";
-import EscolherEmergencia from "./EscolherEmergencia.js";
+import React, { useState, useEffect } from 'react';
+import { Alert, Linking, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import * as Location from 'expo-location';
+import { colors, radius, spacing, registarEstilos } from '../theme.js';
+import { useI18n } from '../i18n/index.js';
+import { useAuth } from '../context/AuthContext.js';
+import { api } from '../api/client.js';
+import EscolherEmergencia from './EscolherEmergencia.js';
 
 // Botão de emergência. Duas coisas acontecem quando se carrega, por esta
 // ordem: o alerta é registado no servidor (para ficar prova de que houve
@@ -23,10 +17,10 @@ import EscolherEmergencia from "./EscolherEmergencia.js";
 // haver rede no momento em que fazem falta — que é precisamente quando
 // fazem mais falta.
 const NUMEROS_POR_OMISSAO = {
-  medica: "110",
-  medicaAlternativa: "3311044",
-  policia: "112",
-  protecao: "115",
+  medica: '110',
+  medicaAlternativa: '3311044',
+  policia: '112',
+  protecao: '115',
 };
 
 export default function SosButton({ rideId, compact }) {
@@ -41,10 +35,7 @@ export default function SosButton({ rideId, compact }) {
   useEffect(() => {
     api
       .numerosEmergencia()
-      .then(
-        (r) =>
-          r?.numeros && setNumeros({ ...NUMEROS_POR_OMISSAO, ...r.numeros }),
-      )
+      .then((r) => r?.numeros && setNumeros({ ...NUMEROS_POR_OMISSAO, ...r.numeros }))
       .catch(() => {});
   }, []);
 
@@ -57,7 +48,7 @@ export default function SosButton({ rideId, compact }) {
     // vale mais depressa e vazio do que tarde e completo.
     try {
       const { status } = await Location.getForegroundPermissionsAsync();
-      if (status === "granted") {
+      if (status === 'granted') {
         const pos = await Promise.race([
           Location.getLastKnownPositionAsync(),
           new Promise((r) => setTimeout(() => r(null), 3000)),
@@ -74,11 +65,11 @@ export default function SosButton({ rideId, compact }) {
     let numero = numeros[tipo] || numeros.policia;
     // Só a ambulância tem segunda linha. Acrescentar um botão a mais nas
     // outras seria uma escolha extra num ecrã onde já se decide com medo.
-    const alternativo = tipo === "medica" ? numeros.medicaAlternativa : null;
+    const alternativo = tipo === 'medica' ? numeros.medicaAlternativa : null;
     const botaoAlternativo = alternativo
       ? [
           {
-            text: t("sosCall", { n: alternativo }),
+            text: t('sosCall', { n: alternativo }),
             onPress: () => Linking.openURL(`tel:${alternativo}`),
           },
         ]
@@ -90,11 +81,11 @@ export default function SosButton({ rideId, compact }) {
     } catch {
       // Nem o servidor pode travar isto: se a rede falhar, a pessoa tem de
       // conseguir ligar à polícia à mesma.
-      Alert.alert(t("sosOffline"), t("sosOfflineExplain"), [
-        { text: t("cancel"), style: "cancel" },
+      Alert.alert(t('sosOffline'), t('sosOfflineExplain'), [
+        { text: t('cancel'), style: 'cancel' },
         ...botaoAlternativo,
         {
-          text: t("sosCall", { n: numero }),
+          text: t('sosCall', { n: numero }),
           onPress: () => Linking.openURL(`tel:${numero}`),
         },
       ]);
@@ -103,11 +94,11 @@ export default function SosButton({ rideId, compact }) {
     }
 
     setAEnviar(false);
-    Alert.alert(t("sosSentTitle"), t("sosSentExplain"), [
-      { text: t("sosOnlyAlert"), style: "cancel" },
+    Alert.alert(t('sosSentTitle'), t('sosSentExplain'), [
+      { text: t('sosOnlyAlert'), style: 'cancel' },
       ...botaoAlternativo,
       {
-        text: t("sosCall", { n: numero }),
+        text: t('sosCall', { n: numero }),
         onPress: () => Linking.openURL(`tel:${numero}`),
       },
     ]);
@@ -137,10 +128,10 @@ export default function SosButton({ rideId, compact }) {
         onPress={abrirEscolha}
         disabled={aEnviar}
         accessibilityRole="button"
-        accessibilityLabel={t("sos")}
+        accessibilityLabel={t('sos')}
       >
         <Text style={[styles.texto, compact && styles.textoCompacto]}>
-          {aEnviar ? "…" : compact ? "SOS" : `🚨  ${t("sos")}`}
+          {aEnviar ? '…' : compact ? 'SOS' : `🚨  ${t('sos')}`}
         </Text>
       </TouchableOpacity>
     </>
@@ -153,8 +144,8 @@ const criarEstilos = () =>
       backgroundColor: colors.danger,
       borderRadius: radius.md,
       paddingVertical: spacing.md,
-      alignItems: "center",
-      justifyContent: "center",
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     compacto: {
       width: 48,
@@ -164,9 +155,12 @@ const criarEstilos = () =>
       borderWidth: 2,
       borderColor: colors.white,
     },
+    // Branco fixo, e certo: assenta sobre uma superfície que é escura
+    // nos dois temas. Um token de tema aqui trocaria o texto por laranja
+    // sobre vermelho.
     texto: {
-      color: "#fff",
-      fontWeight: "800",
+      color: '#fff',
+      fontWeight: '800',
       fontSize: 16,
       letterSpacing: 0.5,
     },

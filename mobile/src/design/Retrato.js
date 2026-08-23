@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
-import { colors, radius, registarEstilos } from "../theme.js";
-import { getApiUrl } from "../serverUrl.js";
-import { useAuth } from "../context/AuthContext.js";
+import React, { useState } from 'react';
+import { Image, StyleSheet, Text, View } from 'react-native';
+import { colors, radius, registarEstilos } from '../theme.js';
+import { getApiUrl } from '../serverUrl.js';
+import { useAuth } from '../context/AuthContext.js';
 
 // Retrato do motorista.
 //
@@ -50,9 +50,9 @@ export default function Retrato({ tamanho = 78, mostrarFoto = true }) {
 const criarEstilos = () =>
   StyleSheet.create({
     caixa: {
-      alignItems: "center",
-      justifyContent: "center",
-      overflow: "hidden",
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
     },
     // O anel só existe quando há fotografia: serve para separar a imagem
     // do fundo. À volta do 👤 seria o círculo que já foi pedido para sair.

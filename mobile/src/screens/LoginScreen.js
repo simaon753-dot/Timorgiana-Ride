@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,62 +7,55 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import BarraEstado from "../design/BarraEstado.js";
-import Aviso from "../design/Aviso.js";
-import { tipo } from "../design/tipografia.js";
-import Logo from "../components/Logo.js";
-import Button from "../components/Button.js";
-import TextField from "../components/TextField.js";
-import LanguageToggle from "../components/LanguageToggle.js";
-import { useI18n } from "../i18n/index.js";
-import { useAuth } from "../context/AuthContext.js";
-import { colors, spacing, registarEstilos } from "../theme.js";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import BarraEstado from '../design/BarraEstado.js';
+import Aviso from '../design/Aviso.js';
+import { tipo } from '../design/tipografia.js';
+import Logo from '../components/Logo.js';
+import Button from '../components/Button.js';
+import TextField from '../components/TextField.js';
+import LanguageToggle from '../components/LanguageToggle.js';
+import { useI18n } from '../i18n/index.js';
+import { useAuth } from '../context/AuthContext.js';
+import { colors, spacing, registarEstilos } from '../theme.js';
 
 export default function LoginScreen({ navigation }) {
   const { t } = useI18n();
   const { login } = useAuth();
 
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit() {
     setError(null);
-    if (!phone.trim()) return setError(t("errPhoneRequired"));
-    if (!password) return setError(t("errPasswordShort"));
+    if (!phone.trim()) return setError(t('errPhoneRequired'));
+    if (!password) return setError(t('errPasswordShort'));
 
     setLoading(true);
     try {
       await login({ phone, password });
       // O RootNavigator troca automaticamente para a área autenticada.
     } catch (e) {
-      setError(
-        e?.message === "NETWORK"
-          ? t("errNetwork")
-          : e?.message || t("errGeneric"),
-      );
+      setError(e?.message === 'NETWORK' ? t('errNetwork') : e?.message || t('errGeneric'));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <BarraEstado />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-        >
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={styles.topBar}>
             <Pressable onPress={() => navigation.goBack()} hitSlop={10}>
-              <Text style={styles.back}>‹ {t("back")}</Text>
+              <Text style={styles.back}>‹ {t('back')}</Text>
             </Pressable>
             <LanguageToggle />
           </View>
@@ -71,20 +64,20 @@ export default function LoginScreen({ navigation }) {
             <Logo />
           </View>
 
-          <Text style={styles.title}>{t("loginTitle")}</Text>
-          <Text style={styles.subtitle}>{t("loginSubtitle")}</Text>
+          <Text style={styles.title}>{t('loginTitle')}</Text>
+          <Text style={styles.subtitle}>{t('loginSubtitle')}</Text>
 
           <View style={styles.form}>
             <TextField
-              label={t("phone")}
+              label={t('phone')}
               value={phone}
               onChangeText={setPhone}
-              placeholder={t("phonePlaceholder")}
+              placeholder={t('phonePlaceholder')}
               keyboardType="phone-pad"
               autoCapitalize="none"
             />
             <TextField
-              label={t("password")}
+              label={t('password')}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -95,7 +88,7 @@ export default function LoginScreen({ navigation }) {
 
             {/* Entrar é a única acção deste ecrã: leva o tamanho grande. */}
             <Button
-              title={t("loginButton")}
+              title={t('loginButton')}
               onPress={onSubmit}
               loading={loading}
               tamanho="grande"
@@ -103,14 +96,12 @@ export default function LoginScreen({ navigation }) {
             />
 
             <View style={styles.footer}>
-              <Text style={styles.footerText}>{t("noAccountQuestion")} </Text>
+              <Text style={styles.footerText}>{t('noAccountQuestion')} </Text>
               <Pressable
-                onPress={() =>
-                  navigation.navigate("Register", { role: "passenger" })
-                }
+                onPress={() => navigation.navigate('Register', { role: 'passenger' })}
                 hitSlop={8}
               >
-                <Text style={styles.footerLink}>{t("registerLink")}</Text>
+                <Text style={styles.footerLink}>{t('registerLink')}</Text>
               </Pressable>
             </View>
           </View>
@@ -129,9 +120,9 @@ const criarEstilos = () =>
       paddingBottom: spacing.xl,
     },
     topBar: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
       paddingTop: spacing.sm,
     },
     back: { ...tipo.corpoForte, color: colors.teal },
@@ -146,8 +137,8 @@ const criarEstilos = () =>
     form: { marginTop: spacing.sm },
     erro: { marginBottom: spacing.sm },
     footer: {
-      flexDirection: "row",
-      justifyContent: "center",
+      flexDirection: 'row',
+      justifyContent: 'center',
       marginTop: spacing.lg,
     },
     footerText: { ...tipo.corpo, color: colors.textMuted },

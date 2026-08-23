@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { colors, spacing, fontSize, registarEstilos } from '../theme.js';
+import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 
 // Saída de um ecrã empilhado.
@@ -28,9 +29,9 @@ export default function Voltar({ navigation, style }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-  area: { alignSelf: 'flex-start', paddingVertical: spacing.xs, paddingRight: spacing.md },
-  texto: { color: colors.teal, fontSize: fontSize.md, fontWeight: '600' },
-});
+    area: { alignSelf: 'flex-start', paddingVertical: spacing.xs, paddingRight: spacing.md },
+    texto: { ...tipo.subtitulo, color: colors.teal },
+  });
 
 let styles = criarEstilos();
 registarEstilos(() => {
