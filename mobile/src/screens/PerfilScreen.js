@@ -56,9 +56,10 @@ export default function PerfilScreen({ navigation }) {
         </View>
 
         <View style={styles.cabecalho}>
-          {/* A fotografia enviada no registo. Quem não é motorista — ou
-              ainda não a enviou — continua a ver o 👤. */}
-          <Retrato tamanho={86} mostrarFoto={pediuParaConduzir} />
+          {/* A fotografia mais recente do motorista. Quem não é motorista
+              — ou ainda não enviou nenhuma — continua a ver o 👤: é o
+              servidor que responde 404 e o componente que trata disso. */}
+          <Retrato tamanho={86} />
           <Text style={styles.nome}>{user?.name}</Text>
           <Text style={styles.telefone}>{user?.phone}</Text>
           {user?.ratingAvg ? (

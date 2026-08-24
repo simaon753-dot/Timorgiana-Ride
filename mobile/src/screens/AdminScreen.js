@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Image,
   Linking,
   Pressable,
   RefreshControl,
@@ -21,7 +20,7 @@ import BarraEstado from '../design/BarraEstado.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
-import { getApiUrl } from '../serverUrl.js';
+import ImagemProtegida from '../design/ImagemProtegida.js';
 import { abrirNoMapa } from '../lib/mapaLink.js';
 
 // Painel de quem gere o serviço.
@@ -393,13 +392,11 @@ function Motorista({ m, t, token, onAprovar, onRecusar, onSuspender }) {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.docs}>
           {m.documents.map((d) => (
             <View key={d.id}>
-              <Image
-                source={{
-                  uri: `${getApiUrl()}/admin/documents/${d.id}`,
-                  headers: { Authorization: `Bearer ${token}` },
-                }}
-                style={styles.doc}
-              />
+              {/* Passou a buscar os bytes com fetch, como o retrato do
+                  perfil: o carregador nativo pode não enviar o cabeçalho
+                  de autorização, e nesse caso os documentos apareciam em
+                  branco sem dizer porquê. */}
+              <ImagemProtegida caminho={`/admin/documents/${d.id}`} style={styles.doc} />
               {d.expirado ? <Text style={styles.docMau}>⚠</Text> : null}
             </View>
           ))}
