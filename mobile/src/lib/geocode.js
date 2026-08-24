@@ -15,6 +15,54 @@ function nomeCurto(display) {
   return display.split(',').slice(0, 2).join(',').trim();
 }
 
+// ── Rede lenta ────────────────────────────────────────────────────────
+//
+// Em Díli a ligação é lenta e o preço dos dados é real. Três medidas, e
+// nenhuma delas muda o que o utilizador vê quando a rede está boa:
+//
+//   1. PRAZO. Sem prazo, um pedido pendurado numa rede má nunca resolve
+//      nem falha — fica para sempre, e com ele o nome da rua.
+//   2. MEMÓRIA. A mesma rua perguntada duas vezes custa duas vezes. Um
+//      motorista que faz o mesmo percurso todos os dias passa a pagar
+//      pelo nome de cada rua uma vez por sessão, e não a cada passagem.
+//   3. UM DE CADA VEZ. Numa rede lenta os pedidos acumulam-se mais
+//      depressa do que se resolvem. Se já houver um a caminho, o
+//      seguinte é descartado: a posição de agora vale mais do que uma
+//      resposta sobre onde se esteve há trinta segundos.
+const PRAZO_MS = 9000;
+const memoria = new Map();
+const MAX_MEMORIA = 200;
+
+// Três casas decimais são cerca de 110 metros — a mesma ordem de grandeza
+// do salto mínimo que já se exige para voltar a perguntar.
+function chave(lat, lng) {
+  return `${lat.toFixed(3)},${lng.toFixed(3)}`;
+}
+
+function lembrar(k, valor) {
+  if (memoria.size >= MAX_MEMORIA) memoria.delete(memoria.keys().next().value);
+  memoria.set(k, valor);
+  return valor;
+}
+
+async function buscar(url, sinal) {
+  const ctrl = new AbortController();
+  const relogio = setTimeout(() => ctrl.abort(), PRAZO_MS);
+  // Um sinal vindo de fora (o utilizador mudou de ecrã) também corta.
+  if (sinal) sinal.addEventListener?.('abort', () => ctrl.abort());
+  try {
+    const r = await fetch(url, {
+      headers: { Accept: 'application/json', 'User-Agent': UA },
+      signal: ctrl.signal,
+    });
+    return r.ok ? await r.json() : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(relogio);
+  }
+}
+
 export async function pesquisarLugares(termo, sinal) {
   const q = String(termo || '').trim();
   if (q.length < 3) return [];
@@ -29,13 +77,9 @@ export async function pesquisarLugares(termo, sinal) {
     bounded: '1',
   });
 
+  const rs = await buscar(`${BASE}/search?${params}`, sinal);
+  if (!Array.isArray(rs)) return [];
   try {
-    const r = await fetch(`${BASE}/search?${params}`, {
-      headers: { Accept: 'application/json', 'User-Agent': UA },
-      signal: sinal,
-    });
-    if (!r.ok) return [];
-    const rs = await r.json();
     return rs.map((x) => ({
       id: `${x.osm_type || 'x'}${x.osm_id || Math.random()}`,
       label: nomeCurto(x.display_name),
@@ -44,21 +88,16 @@ export async function pesquisarLugares(termo, sinal) {
       lng: Number(x.lon),
     }));
   } catch {
-    return []; // sem rede ou pesquisa cancelada
+    return []; // resposta inesperada
   }
 }
 
 export async function nomeDoLugar(lat, lng) {
-  try {
-    const r = await fetch(`${BASE}/reverse?format=json&zoom=16&lat=${lat}&lon=${lng}`, {
-      headers: { Accept: 'application/json', 'User-Agent': UA },
-    });
-    if (!r.ok) return null;
-    const j = await r.json();
-    return j?.display_name ? nomeCurto(j.display_name) : null;
-  } catch {
-    return null;
-  }
+  const k = `l:${chave(lat, lng)}`;
+  if (memoria.has(k)) return memoria.get(k);
+  const j = await buscar(`${BASE}/reverse?format=json&zoom=16&lat=${lat}&lon=${lng}`);
+  if (!j) return null; // falha não se guarda: da próxima pode correr bem
+  return lembrar(k, j?.display_name ? nomeCurto(j.display_name) : null);
 }
 
 export const rotuloCoordenadas = (lat, lng) => `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
@@ -69,20 +108,27 @@ export const rotuloCoordenadas = (lat, lng) => `${lat.toFixed(5)}, ${lng.toFixed
 //
 // zoom=17 e addressdetails=1 para vir o campo `road`; sem isso o Nominatim
 // devolve o bairro, que muda pouco e não ajuda a localizar.
+let ruaEmCurso = false;
+
 export async function nomeDaRua(lat, lng) {
+  const k = `r:${chave(lat, lng)}`;
+  if (memoria.has(k)) return memoria.get(k);
+
+  // Já há um a caminho: desiste. O rótulo do veículo fica com o nome
+  // anterior mais um instante, que é melhor do que uma fila de pedidos a
+  // responder sobre ruas por onde já se passou.
+  if (ruaEmCurso) return null;
+  ruaEmCurso = true;
   try {
-    const r = await fetch(
-      `${BASE}/reverse?format=json&zoom=17&addressdetails=1&lat=${lat}&lon=${lng}`,
-      { headers: { Accept: 'application/json', 'User-Agent': UA } }
+    const j = await buscar(
+      `${BASE}/reverse?format=json&zoom=17&addressdetails=1&lat=${lat}&lon=${lng}`
     );
-    if (!r.ok) return null;
-    const j = await r.json();
+    if (!j) return null;
     const a = j?.address || {};
     const rua = a.road || a.pedestrian || a.residential || a.suburb || a.village;
-    if (rua) return rua;
-    return j?.display_name ? nomeCurto(j.display_name) : null;
-  } catch {
-    return null;
+    return lembrar(k, rua || (j?.display_name ? nomeCurto(j.display_name) : null));
+  } finally {
+    ruaEmCurso = false;
   }
 }
 

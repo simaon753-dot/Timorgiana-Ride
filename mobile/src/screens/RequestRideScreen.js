@@ -5,6 +5,7 @@ import * as Location from 'expo-location';
 import OSMMap from '../components/OSMMap.js';
 import PlaceSearch from '../components/PlaceSearch.js';
 import EscolherLugares from '../components/EscolherLugares.js';
+import SegmentedPicker from '../components/SegmentedPicker.js';
 import { LUGARES } from '../dados/veiculos.js';
 import { nomeDoLugar, rotuloCoordenadas } from '../lib/geocode.js';
 import { useI18n } from '../i18n/index.js';
@@ -61,8 +62,15 @@ export default function RequestRideScreen({ navigation }) {
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
-      const label = await nomeDoLugar(lat, lng);
-      setOrigem({ lat, lng, label: label || rotuloCoordenadas(lat, lng) });
+      // Mesma ordem: o ponto primeiro, o nome quando vier. Ter o mapa
+      // centrado onde estamos vale mais do que saber como se chama a rua.
+      setOrigem({ lat, lng, label: rotuloCoordenadas(lat, lng), provisorio: true });
+      const nome = await nomeDoLugar(lat, lng);
+      if (nome) {
+        setOrigem((p) =>
+          p && p.lat === lat && p.lng === lng ? { ...p, label: nome, provisorio: false } : p
+        );
+      }
     } catch {
       /* sem GPS — o utilizador pode escolher no mapa */
     } finally {
@@ -77,8 +85,12 @@ export default function RequestRideScreen({ navigation }) {
   }, [usarLocalizacao]);
 
   async function escolherNoMapa({ lat, lng }) {
-    const label = await nomeDoLugar(lat, lng);
-    const ponto = { lat, lng, label: label || rotuloCoordenadas(lat, lng) };
+    // A coordenada já se sabe no instante do toque; o NOME é que demora.
+    // Antes esperava-se pelo nome antes de marcar o ponto, e numa rede
+    // lenta tocava-se no mapa e não acontecia nada durante segundos — a
+    // pessoa tocava outra vez, e outra. Agora o pino aparece já, com a
+    // coordenada por rótulo, e o nome entra quando chegar.
+    const ponto = { lat, lng, label: rotuloCoordenadas(lat, lng), provisorio: true };
 
     // Com a pesquisa aberta, o campo que a abriu decide — a pessoa disse
     // explicitamente qual queria. Só sem pesquisa é que adivinhamos:
@@ -94,6 +106,15 @@ export default function RequestRideScreen({ navigation }) {
     } else {
       setDestino(ponto);
     }
+
+    // O nome chega depois e substitui o rótulo — mas só se o ponto ainda
+    // for este. Sem essa verificação, um nome lento de um toque antigo
+    // sobrescrevia um ponto que a pessoa entretanto já tinha mudado.
+    const nome = await nomeDoLugar(lat, lng);
+    if (!nome) return;
+    const mesmo = (p) => p && p.lat === lat && p.lng === lng;
+    setOrigem((p) => (mesmo(p) ? { ...p, label: nome, provisorio: false } : p));
+    setDestino((p) => (mesmo(p) ? { ...p, label: nome, provisorio: false } : p));
   }
 
   // A pesquisa flutua por cima do mapa, que nunca é desmontado. O campo
@@ -135,6 +156,16 @@ export default function RequestRideScreen({ navigation }) {
     marcadores.push({ lat: destino.lat, lng: destino.lng, label: destino.label, tipo: 'destino' });
 
   const opcao = orcamento?.options?.find((o) => o.type === veiculo);
+
+  // Pedir depende de haver DOIS PONTOS, não de haver preço.
+  //
+  // Antes o botão exigia a cotação. Mas `pedir()` não envia preço nenhum
+  // — quem o calcula é o servidor, ao criar a viagem. A cotação só serve
+  // para mostrar o valor antes de confirmar. Numa rede lenta, uma
+  // cotação que não chegava bloqueava por completo a funcionalidade
+  // principal da aplicação, por causa de um número que é apenas
+  // informativo.
+  const podePedir = !!origem && !!destino && !aPedir;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -225,21 +256,50 @@ export default function RequestRideScreen({ navigation }) {
                 <Text style={styles.pagamentoTexto}>💵 {t('payCash')}</Text>
               </View>
             </>
+          ) : origem && destino ? (
+            // Sem cotação — a rede não respondeu. A viagem continua a
+            // poder ser pedida; o preço combina-se com o motorista, que é
+            // o que já acontece quando o servidor não consegue calcular.
+            <>
+              <Text style={styles.seccao}>{t('chooseVehicle')}</Text>
+              <SegmentedPicker
+                value={veiculo}
+                onChange={setVeiculo}
+                options={[
+                  { value: 'car', label: t('vehicleCar'), icon: '🚗' },
+                  { value: 'motorbike', label: t('vehicleMotorbike'), icon: '🏍️' },
+                ]}
+              />
+              {veiculo === 'car' ? (
+                <>
+                  <Text style={styles.seccao}>{t('howManyPeople')}</Text>
+                  <EscolherLugares opcoes={LUGARES} valor={pessoas} onEscolher={setPessoas} />
+                  <View style={{ height: spacing.md }} />
+                </>
+              ) : null}
+              <View style={styles.pagamento}>
+                <Text style={styles.pagamentoTexto}>💵 {t('payCash')}</Text>
+              </View>
+            </>
           ) : null}
 
           {erro ? <Text style={styles.erro}>{erro}</Text> : null}
         </ScrollView>
 
         <Pressable
-          style={[styles.botao, (!opcao || aPedir) && styles.botaoInativo]}
+          style={[styles.botao, !podePedir && styles.botaoInativo]}
           onPress={pedir}
-          disabled={!opcao || aPedir}
+          disabled={!podePedir}
         >
           {aPedir ? (
             <ActivityIndicator color={colors.white} />
           ) : (
             <Text style={styles.botaoTexto}>
-              {opcao ? `${t('confirmRide')} $${opcao.fareUsd.toFixed(2)}` : t('whereTo')}
+              {opcao
+                ? `${t('confirmRide')} $${opcao.fareUsd.toFixed(2)}`
+                : podePedir
+                  ? `${t('confirmRide')} · ${t('fareToAgree')}`
+                  : t('whereTo')}
             </Text>
           )}
         </Pressable>

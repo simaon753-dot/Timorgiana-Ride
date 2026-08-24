@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { LEAFLET_CSS, LEAFLET_JS } from './leafletEmbutido.js';
 import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 
@@ -91,7 +92,7 @@ function buildHtml({ center, markers, pickable }) {
   }));
   return `<!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>${LEAFLET_CSS}</style>
 <style>
 html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
 .rotulo.leaflet-tooltip{
@@ -108,13 +109,30 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
 </style>
 </head><body>
 <div id="map"></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>${LEAFLET_JS}</script>
 <script>
   var map = L.map('map',{zoomControl:false,attributionControl:false}).setView([${center.lat},${center.lng}], 14);
   // Zoom em baixo à esquerda: em cima colidia com o crachá de distância
   // e tempo, e à direita com os botões de expandir e fechar.
   L.control.zoom({ position: 'bottomleft' }).addTo(map);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
+  // Mosaicos, afinados para uma rede lenta.
+  //
+  //   keepBuffer:0   — o Leaflet carrega por omissão um anel de mosaicos
+  //                    FORA do ecrã, para o arrastar ficar suave. São
+  //                    duas a três vezes mais mosaicos do que se vê. Numa
+  //                    ligação lenta esse anel atrasa os que interessam,
+  //                    que são os que estão à frente dos olhos.
+  //   updateWhenIdle — só pede mosaicos quando o dedo pára. A arrastar,
+  //                    pedia uma vaga nova a cada quadro do movimento e
+  //                    quase todos eram deitados fora antes de chegarem.
+  //   maxZoom:18     — o 19 existe e é mais um nível de mosaicos para
+  //                    descarregar. Para encontrar um carro na rua, o 18
+  //                    já mostra os números de porta.
+  //   updateWhenZooming:false — o mesmo, para o gesto de ampliar.
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:18, keepBuffer:0, updateWhenIdle:true, updateWhenZooming:false,
+    crossOrigin:true
+  }).addTo(map);
   var pts = ${JSON.stringify(pts)};
   pts.forEach(function(p){
     var m = L.marker([p.lat,p.lng]).addTo(map);
@@ -141,22 +159,47 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
   // utilizador ver sempre a ligação entre os dois pontos.
   function send(o){ if(window.ReactNativeWebView){ window.ReactNativeWebView.postMessage(JSON.stringify(o)); } }
   function straightLine(a,b){
-    L.polyline([[a.lat,a.lng],[b.lat,b.lng]],{color:'#0E5C54',weight:4,opacity:0.6,dashArray:'8,8'}).addTo(map);
+    var camada = L.polyline([[a.lat,a.lng],[b.lat,b.lng]],{color:'#0E5C54',weight:4,opacity:0.6,dashArray:'8,8'}).addTo(map);
     var R=6371, dLat=(b.lat-a.lat)*Math.PI/180, dLng=(b.lng-a.lng)*Math.PI/180;
     var s=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
     send({type:'route', km: Math.round(2*R*Math.asin(Math.sqrt(s))*10)/10, approx:true});
+    return camada;
   }
   if (pts.length > 1) {
     var a = pts[0], b = pts[pts.length-1];
-    var url = 'https://router.project-osrm.org/route/v1/driving/'+a.lng+','+a.lat+';'+b.lng+','+b.lat+'?overview=full&geometries=geojson';
-    fetch(url).then(function(r){ return r.json(); }).then(function(j){
+
+    // A linha recta aparece PRIMEIRO, e a rota verdadeira substitui-a
+    // quando chegar. Antes esperava-se pelo servidor de rotas e, numa
+    // ligação lenta, o mapa ficava sem linha nenhuma durante segundos —
+    // ou para sempre, se o pedido falhasse em silêncio. Ver uma ligação
+    // aproximada de imediato é melhor do que ver a certa mais tarde.
+    var provisoria = straightLine(a,b);
+
+    // "overview=simplified" em vez de "full": o "full" traz a rota com
+    // TODOS os pontos que o motor calculou — centenas, para uma viagem em
+    // Díli. Num ecrã de telemóvel não se distingue de uma versão com
+    // vinte, e é dez vezes menos para descarregar.
+    var url = 'https://router.project-osrm.org/route/v1/driving/'+a.lng+','+a.lat+';'+b.lng+','+b.lat+'?overview=simplified&geometries=geojson';
+
+    // Sem prazo, um pedido pendurado nunca resolve nem falha, e o
+    // catch que traz a linha de reserva nunca chega a correr.
+    var cortar = null;
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    if (ctrl) cortar = setTimeout(function(){ ctrl.abort(); }, 12000);
+
+    fetch(url, ctrl ? {signal: ctrl.signal} : undefined).then(function(r){ return r.json(); }).then(function(j){
+      if (cortar) clearTimeout(cortar);
       var route = j && j.routes && j.routes[0];
       if(!route) throw new Error('sem rota');
       var line = route.geometry.coordinates.map(function(c){ return [c[1],c[0]]; });
+      if (provisoria) map.removeLayer(provisoria);
       L.polyline(line,{color:'#0E5C54',weight:5,opacity:0.85}).addTo(map);
       map.fitBounds(L.polyline(line).getBounds(),{padding:[30,30]});
       send({type:'route', km: Math.round(route.distance/100)/10});
-    }).catch(function(){ straightLine(a,b); });
+    }).catch(function(){
+      if (cortar) clearTimeout(cortar);
+      /* fica a linha recta que já está desenhada */
+    });
   }
   // Ícone do motorista, movido de fora sem recarregar o mapa
   var motoristaIcon = L.divIcon({
