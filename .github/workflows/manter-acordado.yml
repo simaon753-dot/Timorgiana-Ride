@@ -1,0 +1,55 @@
+# Mantém o servidor acordado.
+#
+# O plano gratuito do Render adormece o serviço ao fim de 15 minutos sem
+# pedidos, e o primeiro pedido a seguir demora perto de um minuto. Quem
+# abre a aplicação de manhã em Díli apanha essa espera inteira, e não tem
+# como saber que o problema não é a internet dele.
+#
+# Isto não contorna o plano: o Render dá 750 horas de máquina por mês, e
+# um mês inteiro ligado são 730. Cabe dentro do que já está incluído.
+#
+# De 10 em 10 minutos e não de 14 em 14: o agendamento do GitHub é feito
+# por ordem de disponibilidade e pode atrasar-se cinco a vinte minutos nas
+# horas de ponta. Com margem de cinco minutos, um atraso normal deixava o
+# servidor adormecer à mesma.
+#
+# ATENÇÃO ao custo, que depende do repositório:
+#   · Público  — minutos ilimitados e gratuitos. Nada a pagar.
+#   · Privado  — o GitHub cobra no mínimo 1 minuto por execução, o que dá
+#                cerca de 4300 minutos por mês contra os 2000 gratuitos.
+#                Nesse caso, apaga este ficheiro e usa antes um serviço
+#                externo de monitorização (ver piloto/MANTER-ACORDADO.md).
+
+name: Manter o servidor acordado
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  # Para poder ser corrido à mão a partir do separador Actions.
+  workflow_dispatch:
+
+# Sem permissões nenhumas: isto só faz um pedido a um endereço público.
+permissions: {}
+
+jobs:
+  acordar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Bater no servidor
+        run: |
+          URL="https://timorgiana-ride.onrender.com/api/health"
+          # Três tentativas, com prazo largo: se o servidor estiver mesmo
+          # a dormir, esta chamada É a que o acorda, e acordar demora.
+          for i in 1 2 3; do
+            if resposta=$(curl -sS --max-time 120 "$URL"); then
+              echo "$resposta"
+              echo "$resposta" | grep -q '"ok":true' && exit 0
+              echo "Respondeu, mas não está bem. Tentativa $i de 3."
+            else
+              echo "Sem resposta. Tentativa $i de 3."
+            fi
+            sleep 15
+          done
+          echo "O servidor não respondeu em três tentativas."
+          exit 1
