@@ -35,3 +35,7 @@ Thumbs.db
 # --- Pastas nativas geradas ---
 /mobile/ios
 /mobile/android
+
+# Cópias da base de dados: contêm documentos de identificação em base64.
+# Nunca entram no repositório.
+copias/
