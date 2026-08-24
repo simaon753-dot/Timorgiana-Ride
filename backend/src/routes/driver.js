@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { one, query } from '../db.js';
 import { requireAuth } from '../auth.js';
 import { saveDocument, listDocuments, podeTrabalhar, getOwnDocument } from '../documents.js';
-import { temFotoDeHoje, guardarFotoDeTurno } from '../turnos.js';
+import { temFotoDeHoje, guardarFotoDeTurno, ultimaFotoDeTurno } from '../turnos.js';
 import { setOnline, savePushToken } from '../drivers.js';
 import { toPublicUser } from '../users.js';
 import { notificarAdminsMotoristaPronto } from '../push.js';
@@ -20,9 +20,10 @@ driverRouter.get(
   '/status',
   wrap(async (req, res) => {
     const docs = await listDocuments(req.user.id);
-    const [apto, fotoHoje] = await Promise.all([
+    const [apto, fotoHoje, ultimaFoto] = await Promise.all([
       podeTrabalhar(req.user.id),
       temFotoDeHoje(req.user.id),
+      ultimaFotoDeTurno(req.user.id),
     ]);
     res.json({
       user: toPublicUser(req.user),
@@ -36,6 +37,10 @@ driverRouter.get(
       })),
       apto,
       fotoDeHoje: fotoHoje,
+      // A data do retrato entra no endereço que a app pede. É o que faz a
+      // fotografia nova substituir a antiga no ecrã: muda a data, muda o
+      // endereço, e a cache de imagens deixa de servir a de ontem.
+      retratoDe: ultimaFoto ? ultimaFoto.dia : null,
     });
   })
 );
@@ -221,6 +226,34 @@ driverRouter.post(
       [String(version), req.user.id]
     );
     res.json({ user: toPublicUser(row) });
+  })
+);
+
+// GET /api/driver/retrato — o rosto a mostrar no perfil
+//
+// A escolha é feita AQUI e não no telemóvel. A app não tem de saber que
+// existem dois sítios onde vive uma fotografia, nem qual delas é a
+// melhor; pede um retrato e recebe o melhor que houver:
+//
+//   1. a fotografia do turno mais recente — é a prova mais fresca de quem
+//      está ao volante, e muda todos os dias;
+//   2. a do registo, se ainda não houver nenhuma de turno;
+//   3. nada, e a app mostra o 👤.
+driverRouter.get(
+  '/retrato',
+  wrap(async (req, res) => {
+    const turno = await ultimaFotoDeTurno(req.user.id);
+    const foto = turno || (await getOwnDocument(req.user.id, 'photo'));
+    if (!foto) return res.status(404).json({ error: 'Sem fotografia.' });
+
+    // `no-cache` obriga o telemóvel a perguntar se mudou, em vez de
+    // assumir que não. Sem isto, o retrato de ontem ficava agarrado ao
+    // ecrã depois de o motorista tirar o de hoje — e pareceria que a
+    // substituição não funcionou, quando o servidor até estava certo.
+    res.setHeader('Cache-Control', 'private, no-cache');
+    res.setHeader('X-Origem', turno ? `turno:${turno.dia}` : 'registo');
+    res.setHeader('Content-Type', foto.mime);
+    res.send(foto.bytes);
   })
 );
 

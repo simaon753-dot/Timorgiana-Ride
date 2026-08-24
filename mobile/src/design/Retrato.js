@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, registarEstilos } from '../theme.js';
 import { getApiUrl } from '../serverUrl.js';
@@ -6,16 +6,30 @@ import { useAuth } from '../context/AuthContext.js';
 
 // Retrato do motorista.
 //
-// A fotografia que se envia no registo ficava fechada no servidor: só a
-// administração a via. Quem a enviou não tinha maneira nenhuma de a rever
-// — nem de perceber se tinha enviado a certa.
+// Pede um retrato e não uma fotografia concreta: qual delas mostrar é
+// decisão do servidor, que responde com a do turno mais recente e, se
+// ainda não houver nenhuma, com a do registo. A app não tem de saber que
+// existem dois sítios onde vive uma fotografia.
 //
 // Cai para o 👤 em três casos, todos silenciosos de propósito: quem não é
 // motorista, quem ainda não enviou, e quem enviou mas a imagem falhou a
 // carregar. Um erro de rede não deve deixar um buraco no perfil.
-export default function Retrato({ tamanho = 78, mostrarFoto = true }) {
+export default function Retrato({ tamanho = 78, mostrarFoto = true, versao }) {
   const { token } = useAuth();
   const [falhou, setFalhou] = useState(false);
+
+  // A data entra no endereço. Sem ela, o `Image` guardava a imagem em
+  // cache pelo endereço e amanhã continuava a mostrar a fotografia de
+  // hoje — pareceria que a substituição não funcionou, quando o servidor
+  // até estaria a devolver a nova.
+  //
+  // A data local do telemóvel serve: em Díli é a mesma que o servidor usa
+  // para decidir de que dia é o turno, e muda no mesmo instante.
+  const dia = versao || new Date().toISOString().slice(0, 10);
+
+  // Uma falha de ontem não deve condenar a fotografia de hoje: quando o
+  // dia muda, é outra imagem e merece nova tentativa.
+  useEffect(() => setFalhou(false), [dia]);
 
   const lado = { width: tamanho, height: tamanho, borderRadius: tamanho / 2 };
   const temFoto = mostrarFoto && !!token && !falhou;
@@ -32,7 +46,7 @@ export default function Retrato({ tamanho = 78, mostrarFoto = true }) {
     <View style={[styles.caixa, styles.comFoto, lado]}>
       <Image
         source={{
-          uri: `${getApiUrl()}/driver/documents/photo/imagem`,
+          uri: `${getApiUrl()}/driver/retrato?dia=${dia}`,
           headers: { Authorization: `Bearer ${token}` },
         }}
         style={lado}
