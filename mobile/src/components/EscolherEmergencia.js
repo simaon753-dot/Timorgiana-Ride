@@ -14,6 +14,20 @@ import { useI18n } from '../i18n/index.js';
 // A ordem não é arbitrária. Crime e violência primeiro porque é a
 // emergência mais provável dentro de um carro com um desconhecido, e a
 // que mais depressa piora.
+// Números embutidos, iguais aos do servidor.
+//
+// Existem para o caso de não haver rede no momento em que fazem falta —
+// que é precisamente quando fazem mais falta. Ficam AQUI, ao lado do
+// selector, e não copiados em cada ecrã que os usa: uma tabela destas em
+// dois sítios acaba com um número actualizado num e desactualizado no
+// outro, e ninguém dá por isso até alguém precisar.
+export const NUMEROS_RESERVA = {
+  medica: '110',
+  medicaAlternativa: '3311044',
+  policia: '112',
+  protecao: '115',
+};
+
 export const TIPOS_EMERGENCIA = [
   { id: 'policia', icone: '🚔', chave: 'emgCrime', ajuda: 'emgCrimeHelp' },
   { id: 'medica', icone: '🚑', chave: 'emgMedical', ajuda: 'emgMedicalHelp' },

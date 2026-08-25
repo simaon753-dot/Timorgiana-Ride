@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Voltar from '../components/Voltar.js';
@@ -9,6 +9,8 @@ import BarraEstado from '../design/BarraEstado.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useTema } from '../context/TemaContext.js';
+import EscolherEmergencia, { NUMEROS_RESERVA } from '../components/EscolherEmergencia.js';
+import { api } from '../api/client.js';
 
 // Opções: como a aplicação se comporta.
 //
@@ -20,6 +22,24 @@ export default function OpcoesScreen({ navigation }) {
   const { t } = useI18n();
   const { user } = useAuth();
   const { tema, setTema } = useTema();
+
+  // Números de emergência.
+  //
+  // Esta linha marcava 112 e mais nada — ignorava os três serviços e a
+  // segunda linha da ambulância que o servidor já devolve. Alguém em
+  // pânico a precisar de uma ambulância ligava à polícia.
+  //
+  // Embutidos como reserva: numa emergência sem rede, um ecrã vazio é
+  // pior do que um número desactualizado.
+  const [numeros, setNumeros] = useState(NUMEROS_RESERVA);
+  const [aEscolher, setAEscolher] = useState(false);
+
+  useEffect(() => {
+    api
+      .numerosEmergencia()
+      .then((r) => r?.numeros && setNumeros({ ...NUMEROS_RESERVA, ...r.numeros }))
+      .catch(() => {});
+  }, []);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -78,7 +98,7 @@ export default function OpcoesScreen({ navigation }) {
             texto={t('profileCallSupport')}
             onPress={() => Linking.openURL('tel:+67074192857')}
           />
-          <Item texto={t('profileEmergency')} destaque onPress={() => Linking.openURL('tel:112')} />
+          <Item texto={t('profileEmergency')} destaque onPress={() => setAEscolher(true)} />
         </Seccao>
 
         {user?.isAdmin ? (
@@ -89,6 +109,20 @@ export default function OpcoesScreen({ navigation }) {
 
         <Text style={styles.rodape}>TimorgianaRide · Díli</Text>
       </ScrollView>
+
+      {/* O mesmo selector do botão SOS, mas sem enviar alerta nenhum:
+          aqui não há viagem a decorrer nem ninguém a quem avisar. Serve
+          para consultar e para ligar. */}
+      <EscolherEmergencia
+        visivel={aEscolher}
+        numeros={numeros}
+        onFechar={() => setAEscolher(false)}
+        onEscolher={(tipo) => {
+          setAEscolher(false);
+          const n = numeros[tipo] || numeros.policia;
+          Linking.openURL(`tel:${n}`);
+        }}
+      />
     </SafeAreaView>
   );
 }

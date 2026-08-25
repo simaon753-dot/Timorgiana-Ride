@@ -5,37 +5,25 @@ import { colors, radius, spacing, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
-import EscolherEmergencia from './EscolherEmergencia.js';
+import EscolherEmergencia, { NUMEROS_RESERVA } from './EscolherEmergencia.js';
 
 // Botão de emergência. Duas coisas acontecem quando se carrega, por esta
 // ordem: o alerta é registado no servidor (para ficar prova de que houve
 // pedido de ajuda, com hora e sítio), e só depois se oferece a chamada.
 //
-// Pede confirmação porque um SOS acidental gasta a confiança de toda a
-// gente — mas a confirmação é UM toque, não um formulário.
-// Números embutidos, iguais aos do servidor. Existem para o caso de não
-// haver rede no momento em que fazem falta — que é precisamente quando
-// fazem mais falta.
-const NUMEROS_POR_OMISSAO = {
-  medica: '110',
-  medicaAlternativa: '3311044',
-  policia: '112',
-  protecao: '115',
-};
-
 export default function SosButton({ rideId, compact }) {
   const { t } = useI18n();
   const { token } = useAuth();
   const [aEnviar, setAEnviar] = useState(false);
   const [aEscolher, setAEscolher] = useState(false);
-  const [numeros, setNumeros] = useState(NUMEROS_POR_OMISSAO);
+  const [numeros, setNumeros] = useState(NUMEROS_RESERVA);
 
   // Vai buscar os números ao servidor uma vez. Se algum estiver errado,
   // corrige-se lá e chega aos telemóveis sem novo APK.
   useEffect(() => {
     api
       .numerosEmergencia()
-      .then((r) => r?.numeros && setNumeros({ ...NUMEROS_POR_OMISSAO, ...r.numeros }))
+      .then((r) => r?.numeros && setNumeros({ ...NUMEROS_RESERVA, ...r.numeros }))
       .catch(() => {});
   }, []);
 
