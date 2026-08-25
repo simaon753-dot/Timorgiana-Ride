@@ -55,11 +55,11 @@ export default {
   logout: 'Sai',
 
   // Viajen
-  passengerPrompt: 'Ita atu ba neebé?',
+  passengerPrompt: 'Ita atu ba ne’ebé?',
   requestRide: 'Husu viajen',
   destination: 'Destinu',
   destinationPlaceholder: 'Ezemplu: Aeroportu, Timor Plaza…',
-  originField: 'Fatin hahú',
+  originField: 'Fatin atu hahú',
   originPlaceholder: 'Ita iha ne’ebé agora (opsionál)',
   vehicleAny: 'Kualkér',
   errDestRequired: 'indika destinu.',
@@ -162,12 +162,12 @@ export default {
   // Disponibilidade
   driverOnMap: 'Motorista besik ona ba ita',
   pickupDistance: 'dook {km} km husi ita',
-  whereTo: 'Ita ba neebé?',
+  whereTo: 'Ita atu ba ne’ebé?',
   pickupPoint: 'Foti',
   dropoffPoint: 'Destinu',
   tapMapToChoose: 'Toka iha mapa atu hili destinu',
   minAway: '{min} min',
-  noDriverNearby: 'La iha motorista besik',
+  noDriverNearby: 'La iha motorista ne’ebé besik',
   payCash: 'Osan',
   confirmRide: 'Husu ho',
   chooseVehicle: 'Hili veíkulu',
@@ -175,7 +175,7 @@ export default {
   priceApprox: 'folin besik',
   needBothPoints: 'Hili fatin foti no destinu iha mapa.',
   searchPlaceholder: 'Buka fatin…',
-  searchHint: 'Hakerek naran fatin nian.\nEzemplu: Timor Plaza, aeroportu, Cristo Rei',
+  searchHint: 'Hakerek naran fatin nian. Ezemplu: Timor Plaza, aeroportu, Cristo Rei',
   searchNothing: 'La hetan fatin neʼe. Koko naran seluk, ka toka iha mapa.',
   searchOrTap: 'Buka ka toka iha mapa',
 
@@ -184,9 +184,10 @@ export default {
   sosConfirmTitle: 'Husu ajuda?',
   sosConfirmExplain:
     'Ami avisa TimorgianaRide ho ita-nia fatin, no ita bele telefone ba polísia, ambulánsia no bombeiros (APC). Uza deʼit iha emerjénsia loloos.',
-  sosConfirmYes: 'Sin, husu ajuda',
-  sosSentTitle: '🚨 Pedidu ajuda haruka ona',
-  sosSentExplain: 'TimorgianaRide hatene ona. Ita hakarak telefone ba polísia agora?',
+  sosConfirmYes: 'Sim, husu ajuda',
+  sosSentTitle: '🚨 Pedidu husu ajuda haruka ona',
+  sosSentExplain:
+    'TimorgianaRide hatene ona. Ita hakarak telefone ba polísia, ambulánsia no bombeiros agora?',
   sosOnlyAlert: 'Lae, obrigadu',
   sosCall: 'Telefone {n}',
   emgAlso: 'ka {n}',
@@ -268,7 +269,7 @@ export default {
   // Perfíl
   profileApp: 'Aplikasaun',
   profileHelp: 'Ajuda',
-  profileCallSupport: '📞 Telefone ba apoiu',
+  profileCallSupport: '📞 Telefone hodi husu apoiu',
   profileEmergency: '🚨 Emerjénsia',
   logoutConfirm: 'Sai husi konta?',
   logoutConfirmExplain: 'Ita presiza númeru no seña atu tama fila-fali.',
@@ -279,7 +280,7 @@ export default {
   earningsTotal: 'Total',
   earningsTrips: 'viajen {n}',
   earningsLastDays: 'Kada loron',
-  earningsEmpty: 'Seidauk remata viajen ida.',
+  earningsEmpty: 'Ita seidauk remata viajen ruma.',
   earningsNote:
     'Osan mai husi pasajeiru nia liman. Ida neʼe soma husi viajen neʼebé ita remata ona — TimorgianaRide la rai no la kobra buat ida.',
   // Veíkulu
