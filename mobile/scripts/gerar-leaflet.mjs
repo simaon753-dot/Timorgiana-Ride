@@ -3,6 +3,8 @@
 import fs from 'fs';
 const V = JSON.parse(fs.readFileSync('node_modules/leaflet/package.json', 'utf8')).version;
 const js = fs.readFileSync('node_modules/leaflet/dist/leaflet.js', 'utf8');
+const pm = fs.readFileSync('node_modules/protomaps-leaflet/dist/protomaps-leaflet.js', 'utf8');
+const pmV = JSON.parse(fs.readFileSync('node_modules/protomaps-leaflet/package.json', 'utf8')).version;
 const css = fs.readFileSync('node_modules/leaflet/dist/leaflet.css', 'utf8');
 
 // O CSS refere imagens (marker-icon.png, etc.) por caminho relativo. Não
@@ -30,6 +32,17 @@ const saida = `// GERADO — não editar à mão.
 export const LEAFLET_VERSAO = ${JSON.stringify(V)};
 export const LEAFLET_CSS = ${JSON.stringify(cssLimpo)};
 export const LEAFLET_JS = ${JSON.stringify(js)};
+
+// protomaps-leaflet ${pmV} — desenha mosaicos VECTORIAIS sobre o Leaflet.
+//
+// É o que permite o mapa de Díli funcionar sem rede: os mosaicos
+// vectoriais descrevem as formas em vez de as desenhar, e por isso a
+// cidade inteira até ao zoom 15 cabe em 2,9 MB em vez dos 40 MB que
+// custaria em imagens.
+//
+// Este ficheiro traz o descodificador PMTiles lá dentro — não é preciso
+// mais nada.
+export const PROTOMAPS_JS = ${JSON.stringify(pm)};
 `;
 fs.mkdirSync('scripts', { recursive: true });
 fs.writeFileSync('src/components/leafletEmbutido.js', saida);
