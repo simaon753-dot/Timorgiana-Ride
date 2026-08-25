@@ -29,15 +29,8 @@ export function dentroDeDili(lat, lng) {
   );
 }
 
-// Lido em pedaços, e não de uma vez.
-//
-// O WebView do Android recebe o JavaScript injectado por uma chamada
-// nativa que não gosta de cadeias enormes: com os 3,9 MB de base64 de
-// uma assentada, falha — e falha em SILÊNCIO, sem erro nenhum, o que
-// daria um mapa vazio sem explicação possível.
-const PEDACO_BYTES = 384 * 1024;
-
 let localCache = null;
+let base64Cache = null;
 
 async function ficheiroLocal() {
   if (localCache) return localCache;
@@ -49,19 +42,25 @@ async function ficheiroLocal() {
   return localCache;
 }
 
-// Chama `aoPedaco(base64, indice, total)` por cada pedaço, pela ordem.
-export async function lerMapaEmPedacos(aoPedaco) {
+// O mapa inteiro em base64, para ir dentro do HTML do WebView.
+//
+// Primeira tentativa: entregar por pedaços, com injectJavaScript. Não
+// resultou, e a razão é a mesma para o injectJavaScript e para o
+// postMessage — ambos passam pelo evaluateJavascript do Android, que
+// serve para EXECUTAR código, não para transportar megabytes. O que
+// falhava falhava em silêncio, e o mapa ficava cinzento sem pista
+// nenhuma.
+//
+// O HTML, esse, viaja como PROPRIEDADE nativa do componente. É o mesmo
+// caminho por onde já passa o Leaflet inteiro (144 KB) e o desenhador de
+// vectores (125 KB), e aguenta os 3,9 MB do mapa sem se queixar.
+//
+// Lido uma vez por sessão e guardado aqui: dois mapas abertos ao mesmo
+// tempo — o do pedido e o expandido — partilham a mesma leitura.
+export async function lerMapaBase64() {
+  if (base64Cache) return base64Cache;
   const { uri, tamanho } = await ficheiroLocal();
   if (!tamanho) throw new Error('Mapa de Díli não encontrado.');
-
-  const total = Math.ceil(tamanho / PEDACO_BYTES);
-  for (let i = 0; i < total; i++) {
-    const b64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: 'base64',
-      position: i * PEDACO_BYTES,
-      length: Math.min(PEDACO_BYTES, tamanho - i * PEDACO_BYTES),
-    });
-    await aoPedaco(b64, i, total);
-  }
-  return { tamanho, pedacos: total };
+  base64Cache = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
+  return base64Cache;
 }
