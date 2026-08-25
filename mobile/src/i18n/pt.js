@@ -38,18 +38,18 @@ export default {
 
   // Login
   loginTitle: 'Iniciar sessão',
-  loginSubtitle: 'Entra com o teu número de telemóvel.',
+  loginSubtitle: 'Entre com o seu número de telemóvel.',
   loginButton: 'Entrar',
   noAccountQuestion: 'Ainda não tem conta?',
   registerLink: 'Criar conta',
 
   // Erros
-  errNameRequired: 'Indica o seu nome.',
-  errPhoneRequired: 'Indica um número de telemóvel válido.',
+  errNameRequired: 'Indique o seu nome.',
+  errPhoneRequired: 'Indique um número de telemóvel válido.',
   errPasswordShort: 'A palavra-passe deve ter pelo menos 6 caracteres.',
-  errPlateRequired: 'Indica a matrícula do veículo.',
+  errPlateRequired: 'Indique a matrícula do veículo.',
   errGeneric: 'Algo correu mal. Tenta de novo.',
-  errNetwork: 'Sem ligação ao servidor. Verifica a internet.',
+  errNetwork: 'Sem ligação ao servidor. Verifique a internet.',
 
   homeHello: 'Olá, {name}!',
   logout: 'Terminar sessão',
@@ -60,9 +60,9 @@ export default {
   destination: 'Destino',
   destinationPlaceholder: 'Ex.: Aeroporto, Timor Plaza…',
   originField: 'Ponto de partida',
-  originPlaceholder: 'Onde estás agora (opcional)',
+  originPlaceholder: 'Onde está agora (opcional)',
   vehicleAny: 'Qualquer',
-  errDestRequired: 'Indica o destino.',
+  errDestRequired: 'Indique o destino.',
 
   statusRequested: 'À procura de motorista…',
   statusAccepted: 'Motorista a caminho',
@@ -72,7 +72,7 @@ export default {
 
   fareLabel: 'Preço',
   fareToAgree: 'A calcular',
-  yourDriver: 'O teu motorista',
+  yourDriver: 'O seu motorista',
   yourPassenger: 'Passageiro',
   callLabel: 'Ligar',
   cancelRide: 'Cancelar viagem',
@@ -88,7 +88,7 @@ export default {
   liveOff: 'A ligar ao tempo real…',
 
   // Mapa
-  mapHint: 'Toca no mapa para escolher o destino',
+  mapHint: 'Toque no mapa para escolher o destino',
   useMyLocation: '📍 Usar a minha localização',
   gettingLocation: 'A obter localização…',
   destinationOnMap: 'Ponto escolhido no mapa',
@@ -96,7 +96,7 @@ export default {
   // Chat
   openChat: 'Mensagens',
   chatTitle: 'Conversa',
-  typeMessage: 'Escreve uma mensagem…',
+  typeMessage: 'Escreva uma mensagem…',
   send: 'Enviar',
   chatEmpty: 'Ainda não há mensagens. Diz olá! 👋',
 
@@ -105,11 +105,11 @@ export default {
   rateDriver: 'Avalia o motorista',
   ratePassenger: 'Avalia o passageiro',
   submitRating: 'Enviar avaliação',
-  ratingThanks: 'Obrigado pela tua avaliação! ⭐',
+  ratingThanks: 'Obrigado pela sua avaliação! ⭐',
 
   // Histórico
   history: 'Histórico',
-  historyTitle: 'As tuas viagens',
+  historyTitle: 'As suas viagens',
   historyEmpty: 'Ainda não fizeste nenhuma viagem.',
   historyEmptyHint: 'As viagens terminadas aparecem aqui.',
   notRated: 'Sem avaliação',
@@ -133,7 +133,7 @@ export default {
   serverTesting: 'A testar…',
   serverOk: '✅ Ligação estabelecida!',
   serverFail: '❌ Sem ligação',
-  serverSaved: 'Endereço guardado. Vais ter de iniciar sessão de novo.',
+  serverSaved: 'Endereço guardado. Vai ter de iniciar sessão de novo.',
   serverCurrent: 'A usar agora',
   serverDefault: 'valor de origem',
   serverCustom: 'configurado por ti',
@@ -143,14 +143,14 @@ export default {
   // Aprovação de motoristas
   pendingTitle: 'Conta em análise',
   pendingExplain:
-    'Antes de começares a receber viagens, precisamos de confirmar quem és. Envia os documentos abaixo — analisamos e avisamos-te.',
+    'Antes de começar a receber viagens, precisamos de confirmar quem é. Envie os documentos abaixo — analisamos e avisamos.',
   rejectedTitle: 'Conta não aprovada',
   rejectedExplain:
-    'A tua conta de motorista não foi aprovada. Se achas que houve engano, contacta-nos.',
-  approvedNow: '🎉 A tua conta foi aprovada! Já podes receber viagens.',
+    'A sua conta de motorista não foi aprovada. Se achar que houve engano, contacte-nos.',
+  approvedNow: '🎉 A sua conta foi aprovada! Já pode receber viagens.',
   docLicence: 'Carta de condução',
   docVehicle: 'Documento do veículo',
-  docPhoto: 'Foto tua',
+  docPhoto: 'Fotografia sua',
   docSent: 'Enviado',
   docMissing: 'Em falta',
   docSend: 'Enviar',
@@ -166,17 +166,17 @@ export default {
   whereTo: 'Para onde vai?',
   pickupPoint: 'Recolha',
   dropoffPoint: 'Destino',
-  tapMapToChoose: 'Toca no mapa para escolher o destino',
+  tapMapToChoose: 'Toque no mapa para escolher o destino',
   minAway: '{min} min',
   noDriverNearby: 'Sem motoristas por perto',
   payCash: 'Dinheiro',
   confirmRide: 'Pedir por',
-  chooseVehicle: 'Escolhe o veículo',
+  chooseVehicle: 'Escolha o veículo',
   tripInfo: '{km} km · {min} min',
   priceApprox: 'preço aproximado',
-  needBothPoints: 'Escolhe a recolha e o destino no mapa.',
+  needBothPoints: 'Escolha a recolha e o destino no mapa.',
   searchPlaceholder: 'Procurar sítio…',
-  searchHint: 'Escreve o nome do sítio.\nEx.: Timor Plaza, aeroporto, Cristo Rei',
+  searchHint: 'Escreva o nome do sítio.\nEx.: Timor Plaza, aeroporto, Cristo Rei',
   searchNothing: 'Não encontrámos esse sítio. Tenta outro nome, ou toca no mapa.',
   searchOrTap: 'Procurar ou tocar no mapa',
 
@@ -184,7 +184,7 @@ export default {
   sos: 'Emergência',
   sosConfirmTitle: 'Pedir ajuda?',
   sosConfirmExplain:
-    'Vamos avisar a TimorgianaRide com a tua posição e podes ligar à polícia, ambulância e bombeiros (APC). Usa só numa emergência real.',
+    'Vamos avisar a TimorgianaRide com a sua posição e pode ligar à polícia, ambulância e bombeiros (APC). Use só numa emergência real.',
   sosConfirmYes: 'Sim, pedir ajuda',
   sosSentTitle: '🚨 Pedido de ajuda enviado',
   sosSentExplain: 'A TimorgianaRide foi avisada. Queres ligar à polícia agora?',
@@ -192,7 +192,7 @@ export default {
   sosCall: 'Ligar {n}',
   emgAlso: 'ou {n}',
   sosOffline: 'Sem ligação',
-  sosOfflineExplain: 'Não conseguimos avisar a TimorgianaRide. Podes ligar à polícia directamente.',
+  sosOfflineExplain: 'Não conseguimos avisar a TimorgianaRide. Pode ligar à polícia directamente.',
   shareTrip: 'Partilhar viagem',
   shareTripText:
     'Estou numa viagem TimorgianaRide.\nMotorista: {driver} ({plate})\nDestino: {dest}\nPosição: {link}',
@@ -201,12 +201,12 @@ export default {
   cancelConfirmTitle: 'Cancelar a viagem?',
   cancelConfirmAccepted:
     'O motorista já vem a caminho. Cancelar agora faz com que ele perca a viagem.',
-  cancelConfirmRequested: 'Ainda não há motorista. Podes cancelar sem problema.',
+  cancelConfirmRequested: 'Ainda não há motorista. Pode cancelar sem problema.',
   cancelKeep: 'Manter viagem',
   cancelYes: 'Sim, cancelar',
   cancelTooMany: 'Já cancelaste {n} viagens esta semana',
   cancelTooManyExplain:
-    'Cancelar muitas vezes deixa os motoristas sem trabalho. Se isto continuar, a tua conta pode ser suspensa.',
+    'Cancelar muitas vezes deixa os motoristas sem trabalho. Se isto continuar, a sua conta pode ser suspensa.',
 
   // Administração
   admin: 'Administração',
@@ -218,7 +218,7 @@ export default {
   adminApproved: 'Motorista aprovado ✅',
   adminRejected: 'Motorista recusado',
   adminRejectTitle: 'Recusar este motorista?',
-  adminRejectExplain: 'Não vai poder receber viagens. Podes mudar de ideias mais tarde.',
+  adminRejectExplain: 'Não vai poder receber viagens. Pode mudar de ideias mais tarde.',
   adminDocs: 'Documentos',
   adminNoDocs: 'Não enviou documentos',
   adminSosTitle: 'Pedidos de ajuda',
@@ -248,7 +248,7 @@ export default {
   driverTermsDone: '✓ Termos aceites',
 
   // Cancelamento
-  cancelWhyTitle: 'Porque estás a cancelar?',
+  cancelWhyTitle: 'Porque está a cancelar?',
   cancelReason_mudei_de_ideias: 'Já não preciso da viagem',
   cancelReason_motorista_demora: 'O motorista está a demorar',
   cancelReason_enganei_destino: 'Enganei-me no destino',
@@ -273,7 +273,7 @@ export default {
   profileCallSupport: '📞 Ligar ao apoio',
   profileEmergency: '🚨 Emergência',
   logoutConfirm: 'Terminar sessão?',
-  logoutConfirmExplain: 'Vai precisar do teu número e palavra-passe para voltar a entrar.',
+  logoutConfirmExplain: 'Vai precisar do seu número e palavra-passe para voltar a entrar.',
 
   // Ganhos
   earningsToday: 'Ganhaste hoje',
@@ -285,13 +285,13 @@ export default {
   earningsNote:
     'O dinheiro é entregue em mão pelo passageiro. Isto é a soma das viagens que concluíste — a TimorgianaRide não guarda nem cobra nada.',
   // Veículo
-  vehiclePickModel: 'Escolhe o modelo',
+  vehiclePickModel: 'Escolha o modelo',
   vehicleSearchModel: 'Procurar marca ou modelo…',
   vehicleNotListed: 'Não está na lista?',
-  vehicleTypeItYourself: 'Escreve o modelo',
+  vehicleTypeItYourself: 'Escreva o modelo',
   vehicleSeats: 'Quantos passageiros leva',
   vehicleSeatsHelp: 'Sem te contar a ti.',
-  errSeatsRequired: 'Indica quantos passageiros o carro leva.',
+  errSeatsRequired: 'Indique quantos passageiros o carro leva.',
   howManyPeople: 'Quantas pessoas vão?',
 
   cor_branco: 'Branco',
@@ -316,10 +316,10 @@ export default {
   // Foto do turno
   shiftPhotoTitle: 'Fotografia de hoje',
   shiftPhotoExplain:
-    'Antes de começares o dia, tira uma fotografia tua. Serve para confirmarmos que és tu ao volante — é o que dá segurança ao passageiro.',
+    'Antes de começar o dia, tire uma fotografia sua. Serve para confirmarmos que é você ao volante — é o que dá segurança ao passageiro.',
   shiftPhotoTake: 'Tirar fotografia',
   shiftPhotoDone: '✓ Fotografia de hoje enviada',
-  shiftPhotoNeeded: 'Tira a fotografia de hoje para ficares disponível.',
+  shiftPhotoNeeded: 'Tire a fotografia de hoje para ficar disponível.',
   errCameraPermission: 'Sem permissão para usar a câmara.',
 
   // Validade dos documentos
@@ -327,17 +327,17 @@ export default {
   docExpiryHelp: 'Data que está no documento (ano-mês-dia).',
   docExpired: '⚠ Caducado',
   docExpiringSoon: '⚠ Caduca em breve',
-  docExpiryRequired: 'Indica a data de validade.',
-  cannotGoOnlineExpired: 'Não podes ficar disponível: há um documento caducado.',
+  docExpiryRequired: 'Indique a data de validade.',
+  cannotGoOnlineExpired: 'Não pode ficar disponível: há um documento caducado.',
   // Modo
   modeRide: 'Pedir',
   modeDrive: 'Conduzir',
   wantToDrive: 'Quero conduzir',
   wantToDriveHelp:
-    'Regista o teu veículo e envia os documentos. Continuas a poder pedir viagens enquanto esperas.',
+    'Registe o seu veículo e envie os documentos. Continua a poder pedir viagens enquanto espera.',
   driverApplicationPending: 'Registo de motorista em análise',
   driverApplicationRejected: 'Registo de motorista não aprovado',
-  driverApplicationOk: 'Podes conduzir',
+  driverApplicationOk: 'Pode conduzir',
   vehicleRegister: 'Registar veículo',
   requestIfNeeded: 'Pedir se for necessário',
   backToDriving: 'Voltar a conduzir',
@@ -349,8 +349,7 @@ export default {
   themeDark: 'Escura',
   // Tipos de emergência
   emgTitle: 'Que tipo de emergência?',
-  emgHelp:
-    'Escolhe para ligarmos ao serviço certo. Se estiveres em perigo imediato, liga primeiro.',
+  emgHelp: 'Escolha para ligarmos ao serviço certo. Se estiver em perigo imediato, ligue primeiro.',
   emgCrime: 'Crime ou violência',
   emgCrimeHelp: 'Assalto, agressão, ameaça',
   emgMedical: 'Acidente ou doente',
@@ -373,9 +372,9 @@ export default {
   admReactivate: 'Reactivar',
   admSuspendTitle: 'Suspender este motorista?',
   admSuspendExplain:
-    'Deixa de receber viagens e fica indisponível na hora. Podes reactivá-lo depois.',
+    'Deixa de receber viagens e fica indisponível na hora. Pode reactivá-lo depois.',
   admReasonLabel: 'Motivo (fica no registo)',
-  admReasonRequired: 'Escreve o motivo.',
+  admReasonRequired: 'Escreva o motivo.',
   admStatusPending: 'À espera',
   admStatusApproved: 'Aprovado',
   admStatusRejected: 'Recusado',
@@ -396,7 +395,7 @@ export default {
   admMinutes: '{n} min',
   ready: 'Ready',
   notReady: 'Not Ready',
-  myLocation: 'Estás aqui',
+  myLocation: 'Está aqui',
   admSecContas: 'Contas',
   admSecRegisto: 'Registo',
   admProcurar: 'Procurar por nome ou telefone',
