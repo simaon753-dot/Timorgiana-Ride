@@ -291,14 +291,35 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
       // uma falha a carregar, e as duas mostram o mesmo cinzento.
       aviso(Math.round(_bytes.length/1024) + ' KB lidos · a pedir mosaicos…', true);
 
-      // Três leituras espaçadas: a primeira apanha o arranque, as
-      // seguintes mostram se os pedidos continuam ou pararam a meio.
+      // A medição que separa as duas hipóteses que restam: se as telas
+      // têm pixéis pintados, o problema é de POSIÇÃO (desenha-se fora do
+      // sítio); se estão vazias, é de DESENHO (os dados não viram formas).
+      function pintados(){
+        var cs = document.querySelectorAll('#map canvas');
+        var comTinta = 0, dim = '';
+        for (var i = 0; i < cs.length; i++) {
+          var cv = cs[i];
+          if (!dim) dim = cv.width + 'x' + cv.height;
+          try {
+            var ctx = cv.getContext('2d');
+            if (!ctx || !cv.width || !cv.height) continue;
+            var d = ctx.getImageData(0, 0, cv.width, cv.height).data;
+            // Basta um pixel não transparente para a tela contar.
+            for (var k = 3; k < d.length; k += 4000) { if (d[k] !== 0) { comTinta++; break; } }
+          } catch (e) { /* tela protegida — conta como desconhecida */ }
+        }
+        return { total: cs.length, comTinta: comTinta, dim: dim };
+      }
+
       [1500, 4000, 9000].forEach(function(quando){
         setTimeout(function(){
-          var telas = document.querySelectorAll('#map canvas').length;
-          aviso(Math.round(_bytes.length/1024) + ' KB · ' + pedidos + ' pedidos · ' +
-                telas + ' telas · z' + map.getZoom(), pedidos > 0 && telas > 0);
-          send({ type:'mapaOffline', ok:true, bytes:_bytes.length, pedidos:pedidos, telas:telas });
+          var t = pintados();
+          var regras = (camadaOffline && camadaOffline.paintRules || []).length;
+          aviso(Math.round(_bytes.length/1024) + 'KB ' + pedidos + 'ped ' +
+                t.comTinta + '/' + t.total + 'telas ' + (t.dim || '?') +
+                ' r' + regras + ' z' + map.getZoom(), t.comTinta > 0);
+          send({ type:'mapaOffline', ok:true, bytes:_bytes.length, pedidos:pedidos,
+                 telas:t.total, comTinta:t.comTinta, dim:t.dim, regras:regras });
         }, quando);
       });
     } catch (e) {
