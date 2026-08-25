@@ -1,12 +1,41 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useCallback, useMemo, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { LEAFLET_CSS, LEAFLET_JS } from './leafletEmbutido.js';
+import { LEAFLET_CSS, LEAFLET_JS, PROTOMAPS_JS } from './leafletEmbutido.js';
 import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
+import { lerMapaEmPedacos } from '../lib/mapaOffline.js';
+import { useTema } from '../context/TemaContext.js';
 
 // Centro por omissão: Díli, Timor-Leste
 const DILI = { lat: -8.5569, lng: 125.5603 };
+
+// Os pedaços do mapa de Díli, guardados enquanto a aplicação estiver
+// aberta. O ficheiro é lido do disco UMA vez; a partir daí, cada mapa
+// novo recebe o que já está em memória.
+//
+// Fora do componente de propósito: dois mapas ao mesmo tempo — o do
+// pedido e o do painel expandido — partilham a mesma leitura em vez de
+// cada um ler 2,9 MB do disco por sua conta.
+let pedacosEmMemoria = null;
+let leituraEmCurso = null;
+
+function obterPedacos() {
+  if (pedacosEmMemoria) return Promise.resolve(pedacosEmMemoria);
+  if (leituraEmCurso) return leituraEmCurso;
+  const acumulado = [];
+  leituraEmCurso = lerMapaEmPedacos((b64) => {
+    acumulado.push(b64);
+  })
+    .then(() => {
+      pedacosEmMemoria = acumulado;
+      return acumulado;
+    })
+    .finally(() => {
+      leituraEmCurso = null;
+    });
+  return leituraEmCurso;
+}
 
 // Mapa OpenStreetMap (Leaflet) dentro de um WebView.
 // Usa-se WebView em vez de react-native-maps porque funciona no Expo Go
@@ -26,6 +55,7 @@ export default function OSMMap({
   fill = false, // ocupa todo o espaço do pai, sem moldura nem cantos
 }) {
   const webRef = useRef(null);
+  const { tema } = useTema();
   const c = center || markers[0] || DILI;
   const markersKey = JSON.stringify(markers);
 
@@ -37,6 +67,31 @@ export default function OSMMap({
     () => buildHtml({ center: c, markers, pickable }),
     [c.lat, c.lng, pickable, markersKey]
   );
+
+  // Entrega o mapa de Díli ao WebView assim que ele acabar de carregar.
+  //
+  // Tem de correr a cada carregamento e não uma só vez: quando os pontos
+  // do mapa mudam, o HTML é reconstruído e o WebView recomeça do zero,
+  // perdendo o que já lá estava. Os bytes vêm de memória, por isso o
+  // disco só é lido na primeira vez.
+  const entregarMapa = useCallback(async () => {
+    const web = webRef.current;
+    if (!web) return;
+    try {
+      const pedacos = await obterPedacos();
+      for (const b64 of pedacos) {
+        // O base64 vai dentro de aspas simples: não contém aspas nem
+        // barras invertidas, por isso não há nada a escapar.
+        web.injectJavaScript(`window.__mapaPedaco && window.__mapaPedaco('${b64}'); true;`);
+      }
+      const sabor = tema === 'escuro' ? 'dark' : 'light';
+      web.injectJavaScript(`window.__mapaPronto && window.__mapaPronto('${sabor}'); true;`);
+    } catch (e) {
+      // Sem mapa local, fica o das imagens. Não é motivo para avisar
+      // ninguém — a app continua a funcionar exactamente como antes.
+      console.warn('Mapa de Díli não carregou:', e?.message);
+    }
+  }, [tema]);
 
   useEffect(() => {
     if (!liveMarker || !webRef.current) return;
@@ -68,10 +123,15 @@ export default function OSMMap({
         domStorageEnabled
         scrollEnabled={false}
         nestedScrollEnabled
+        onLoadEnd={entregarMapa}
         onMessage={(e) => {
           try {
             const d = JSON.parse(e.nativeEvent.data);
-            if (d?.type === 'route' && onRoute) onRoute({ km: d.km });
+            if (d?.type === 'mapaOffline') {
+              // Sem isto, uma falha do mapa local era invisível: ficava a
+              // camada de imagens e ninguém saberia porquê.
+              if (!d.ok) console.warn('Mapa de Díli não desenhou:', d.erro);
+            } else if (d?.type === 'route' && onRoute) onRoute({ km: d.km });
             else if (typeof d?.lat === 'number' && onPick) onPick(d);
           } catch {
             /* ignora mensagens que não sejam do nosso formato */
@@ -117,6 +177,18 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
 }
 .pino.origem{ background:#0E5C54; }
 .pino.destino{ background:#E85531; }
+/* Atribuição.
+   Os dados do mapa são do OpenStreetMap sob a licença ODbL, que EXIGE
+   atribuição visível — não é uma cortesia. O controlo do Leaflet está
+   desligado porque ocupa espaço e não segue o desenho da aplicação, por
+   isso a atribuição é feita aqui: pequena, discreta, e sempre presente. */
+.credito{
+  position:absolute; right:0; bottom:0; z-index:900;
+  background:rgba(255,255,255,.78); color:#3A4441;
+  font:500 9px/1.5 -apple-system,Roboto,sans-serif;
+  padding:1px 5px; border-radius:4px 0 0 0;
+  pointer-events:none;
+}
 .rotulo.agora{ background:#1C2421; }
 .rotulo.leaflet-tooltip-bottom.agora:before{ border-bottom-color:#1C2421; }
 .rotulo.leaflet-tooltip-top.origem:before{ border-top-color:#0E5C54; }
@@ -124,7 +196,9 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
 </style>
 </head><body>
 <div id="map"></div>
+<div class="credito">© OpenStreetMap</div>
 <script>${LEAFLET_JS}</script>
+<script>${PROTOMAPS_JS}</script>
 <script>
   var map = L.map('map',{zoomControl:false,attributionControl:false}).setView([${center.lat},${center.lng}], 14);
   // Zoom em baixo à esquerda: em cima colidia com o crachá de distância
@@ -144,7 +218,80 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
   //                    descarregar. Para encontrar um carro na rua, o 18
   //                    já mostra os números de porta.
   //   updateWhenZooming:false — o mesmo, para o gesto de ampliar.
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  // --- Mapa de Díli guardado no telemóvel -------------------------------
+  //
+  // Os mosaicos chegam por pedaços, do lado da aplicação, e ficam aqui em
+  // memória. Quando o último chega, a camada vectorial substitui a de
+  // imagens e a partir daí o mapa deixa de tocar na rede.
+  //
+  // O leitor PMTiles pede intervalos de bytes por fetch(). Como o ficheiro
+  // não está em servidor nenhum, o fetch é interceptado: um endereço
+  // combinado devolve fatias do que está em memória. É mais simples e mais
+  // fiável do que servir o ficheiro por outro caminho, e não precisa de
+  // módulo nativo nenhum — a app continua a abrir no Expo Go.
+  var LOCAL = 'https://mapa.local/dili.pmtiles';
+  var _pedacos = [];
+  var _bytes = null;
+  var camadaOffline = null;
+
+  window.__mapaPedaco = function(b64){ _pedacos.push(b64); return true; };
+
+  window.__mapaPronto = function(sabor){
+    try {
+      // Os pedaços são fatias de bytes consecutivas e cada uma tem um
+      // tamanho múltiplo de 3, por isso o base64 pode ser juntado sem
+      // enchimento pelo meio. Com um tamanho não múltiplo de 3, apareciam
+      // '=' no meio da cadeia e a descodificação saía lixo.
+      var bin = atob(_pedacos.join(''));
+      _pedacos = [];
+      _bytes = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) _bytes[i] = bin.charCodeAt(i);
+
+      var fetchOriginal = window.fetch.bind(window);
+      window.fetch = function(recurso, opcoes){
+        var endereco = (typeof recurso === 'string') ? recurso : (recurso && recurso.url);
+        if (endereco !== LOCAL) return fetchOriginal.apply(null, arguments);
+        var cab = (opcoes && opcoes.headers) || {};
+        var intervalo = cab.Range || cab.range ||
+          (typeof cab.get === 'function' ? cab.get('Range') : null);
+        var ini = 0, fim = _bytes.length - 1;
+        if (intervalo) {
+          var m = /bytes=(\d+)-(\d*)/.exec(intervalo);
+          if (m) { ini = parseInt(m[1], 10); if (m[2]) fim = parseInt(m[2], 10); }
+        }
+        if (fim >= _bytes.length) fim = _bytes.length - 1;
+        var fatia = _bytes.subarray(ini, fim + 1);
+        return Promise.resolve(new Response(fatia, {
+          status: intervalo ? 206 : 200,
+          headers: {
+            'Content-Length': String(fatia.length),
+            'Content-Range': 'bytes ' + ini + '-' + fim + '/' + _bytes.length
+          }
+        }));
+      };
+
+      camadaOffline = protomapsL.leafletLayer({
+        url: LOCAL,
+        flavor: sabor || 'light',
+        lang: 'pt',
+        // O ficheiro tem dados até ao zoom 15. Sem isto, acima de 15 o
+        // mapa ficava em branco em vez de ampliar o que já tem — e é
+        // acima de 15 que se encontra um carro numa rua.
+        maxDataZoom: 15,
+        attribution: '© OpenStreetMap · Protomaps'
+      });
+      camadaOffline.addTo(map);
+      if (camadaImagens) map.removeLayer(camadaImagens);
+      send({ type: 'mapaOffline', ok: true });
+    } catch (e) {
+      send({ type: 'mapaOffline', ok: false, erro: String(e && e.message || e) });
+    }
+    return true;
+  };
+
+  // Camada de imagens: é o que se vê enquanto o mapa local não chega, e o
+  // que fica se ele falhar. Nunca deixar o utilizador sem mapa nenhum.
+  var camadaImagens = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
     maxZoom:18, keepBuffer:0, updateWhenIdle:true, updateWhenZooming:false,
     crossOrigin:true
   }).addTo(map);
