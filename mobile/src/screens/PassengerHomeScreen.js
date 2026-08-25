@@ -36,7 +36,7 @@ import { colors, spacing, radius, elevacao, registarEstilos } from '../theme.js'
 
 export default function PassengerHomeScreen({ navigation }) {
   const { t } = useI18n();
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const { podeConduzir, setModo } = useModo();
   const {
     activeRide: viagemBruta,
