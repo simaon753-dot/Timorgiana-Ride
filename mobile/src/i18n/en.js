@@ -420,6 +420,6 @@ export default {
   nameHint: 'Write your name exactly as it appears on your identity document.',
   vehiclePlatePlaceholderCar: 'e.g. A - 23.123 TLS',
   vehiclePlatePlaceholderMoto: 'e.g. A - 1234 TLS',
-  vehiclePlateHint: 'Write the plate exactly as it appears on the vehicle.',
-  errPlateFormat: 'Invalid plate. Use the format shown in the example.',
+  vehiclePlateHint:
+    'Write the plate exactly as it appears on your vehicle. The example only shows the shape.',
 };

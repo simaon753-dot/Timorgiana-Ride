@@ -7,7 +7,6 @@ import EscolherModelo from './EscolherModelo.js';
 import EscolherCor from './EscolherCor.js';
 import EscolherLugares from './EscolherLugares.js';
 import { LUGARES } from '../dados/veiculos.js';
-import { normalizarMatricula } from '../lib/matricula.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
@@ -35,15 +34,13 @@ export default function FormularioVeiculo({ onPronto }) {
     setErro(null);
     if (!matricula.trim()) return setErro(t('errPlateRequired'));
     if (tipo === 'car' && !lugares) return setErro(t('errSeatsRequired'));
-    const placaOk = normalizarMatricula(matricula, tipo);
-    if (!placaOk) return setErro(t('errPlateFormat'));
 
     setAEnviar(true);
     try {
       await api.registarVeiculo(token, {
         type: tipo,
         model: modelo,
-        plate: placaOk,
+        plate: matricula.trim().toUpperCase(),
         color: cor,
         ...(tipo === 'car' ? { seats: lugares } : {}),
       });

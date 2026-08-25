@@ -434,6 +434,6 @@ export default {
   nameHint: 'Hakerek naran hanesan iha ita-nia dokumentu identifikasaun.',
   vehiclePlatePlaceholderCar: 'Ezemplu: A - 23.123 TLS',
   vehiclePlatePlaceholderMoto: 'Ezemplu: A - 1234 TLS',
-  vehiclePlateHint: 'Hakerek matríkula hanesan iha xapa veíkulu nian.',
-  errPlateFormat: 'Matríkula sala. Uza formatu hanesan ezemplu.',
+  vehiclePlateHint:
+    'Hakerek matríkula hanesan iha xapa ita-nia veíkulu nian. Ezemplu hatudu deit formatu.',
 };
