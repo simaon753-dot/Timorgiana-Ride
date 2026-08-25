@@ -29,7 +29,10 @@ import { abrirNoMapa } from '../lib/mapaLink.js';
 // bem?" (resumo), "quem conduz?" (motoristas) e "o que se passou?"
 // (viagens). Um ecrã único com tudo obrigava a percorrer motoristas para
 // chegar a um alerta de emergência.
-const SECCOES = ['resumo', 'motoristas', 'viagens'];
+// 'contas' entra porque os PASSAGEIROS não apareciam em lado nenhum:
+// metade das pessoas do sistema era invisível a quem o administra — e é
+// do lado deles que vêm as queixas sobre motoristas.
+const SECCOES = ['resumo', 'motoristas', 'contas', 'viagens'];
 const FILTROS = ['todos', 'pending', 'approved', 'suspended'];
 
 export default function AdminScreen({ navigation }) {
@@ -43,6 +46,11 @@ export default function AdminScreen({ navigation }) {
   const [alertas, setAlertas] = useState([]);
   const [motoristas, setMotoristas] = useState([]);
   const [viagens, setViagens] = useState([]);
+  const [contas, setContas] = useState([]);
+  const [busca, setBusca] = useState('');
+  const [papel, setPapel] = useState('todos');
+  const [pagina, setPagina] = useState(0);
+  const [haMais, setHaMais] = useState(false);
   const [aCarregar, setACarregar] = useState(true);
   // Qual a decisão a pedir motivo, se houver alguma em curso.
   const [pedido, setPedido] = useState(null);
@@ -66,6 +74,23 @@ export default function AdminScreen({ navigation }) {
     }
   }, [token, filtro, t]);
 
+  const carregarContas = useCallback(
+    async (pag = 0) => {
+      try {
+        const r = await api.adminUtilizadores(token, { q: busca, papel, pagina: pag });
+        // Página 0 substitui; as seguintes acrescentam. Numa rede lenta,
+        // recarregar a lista inteira a cada página seria pagar de novo o
+        // que já se descarregou.
+        setContas((antes) => (pag === 0 ? r.utilizadores : [...antes, ...r.utilizadores]));
+        setHaMais(r.haMais);
+        setPagina(pag);
+      } catch {
+        /* fica o que já estava */
+      }
+    },
+    [token, busca, papel]
+  );
+
   const carregarViagens = useCallback(async () => {
     try {
       const v = await api.adminViagens(token, 24);
@@ -74,6 +99,15 @@ export default function AdminScreen({ navigation }) {
       /* fica o que já estava */
     }
   }, [token]);
+
+  // A pesquisa espera meio segundo depois da última tecla. Sem isso, cada
+  // letra era um pedido — e numa rede lenta chegavam fora de ordem, com a
+  // resposta de 'Sim' a sobrepor-se à de 'Simão'.
+  useEffect(() => {
+    if (seccao !== 'contas') return undefined;
+    const id = setTimeout(() => carregarContas(0), 500);
+    return () => clearTimeout(id);
+  }, [seccao, carregarContas]);
 
   useEffect(() => {
     carregar();
@@ -144,7 +178,9 @@ export default function AdminScreen({ navigation }) {
                   ? 'admSecResumo'
                   : s === 'motoristas'
                     ? 'admSecDrivers'
-                    : 'admSecRides'
+                    : s === 'contas'
+                      ? 'admSecContas'
+                      : 'admSecRides'
               )}
             </Text>
           </Pressable>
@@ -196,6 +232,7 @@ export default function AdminScreen({ navigation }) {
                   m={m}
                   t={t}
                   token={token}
+                  navigation={navigation}
                   onAprovar={() => decidir(m, 'approved')}
                   onRecusar={() =>
                     setPedido({
@@ -217,8 +254,20 @@ export default function AdminScreen({ navigation }) {
               ))
             )}
           </>
+        ) : seccao === 'contas' ? (
+          <Contas
+            contas={contas}
+            t={t}
+            navigation={navigation}
+            busca={busca}
+            setBusca={setBusca}
+            papel={papel}
+            setPapel={setPapel}
+            haMais={haMais}
+            onMais={() => carregarContas(pagina + 1)}
+          />
         ) : (
-          <Viagens viagens={viagens} t={t} />
+          <Viagens viagens={viagens} t={t} navigation={navigation} />
         )}
       </ScrollView>
 
@@ -337,7 +386,7 @@ function Resumo({ resumo, estat, t }) {
   );
 }
 
-function Motorista({ m, t, token, onAprovar, onRecusar, onSuspender }) {
+function Motorista({ m, t, token, navigation, onAprovar, onRecusar, onSuspender }) {
   const estado =
     m.driverStatus === 'approved'
       ? t('admStatusApproved')
@@ -350,16 +399,23 @@ function Motorista({ m, t, token, onAprovar, onRecusar, onSuspender }) {
   return (
     <View style={styles.cartao}>
       <View style={styles.cabecalhoMotorista}>
-        <View style={{ flex: 1 }}>
+        {/* Só o nome abre o detalhe. Os botões de decisão ficam fora da
+            zona clicável: aprovar por engano ao querer apenas ver quem é
+            a pessoa seria o pior erro possível neste ecrã. */}
+        <Pressable
+          style={{ flex: 1 }}
+          onPress={() => navigation.navigate('AdminDetalhe', { tipoAlvo: 'utilizador', id: m.id })}
+        >
           <Text style={styles.nome}>
             {m.online ? '🟢 ' : ''}
             {m.name}
+            {'  ›'}
           </Text>
           <Text style={styles.meta}>
             {m.phone} · {m.vehicle?.type === 'motorbike' ? t('vehicleMotorbike') : t('vehicleCar')}
             {m.vehicle?.plate ? ` · ${m.vehicle.plate}` : ''}
           </Text>
-        </View>
+        </Pressable>
         <Text
           style={[
             styles.estado,
@@ -429,13 +485,93 @@ function Motorista({ m, t, token, onAprovar, onRecusar, onSuspender }) {
   );
 }
 
-function Viagens({ viagens, t }) {
+// Todas as contas do sistema, com pesquisa e filtro por papel.
+const PAPEIS = ['todos', 'passageiros', 'motoristas', 'admins'];
+
+function Contas({ contas, t, navigation, busca, setBusca, papel, setPapel, haMais, onMais }) {
+  return (
+    <>
+      <TextInput
+        style={styles.busca}
+        value={busca}
+        onChangeText={setBusca}
+        placeholder={t('admProcurar')}
+        placeholderTextColor={colors.textMuted}
+        autoCapitalize="none"
+      />
+      <View style={styles.filtros}>
+        {PAPEIS.map((p) => (
+          <Pressable
+            key={p}
+            onPress={() => setPapel(p)}
+            style={[styles.filtro, papel === p && styles.filtroActivo]}
+          >
+            <Text style={[styles.filtroTexto, papel === p && styles.filtroTextoActivo]}>
+              {t(
+                p === 'todos'
+                  ? 'admFiltroTodos'
+                  : p === 'passageiros'
+                    ? 'admFiltroPassageiros'
+                    : p === 'motoristas'
+                      ? 'admFiltroMotoristas'
+                      : 'admPapelAdmin'
+              )}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      {contas.length === 0 ? (
+        <Text style={styles.vazio}>{t('admSemResultados')}</Text>
+      ) : (
+        contas.map((u) => (
+          <Pressable
+            key={u.id}
+            style={styles.conta}
+            onPress={() =>
+              navigation.navigate('AdminDetalhe', { tipoAlvo: 'utilizador', id: u.id })
+            }
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={styles.contaNome} numberOfLines={1}>
+                {u.nome}
+                {u.isAdmin ? ' ★' : ''}
+                {u.online ? ' •' : ''}
+              </Text>
+              <Text style={styles.contaMeta}>
+                {u.telefone} · {u.driverStatus ? t('admPapelMotorista') : t('admPapelPassageiro')}
+                {u.veiculo?.matricula ? ` · ${u.veiculo.matricula}` : ''}
+              </Text>
+              <Text style={styles.contaMeta}>
+                {t('admTripsCount', { n: u.viagensPassageiro + u.viagensMotorista })}
+                {u.estrelas ? ` · ⭐ ${Number(u.estrelas).toFixed(1)}` : ''}
+              </Text>
+            </View>
+            <Text style={styles.viagemSeta}>›</Text>
+          </Pressable>
+        ))
+      )}
+
+      {haMais ? (
+        <Pressable style={styles.mais} onPress={onMais}>
+          <Text style={styles.maisTexto}>{t('admMais')}</Text>
+        </Pressable>
+      ) : null}
+    </>
+  );
+}
+
+function Viagens({ viagens, t, navigation }) {
   if (!viagens.length) return <Text style={styles.vazio}>{t('admNoRides')}</Text>;
   return (
     <>
       <Text style={styles.seccaoTitulo}>{t('admLast24h')}</Text>
       {viagens.map((v) => (
-        <View key={v.id} style={styles.viagem}>
+        <Pressable
+          key={v.id}
+          style={styles.viagem}
+          onPress={() => navigation.navigate('AdminDetalhe', { tipoAlvo: 'viagem', id: v.id })}
+        >
           <View style={styles.viagemTopo}>
             <Text style={styles.viagemDestino} numberOfLines={1}>
               {v.destino}
@@ -471,7 +607,8 @@ function Viagens({ viagens, t }) {
               <Text style={styles.viagemMotivo}>{t(`cancelReason_${v.motivoCancelamento}`)}</Text>
             ) : null}
           </View>
-        </View>
+          <Text style={styles.viagemSeta}>›</Text>
+        </Pressable>
       ))}
     </>
   );
@@ -648,6 +785,33 @@ const criarEstilos = () =>
     filtroTexto: { ...tipo.legenda, color: colors.textMuted },
     filtroTextoActivo: { color: colors.onTeal },
 
+    busca: {
+      backgroundColor: colors.white,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.lg,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      ...tipo.corpo,
+      color: colors.text,
+      marginBottom: spacing.sm,
+    },
+    conta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: colors.white,
+      borderRadius: radius.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    contaNome: { ...tipo.corpoForte, color: colors.text },
+    contaMeta: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },
+    viagemSeta: { fontSize: 22, color: colors.textMuted },
+    mais: { alignItems: 'center', paddingVertical: spacing.md },
+    maisTexto: { ...tipo.corpoForte, color: colors.teal },
     vazio: {
       ...tipo.pequeno,
       color: colors.textMuted,

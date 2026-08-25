@@ -140,6 +140,19 @@ export const api = {
   adminViagens: (token, horas = 24) => request(`/admin/viagens?horas=${horas}`, { token }),
   adminEstatisticas: (token, dias = 7) => request(`/admin/estatisticas?dias=${dias}`, { token }),
 
+  // Acesso total do painel. As listas são paginadas: numa rede lenta,
+  // trazer trezentas contas de uma vez é o mesmo que não trazer nenhuma.
+  adminUtilizadores: (token, { q = '', papel = 'todos', pagina = 0 } = {}) =>
+    request(
+      `/admin/utilizadores?q=${encodeURIComponent(q)}&papel=${papel}&pagina=${pagina}`,
+      { token }
+    ),
+  adminUtilizador: (token, id) => request(`/admin/utilizadores/${id}`, { token }),
+  adminViagem: (token, id) => request(`/admin/viagens/${id}`, { token }),
+  // Ler a conversa fica registado no servidor — ver /admin/registo.
+  adminMensagens: (token, id) => request(`/admin/viagens/${id}/mensagens`, { token }),
+  adminRegisto: (token) => request('/admin/registo', { token }),
+
   savePushToken: (token, pushToken) =>
     request('/auth/push-token', { method: 'POST', body: { token: pushToken }, token }),
 };

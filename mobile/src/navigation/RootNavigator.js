@@ -13,6 +13,7 @@ import DriverPendingScreen from '../screens/DriverPendingScreen.js';
 import ChatScreen from '../screens/ChatScreen.js';
 import ServerScreen from '../screens/ServerScreen.js';
 import AdminScreen from '../screens/AdminScreen.js';
+import AdminDetalheScreen from '../screens/AdminDetalheScreen.js';
 import TermosScreen from '../screens/TermosScreen.js';
 import OpcoesScreen from '../screens/OpcoesScreen.js';
 import PerfilScreen from '../screens/PerfilScreen.js';
@@ -76,7 +77,12 @@ export default function RootNavigator() {
               <Stack.Screen name="Termos" component={TermosScreen} />
               {/* Só existe para administradores. Não estar registado é a
                 melhor protecção: não há ecrã para navegar até ele. */}
-              {user.isAdmin ? <Stack.Screen name="Admin" component={AdminScreen} /> : null}
+              {user.isAdmin ? (
+                <>
+                  <Stack.Screen name="Admin" component={AdminScreen} />
+                  <Stack.Screen name="AdminDetalhe" component={AdminDetalheScreen} />
+                </>
+              ) : null}
             </Stack.Navigator>
           </RideProvider>
         </ModoProvider>

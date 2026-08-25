@@ -235,6 +235,30 @@ export async function initSchema() {
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS duration_min INTEGER`);
 
   await query('CREATE INDEX IF NOT EXISTS idx_docs_user ON driver_documents(user_id)');
+
+  // Registo de acessos da administração ao conteúdo privado.
+  //
+  // O painel dá ao administrador acesso a tudo, incluindo as conversas
+  // entre passageiro e motorista. Numa denúncia ou numa disputa, ler essa
+  // conversa é legítimo e às vezes é a única prova que existe.
+  //
+  // O que separa isso de vigilância não é o código — é ficar registado
+  // quem leu o quê e quando. Sem registo, "acesso total" e "ninguém
+  // responde por nada" são a mesma coisa. Com registo, um dia é possível
+  // responder à pergunta que um regulador ou um tribunal vai fazer.
+  //
+  // Só o conteúdo privado é registado. Listas e números não — registar
+  // tudo enche o registo de ruído e esconde o que interessa.
+  await query(`
+    CREATE TABLE IF NOT EXISTS admin_acessos (
+      id         SERIAL PRIMARY KEY,
+      admin_id   INTEGER NOT NULL REFERENCES users(id),
+      que        TEXT NOT NULL,
+      alvo_id    INTEGER,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await query('CREATE INDEX IF NOT EXISTS idx_acessos_data ON admin_acessos(created_at DESC)');
   // Que tipo de emergência foi pedida. Sem isto, quem responde não sabe
   // se manda uma ambulância ou chama a polícia.
   await query(`ALTER TABLE sos_alerts ADD COLUMN IF NOT EXISTS tipo TEXT`);

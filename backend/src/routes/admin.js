@@ -254,6 +254,313 @@ adminRouter.get(
   })
 );
 
+// Regista um acesso a conteúdo privado.
+//
+// Não trava nada e nunca faz o pedido falhar: se o registo falhar, o
+// administrador continua a ver o que pediu. Um painel que deixa de
+// funcionar porque a auditoria falhou é pior do que um sem auditoria.
+function registarAcesso(adminId, que, alvoId) {
+  query('INSERT INTO admin_acessos (admin_id, que, alvo_id) VALUES ($1,$2,$3)', [
+    adminId,
+    que,
+    alvoId ?? null,
+  ]).catch(() => {});
+}
+
+// GET /api/admin/utilizadores — TODAS as contas, não só motoristas
+//
+// Os passageiros não apareciam em lado nenhum do painel. Metade das
+// pessoas do sistema era invisível a quem o administra — e é do lado dos
+// passageiros que vêm as queixas sobre motoristas.
+adminRouter.get(
+  '/utilizadores',
+  wrap(async (req, res) => {
+    const q = String(req.query.q || '').trim();
+    const papel = String(req.query.papel || 'todos');
+    const pagina = Math.max(0, Number(req.query.pagina) || 0);
+    const POR_PAGINA = 30;
+
+    // Filtros construídos com parâmetros, nunca por concatenação: um nome
+    // com aspa simples chegaria à consulta.
+    const cond = [];
+    const args = [];
+    if (q) {
+      args.push(`%${q}%`);
+      cond.push(`(u.name ILIKE $${args.length} OR u.phone ILIKE $${args.length})`);
+    }
+    if (papel === 'motoristas') cond.push('u.driver_status IS NOT NULL');
+    if (papel === 'passageiros') cond.push('u.driver_status IS NULL');
+    if (papel === 'admins') cond.push('u.is_admin = TRUE');
+    const onde = cond.length ? `WHERE ${cond.join(' AND ')}` : '';
+
+    args.push(POR_PAGINA + 1, pagina * POR_PAGINA);
+    const rows = await query(
+      `SELECT u.id, u.name, u.phone, u.email, u.driver_status, u.is_admin, u.is_online,
+              u.rating_avg, u.rating_count, u.created_at, u.last_seen_at,
+              u.vehicle_type, u.vehicle_plate,
+              (SELECT COUNT(*) FROM rides r WHERE r.passenger_id = u.id) AS como_passageiro,
+              (SELECT COUNT(*) FROM rides r WHERE r.driver_id = u.id) AS como_motorista
+       FROM users u ${onde}
+       ORDER BY u.id DESC
+       LIMIT $${args.length - 1} OFFSET $${args.length}`,
+      args
+    );
+
+    // Pede-se um a mais do que cabe: se vier, há página seguinte. Evita um
+    // COUNT(*) sobre a tabela inteira a cada folha.
+    const haMais = rows.length > POR_PAGINA;
+    res.json({
+      utilizadores: rows.slice(0, POR_PAGINA).map((u) => ({
+        id: u.id,
+        nome: u.name,
+        telefone: u.phone,
+        email: u.email || null,
+        driverStatus: u.driver_status,
+        isAdmin: u.is_admin,
+        online: u.is_online,
+        estrelas: u.rating_avg,
+        avaliacoes: u.rating_count,
+        desde: u.created_at,
+        ultimaVez: u.last_seen_at,
+        veiculo: u.vehicle_plate ? { tipo: u.vehicle_type, matricula: u.vehicle_plate } : null,
+        viagensPassageiro: Number(u.como_passageiro),
+        viagensMotorista: Number(u.como_motorista),
+      })),
+      haMais,
+      pagina,
+    });
+  })
+);
+
+// GET /api/admin/utilizadores/:id — tudo sobre uma pessoa
+adminRouter.get(
+  '/utilizadores/:id',
+  wrap(async (req, res) => {
+    const id = Number(req.params.id);
+    const u = await one('SELECT * FROM users WHERE id = $1', [id]);
+    if (!u) return res.status(404).json({ error: 'Conta não encontrada.' });
+
+    const [docs, viagens, avaliacoes, turnos, sos] = await Promise.all([
+      query(
+        `SELECT id, kind, size_bytes, created_at, TO_CHAR(expires_on,'YYYY-MM-DD') AS expires_on,
+                (expires_on IS NOT NULL AND expires_on < CURRENT_DATE) AS caducado
+         FROM driver_documents WHERE user_id = $1 ORDER BY kind`,
+        [id]
+      ),
+      query(
+        `SELECT r.id, r.status, r.origin_label, r.dest_label, r.fare_usd, r.distance_km,
+                r.created_at, r.driver_id = $1 AS conduziu
+         FROM rides r WHERE r.passenger_id = $1 OR r.driver_id = $1
+         ORDER BY r.id DESC LIMIT 40`,
+        [id]
+      ),
+      query(
+        `SELECT a.stars, a.created_at, a.ride_id, q.name AS de
+         FROM ratings a JOIN users q ON q.id = a.rater_id
+         WHERE a.ratee_id = $1 ORDER BY a.id DESC LIMIT 20`,
+        [id]
+      ),
+      query(
+        `SELECT id, TO_CHAR(dia,'YYYY-MM-DD') AS dia, created_at
+         FROM driver_shifts WHERE user_id = $1 ORDER BY dia DESC`,
+        [id]
+      ),
+      query(
+        `SELECT id, tipo, lat, lng, resolved, created_at, ride_id
+         FROM sos_alerts WHERE user_id = $1 ORDER BY id DESC LIMIT 10`,
+        [id]
+      ),
+    ]);
+
+    res.json({
+      conta: {
+        ...toPublicUser(u),
+        email: u.email || null,
+        desde: u.created_at,
+        ultimaVez: u.last_seen_at,
+        online: u.is_online,
+        ultimaPosicao: u.last_lat != null ? { lat: u.last_lat, lng: u.last_lng } : null,
+        // Aceitação dos termos: numa disputa, é a primeira coisa que se
+        // pergunta e não estava guardada em sítio nenhum visível.
+        termos: {
+          passageiro: u.terms_version
+            ? { versao: u.terms_version, quando: u.terms_accepted_at }
+            : null,
+          motorista: u.driver_terms_version
+            ? { versao: u.driver_terms_version, quando: u.driver_terms_accepted_at }
+            : null,
+        },
+        decisao: u.driver_status_em
+          ? { motivo: u.driver_status_motivo, quando: u.driver_status_em, por: u.driver_status_por }
+          : null,
+      },
+      documentos: docs.map((d) => ({
+        id: d.id,
+        tipo: d.kind,
+        tamanho: d.size_bytes,
+        quando: d.created_at,
+        validade: d.expires_on,
+        caducado: !!d.caducado,
+      })),
+      viagens: viagens.map((r) => ({
+        id: r.id,
+        estado: r.status,
+        origem: r.origin_label,
+        destino: r.dest_label,
+        preco: r.fare_usd,
+        km: r.distance_km,
+        quando: r.created_at,
+        papel: r.conduziu ? 'motorista' : 'passageiro',
+      })),
+      avaliacoes: avaliacoes.map((a) => ({
+        estrelas: a.stars,
+        de: a.de,
+        viagem: a.ride_id,
+        quando: a.created_at,
+      })),
+      turnos: turnos.map((t) => ({ id: t.id, dia: t.dia, quando: t.created_at })),
+      emergencias: sos.map((s) => ({
+        id: s.id,
+        tipo: s.tipo,
+        resolvido: s.resolved,
+        quando: s.created_at,
+        viagem: s.ride_id,
+        posicao: s.lat != null ? { lat: s.lat, lng: s.lng } : null,
+      })),
+    });
+  })
+);
+
+// GET /api/admin/viagens/:id — tudo sobre uma viagem
+adminRouter.get(
+  '/viagens/:id',
+  wrap(async (req, res) => {
+    const id = Number(req.params.id);
+    const r = await one(
+      `SELECT r.*, p.name AS p_nome, p.phone AS p_tel, p.rating_avg AS p_estrelas,
+              d.name AS d_nome, d.phone AS d_tel, d.rating_avg AS d_estrelas,
+              c.name AS cancelou_nome,
+              (SELECT COUNT(*) FROM messages m WHERE m.ride_id = r.id) AS n_mensagens
+       FROM rides r
+       JOIN users p ON p.id = r.passenger_id
+       LEFT JOIN users d ON d.id = r.driver_id
+       LEFT JOIN users c ON c.id = r.cancelled_by
+       WHERE r.id = $1`,
+      [id]
+    );
+    if (!r) return res.status(404).json({ error: 'Viagem não encontrada.' });
+
+    const avaliacoes = await query(
+      `SELECT a.stars, a.created_at, q.name AS de, w.name AS para
+       FROM ratings a JOIN users q ON q.id = a.rater_id JOIN users w ON w.id = a.ratee_id
+       WHERE a.ride_id = $1`,
+      [id]
+    );
+
+    res.json({
+      viagem: {
+        id: r.id,
+        estado: r.status,
+        origem: { nome: r.origin_label, lat: r.origin_lat, lng: r.origin_lng },
+        destino: { nome: r.dest_label, lat: r.dest_lat, lng: r.dest_lng },
+        preco: r.fare_usd,
+        km: r.distance_km,
+        min: r.duration_min,
+        veiculo: r.vehicle_type,
+        pessoas: r.passengers,
+        // O código de recolha só faz sentido enquanto a viagem não começou;
+        // depois disso é um segredo gasto que não precisa de ser mostrado.
+        codigoRecolha: ['requested', 'accepted', 'arriving'].includes(r.status)
+          ? r.pickup_code
+          : null,
+        pedida: r.created_at,
+        comecou: r.started_at,
+        actualizada: r.updated_at,
+        cancelamento: r.cancelled_by
+          ? { por: r.cancelou_nome, motivo: r.cancel_reason, quem: r.cancelled_by === r.passenger_id ? 'passageiro' : 'motorista' }
+          : null,
+        passageiro: { id: r.passenger_id, nome: r.p_nome, telefone: r.p_tel, estrelas: r.p_estrelas },
+        motorista: r.driver_id
+          ? {
+              id: r.driver_id,
+              nome: r.d_nome,
+              telefone: r.d_tel,
+              estrelas: r.d_estrelas,
+              veiculo: {
+                tipo: r.vehicle_type,
+                modelo: r.vehicle_model,
+                matricula: r.vehicle_plate,
+                cor: r.vehicle_color,
+              },
+            }
+          : null,
+        nMensagens: Number(r.n_mensagens),
+        avaliacoes: avaliacoes.map((a) => ({
+          estrelas: a.stars,
+          de: a.de,
+          para: a.para,
+          quando: a.created_at,
+        })),
+      },
+    });
+  })
+);
+
+// GET /api/admin/viagens/:id/mensagens — a conversa
+//
+// Em separado, e não dentro do detalhe da viagem, de propósito: assim é
+// preciso um acto deliberado para ler a conversa de duas pessoas, e esse
+// acto fica registado. Abrir o detalhe de uma viagem não lê o chat de
+// ninguém.
+adminRouter.get(
+  '/viagens/:id/mensagens',
+  wrap(async (req, res) => {
+    const id = Number(req.params.id);
+    registarAcesso(req.user.id, 'chat', id);
+    const rows = await query(
+      `SELECT m.id, m.body, m.kind, m.created_at, m.sender_id, u.name AS de
+       FROM messages m JOIN users u ON u.id = m.sender_id
+       WHERE m.ride_id = $1 ORDER BY m.id`,
+      [id]
+    );
+    res.json({
+      mensagens: rows.map((m) => ({
+        id: m.id,
+        texto: m.body,
+        tipo: m.kind,
+        de: m.de,
+        deId: m.sender_id,
+        quando: m.created_at,
+      })),
+      // Devolvido para a app poder dizer, na própria conversa, que aquela
+      // leitura ficou registada. Quem administra deve ver o mesmo que um
+      // auditor veria.
+      registado: true,
+    });
+  })
+);
+
+// GET /api/admin/registo — quem leu o quê
+adminRouter.get(
+  '/registo',
+  wrap(async (req, res) => {
+    const rows = await query(
+      `SELECT a.id, a.que, a.alvo_id, a.created_at, u.name AS admin
+       FROM admin_acessos a JOIN users u ON u.id = a.admin_id
+       ORDER BY a.id DESC LIMIT 100`
+    );
+    res.json({
+      acessos: rows.map((a) => ({
+        id: a.id,
+        que: a.que,
+        alvo: a.alvo_id,
+        admin: a.admin,
+        quando: a.created_at,
+      })),
+    });
+  })
+);
+
 // GET /api/admin/estatisticas — o que está a correr mal, e com que peso
 adminRouter.get(
   '/estatisticas',
