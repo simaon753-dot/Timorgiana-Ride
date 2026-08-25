@@ -32,7 +32,15 @@ import { abrirNoMapa } from '../lib/mapaLink.js';
 // 'contas' entra porque os PASSAGEIROS não apareciam em lado nenhum:
 // metade das pessoas do sistema era invisível a quem o administra — e é
 // do lado deles que vêm as queixas sobre motoristas.
-const SECCOES = ['resumo', 'motoristas', 'contas', 'viagens'];
+// Separador e rótulo lado a lado. Com cinco secções, os ternários
+// encadeados que estavam aqui deixavam de se ler.
+const SECCOES = [
+  ['resumo', 'admSecResumo'],
+  ['motoristas', 'admSecDrivers'],
+  ['contas', 'admSecContas'],
+  ['viagens', 'admSecRides'],
+  ['registo', 'admSecRegisto'],
+];
 const FILTROS = ['todos', 'pending', 'approved', 'suspended'];
 
 export default function AdminScreen({ navigation }) {
@@ -51,6 +59,7 @@ export default function AdminScreen({ navigation }) {
   const [papel, setPapel] = useState('todos');
   const [pagina, setPagina] = useState(0);
   const [haMais, setHaMais] = useState(false);
+  const [registo, setRegisto] = useState([]);
   const [aCarregar, setACarregar] = useState(true);
   // Qual a decisão a pedir motivo, se houver alguma em curso.
   const [pedido, setPedido] = useState(null);
@@ -99,6 +108,19 @@ export default function AdminScreen({ navigation }) {
       /* fica o que já estava */
     }
   }, [token]);
+
+  const carregarRegisto = useCallback(async () => {
+    try {
+      const r = await api.adminRegisto(token);
+      setRegisto(r.acessos || []);
+    } catch {
+      /* fica o que já estava */
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (seccao === 'registo') carregarRegisto();
+  }, [seccao, carregarRegisto]);
 
   // A pesquisa espera meio segundo depois da última tecla. Sem isso, cada
   // letra era um pedido — e numa rede lenta chegavam fora de ordem, com a
@@ -165,26 +187,31 @@ export default function AdminScreen({ navigation }) {
         </View>
       ) : null}
 
-      <View style={styles.abas}>
-        {SECCOES.map((s) => (
-          <Pressable
-            key={s}
-            onPress={() => setSeccao(s)}
-            style={[styles.aba, seccao === s && styles.abaActiva]}
-          >
-            <Text style={[styles.abaTexto, seccao === s && styles.abaTextoActivo]}>
-              {t(
-                s === 'resumo'
-                  ? 'admSecResumo'
-                  : s === 'motoristas'
-                    ? 'admSecDrivers'
-                    : s === 'contas'
-                      ? 'admSecContas'
-                      : 'admSecRides'
-              )}
-            </Text>
-          </Pressable>
-        ))}
+      {/* Separadores com sublinhado, e não pastilhas de largura igual.
+          Com `flex: 1` cada pastilha ficava com um quarto do ecrã, e
+          "Motoristas" partia-se em duas linhas. Aqui cada separador ocupa
+          o que o seu texto precisa e a fila desliza se não couber — o que
+          também deixa acrescentar secções sem apertar as existentes. */}
+      <View style={styles.barraAbas}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.abas}
+        >
+          {SECCOES.map(([id, chave]) => {
+            const activa = seccao === id;
+            return (
+              <Pressable key={id} onPress={() => setSeccao(id)} style={styles.aba}>
+                <Text style={[styles.abaTexto, activa && styles.abaTextoActivo]} numberOfLines={1}>
+                  {t(chave)}
+                </Text>
+                {/* A barra existe sempre, transparente quando inactiva:
+                    assim o texto não salta um pixel ao mudar de secção. */}
+                <View style={[styles.abaBarra, activa && styles.abaBarraActiva]} />
+              </Pressable>
+            );
+          })}
+        </ScrollView>
       </View>
 
       <ScrollView
@@ -192,7 +219,15 @@ export default function AdminScreen({ navigation }) {
         refreshControl={
           <RefreshControl
             refreshing={false}
-            onRefresh={seccao === 'viagens' ? carregarViagens : carregar}
+            onRefresh={
+              seccao === 'viagens'
+                ? carregarViagens
+                : seccao === 'registo'
+                  ? carregarRegisto
+                  : seccao === 'contas'
+                    ? () => carregarContas(0)
+                    : carregar
+            }
             tintColor={colors.teal}
           />
         }
@@ -266,8 +301,10 @@ export default function AdminScreen({ navigation }) {
             haMais={haMais}
             onMais={() => carregarContas(pagina + 1)}
           />
-        ) : (
+        ) : seccao === 'viagens' ? (
           <Viagens viagens={viagens} t={t} navigation={navigation} />
+        ) : (
+          <Registo acessos={registo} t={t} navigation={navigation} />
         )}
       </ScrollView>
 
@@ -561,6 +598,45 @@ function Contas({ contas, t, navigation, busca, setBusca, papel, setPapel, haMai
   );
 }
 
+// Registo de acessos: quem leu conversas privadas, e quando.
+//
+// Existe para ser visto, não só escrito. Um registo que ninguém pode
+// consultar é o mesmo que não haver registo — serve para dizer que se
+// tem auditoria, não para responder a uma pergunta.
+function Registo({ acessos, t, navigation }) {
+  if (!acessos.length) return <Text style={styles.vazio}>{t('admRegistoVazio')}</Text>;
+  return (
+    <>
+      <Text style={styles.seccaoTitulo}>{t('admRegistoTitulo')}</Text>
+      {acessos.map((a) => (
+        <Pressable
+          key={a.id}
+          style={styles.conta}
+          onPress={() =>
+            a.alvo ? navigation.navigate('AdminDetalhe', { tipoAlvo: 'viagem', id: a.alvo }) : null
+          }
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.contaNome}>
+              {a.admin} · {a.que}
+            </Text>
+            <Text style={styles.contaMeta}>
+              {a.alvo ? `${t('admDetalheViagem')} #${a.alvo} · ` : ''}
+              {new Date(a.quando).toLocaleString(undefined, {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </Text>
+          </View>
+          {a.alvo ? <Text style={styles.viagemSeta}>›</Text> : null}
+        </Pressable>
+      ))}
+    </>
+  );
+}
+
 function Viagens({ viagens, t, navigation }) {
   if (!viagens.length) return <Text style={styles.vazio}>{t('admNoRides')}</Text>;
   return (
@@ -686,22 +762,29 @@ const criarEstilos = () =>
     titulo: { ...tipo.titulo, color: colors.text },
     conteudo: { padding: spacing.lg, paddingBottom: spacing.xxl },
 
-    abas: {
-      flexDirection: 'row',
-      paddingHorizontal: spacing.lg,
-      gap: spacing.sm,
+    // Uma linha fina por baixo de toda a fila: é contra ela que o
+    // sublinhado do separador activo se lê como indicador, e não como um
+    // traço solto no meio do ecrã.
+    barraAbas: {
       marginTop: spacing.md,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
     },
-    aba: {
-      flex: 1,
-      paddingVertical: spacing.sm,
-      borderRadius: radius.pill,
-      backgroundColor: colors.white,
-      alignItems: 'center',
+    abas: { paddingHorizontal: spacing.lg, gap: spacing.lg },
+    // A barra existe sempre, transparente quando inactiva, para o texto
+    // não saltar um pixel ao mudar de secção.
+    abaBarra: {
+      height: 3,
+      alignSelf: 'stretch',
+      borderTopLeftRadius: 2,
+      borderTopRightRadius: 2,
+      marginTop: spacing.sm,
+      backgroundColor: 'transparent',
     },
-    abaActiva: { backgroundColor: colors.teal },
+    abaBarraActiva: { backgroundColor: colors.teal },
+    aba: { paddingTop: spacing.sm, alignItems: 'center' },
     abaTexto: { ...tipo.corpoForte, color: colors.textMuted },
-    abaTextoActivo: { color: colors.onTeal },
+    abaTextoActivo: { color: colors.teal },
 
     blocoSos: {
       backgroundColor: colors.tintaPerigo,
