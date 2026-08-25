@@ -210,7 +210,11 @@ export default function RequestRideScreen({ navigation }) {
       {/* Painel inferior */}
       <View style={[styles.painel, pesquisa && styles.escondido]}>
         <View style={styles.puxador} />
-        <ScrollView showsVerticalScrollIndicator={false}>
+        {/* O indicador de deslize é mostrado de propósito. Escondido, o
+            painel cortava a meio — a pergunta "quantas pessoas?" ficava
+            visível e as respostas por baixo da dobra, sem nada a dizer
+            que havia mais. Parecia avariado, e não estava. */}
+        <ScrollView>
           <Ponto
             cor={colors.teal}
             rotulo={t('pickupPoint')}
@@ -384,7 +388,7 @@ const criarEstilos = () =>
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.sm,
       paddingBottom: spacing.md,
-      maxHeight: '58%',
+      maxHeight: '62%',
     },
     puxador: {
       width: 40,

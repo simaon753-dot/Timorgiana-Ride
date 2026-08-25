@@ -102,6 +102,21 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
   text-align:center;
 }
 .rotulo.destino{ background:#E85531; }
+/* Pinos desenhados em CSS.
+   O marcador por omissão do Leaflet é um <img> que aponta para
+   marker-icon.png. Quando o Leaflet vinha do unpkg, ele deduzia esse
+   caminho a partir do URL do próprio script; embutido na aplicação não há
+   URL nenhum de onde deduzir, e o que aparecia era a imagem partida com o
+   texto alternativo "Marker" por baixo.
+   Uma gota feita com bordas arredondadas e uma rotação não precisa de
+   ficheiro nenhum — funciona sem rede, que é o objectivo. */
+.pino{
+  width:20px; height:20px; border-radius:50% 50% 50% 0;
+  transform:rotate(-45deg); border:2.5px solid #FFF;
+  box-shadow:0 2px 5px rgba(0,0,0,.35);
+}
+.pino.origem{ background:#0E5C54; }
+.pino.destino{ background:#E85531; }
 .rotulo.agora{ background:#1C2421; }
 .rotulo.leaflet-tooltip-bottom.agora:before{ border-bottom-color:#1C2421; }
 .rotulo.leaflet-tooltip-top.origem:before{ border-top-color:#0E5C54; }
@@ -134,8 +149,21 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
     crossOrigin:true
   }).addTo(map);
   var pts = ${JSON.stringify(pts)};
+  function pino(tipo){
+    return L.divIcon({
+      html: '<div class="pino ' + tipo + '"></div>',
+      className: '', iconSize: [20,20],
+      // A ponta tem de assentar na coordenada, não o centro do desenho.
+      // Depois de rodar 45°, o canto agudo desce para 10 + 10·√2 ≈ 24 px
+      // — quatro pixéis abaixo da caixa de 20. Ancorar em 20 punha o pino
+      // quatro pixéis acima do sítio real, que em zoom alto é meia rua.
+      iconAnchor: [10,24]
+    });
+  }
   pts.forEach(function(p){
-    var m = L.marker([p.lat,p.lng]).addTo(map);
+    var m = L.marker([p.lat,p.lng], {
+      icon: pino(p.tipo === 'destino' ? 'destino' : 'origem')
+    }).addTo(map);
     // No mapa mostra-se só a primeira parte do nome. O nome completo já
     // está no painel de baixo, e dois rótulos longos em pontos próximos
     // sobrepõem-se e deixam de se ler — num ecrã de telemóvel isso
@@ -145,7 +173,7 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
       // permanent: o nome fica sempre à vista, na cabeça do pino. Antes
       // era um popup e só aparecia a quem soubesse tocar no marcador.
       m.bindTooltip(curto, {
-        permanent: true, direction: 'top', offset: [0,-34],
+        permanent: true, direction: 'top', offset: [0,-22],
         className: 'rotulo ' + (p.tipo === 'destino' ? 'destino' : 'origem'), opacity: 1
       });
     }
