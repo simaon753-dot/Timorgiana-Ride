@@ -421,4 +421,9 @@ export default {
   admNadaAqui: "Dadus laiha.",
   admMensagensN: "Mensajen troka",
   admMensagensPrivadas: "Administrasaun la lee konteúdu konversa nian.",
+  lugarCasa: "Uma",
+  lugarTrabalho: "Serbisu",
+  lugarDefinir: "Toka atu define",
+  lugarRecentes: "Foin lalais",
+  lugarGuardado: "Fatin rai ona",
 };

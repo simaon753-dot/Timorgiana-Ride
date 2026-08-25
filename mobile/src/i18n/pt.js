@@ -426,4 +426,9 @@ export default {
   admNadaAqui: "Sem dados.",
   admMensagensN: "Mensagens trocadas",
   admMensagensPrivadas: "A administração não lê o conteúdo das conversas.",
+  lugarCasa: "Casa",
+  lugarTrabalho: "Trabalho",
+  lugarDefinir: "Tocar para definir",
+  lugarRecentes: "Recentes",
+  lugarGuardado: "Lugar guardado",
 };

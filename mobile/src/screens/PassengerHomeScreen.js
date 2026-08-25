@@ -12,6 +12,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BarraEstado from '../design/BarraEstado.js';
 import { tipo } from '../design/tipografia.js';
+import { FIXOS, lerFixos, guardarFixo, destinosRecentes } from '../lib/lugares.js';
+import PlaceSearch from '../components/PlaceSearch.js';
 import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
 import BarraTopo from '../components/BarraTopo.js';
@@ -69,6 +71,43 @@ export default function PassengerHomeScreen({ navigation }) {
   // enquanto ainda se procura. O texto diz-lhe qual dos dois é — sem
   // impedir nada: às vezes cancelar é mesmo o que faz falta.
   const [aCancelar, setACancelar] = useState(false);
+  const [fixos, setFixos] = useState({});
+  const [recentes, setRecentes] = useState([]);
+
+  // Carrega ao entrar e sempre que se volta a este ecrã: um destino novo
+  // acabado de usar deve aparecer nos recentes sem obrigar a reabrir a
+  // aplicação.
+  useEffect(() => {
+    const actualizar = () => {
+      lerFixos().then(setFixos);
+      destinosRecentes(token).then(setRecentes);
+    };
+    actualizar();
+    return navigation.addListener('focus', actualizar);
+  }, [navigation, token]);
+
+  function irPara(destino) {
+    navigation.navigate('RequestRide', destino ? { destino } : undefined);
+  }
+
+  // A pesquisa abre-se aqui mesmo, e não no ecrã de pedir viagem.
+  //
+  // A primeira ideia foi passar uma função pelos parâmetros da navegação
+  // para o outro ecrã a chamar. Não presta: parâmetros de navegação têm
+  // de ser dados simples — uma função dá avisos e perde-se quando o
+  // sistema restaura o estado da aplicação.
+  //
+  // Definir a casa também não é pedir uma viagem. Sobrecarregar o ecrã
+  // de pedido com um segundo propósito obrigava a mudar-lhe o botão e a
+  // explicar ao utilizador em que modo está.
+  const [aDefinir, setADefinir] = useState(null);
+
+  async function guardarLugar(lugar) {
+    const id = aDefinir;
+    setADefinir(null);
+    if (!id) return;
+    setFixos(await guardarFixo(id, lugar));
+  }
 
   async function cancelarComMotivo(motivo) {
     setACancelar(false);
@@ -278,7 +317,7 @@ export default function PassengerHomeScreen({ navigation }) {
 
             <Pressable
               style={({ pressed }) => [styles.barraDestino, pressed && styles.premido]}
-              onPress={() => navigation.navigate('RequestRide')}
+              onPress={() => irPara(null)}
               accessibilityRole="button"
               accessibilityLabel={t('requestRide')}
             >
@@ -286,11 +325,71 @@ export default function PassengerHomeScreen({ navigation }) {
               <Text style={styles.barraTexto}>{t('whereTo')}</Text>
               <Text style={styles.barraSeta}>›</Text>
             </Pressable>
+
+            {/* Casa e trabalho. Um toque leva lá; o lápis muda o sítio.
+                O lápis existe porque a alternativa era um toque longo — e
+                um gesto que ninguém descobre é funcionalidade que não
+                existe. */}
+            <View style={styles.lugares}>
+              {FIXOS.map((f) => {
+                const lugar = fixos[f.id];
+                return (
+                  <Pressable
+                    key={f.id}
+                    style={({ pressed }) => [styles.lugar, pressed && styles.premido]}
+                    onPress={() => (lugar ? irPara(lugar) : setADefinir(f.id))}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.lugarIcone}>{f.icone}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.lugarNome}>{t(f.chave)}</Text>
+                      <Text style={styles.lugarMorada} numberOfLines={1}>
+                        {lugar ? lugar.label : t('lugarDefinir')}
+                      </Text>
+                    </View>
+                    {lugar ? (
+                      <Pressable onPress={() => setADefinir(f.id)} hitSlop={12}>
+                        <Text style={styles.lugarLapis}>✎</Text>
+                      </Pressable>
+                    ) : null}
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {recentes.length > 0 ? (
+              <>
+                <Text style={styles.recentesTitulo}>{t('lugarRecentes')}</Text>
+                {recentes.map((r, i) => (
+                  <Pressable
+                    key={`${r.lat},${r.lng},${i}`}
+                    style={({ pressed }) => [styles.recente, pressed && styles.premido]}
+                    onPress={() => irPara(r)}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.recenteIcone}>🕘</Text>
+                    <Text style={styles.recenteTexto} numberOfLines={1}>
+                      {r.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </>
+            ) : null}
           </View>
         )}
 
         <View style={{ flex: 1, minHeight: spacing.xl }} />
       </ScrollView>
+
+      {aDefinir ? (
+        <View style={styles.pesquisaSobreposta}>
+          <PlaceSearch
+            placeholder={t(FIXOS.find((f) => f.id === aDefinir)?.chave)}
+            onEscolher={guardarLugar}
+            onFechar={() => setADefinir(null)}
+          />
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -372,6 +471,45 @@ const criarEstilos = () =>
       borderColor: colors.border,
       borderRadius: radius.md,
     },
+
+    // A pesquisa cobre o ecrã enquanto se define um lugar. Sem isto
+    // ficava atrás do conteúdo e a lista de resultados era inalcançável.
+    pesquisaSobreposta: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: colors.paper,
+      zIndex: 10,
+    },
+
+    // ---- Lugares guardados e recentes ----
+    lugares: { marginTop: spacing.lg, gap: spacing.sm },
+    lugar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      backgroundColor: colors.white,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      borderRadius: radius.lg,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+    },
+    // Sem disco de cor por trás: o ícone sozinho.
+    lugarIcone: { fontSize: 20 },
+    lugarNome: { ...tipo.corpoForte, color: colors.text },
+    lugarMorada: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },
+    lugarLapis: { fontSize: 17, color: colors.textMuted },
+
+    recentesTitulo: { ...tipo.etiqueta, color: colors.textMuted, marginTop: spacing.lg },
+    recente: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      paddingVertical: spacing.sm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    recenteIcone: { fontSize: 15, opacity: 0.7 },
+    recenteTexto: { ...tipo.corpo, color: colors.text, flex: 1 },
 
     safe: { flex: 1, backgroundColor: colors.paper },
     scroll: { flexGrow: 1, padding: spacing.lg },

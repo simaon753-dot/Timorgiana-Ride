@@ -411,4 +411,9 @@ export default {
   admNadaAqui: "No data.",
   admMensagensN: "Messages exchanged",
   admMensagensPrivadas: "Administrators do not read message contents.",
+  lugarCasa: "Home",
+  lugarTrabalho: "Work",
+  lugarDefinir: "Tap to set",
+  lugarRecentes: "Recent",
+  lugarGuardado: "Place saved",
 };

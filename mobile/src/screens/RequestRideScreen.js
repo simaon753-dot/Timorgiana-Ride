@@ -16,13 +16,16 @@ import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js'
 import { tipo } from '../design/tipografia.js';
 import BarraEstado from '../design/BarraEstado.js';
 
-export default function RequestRideScreen({ navigation }) {
+export default function RequestRideScreen({ navigation, route }) {
   const { t } = useI18n();
   const { token } = useAuth();
   const { requestRide } = useRides();
 
   const [origem, setOrigem] = useState(null); // { lat, lng, label }
-  const [destino, setDestino] = useState(null);
+  // Um destino pode chegar já escolhido — de um lugar guardado ou de um
+  // recente no ecrã inicial. Poupa a pesquisa inteira, que numa rede
+  // lenta é a parte que custa.
+  const [destino, setDestino] = useState(route?.params?.destino || null);
   const [orcamento, setOrcamento] = useState(null);
   const [aCalcular, setACalcular] = useState(false);
   const [veiculo, setVeiculo] = useState('car');
