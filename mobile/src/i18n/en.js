@@ -21,7 +21,7 @@ export default {
 
   registerTitle: 'Create account',
   accountType: 'Account type',
-  name: 'Full name',
+  name: 'Official name',
   phone: 'Phone',
   phonePlaceholder: 'e.g. +670 7723 4567',
   email: 'Email',
@@ -33,7 +33,6 @@ export default {
   vehicleMotorbike: 'Motorbike',
   vehicleModel: 'Model',
   vehiclePlate: 'Number plate',
-  vehiclePlatePlaceholder: 'e.g. A-1234',
   vehicleColor: 'Colour',
   createAccountButton: 'Create account',
   haveAccountQuestion: 'Already have an account?',
@@ -418,4 +417,8 @@ export default {
   lugarGuardado: 'Place saved',
   passwordConfirm: 'Confirm password',
   errPasswordMismatch: 'The passwords do not match.',
+  nameHint: 'Write your name exactly as it appears on your identity document.',
+  vehiclePlatePlaceholderCar: 'e.g. A - 23.123 TLS',
+  vehiclePlatePlaceholderMoto: 'e.g. A - 1234 TLS',
+  vehiclePlateHint: 'Write the plate exactly as it appears on the vehicle.',
 };

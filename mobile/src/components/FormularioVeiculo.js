@@ -77,7 +77,10 @@ export default function FormularioVeiculo({ onPronto }) {
         label={t('vehiclePlate')}
         value={matricula}
         onChangeText={setMatricula}
-        placeholder={t('vehiclePlatePlaceholder')}
+        placeholder={t(
+          tipo === 'motorbike' ? 'vehiclePlatePlaceholderMoto' : 'vehiclePlatePlaceholderCar'
+        )}
+        hint={t('vehiclePlateHint')}
         autoCapitalize="characters"
       />
 

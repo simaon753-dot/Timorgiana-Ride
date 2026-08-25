@@ -18,7 +18,7 @@ export default {
   // Registo
   registerTitle: 'Criar conta',
   accountType: 'Tipo de conta',
-  name: 'Nome completo',
+  name: 'Nome oficial',
   phone: 'Telemóvel',
   phonePlaceholder: 'Ex.: +670 7723 4567',
   email: 'Email',
@@ -30,7 +30,6 @@ export default {
   vehicleMotorbike: 'Motorizada',
   vehicleModel: 'Modelo',
   vehiclePlate: 'Matrícula',
-  vehiclePlatePlaceholder: 'Ex.: A-1234',
   vehicleColor: 'Cor',
   createAccountButton: 'Criar conta',
   haveAccountQuestion: 'Já tem conta?',
@@ -432,4 +431,8 @@ export default {
   lugarGuardado: 'Lugar guardado',
   passwordConfirm: 'Confirmar palavra-passe',
   errPasswordMismatch: 'As palavras-passe não coincidem.',
+  nameHint: 'Escreva o nome tal como está no seu documento de identificação.',
+  vehiclePlatePlaceholderCar: 'Ex.: A - 23.123 TLS',
+  vehiclePlatePlaceholderMoto: 'Ex.: A - 1234 TLS',
+  vehiclePlateHint: 'Escreva a matrícula tal como está na chapa do veículo.',
 };

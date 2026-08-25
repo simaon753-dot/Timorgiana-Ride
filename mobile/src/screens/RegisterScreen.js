@@ -117,10 +117,15 @@ export default function RegisterScreen({ navigation, route }) {
           <RoleSelector value={role} onChange={setRole} />
 
           <View style={styles.form}>
+            {/* Nome OFICIAL, e a explicação por baixo do campo.
+                O nome tem de bater certo com a carta de condução e com o
+                documento de identificação, senão a aprovação do motorista
+                fica presa numa dúvida que ninguém consegue resolver. */}
             <TextField
               label={t('name')}
               value={name}
               onChangeText={setName}
+              hint={t('nameHint')}
               autoCapitalize="words"
             />
             <TextField
@@ -185,13 +190,21 @@ export default function RegisterScreen({ navigation, route }) {
                 <EscolherModelo tipo={vType} valor={vModel} onEscolher={setVModel} />
 
                 {/* Só a matrícula se escreve à mão: é única por veículo e
-                    não há lista possível. */}
+                    não há lista possível.
+                    O formato difere entre carro e motorizada — cinco
+                    dígitos com ponto contra quatro. Mostrar o exemplo
+                    errado leva a pessoa a escrever a matrícula errada. */}
                 <View style={{ height: spacing.md }} />
                 <TextField
                   label={t('vehiclePlate')}
                   value={vPlate}
                   onChangeText={setVPlate}
-                  placeholder={t('vehiclePlatePlaceholder')}
+                  placeholder={t(
+                    vType === 'motorbike'
+                      ? 'vehiclePlatePlaceholderMoto'
+                      : 'vehiclePlatePlaceholderCar'
+                  )}
+                  hint={t('vehiclePlateHint')}
                   autoCapitalize="characters"
                 />
 
