@@ -77,6 +77,7 @@ adminRouter.get(
   wrap(async (req, res) => {
     const doc = await getDocument(Number(req.params.id));
     if (!doc) return res.status(404).json({ error: 'Documento não encontrado.' });
+    registarAcesso(req.user.id, 'documento', doc.user_id);
     res.setHeader('Content-Type', doc.mime);
     res.send(doc.bytes);
   })
@@ -255,6 +256,11 @@ adminRouter.get(
 );
 
 // Regista um acesso a conteúdo privado.
+//
+// Já não há chat para registar — a administração deixou de o poder ler.
+// Fica para os DOCUMENTOS: cartas de condução e fotografias de
+// identificação continuam a ser dados pessoais sensíveis, e quem os vê
+// deve ficar registado.
 //
 // Não trava nada e nunca faz o pedido falhar: se o registo falhar, o
 // administrador continua a ver o que pediu. Um painel que deixa de
@@ -506,41 +512,7 @@ adminRouter.get(
   })
 );
 
-// GET /api/admin/viagens/:id/mensagens — a conversa
-//
-// Em separado, e não dentro do detalhe da viagem, de propósito: assim é
-// preciso um acto deliberado para ler a conversa de duas pessoas, e esse
-// acto fica registado. Abrir o detalhe de uma viagem não lê o chat de
-// ninguém.
-adminRouter.get(
-  '/viagens/:id/mensagens',
-  wrap(async (req, res) => {
-    const id = Number(req.params.id);
-    registarAcesso(req.user.id, 'chat', id);
-    const rows = await query(
-      `SELECT m.id, m.body, m.kind, m.created_at, m.sender_id, u.name AS de
-       FROM messages m JOIN users u ON u.id = m.sender_id
-       WHERE m.ride_id = $1 ORDER BY m.id`,
-      [id]
-    );
-    res.json({
-      mensagens: rows.map((m) => ({
-        id: m.id,
-        texto: m.body,
-        tipo: m.kind,
-        de: m.de,
-        deId: m.sender_id,
-        quando: m.created_at,
-      })),
-      // Devolvido para a app poder dizer, na própria conversa, que aquela
-      // leitura ficou registada. Quem administra deve ver o mesmo que um
-      // auditor veria.
-      registado: true,
-    });
-  })
-);
-
-// GET /api/admin/registo — quem leu o quê
+// GET /api/admin/registo — quem viu que documentos
 adminRouter.get(
   '/registo',
   wrap(async (req, res) => {

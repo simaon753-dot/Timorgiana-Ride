@@ -27,7 +27,6 @@ export default function AdminDetalheScreen({ navigation, route }) {
   const { tipoAlvo, id } = route.params || {};
   const [dados, setDados] = useState(null);
   const [erro, setErro] = useState(null);
-  const [conversa, setConversa] = useState(null);
 
   const carregar = useCallback(async () => {
     setErro(null);
@@ -45,28 +44,6 @@ export default function AdminDetalheScreen({ navigation, route }) {
   useEffect(() => {
     carregar();
   }, [carregar]);
-
-  // Ler a conversa exige confirmação, e não por burocracia: é o momento
-  // em que alguém abre a conversa privada de duas pessoas. A confirmação
-  // diz o que vai acontecer — incluindo que fica registado — para que a
-  // decisão seja tomada com a informação toda.
-  function abrirConversa(n) {
-    Alert.alert(t('admConversaTitulo'), t('admConversaExplica'), [
-      { text: t('cancel'), style: 'cancel' },
-      {
-        text: t('admLer'),
-        onPress: async () => {
-          try {
-            const r = await api.adminMensagens(token, id);
-            setConversa(r.mensagens || []);
-          } catch (e) {
-            setErro(e?.message || t('errGeneric'));
-          }
-        },
-      },
-    ]);
-    return n;
-  }
 
   const v = dados?.viagem;
   const c = dados?.conta;
@@ -88,15 +65,7 @@ export default function AdminDetalheScreen({ navigation, route }) {
           </View>
         ) : null}
 
-        {v ? (
-          <DetalheViagem
-            v={v}
-            t={t}
-            navigation={navigation}
-            onConversa={abrirConversa}
-            conversa={conversa}
-          />
-        ) : null}
+        {v ? <DetalheViagem v={v} t={t} navigation={navigation} /> : null}
         {c ? <DetalheConta d={dados} t={t} navigation={navigation} /> : null}
       </ScrollView>
     </SafeAreaView>
@@ -104,7 +73,7 @@ export default function AdminDetalheScreen({ navigation, route }) {
 }
 
 // ── Viagem ────────────────────────────────────────────────────────────
-function DetalheViagem({ v, t, navigation, onConversa, conversa }) {
+function DetalheViagem({ v, t, navigation }) {
   return (
     <>
       <Seccao titulo={t('destination')}>
@@ -151,34 +120,20 @@ function DetalheViagem({ v, t, navigation, onConversa, conversa }) {
         </Seccao>
       ) : null}
 
-      <Seccao titulo="💬">
-        {conversa ? (
-          <>
-            <Text style={styles.registado}>{t('admConversaAviso')}</Text>
-            {conversa.length === 0 ? (
-              <Text style={styles.vazio}>{t('admSemConversa')}</Text>
-            ) : (
-              conversa.map((m) => (
-                <View key={m.id} style={styles.mensagem}>
-                  <Text style={styles.mensagemDe}>
-                    {m.de} · {quando(m.quando)}
-                  </Text>
-                  <Text style={styles.mensagemTexto}>{m.texto}</Text>
-                </View>
-              ))
-            )}
-          </>
-        ) : v.nMensagens > 0 ? (
-          <Pressable style={styles.botaoConversa} onPress={() => onConversa(v.nMensagens)}>
-            <Text style={styles.botaoConversaTexto}>
-              {t('admVerConversa', { n: v.nMensagens })}
-            </Text>
-            <Text style={styles.registado}>{t('admConversaAviso')}</Text>
-          </Pressable>
-        ) : (
-          <Text style={styles.vazio}>{t('admSemConversa')}</Text>
-        )}
-      </Seccao>
+      {/* Só o NÚMERO de mensagens, nunca o conteúdo.
+          A administração não lê o que passageiro e motorista escrevem um
+          ao outro. Quem pode monitorizar pode ser acusado de não ter
+          monitorizado; sem acesso, essa pergunta não existe. E numa
+          queixa a prova não desaparece — está no telemóvel de quem se
+          queixa, e é essa pessoa que decide mostrá-la.
+          O número é sinal útil: uma viagem com quarenta mensagens diz
+          alguma coisa sem revelar nada. */}
+      {v.nMensagens > 0 ? (
+        <Seccao titulo="💬">
+          <Linha rotulo={t('admMensagensN')} valor={String(v.nMensagens)} />
+          <Text style={styles.registado}>{t('admMensagensPrivadas')}</Text>
+        </Seccao>
+      ) : null}
     </>
   );
 }
@@ -411,22 +366,12 @@ const criarEstilos = () =>
     doc: { width: 92, height: 92, borderRadius: radius.md, backgroundColor: colors.tintaTeal },
     docNome: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
 
-    botaoConversa: { padding: spacing.md, alignItems: 'center' },
-    botaoConversaTexto: { ...tipo.corpoForte, color: colors.teal },
     registado: {
       ...tipo.legenda,
       color: colors.textMuted,
       textAlign: 'center',
       paddingVertical: spacing.xs,
     },
-    mensagem: {
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.md,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
-    },
-    mensagemDe: { ...tipo.legenda, color: colors.textMuted },
-    mensagemTexto: { ...tipo.corpo, color: colors.text },
     vazio: { ...tipo.pequeno, color: colors.textMuted, padding: spacing.md, textAlign: 'center' },
   });
 
