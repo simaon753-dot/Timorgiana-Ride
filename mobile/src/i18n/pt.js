@@ -431,4 +431,6 @@ export default {
   lugarDefinir: "Tocar para definir",
   lugarRecentes: "Recentes",
   lugarGuardado: "Lugar guardado",
+  passwordConfirm: "Confirmar palavra-passe",
+  errPasswordMismatch: "As palavras-passe não coincidem.",
 };

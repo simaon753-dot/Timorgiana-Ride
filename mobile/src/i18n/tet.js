@@ -426,4 +426,6 @@ export default {
   lugarDefinir: "Toka atu define",
   lugarRecentes: "Foin lalais",
   lugarGuardado: "Fatin rai ona",
+  passwordConfirm: "Konfirma liafuan-xave",
+  errPasswordMismatch: "Liafuan-xave rua la hanesan.",
 };

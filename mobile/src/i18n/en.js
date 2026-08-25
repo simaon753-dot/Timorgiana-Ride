@@ -416,4 +416,6 @@ export default {
   lugarDefinir: "Tap to set",
   lugarRecentes: "Recent",
   lugarGuardado: "Place saved",
+  passwordConfirm: "Confirm password",
+  errPasswordMismatch: "The passwords do not match.",
 };

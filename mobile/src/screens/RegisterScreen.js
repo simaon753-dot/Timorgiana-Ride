@@ -37,6 +37,10 @@ export default function RegisterScreen({ navigation, route }) {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // Escrever a senha duas vezes. Uma senha mal escrita no registo não dá
+  // erro nenhum — a conta é criada e a pessoa só descobre no dia em que
+  // tenta entrar, sem forma de saber o que escreveu da primeira vez.
+  const [password2, setPassword2] = useState('');
   const [vType, setVType] = useState('car'); // 'car' | 'motorbike'
   const [vModel, setVModel] = useState('');
   const [vPlate, setVPlate] = useState('');
@@ -52,6 +56,7 @@ export default function RegisterScreen({ navigation, route }) {
     if (!name.trim()) return setError(t('errNameRequired'));
     if (phone.replace(/[\s()-]/g, '').length < 7) return setError(t('errPhoneRequired'));
     if (password.length < 6) return setError(t('errPasswordShort'));
+    if (password !== password2) return setError(t('errPasswordMismatch'));
     if (role === 'driver' && !vPlate.trim()) return setError(t('errPlateRequired'));
     if (role === 'driver' && vType === 'car' && !vSeats) return setError(t('errSeatsRequired'));
     if (!aceitou) return setError(t('errTermsRequired'));
@@ -141,6 +146,20 @@ export default function RegisterScreen({ navigation, route }) {
               hint={t('passwordHint')}
               secureTextEntry
               autoCapitalize="none"
+            />
+            {/* O aviso de senhas diferentes aparece no próprio campo, e
+                não junto ao botão: é ali que se corrige, e é ali que os
+                olhos estão. Só depois de a segunda ter sido escrita — a
+                meio da escrita, todas as senhas são diferentes. */}
+            <TextField
+              label={t('passwordConfirm')}
+              value={password2}
+              onChangeText={setPassword2}
+              secureTextEntry
+              autoCapitalize="none"
+              error={
+                password2.length > 0 && password !== password2 ? t('errPasswordMismatch') : null
+              }
             />
 
             {role === 'driver' ? (
