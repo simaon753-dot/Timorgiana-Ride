@@ -24,6 +24,7 @@ import EscolherModelo from '../components/EscolherModelo.js';
 import EscolherCor from '../components/EscolherCor.js';
 import EscolherLugares from '../components/EscolherLugares.js';
 import { LUGARES } from '../dados/veiculos.js';
+import { normalizarMatricula } from '../lib/matricula.js';
 import { VERSAO_TERMOS } from '../termos/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { colors, spacing, radius, registarEstilos } from '../theme.js';
@@ -58,6 +59,11 @@ export default function RegisterScreen({ navigation, route }) {
     if (password.length < 6) return setError(t('errPasswordShort'));
     if (password !== password2) return setError(t('errPasswordMismatch'));
     if (role === 'driver' && !vPlate.trim()) return setError(t('errPlateRequired'));
+    // A matrícula segue para o servidor NORMALIZADA, não como foi
+    // escrita. Assim "a23123tls" e "A - 23.123 TLS" ficam guardadas
+    // iguais — e o passageiro na rua compara sempre a mesma forma.
+    const placaOk = role === 'driver' ? normalizarMatricula(vPlate, vType) : null;
+    if (role === 'driver' && !placaOk) return setError(t('errPlateFormat'));
     if (role === 'driver' && vType === 'car' && !vSeats) return setError(t('errSeatsRequired'));
     if (!aceitou) return setError(t('errTermsRequired'));
 
@@ -73,7 +79,7 @@ export default function RegisterScreen({ navigation, route }) {
             vehicle: {
               type: vType,
               model: vModel,
-              plate: vPlate,
+              plate: placaOk,
               color: vColor,
               ...(vType === 'car' && vSeats ? { seats: vSeats } : {}),
             },

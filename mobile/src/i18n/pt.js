@@ -435,4 +435,5 @@ export default {
   vehiclePlatePlaceholderCar: 'Ex.: A - 23.123 TLS',
   vehiclePlatePlaceholderMoto: 'Ex.: A - 1234 TLS',
   vehiclePlateHint: 'Escreva a matrícula tal como está na chapa do veículo.',
+  errPlateFormat: 'Matrícula inválida. Use o formato do exemplo.',
 };

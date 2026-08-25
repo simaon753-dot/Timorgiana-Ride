@@ -421,4 +421,5 @@ export default {
   vehiclePlatePlaceholderCar: 'e.g. A - 23.123 TLS',
   vehiclePlatePlaceholderMoto: 'e.g. A - 1234 TLS',
   vehiclePlateHint: 'Write the plate exactly as it appears on the vehicle.',
+  errPlateFormat: 'Invalid plate. Use the format shown in the example.',
 };

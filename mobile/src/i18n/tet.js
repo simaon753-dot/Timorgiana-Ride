@@ -435,4 +435,5 @@ export default {
   vehiclePlatePlaceholderCar: 'Ezemplu: A - 23.123 TLS',
   vehiclePlatePlaceholderMoto: 'Ezemplu: A - 1234 TLS',
   vehiclePlateHint: 'Hakerek matríkula hanesan iha xapa veíkulu nian.',
+  errPlateFormat: 'Matríkula sala. Uza formatu hanesan ezemplu.',
 };
