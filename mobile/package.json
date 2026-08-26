@@ -35,5 +35,8 @@
     "react-native-webview": "13.15.0",
     "socket.io-client": "^4.8.3"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "@expo/ngrok": "^4.1.3"
+  }
 }
