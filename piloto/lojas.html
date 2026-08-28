@@ -1,0 +1,580 @@
+<title>TimorgianaRide nas lojas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+  :root {
+    --papel: #F7F4EF;
+    --superficie: #FFFFFF;
+    --tinta: #16211D;
+    --cinza: #6B756F;
+    --linha: #E2DDD4;
+    --teal: #0E5C54;
+    --teal-claro: #E7EFED;
+    --coral: #C8502F;
+    --coral-claro: #FBEDE7;
+    --sombra: 0 1px 2px rgba(22, 33, 29, .05);
+
+    --serif: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --papel: #0F1614;
+      --superficie: #18211E;
+      --tinta: #E8EDEA;
+      --cinza: #97A29C;
+      --linha: #2C3733;
+      --teal: #5CC0A9;
+      --teal-claro: #14251F;
+      --coral: #F08A63;
+      --coral-claro: #2A1A13;
+      --sombra: 0 1px 2px rgba(0, 0, 0, .3);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --papel: #0F1614;
+    --superficie: #18211E;
+    --tinta: #E8EDEA;
+    --cinza: #97A29C;
+    --linha: #2C3733;
+    --teal: #5CC0A9;
+    --teal-claro: #14251F;
+    --coral: #F08A63;
+    --coral-claro: #2A1A13;
+    --sombra: 0 1px 2px rgba(0, 0, 0, .3);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--papel);
+    color: var(--tinta);
+    font-family: var(--serif);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .envelope {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+
+  /* ---- Cabeçalho ---- */
+  .topo { border-bottom: 2px solid var(--teal); padding-bottom: 28px; margin-bottom: 44px; }
+
+  .etiqueta {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--cinza);
+    margin: 0 0 14px;
+  }
+
+  h1 {
+    font-size: clamp(30px, 5vw, 42px);
+    font-weight: 800;
+    letter-spacing: -.025em;
+    line-height: 1.1;
+    text-wrap: balance;
+    margin: 0 0 14px;
+  }
+
+  .resumo { font-size: 18px; color: var(--cinza); max-width: 62ch; margin: 0; }
+
+  /* ---- Secções ---- */
+  section { margin-top: 64px; }
+
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 6px;
+    color: var(--teal);
+  }
+
+  .sub { color: var(--cinza); margin: 0 0 26px; max-width: 64ch; }
+
+  h3 { font-size: 17px; font-weight: 700; margin: 0 0 4px; letter-spacing: -.01em; }
+
+  p { margin: 0 0 14px; max-width: 66ch; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ---- Os dois caminhos ---- */
+  .caminhos { display: grid; gap: 20px; grid-template-columns: 1fr; }
+  @media (min-width: 760px) { .caminhos { grid-template-columns: 1fr 1fr; } }
+
+  .caminho {
+    background: var(--superficie);
+    border: 1px solid var(--linha);
+    border-radius: 4px;
+    box-shadow: var(--sombra);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .caminho-topo { padding: 20px 22px 16px; border-bottom: 1px solid var(--linha); }
+  .caminho-topo h3 { font-size: 19px; }
+
+  .preco {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--tinta);
+    margin: 8px 0 2px;
+  }
+  .preco small { font-size: 12px; font-weight: 400; color: var(--cinza); }
+
+  .prazo { font-family: var(--mono); font-size: 12px; color: var(--cinza); }
+
+  ol.passos { list-style: none; margin: 0; padding: 6px 0 0; counter-reset: p; flex: 1; }
+
+  ol.passos li {
+    counter-increment: p;
+    display: grid;
+    grid-template-columns: 30px 1fr;
+    gap: 12px;
+    padding: 13px 22px;
+    border-bottom: 1px solid var(--linha);
+    align-items: start;
+  }
+  ol.passos li:last-child { border-bottom: 0; }
+
+  ol.passos li::before {
+    content: counter(p);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--teal);
+    padding-top: 3px;
+  }
+
+  .passo-t { font-weight: 600; display: block; }
+  .passo-d { font-size: 14px; color: var(--cinza); display: block; margin-top: 1px; }
+
+  .quem {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    margin-top: 6px;
+  }
+  .quem.tu { background: var(--coral-claro); color: var(--coral); }
+  .quem.eu { background: var(--teal-claro); color: var(--teal); }
+
+  /* ---- Bloco de aviso ---- */
+  .nota {
+    background: var(--superficie);
+    border-left: 3px solid var(--coral);
+    border-radius: 0 4px 4px 0;
+    padding: 16px 20px;
+    margin: 22px 0;
+    box-shadow: var(--sombra);
+  }
+  .nota strong { color: var(--coral); }
+
+  .nota.calma { border-left-color: var(--teal); }
+  .nota.calma strong { color: var(--teal); }
+
+  /* ---- Tabela ---- */
+  .rolar { overflow-x: auto; margin: 22px 0; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 480px; }
+
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--linha); }
+
+  th {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--cinza);
+    border-bottom: 1px solid var(--tinta);
+  }
+
+  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--tinta); }
+
+  /* ---- Comparação do painel ---- */
+  .duas { display: grid; gap: 18px; grid-template-columns: 1fr; margin: 24px 0; }
+  @media (min-width: 700px) { .duas { grid-template-columns: 1fr 1fr; } }
+
+  .opcao {
+    background: var(--superficie);
+    border: 1px solid var(--linha);
+    border-radius: 4px;
+    padding: 20px 22px;
+    box-shadow: var(--sombra);
+  }
+  .opcao.escolhida { border-color: var(--teal); border-width: 2px; padding: 19px 21px; }
+
+  .selo {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--teal);
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  ul.pontos { margin: 12px 0 0; padding: 0; list-style: none; }
+  ul.pontos li { padding-left: 20px; position: relative; margin-bottom: 8px; font-size: 15px; }
+  ul.pontos li::before { content: "+"; position: absolute; left: 0; color: var(--teal); font-weight: 700; }
+  ul.pontos li.contra::before { content: "−"; color: var(--coral); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .88em;
+    background: var(--teal-claro);
+    color: var(--teal);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .fim {
+    margin-top: 72px;
+    padding-top: 22px;
+    border-top: 1px solid var(--linha);
+    font-size: 13px;
+    color: var(--cinza);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="envelope">
+
+  <header class="topo">
+    <p class="etiqueta">Plano de publicação · Agosto 2026</p>
+    <h1>Levar a TimorgianaRide às lojas</h1>
+    <p class="resumo">
+      O que falta para a app estar disponível no Android e no iPhone, quanto custa,
+      quem faz o quê — e onde deve viver o painel de administração.
+    </p>
+  </header>
+
+  <section>
+    <h2>Onde estamos hoje</h2>
+    <p class="sub">Antes do plano, o ponto de partida — para as decisões assentarem em factos.</p>
+
+    <div class="rolar">
+      <table>
+        <thead>
+          <tr><th>Peça</th><th>Estado</th><th>Custo mensal</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>App Android (APK v1.1.0)</td><td>A funcionar, distribuída por ligação directa</td><td class="num">0 USD</td></tr>
+          <tr><td>App iPhone</td><td>Configurada, mas sem forma de instalar</td><td class="num">—</td></tr>
+          <tr><td>Servidor (Render)</td><td>A correr, adormece ao fim de 15 min</td><td class="num">0 USD</td></tr>
+          <tr><td>Base de dados (Neon, Singapura)</td><td>A correr</td><td class="num">0 USD</td></tr>
+          <tr><td>Painel de administração</td><td>Dentro da app — 14 rotas no servidor</td><td class="num">0 USD</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="nota calma">
+      <p><strong>O que isto quer dizer.</strong> A app está pronta. O que falta não é código —
+      é conta de programador, revisão das lojas e as decisões legais que só você pode tomar.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Os dois caminhos</h2>
+    <p class="sub">
+      Android e iPhone são processos diferentes, com custos e prazos diferentes.
+      Podem correr em paralelo ou um de cada vez.
+    </p>
+
+    <div class="caminhos">
+
+      <article class="caminho">
+        <div class="caminho-topo">
+          <h3>Android · Google Play</h3>
+          <p class="preco">25 USD <small>uma vez, para sempre</small></p>
+          <p class="prazo">3 a 4 semanas até estar público</p>
+        </div>
+        <ol class="passos">
+          <li>
+            <div>
+              <span class="passo-t">Criar conta Google Play Console</span>
+              <span class="passo-d">Pagamento único de 25 USD. Exige verificação de identidade com documento.</span>
+              <span class="quem tu">Simão</span>
+            </div>
+          </li>
+          <li>
+            <div>
+              <span class="passo-t">Política de privacidade num endereço web</span>
+              <span class="passo-d">Obrigatória. Tem de estar acessível fora da app. Eu escrevo a partir dos termos que já existem; você revê.</span>
+              <span class="quem eu">eu preparo</span>
+            </div>
+          </li>
+          <li>
+            <div>
+              <span class="passo-t">Ficha da loja</span>
+              <span class="passo-d">Nome, descrição, ícone, capturas de ecrã em vários tamanhos, categoria.</span>
+              <span class="quem eu">eu preparo</span>
+            </div>
+          </li>
+          <li>
+            <div>
+              <span class="passo-t">Declaração de segurança dos dados</span>
+              <span class="passo-d">Que dados recolhe, para quê, com quem partilha. Respostas erradas aqui dão recusa e reinício.</span>
+              <span class="quem tu">Simão decide</span>
+            </div>
+          </li>
+          <li>
+            <div>
+              <span class="passo-t">Teste fechado: 12 pessoas, 14 dias seguidos</span>
+              <span class="passo-d">Regra para contas pessoais novas. É o passo mais longo e não se pode encurtar — os seus motoristas do piloto servem.</span>
+              <span class="quem tu">Simão organiza</span>
+            </div>
+          </li>
+          <li>
+            <div>
+              <span class="passo-t">Submeter para produção</span>
+              <span class="passo-d">Revisão da Google, normalmente alguns dias.</span>
+              <span class="quem eu">eu submeto</span>
+            </div>
+          </li>
+        </ol>
+      </article>
+
+      <article class="caminho">
+        <div class="caminho-topo">
+          <h3>iPhone · App Store</h3>
+          <p class="preco">99 USD <small>por ano, sempre</small></p>
+          <p class="prazo">1 a 3 dias para testar; 2 a 4 semanas para público</p>
+        </div>
+        <ol class="passos">
+          <li>
+            <div>
+              <span class="passo-t">Apple Developer Program</span>
+              <span class="passo-d">99 USD por ano. Como pessoa singular é rápido; como empresa exige número D-U-N-S e demora semanas.</span>
+              <span class="quem tu">Simão</span>
+            </div>
+          </li>
+          <li>
+            <div>
+              <span class="passo-t">A mesma política de privacidade</span>
+              <span class="passo-d">Serve para as duas lojas. Fazer uma vez.</span>
+              <span class="quem eu">eu preparo</span>
+            </div>
+          </li>
+          <li>
+            <div>
+              <span class="passo-t">TestFlight — os motoristas já podem usar</span>
+              <span class="passo-d">Revisão ligeira, 1 a 3 dias. Até 10 000 pessoas por convite. É aqui que o piloto em iPhone começa.</span>
+              <span class="quem eu">eu submeto</span>
+            </div>
+          </li>
+          <li>
+            <div>
+              <span class="passo-t">Submeter à App Store</span>
+              <span class="passo-d">Revisão completa, mais exigente que a da Google. Rejeições são normais à primeira.</span>
+              <span class="quem eu">eu submeto</span>
+            </div>
+          </li>
+          <li>
+            <div>
+              <span class="passo-t">Responder às perguntas da revisão</span>
+              <span class="passo-d">Apps de transporte levam perguntas extra sobre licenciamento e segurança. Ver a secção legal abaixo.</span>
+              <span class="quem tu">Simão responde</span>
+            </div>
+          </li>
+        </ol>
+      </article>
+
+    </div>
+
+    <div class="nota">
+      <p><strong>Uma diferença que muda o plano.</strong> No Android, o teste fechado de 14 dias
+      acontece <em>antes</em> de qualquer pessoa poder instalar pela loja. No iPhone, o TestFlight
+      põe a app nas mãos dos motoristas em dias. Se quiser começar depressa em iPhone, o TestFlight
+      é o caminho — e pode ficar aí meses, sem nunca submeter à App Store.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>O que custa, ao certo</h2>
+    <p class="sub">Primeiro ano, tudo somado. Sem surpresas escondidas.</p>
+
+    <div class="rolar">
+      <table>
+        <thead>
+          <tr><th>Item</th><th>Quando</th><th>Valor</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Google Play Console</td><td>uma vez</td><td class="num">25 USD</td></tr>
+          <tr><td>Apple Developer Program</td><td>por ano</td><td class="num">99 USD</td></tr>
+          <tr><td>Servidor Render — plano pago</td><td>por mês, opcional</td><td class="num">7 USD</td></tr>
+          <tr><td>Base de dados, compilações, actualizações</td><td>—</td><td class="num">0 USD</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td>Só Android</td><td>primeiro ano</td><td class="num">25 USD</td></tr>
+          <tr><td>Android e iPhone</td><td>primeiro ano</td><td class="num">124 USD</td></tr>
+          <tr><td>Com servidor sempre acordado</td><td>primeiro ano</td><td class="num">208 USD</td></tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <p>Os 7 USD por mês do servidor não são obrigatórios. Hoje o plano gratuito adormece
+    ao fim de 15 minutos sem uso, e quem abrir a app a seguir espera perto de um minuto.
+    Com motoristas ligados durante o dia, isso só apanha a primeira pessoa da manhã.</p>
+  </section>
+
+  <section>
+    <h2>Onde deve viver o painel de administração</h2>
+    <p class="sub">
+      Hoje está dentro da app, no telemóvel. Perguntou se devia ser um site — e a resposta é sim.
+    </p>
+
+    <div class="duas">
+      <article class="opcao">
+        <span class="selo">Hoje</span>
+        <h3>Dentro da app</h3>
+        <ul class="pontos">
+          <li>Já está feito e a funcionar</li>
+          <li>Mesma sessão, mesmo código</li>
+          <li class="contra">Ecrã pequeno para listas e tabelas</li>
+          <li class="contra">Não dá para exportar nem imprimir</li>
+          <li class="contra">Documentos difíceis de conferir num telemóvel</li>
+          <li class="contra">Quem administrar tem de instalar a app de motorista</li>
+        </ul>
+      </article>
+
+      <article class="opcao escolhida">
+        <span class="selo">Recomendado</span>
+        <h3>Site próprio</h3>
+        <ul class="pontos">
+          <li>Ecrã grande — é onde se comparam listas e se decide</li>
+          <li>Documentos e fotografias vistos ao tamanho real</li>
+          <li>Exportar para folha de cálculo, imprimir</li>
+          <li>Abre em qualquer computador, sem instalar nada</li>
+          <li>Pode dar acesso a alguém sem lhe dar a app</li>
+          <li class="contra">É trabalho novo — mas só da parte visual</li>
+        </ul>
+      </article>
+    </div>
+
+    <div class="nota calma">
+      <p><strong>Porque é mais barato do que parece.</strong> As <code>14 rotas</code> de
+      administração já existem no servidor: contas, viagens, documentos, fotografias de turno,
+      estatísticas, registo de acessos. Um site seria só a parte visual a falar com elas —
+      nada de servidor novo, nada de base de dados nova, <code>0 USD</code> por mês, servido
+      pelo mesmo Render que já tem.</p>
+    </div>
+
+    <p>Administrar é trabalho de secretária: comparar, conferir, decidir, exportar.
+    O telemóvel é o sítio errado para isso — e vai notar-se no dia em que tiver trinta
+    motoristas em vez de um.</p>
+
+    <p><strong>O que ficaria na app:</strong> os alertas de emergência e a aprovação rápida de
+    um motorista. São as duas coisas que não podem esperar até chegar ao computador.</p>
+  </section>
+
+  <section>
+    <h2>Precisa de uma sede?</h2>
+    <p class="sub">
+      Separando três perguntas que costumam andar misturadas.
+    </p>
+
+    <h3>Para publicar nas lojas — não</h3>
+    <p>Pode publicar como <strong>pessoa singular</strong>, com o seu nome e o seu documento.
+    Nem a Google nem a Apple exigem empresa nem escritório. O que muda é que o seu nome
+    aparece publicamente como responsável pela app, em vez do nome de uma empresa.</p>
+
+    <h3>Para publicar como empresa — sim, e demora</h3>
+    <p>Aí é preciso a empresa registada e, no caso da Apple, um número <strong>D-U-N-S</strong>,
+    que é gratuito mas leva semanas a obter. Se pensa registar a Timorgiana como empresa,
+    vale a pena começar esse processo antes, porque é o mais lento de todos.</p>
+
+    <h3>Para operar transporte em Timor-Leste — a pergunta que importa</h3>
+    <p>Esta é a que pode travar tudo, e é a única em que eu não tenho nada a dizer-lhe.
+    Está no seu terreno, não no meu.</p>
+
+    <div class="nota">
+      <p><strong>O que as lojas vão perguntar.</strong> Apps de transporte recebem perguntas
+      extra na revisão — sobre licenciamento, seguros e responsabilidade. A Apple é mais
+      insistente do que a Google. É a mesma pergunta que já está marcada com ⚖ nos termos:
+      se a TimorgianaRide, sendo intermediária e não transportadora, precisa de licença em
+      Timor-Leste. Alguém vai exigir a resposta por escrito.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>O que eu sugiro fazer, por esta ordem</h2>
+    <p class="sub">Do mais barato e reversível para o mais caro e comprometedor.</p>
+
+    <div class="rolar">
+      <table>
+        <thead>
+          <tr><th>Ordem</th><th>Passo</th><th>Custo</th><th>Porquê agora</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="num">1</td>
+            <td>Terminar o piloto em Android, com o APK por ligação directa</td>
+            <td class="num">0 USD</td>
+            <td>Descobrir se o serviço funciona antes de gastar</td>
+          </tr>
+          <tr>
+            <td class="num">2</td>
+            <td>Resolver a questão do licenciamento</td>
+            <td class="num">—</td>
+            <td>É o único que pode invalidar tudo o resto</td>
+          </tr>
+          <tr>
+            <td class="num">3</td>
+            <td>Painel de administração em site</td>
+            <td class="num">0 USD</td>
+            <td>Vai precisar dele mal passe de cinco motoristas</td>
+          </tr>
+          <tr>
+            <td class="num">4</td>
+            <td>Google Play</td>
+            <td class="num">25 USD</td>
+            <td>Barato, permanente, e é onde estão os telemóveis de Díli</td>
+          </tr>
+          <tr>
+            <td class="num">5</td>
+            <td>Apple, só se houver iPhones a pedir</td>
+            <td class="num">99 USD/ano</td>
+            <td>Renova todos os anos — só faz sentido com procura provada</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>O passo 2 vem antes do 4 de propósito. Publicar numa loja é público e permanente;
+    descobrir um problema de licenciamento depois disso é muito pior do que descobri-lo agora.</p>
+  </section>
+
+  <p class="fim">
+    Preparado para a TimorgianaRide · Díli, Timor-Leste · Agosto de 2026.
+    Os valores das contas de programador são os praticados publicamente e devem ser
+    confirmados no momento da inscrição. As questões de licenciamento e responsabilidade
+    civil em Timor-Leste estão fora do que posso avaliar.
+  </p>
+
+</div>
