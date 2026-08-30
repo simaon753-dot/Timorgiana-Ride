@@ -9,7 +9,17 @@ const BASE = 'https://nominatim.openstreetmap.org';
 
 // Limites de Timor-Leste: evita devolver sítios com o mesmo nome noutros
 // países, que seria pior do que não encontrar nada.
-const TIMOR = { viewbox: '124.0,-10.0,127.4,-8.1', countrycodes: 'tl' };
+//
+// A caixa é usada com `bounded=1`, ou seja, corta mesmo o que fica de fora.
+// A anterior — 124.0 a 127.4 — encostava às pontas do país sem folga
+// nenhuma: a ponta ocidental de Oecusse e o norte de Ataúro ficavam à
+// beira da linha. Um sítio meio metro fora deixava de aparecer, e quem
+// procurasse não percebia porquê.
+//
+// Agora leva margem em toda a volta. Alargar não traz lixo de outros
+// países porque quem faz o trabalho de excluir é o `countrycodes`; a caixa
+// só evita homónimos e ordena por proximidade.
+const TIMOR = { viewbox: '123.8,-9.8,127.6,-8.0', countrycodes: 'tl' };
 
 function nomeCurto(display) {
   return display.split(',').slice(0, 2).join(',').trim();
