@@ -9,10 +9,14 @@
 // endereço web, acessível a quem ainda não instalou a aplicação. Os
 // termos vivem dentro da app; este tem de viver nos dois sítios.
 //
-// ⚖ Há marcadores por preencher no texto — denominação legal, sede,
-// contacto de privacidade, autoridade competente. Estão entre
-// [PARÊNTESES RECTOS] e são visíveis a quem ler. Preencher antes de
-// publicar em qualquer loja.
+// Identificação preenchida em 30-08-2026 com os dados dados pelo Simão:
+// Timorgiana, Lda · Bidau Toko-Baru, Cristo Rei, Timor-Leste ·
+// +670 74192857 e +670 75684566.
+//
+// ⚖ Fica por decidir a autoridade competente para reclamações de
+// protecção de dados em Timor-Leste, e a lei aplicável. Não inventei
+// nenhuma das duas: nomear a autoridade errada é pior do que não nomear
+// nenhuma, porque manda a pessoa reclamar a quem não a pode ajudar.
 //
 // Origem: piloto/TimorgianaRide_Aviso_de_Privacidade_PT_Tetum.docx
 
@@ -23,7 +27,7 @@ const pt = {
     {
       titulo: 'Quem trata os dados',
       texto:
-        'A TimorgianaRide, [DENOMINAÇÃO LEGAL, SEDE E CONTACTO A PREENCHER], trata os dados pessoais descritos neste aviso para operar e proteger a aplicação. Para dúvidas ou pedidos sobre dados, contacte [CONTACTO DE PRIVACIDADE A PREENCHER].',
+        'A TimorgianaRide é um serviço da Timorgiana, Lda, Bidau Toko-Baru, Cristo Rei, Timor-Leste, e trata os dados pessoais descritos neste aviso para operar e proteger a aplicação. Para dúvidas ou pedidos sobre dados, contacte +670 74192857 · +670 75684566.',
     },
     {
       titulo: 'A quem se aplica',
@@ -68,7 +72,7 @@ const pt = {
     {
       titulo: 'Reclamações e contacto',
       texto:
-        'Para questões de privacidade, pedidos ou reclamações: [CONTACTO A PREENCHER].',
+        'Para questões de privacidade, pedidos ou reclamações: +670 74192857 · +670 75684566.',
     },
   ],
 };
@@ -80,7 +84,7 @@ const tet = {
     {
       titulo: 'Sé mak trata dadus',
       texto:
-        'TimorgianaRide, [NARAN LEGÁL, SEDE NO KONTAKTU ATU PREENSE], trata dadus pessoal neʼebé avizu ida neʼe esplika atu opera no proteje aplikasaun. Ba pergunta ka pedidu kona-ba dadus, kontaktu [KONTAKTU PRIVASIDADE ATU PREENSE].',
+        'TimorgianaRide hanesan servisu husi Timorgiana, Lda, Bidau Toko-Baru, Cristo Rei, Timor-Leste, no trata dadus pessoal neʼebé avizu ida neʼe esplika atu opera no proteje aplikasaun. Ba pergunta ka pedidu kona-ba dadus, kontaktu +670 74192857 · +670 75684566.',
     },
     {
       titulo: 'Ba sé mak avizu ida',
@@ -124,7 +128,7 @@ const tet = {
     },
     {
       titulo: 'Keixa no kontaktu',
-      texto: 'Ba pergunta privasidade, pedidu ka keixa: [KONTAKTU ATU PREENSE].',
+      texto: 'Ba pergunta privasidade, pedidu ka keixa: +670 74192857 · +670 75684566.',
     },
   ],
 };
@@ -136,7 +140,7 @@ const en = {
     {
       titulo: 'Who processes the data',
       texto:
-        'TimorgianaRide, [LEGAL NAME, REGISTERED OFFICE AND CONTACT TO BE COMPLETED], processes the personal data described in this notice in order to operate and protect the application. For questions or requests about data, contact [PRIVACY CONTACT TO BE COMPLETED].',
+        'TimorgianaRide is a service of Timorgiana, Lda, Bidau Toko-Baru, Cristo Rei, Timor-Leste, and processes the personal data described in this notice in order to operate and protect the application. For questions or requests about data, contact +670 74192857 · +670 75684566.',
     },
     {
       titulo: 'Who this applies to',
@@ -181,7 +185,7 @@ const en = {
     {
       titulo: 'Complaints and contact',
       texto:
-        'For privacy questions, requests or complaints: [CONTACT TO BE COMPLETED].\n\nThis notice is published in Portuguese, Tetum and English. In the event of any divergence between the versions, the Portuguese text prevails.',
+        'For privacy questions, requests or complaints: +670 74192857 · +670 75684566.\n\nThis notice is published in Portuguese, Tetum and English. In the event of any divergence between the versions, the Portuguese text prevails.',
     },
   ],
 };
