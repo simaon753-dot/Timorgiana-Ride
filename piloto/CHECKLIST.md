@@ -99,8 +99,14 @@ projecto pessoal no momento em que um motorista real enviar a primeira foto.
 - [x] **Ecrã de registo.** Estava partido desde a regeneração dos termos
       (campo `aceitarCurto` perdido). Arranjado e confirmado pelo Simão
       em 30/08/2026.
-- [ ] Abrir o painel de administração na app e confirmar que os números batem
-- [ ] Fazer um SOS de teste e confirmar que chega
+- [x] **Painel de administração: números confirmados** em 30/08/2026, um a um
+      contra a base de dados. 1 motorista, 0 disponível, 0 viagens em 24h,
+      0 à espera, 3 canceladas. Tudo bate.
+- [ ] **SOS de teste durante uma viagem a decorrer.** O que foi testado em
+      30/08/2026 foi o atalho das Opções, que só consulta e liga — e esse
+      funciona. O SOS que grava alerta e aparece no painel é o botão que só
+      existe DURANTE uma viagem, e por isso precisa de dois telemóveis:
+      um a pedir, outro a aceitar.
 - [x] Trocar a palavra-passe do Neon — FEITO 30/08/2026. Rodada no Neon,
       actualizada no Render e no .env local; confirmado que a antiga já é
       recusada. A nova também passou pela conversa (numa fotografia), por
