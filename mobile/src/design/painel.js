@@ -138,8 +138,12 @@ const criarEstilos = () =>
     pastilhaTexto: { ...tipo.legenda, fontVariant: ['tabular-nums'] },
 
     metrica: {
-      flex: 1,
-      minWidth: 92,
+      // Cresce para ocupar a linha, mas parte de 46% — assim cabem DUAS
+      // por linha e nunca quatro. Com `flex: 1` e quatro cartões, cada um
+      // exigia 92 pt e o conjunto pedia 368 num ecrã com 288: o quarto
+      // ficava fora do ecrã e as palavras partiam-se a meio.
+      flexGrow: 1,
+      flexBasis: '46%',
       backgroundColor: colors.white,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border,

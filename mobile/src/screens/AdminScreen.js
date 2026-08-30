@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Linking,
@@ -60,6 +60,21 @@ export default function AdminScreen({ navigation }) {
   const [pagina, setPagina] = useState(0);
   const [haMais, setHaMais] = useState(false);
   const [registo, setRegisto] = useState([]);
+
+  // Posição de cada separador, para o poder trazer à vista.
+  //
+  // Cinco separadores não cabem num ecrã de telemóvel, e a fila desliza.
+  // Sem isto, tocar num separador podia deixá-lo meio cortado — ou fora
+  // do ecrã — e ficava-se sem saber em que secção se está.
+  const abasRef = useRef(null);
+  const posicoes = useRef({});
+
+  useEffect(() => {
+    const x = posicoes.current[seccao];
+    if (x == null || !abasRef.current) return;
+    // Recua 24 px para o separador não ficar colado à margem esquerda.
+    abasRef.current.scrollTo({ x: Math.max(0, x - 24), animated: true });
+  }, [seccao]);
   const [aCarregar, setACarregar] = useState(true);
   // Qual a decisão a pedir motivo, se houver alguma em curso.
   const [pedido, setPedido] = useState(null);
@@ -207,6 +222,7 @@ export default function AdminScreen({ navigation }) {
           também deixa acrescentar secções sem apertar as existentes. */}
       <View style={styles.barraAbas}>
         <ScrollView
+          ref={abasRef}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.abas}
@@ -214,7 +230,14 @@ export default function AdminScreen({ navigation }) {
           {SECCOES.map(([id, chave]) => {
             const activa = seccao === id;
             return (
-              <Pressable key={id} onPress={() => setSeccao(id)} style={styles.aba}>
+              <Pressable
+                key={id}
+                onPress={() => setSeccao(id)}
+                onLayout={(e) => {
+                  posicoes.current[id] = e.nativeEvent.layout.x;
+                }}
+                style={styles.aba}
+              >
                 <Text style={[styles.abaTexto, activa && styles.abaTextoActivo]} numberOfLines={1}>
                   {t(chave)}
                 </Text>
@@ -806,7 +829,9 @@ const criarEstilos = () =>
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
     },
-    abas: { paddingHorizontal: spacing.lg, gap: spacing.lg },
+    // Intervalo mais curto: com cinco separadores, 24 px entre cada um
+    // empurrava dois para fora do ecrã sem necessidade.
+    abas: { paddingHorizontal: spacing.lg, gap: spacing.md },
     // A barra existe sempre, transparente quando inactiva, para o texto
     // não saltar um pixel ao mudar de secção.
     abaBarra: {
@@ -852,9 +877,9 @@ const criarEstilos = () =>
     accaoSosTexto: { ...tipo.corpoForte, color: '#fff' },
     resolver: { ...tipo.corpoForte, color: colors.teal, marginTop: spacing.sm },
 
-    numeros: { flexDirection: 'row', gap: spacing.sm },
+    numeros: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
 
-    par: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+    par: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
 
     seccaoTitulo: {
       ...tipo.etiqueta,
