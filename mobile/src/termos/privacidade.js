@@ -13,10 +13,23 @@
 // Timorgiana, Lda · Bidau Toko-Baru, Cristo Rei, Timor-Leste ·
 // +670 74192857 e +670 75684566.
 //
-// ⚖ Fica por decidir a autoridade competente para reclamações de
-// protecção de dados em Timor-Leste, e a lei aplicável. Não inventei
-// nenhuma das duas: nomear a autoridade errada é pior do que não nomear
-// nenhuma, porque manda a pessoa reclamar a quem não a pode ajudar.
+// AUTORIDADE E FUNDAMENTO JURÍDICO, resolvidos em 30-08-2026 a partir do
+// projecto de Lei da Proteção de Dados Pessoais de Timor-Leste.
+//
+// A lei AINDA NÃO ESTÁ EM VIGOR: o fecho do diploma diz "Visto e
+// aprovado em Conselho de Ministros em [dia] de [mês] de 2026" — com a
+// data por preencher — e o artigo 51.º manda-a entrar em vigor 180 dias
+// após a publicação. O artigo 48.º diz que a ANPD "considera-se criada
+// na data da entrada em vigor", com os membros eleitos até 120 dias
+// depois disso.
+//
+// Por isso o aviso nomeia a ANPD como autoridade FUTURA e diz para onde
+// reclamar entretanto. Escrever que já existe seria mandar as pessoas a
+// uma porta fechada.
+//
+// Os fundamentos vêm do artigo 8.º: execução de contrato (alínea c),
+// prevenção de fraude e confirmação de identidade (d), obrigação legal
+// (b), interesses legítimos (h) e consentimento (a).
 //
 // Origem: piloto/TimorgianaRide_Aviso_de_Privacidade_PT_Tetum.docx
 
@@ -42,7 +55,7 @@ const pt = {
     {
       titulo: 'Porque usamos os dados',
       texto:
-        'Usamos os dados para criar e gerir contas; ligar passageiro e motorista; calcular e apresentar preços; permitir comunicação e apoio; prevenir fraude, abuso e riscos de segurança; verificar documentos; investigar incidentes; cumprir deveres legais; e melhorar a estabilidade e segurança do serviço.',
+        'Usamos os dados para criar e gerir contas; ligar passageiro e motorista; calcular e apresentar preços; permitir comunicação e apoio; prevenir fraude, abuso e riscos de segurança; verificar documentos; investigar incidentes; cumprir deveres legais; e melhorar a estabilidade e segurança do serviço.\n\nCada finalidade assenta num destes fundamentos: a execução do serviço que pediu; a confirmação da sua identidade e a prevenção de fraude; o cumprimento de deveres legais; e os interesses legítimos de segurança de quem viaja e de quem conduz. Onde a lei exigir o seu consentimento, pedimo-lo antes e pode retirá-lo.',
     },
     {
       titulo: 'Com quem partilhamos',
@@ -72,7 +85,7 @@ const pt = {
     {
       titulo: 'Reclamações e contacto',
       texto:
-        'Para questões de privacidade, pedidos ou reclamações: +670 74192857 · +670 75684566.',
+        'Para questões de privacidade, pedidos ou reclamações: +670 74192857 · +670 75684566.\n\nA lei de proteção de dados pessoais de Timor-Leste, quando for aprovada e entrar em vigor, cria a Autoridade Nacional de Proteção de Dados (ANPD), à qual passará a poder apresentar reclamação. Até a ANPD entrar em funções, dirija as suas reclamações aos contactos acima; responderemos e guardamos registo.',
     },
   ],
 };
@@ -99,7 +112,7 @@ const tet = {
     {
       titulo: 'Tanba sá ami uza dadus',
       texto:
-        'Ami uza dadus atu kria no jere konta; liga pasajeiru no motorista; kalkula no hatudu folin; permite komunikasaun no apoiu; prevene fraude, abusus no perigu seguransa; verifika dokumentu; investiga insidente; kumpre dever legál; no hadiʼa estabilidade no seguransa servisu.',
+        'Ami uza dadus atu kria no jere konta; liga pasajeiru no motorista; kalkula no hatudu folin; permite komunikasaun no apoiu; prevene fraude, abusus no perigu seguransa; verifika dokumentu; investiga insidente; kumpre dever legál; no hadiʼa estabilidade no seguransa servisu.\n\nFinalidade ida-idak bazeia ba fundamentu hirak neʼe: ezekusaun servisu neʼebé ita husu; konfirmasaun ita-nia identidade no prevensaun fraude; kumprimentu dever legál; no interese lejítimu seguransa ba ema neʼebé viaja no ema neʼebé konduz. Bainhira lei husu ita-nia konsentimentu, ami husu uluk no ita bele hasai.',
     },
     {
       titulo: 'Ho sé mak ami fahe',
@@ -128,7 +141,8 @@ const tet = {
     },
     {
       titulo: 'Keixa no kontaktu',
-      texto: 'Ba pergunta privasidade, pedidu ka keixa: +670 74192857 · +670 75684566.',
+      texto:
+        'Ba pergunta privasidade, pedidu ka keixa: +670 74192857 · +670 75684566.\n\nLei protesaun dadus pessoal Timor-Leste nian, bainhira aprova no tama iha vigor, kria Autoridade Nacional de Proteção de Dados (ANPD), neʼebé ita bele husu keixa ba. Toʼo ANPD hahú serbisu, haruka ita-nia keixa ba kontaktu iha leten; ami sei responde no rai rejistu.',
     },
   ],
 };
@@ -155,7 +169,7 @@ const en = {
     {
       titulo: 'Why we use the data',
       texto:
-        'We use the data to create and manage accounts; to connect passengers and drivers; to calculate and display prices; to enable communication and support; to prevent fraud, abuse and safety risks; to verify documents; to investigate incidents; to comply with legal duties; and to improve the stability and security of the service.',
+        'We use the data to create and manage accounts; to connect passengers and drivers; to calculate and display prices; to enable communication and support; to prevent fraud, abuse and safety risks; to verify documents; to investigate incidents; to comply with legal duties; and to improve the stability and security of the service.\n\nEach purpose rests on one of the following grounds: performance of the service you requested; confirmation of your identity and the prevention of fraud; compliance with legal duties; and the legitimate interests of safety for those who travel and those who drive. Where the law requires your consent, we ask for it beforehand and you may withdraw it.',
     },
     {
       titulo: 'Who we share it with',
@@ -185,7 +199,7 @@ const en = {
     {
       titulo: 'Complaints and contact',
       texto:
-        'For privacy questions, requests or complaints: +670 74192857 · +670 75684566.\n\nThis notice is published in Portuguese, Tetum and English. In the event of any divergence between the versions, the Portuguese text prevails.',
+        'For privacy questions, requests or complaints: +670 74192857 · +670 75684566.\n\nTimor-Leste’s personal data protection law, once approved and in force, creates the National Data Protection Authority (ANPD), to which you will then be able to bring a complaint. Until the ANPD begins operating, address your complaints to the contacts above; we will respond and keep a record.\n\nThis notice is published in Portuguese, Tetum and English. In the event of any divergence between the versions, the Portuguese text prevails.',
     },
   ],
 };
