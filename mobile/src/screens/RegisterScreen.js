@@ -231,6 +231,16 @@ export default function RegisterScreen({ navigation, route }) {
                 quem={role}
                 onAbrir={() => navigation.navigate('Termos', { quem: role })}
               />
+              {/* O aviso de privacidade fica ao lado dos termos e não
+                  escondido nas opções: quem está a criar conta é quem
+                  precisa de saber que dados vão ser recolhidos, e é agora
+                  que o pode ler antes de decidir. */}
+              <Pressable
+                onPress={() => navigation.navigate('Termos', { documento: 'privacidade' })}
+                hitSlop={8}
+              >
+                <Text style={styles.linkPrivacidade}>{t('privacyTitle')}</Text>
+              </Pressable>
             </View>
 
             <Button
@@ -318,6 +328,12 @@ const criarEstilos = () =>
       marginTop: spacing.lg,
     },
     footerText: { ...tipo.corpo, color: colors.textMuted },
+    linkPrivacidade: {
+      ...tipo.pequeno,
+      color: colors.teal,
+      textDecorationLine: 'underline',
+      marginTop: spacing.sm,
+    },
     footerLink: { ...tipo.corpoForte, color: colors.coral },
   });
 

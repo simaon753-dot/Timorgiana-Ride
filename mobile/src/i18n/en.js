@@ -425,4 +425,5 @@ export default {
   admAgora: 'Right now',
   admQualidade: 'Service quality',
   admStatusExpired: 'Expired',
+  privacyTitle: 'Privacy notice',
 };

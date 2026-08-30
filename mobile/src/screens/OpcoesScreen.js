@@ -90,6 +90,10 @@ export default function OpcoesScreen({ navigation }) {
             texto={t('termsTitle')}
             onPress={() => navigation.navigate('Termos', { quem: user?.role })}
           />
+          <Item
+            texto={t('privacyTitle')}
+            onPress={() => navigation.navigate('Termos', { documento: 'privacidade' })}
+          />
           <Item texto={t('serverSettings')} onPress={() => navigation.navigate('Server')} />
         </Seccao>
 

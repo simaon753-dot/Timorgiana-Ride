@@ -439,4 +439,5 @@ export default {
   admAgora: 'Agora',
   admQualidade: 'Qualidade do serviço',
   admStatusExpired: 'Caducado',
+  privacyTitle: 'Aviso de privacidade',
 };

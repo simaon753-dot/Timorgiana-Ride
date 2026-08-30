@@ -439,4 +439,5 @@ export default {
   admAgora: 'Agora daudaun',
   admQualidade: 'Kualidade servisu',
   admStatusExpired: 'Kaduk',
+  privacyTitle: 'Avizu privasidade',
 };

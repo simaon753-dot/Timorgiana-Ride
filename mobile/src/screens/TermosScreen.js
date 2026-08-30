@@ -7,6 +7,7 @@ import { tipo } from '../design/tipografia.js';
 import BarraEstado from '../design/BarraEstado.js';
 import { useI18n } from '../i18n/index.js';
 import { textoTermos, VERSAO_TERMOS_MOTORISTA } from '../termos/index.js';
+import { textoPrivacidade } from '../termos/privacidade.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
 
@@ -25,7 +26,11 @@ export default function TermosScreen({ navigation, route }) {
   // funções não o são.
   const aceitavel = route?.params?.aceitavel === true;
   const [aGravar, setAGravar] = useState(false);
-  const doc = textoTermos(lang, quem);
+  // O mesmo ecrã mostra os dois documentos: têm a mesma forma (título,
+  // subtítulo, secções) e duplicar o ecrã só para trocar a fonte do texto
+  // seria duplicar também todas as correcções futuras.
+  const ePrivacidade = route?.params?.documento === 'privacidade';
+  const doc = ePrivacidade ? textoPrivacidade(lang) : textoTermos(lang, quem);
 
   async function aceitar() {
     setAGravar(true);
