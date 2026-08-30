@@ -13,7 +13,9 @@ import { textoTermos } from '../termos/index.js';
 export default function AceitarTermos({ aceite, onMudar, onAbrir, quem }) {
   const { t, lang } = useI18n();
   const doc = textoTermos(lang, quem === 'driver' ? 'driver' : 'passenger');
-  const [antes, destaque, depois] = partir(doc.aceitarCurto);
+  // Se a frase faltar, o título do documento serve de rótulo: a ligação
+  // continua a abrir os termos e o registo continua a funcionar.
+  const [antes, destaque, depois] = partir(doc.aceitarCurto, doc.titulo);
 
   return (
     <View style={styles.linha}>
@@ -37,8 +39,16 @@ export default function AceitarTermos({ aceite, onMudar, onAbrir, quem }) {
   );
 }
 
-function partir(s) {
-  const p = s.split('**');
+// Parte o texto em três: o que vem antes do **, o que fica clicável, e o
+// que vem depois.
+//
+// O `?? ''` não é zelo a mais. Este campo já desapareceu uma vez — foi
+// perdido ao regenerar os termos a partir do documento revisto — e o
+// `.split` de `undefined` matava a aplicação inteira no ecrã de registo.
+// Uma frase em falta tem de degradar a interface, nunca fechá-la.
+function partir(s, alternativa) {
+  const texto = typeof s === 'string' && s ? s : `**${alternativa || ''}**`;
+  const p = texto.split('**');
   return [p[0] || '', p[1] || '', p[2] || ''];
 }
 

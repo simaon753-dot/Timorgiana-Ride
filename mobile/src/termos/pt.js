@@ -17,6 +17,9 @@ export const termosPassageiro = {
   titulo: "Termos de utilização",
   subtitulo: "Leia antes de criar conta. É rápido e transparente.",
   atualizado: 'Versão de 29 de Agosto de 2026',
+  // Texto da caixa de aceitação. O que está entre ** fica clicável
+  // e abre o documento. Sem este campo o ecrã de registo não abre.
+  aceitarCurto: 'Li e aceito os **termos de utilização**',
 
   seccoes: [
     {
@@ -58,6 +61,9 @@ export const termosMotorista = {
   titulo: "Termos para motoristas",
   subtitulo: "Condições aplicáveis à prestação de serviços de transporte interligados pela TimorgianaRide.",
   atualizado: 'Versão de 29 de Agosto de 2026',
+  // Texto da caixa de aceitação. O que está entre ** fica clicável
+  // e abre o documento. Sem este campo o ecrã de registo não abre.
+  aceitarCurto: 'Li e aceito os **termos para motoristas**',
 
   seccoes: [
     {

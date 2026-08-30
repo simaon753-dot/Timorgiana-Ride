@@ -12,6 +12,9 @@ export const termosPassageiro = {
   titulo: "Termu ba Pasajeiru",
   subtitulo: "Lee antes de kria konta. Lalais no klaresu.",
   atualizado: 'Versaun 29 Agostu 2026',
+  // Texto da caixa de aceitação. O que está entre ** fica clicável
+  // e abre o documento. Sem este campo o ecrã de registo não abre.
+  aceitarCurto: 'Haʼu lee no simu **termu uza nian**',
 
   seccoes: [
     {
@@ -53,6 +56,9 @@ export const termosMotorista = {
   titulo: "Termu ba Motorista",
   subtitulo: "Kondisaun sira ne’ebé aplika ba prestasaun servisu transporte ne’ebé interligadu liu husi TimorgianaRide.",
   atualizado: 'Versaun 29 Agostu 2026',
+  // Texto da caixa de aceitação. O que está entre ** fica clicável
+  // e abre o documento. Sem este campo o ecrã de registo não abre.
+  aceitarCurto: 'Haʼu lee no simu **termu ba motorista**',
 
   seccoes: [
     {
