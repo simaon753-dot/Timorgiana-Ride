@@ -1,185 +1,96 @@
-// Termos em português. RASCUNHO PARA REVISÃO JURÍDICA.
+// Termos em português — versão revista pelo Simão (jurista), 29-08-2026.
 //
-// Escrito para ser lido por quem vai carregar em "aceito" — motoristas e
-// passageiros em Díli, não juristas. Frases curtas, sem latim, e cada
-// secção responde a uma pergunta que a pessoa realmente tem.
+// Este texto NÃO é meu. Substituiu o rascunho que eu tinha escrito, e as
+// palavras são as dele: "plataforma tecnológica de intermediação", "não
+// responde civil, contraordenacional ou penalmente", "sem qualquer
+// relação de subordinação jurídica".
 //
-// Tratamento por VOCÊ, como o resto da aplicação. Estavam por tu, o que
-// deixava os termos a falar de uma maneira e os ecrãs de outra.
+// Não reescrever para soar mais simples. Um rascunho meu foi o ponto de
+// partida; o que aqui está é a versão que um jurista assumiu, e a
+// diferença entre as duas é precisamente o valor que ele acrescentou.
 //
-// Os pontos marcados com ⚖ dependem do direito de Timor-Leste e da decisão
-// do responsável pelo serviço. Não são texto meu para ficar como está.
+// Em caso de dúvida entre idiomas, PREVALECE O PORTUGUÊS — decisão dele.
+//
+// Gerado a partir de piloto/TimorgianaRide-termos.docx.
 
 export const termosPassageiro = {
-  titulo: 'Termos de utilização',
-  subtitulo: 'Leia antes de criar conta. É curto.',
-  atualizado: 'Versão de Agosto de 2026',
+  titulo: "Termos de utilização",
+  subtitulo: "Leia antes de criar conta. É rápido e transparente.",
+  atualizado: 'Versão de 29 de Agosto de 2026',
 
   seccoes: [
     {
-      titulo: 'O que a TimorgianaRide é',
-      texto:
-        'A TimorgianaRide põe em contacto quem precisa de transporte com quem o faz. ' +
-        'Não somos uma empresa de transportes e não conduzimos: os motoristas são ' +
-        'independentes e trabalham por conta própria.\n\n' +
-        'A viagem é um acordo entre si e o motorista. Nós mostramos-vos um ao outro, ' +
-        'calculamos o preço e damos-vos forma de falar.',
+      titulo: "O que a TimorgianaRide é",
+      texto: "A TimorgianaRide é uma plataforma tecnológica de intermediação que põe em contacto quem precisa de transporte com motoristas independentes. Não somos uma empresa de transportes nem prestamos serviços de condução: os motoristas operam por conta e risco próprios. A viagem constitui um acordo direto e exclusivo entre si e o motorista. A aplicação limita-se a disponibilizar a ligação, calcular a tarifa estimada e facultar meios de comunicação entre as partes.",
     },
     {
-      titulo: 'Pagamento — em dinheiro, sem comissão',
-      texto:
-        'Paga ao motorista em dinheiro, no fim da viagem. O valor é o que a app mostrou ' +
-        'antes de pedir; não muda no fim.\n\n' +
-        'Nesta primeira fase o serviço é gratuito: não cobramos nada a si nem ao ' +
-        'motorista. Se um dia passarmos a cobrar, dizemos antes — nunca a meio de uma ' +
-        'viagem, nunca sem aviso.',
+      titulo: "Pagamento – em dinheiro, sem comissão",
+      texto: "O pagamento é efetuado diretamente ao motorista, em dinheiro, no final da viagem. O valor a pagar é o que a aplicação mostrou no momento do pedido, não sofrendo alterações no final. Nesta fase inicial de testes, o serviço da plataforma é gratuito (não cobramos comissão ao passageiro nem ao motorista). Se no futuro passarmos a cobrar alguma taxa, será previamente avisado – nunca no decorrer de uma viagem e nunca sem aviso prévio.",
     },
     {
-      titulo: 'Fase de testes',
-      texto:
-        'A app está em testes. Pode falhar, pode não haver motoristas disponíveis, e ' +
-        'pode haver períodos em que não funcione.\n\n' +
-        'Não prometemos que encontra sempre transporte. Se precisa de chegar a algum ' +
-        'sítio a uma hora certa, não conte só connosco.',
+      titulo: "Fase de testes (Versão Beta)",
+      texto: "A aplicação encontra-se em fase de testes. Podem ocorrer falhas técnicas, indisponibilidade temporária do serviço ou escassez de motoristas disponíveis numa determinada zona ou horário. A plataforma não garante a obtenção imediata ou infalível de transporte. Se precisa de chegar a algum sítio a uma hora estrita, não dependa exclusivamente deste serviço.",
     },
     {
-      titulo: 'A sua segurança',
-      texto:
-        'Antes de entrar, confirme a matrícula e o nome do motorista no ecrã. Se não ' +
-        'coincidirem, não entre.\n\n' +
-        'Durante a viagem tem dois botões: **Partilhar viagem**, para mandar a alguém ' +
-        'de confiança onde está, e **Emergência**, que nos avisa com a sua posição e ' +
-        'lhe permite ligar à polícia, à ambulância ou aos bombeiros.\n\n' +
-        'Em perigo imediato, ligue primeiro para o 112. Nós somos o segundo passo, não ' +
-        'o primeiro.',
+      titulo: "Segurança do Passageiro",
+      texto: "Antes de entrar no veículo, confirme sempre se a matrícula, o modelo do veículo e o nome/fotografia do motorista coincidem com os dados apresentados no ecrã. Se não coincidirem, não entre no veículo. Durante a viagem, dispõe de dois botões de segurança:\n\n• Partilhar viagem: Permite enviar a sua localização em tempo real a alguém da sua confiança.\n\n• Emergência: Avisa a nossa central com a sua posição e disponibiliza atalhos diretos para ligar à polícia, ambulância ou bombeiros.\n\nAviso Importante de Emergência: Em caso de perigo imediato, ligue prioritariamente para o 112, 110, e 115. A plataforma atua como canal de apoio complementar, não em substituição das autoridades de emergência.",
     },
     {
-      titulo: 'Os seus dados',
-      texto:
-        'Guardamos o seu nome, telemóvel, as viagens que fez e os sítios de recolha e ' +
-        'destino. Durante a viagem guardamos a posição do motorista, para a poder ' +
-        'seguir no mapa.\n\n' +
-        'O motorista vê o seu nome, o seu telemóvel e para onde vai — precisa disso ' +
-        'para o ir buscar. Mais ninguém vê.\n\n' +
-        'Não vendemos os seus dados a ninguém. Pode pedir para apagarmos a sua conta ' +
-        'pelo contacto abaixo.',
+      titulo: "Tratamento de Dados Pessoais",
+      texto: "Coletamos e processamos dados essenciais para o funcionamento do serviço: nome, número de telemóvel, histórico de viagens e pontos de recolha/destino. Durante o trajeto, a geolocalização do veículo é registada para efeitos de navegação e segurança.\n\nO motorista apenas tem acesso ao seu nome, número de contacto direto e pontos de viagem estritamente necessários para a execução do serviço. Os seus dados pessoais não são vendidos a terceiros.\n\nPode solicitar o encerramento da sua conta e a eliminação/anonimização dos seus dados a qualquer momento através do contacto indicado nesta app.",
     },
     {
-      titulo: 'O que esperamos de si',
-      texto:
-        'Trate o motorista com respeito. Cancelar de vez em quando acontece; cancelar ' +
-        'muitas vezes depois de o motorista já vir a caminho faz-lhe perder tempo e ' +
-        'combustível, e pode levar à suspensão da conta.\n\n' +
-        'Não use a app para nada ilegal.',
+      titulo: "Conduta e Utilização Aceitável",
+      texto: "Exige-se aos utilizadores um tratamento urbano e respeitoso para com os motoristas.\n\nCancelamentos pontuais são compreensíveis. No entanto, o cancelamento reiterado após a aceitação da viagem pelo motorista gera custos indevidos de combustível e tempo, podendo resultar na suspensão temporária ou definitiva da conta.\n\nÉ expressamente proibida a utilização da app para fins ilícitos.",
     },
     {
-      titulo: 'Responsabilidade',
-      texto:
-        'Os motoristas são independentes. Não os empregamos, e não respondemos por ' +
-        'acidentes, atrasos, objectos perdidos ou pelo comportamento de ninguém ' +
-        'durante uma viagem.\n\n' +
-        'Verificamos os documentos que os motoristas nos enviam, mas isso é uma ' +
-        'verificação de identidade — não é uma garantia de condução segura.\n\n' +
-        '⚖ Esta secção tem de ser confirmada à luz da lei de Timor-Leste antes do ' +
-        'lançamento público.',
+      titulo: "Responsabilidade",
+      texto: "A TimorgianaRide é uma plataforma tecnológica de intermediação e não presta serviços de transporte rodoviário, não assumindo a qualidade de transportador nem de seguradora.\n\nA prestação do serviço de transporte constitui um acordo direto e exclusivo entre o passageiro e o motorista. A TimorgianaRide não responde civil, contraordenacional ou penalmente por:\n\n• Acidentes de viação, lesões corporais, morte ou danos materiais ocorridos durante a viagem;\n\n• Atrasos, incumprimento de horários ou alteração de rotas por parte do motorista;\n\n• Perda, roubo, esquecimento ou danos em objetos e pertences pessoais no interior do veículo;\n\n• Condutas, litígios ou ofensas verbais/físicas ocorridas entre passageiros e motoristas.\n\nA recolha e verificação de documentos (carta de condução, registo do veículo e fotografia) destina-se exclusivamente à validação cadastral do motorista na plataforma, não constituindo qualquer garantia ou atestado de perícia de condução, estado mecânico do veículo ou segurança da viagem.",
     },
     {
-      titulo: 'Falar connosco',
-      texto:
-        'Qualquer problema, dúvida ou pedido sobre os seus dados: fale connosco pelo ' +
-        'número que está dentro da app.\n\n' +
-        'Se mudarmos estes termos, pedimos-lhe para os aceitar outra vez.',
+      titulo: "Contactos e Alterações aos Termos",
+      texto: "Para qualquer problema, dúvida ou pedido relativo aos seus dados pessoais, entre em contacto connosco através do número disponibilizado dentro da aplicação. Caso estes termos sejam alterados, solicitaremos que os aceite novamente antes de continuar a utilizar o serviço.",
     },
   ],
 };
 
 export const termosMotorista = {
-  titulo: 'Termos para motoristas',
-  subtitulo: 'O que assume ao conduzir com a TimorgianaRide.',
-  atualizado: 'Versão de Agosto de 2026',
+  titulo: "Termos para motoristas",
+  subtitulo: "Condições aplicáveis à prestação de serviços de transporte interligados pela TimorgianaRide.",
+  atualizado: 'Versão de 29 de Agosto de 2026',
 
   seccoes: [
     {
-      titulo: 'Trabalha por sua conta',
-      texto:
-        'Não é nosso empregado. Não tem horário, não tem chefe, e ninguém o obriga a ' +
-        'aceitar viagem nenhuma. Fica disponível quando quiser.\n\n' +
-        'Isso também quer dizer que não tem salário, férias pagas, subsídio nem ' +
-        'indemnização por nossa parte. É um profissional independente que usa a nossa ' +
-        'app para encontrar passageiros.\n\n' +
-        '⚖ O enquadramento laboral desta relação tem de ser confirmado à luz da lei de ' +
-        'Timor-Leste antes do lançamento público.',
+      titulo: "Autonomia e Estatuto Profissional",
+      texto: "O motorista atua como um prestador de serviços e profissional independente, sem qualquer relação de subordinação jurídica, vínculo laboral ou exclusividade com a TimorgianaRide.\n\nEsta relação rege-se pelos seguintes princípios de autonomia:\n\n• Não há obrigação de cumprir horários nem de aceitar um número mínimo de viagens. Fica disponível e aceita solicitações quando e onde desejar.\n\n• A utilização da aplicação não concede direito a salário fixo, subsídios, férias pagas, indemnização ou benefícios previstos no Código do Trabalho para trabalhadores por conta de outrem.\n\n• O motorista é o único responsável pelo seu veículo, pelos custos de manutenção, combustível e encargos fiscais decorrentes da sua atividade independente.",
     },
     {
-      titulo: 'O dinheiro é todo seu',
-      texto:
-        'O passageiro paga-lhe em dinheiro, no fim da viagem. Não cobramos comissão ' +
-        'nenhuma: numa viagem de $3, fica com $3.\n\n' +
-        'Nesta primeira fase o serviço é gratuito para si. Se um dia passarmos a cobrar ' +
-        'alguma coisa, avisamos com antecedência e fica livre de sair.\n\n' +
-        'O preço é fixado pela app e não se negoceia com o passageiro. É essa garantia ' +
-        'que faz as pessoas confiarem no serviço.',
+      titulo: "Tarifas e Cobrança de Valores",
+      texto: "O passageiro paga-lhe em dinheiro, no final da viagem. Não cobramos qualquer comissão nesta fase inicial: numa viagem de $3, fica com os $3. Se no futuro for introduzida alguma taxa de serviço, será avisado com antecedência e ficará inteiramente livre de deixar de utilizar a plataforma. O preço é fixado pela aplicação e não se negoceia com o passageiro – é essa transparência que gera confiança no serviço.",
     },
     {
-      titulo: 'O que tem de ter em ordem',
-      texto:
-        'Antes de aceitar viagens tem de ter, e manter válidos:\n\n' +
-        '• Carta de condução válida para o veículo que conduz\n' +
-        '• Documentos do veículo em ordem\n' +
-        '• Seguro que cubra o transporte de passageiros\n\n' +
-        'Muitos seguros particulares NÃO cobrem transporte de passageiros a pagamento. ' +
-        'Confirme com o seu segurador. A responsabilidade de estar em ordem é sua.\n\n' +
-        'Se algum destes documentos caducar, tem de deixar de aceitar viagens.',
+      titulo: "Requisitos Obrigatórios e Documentação",
+      texto: "Antes de aceitar viagens, é da sua exclusiva responsabilidade possuir e manter válidos:\n\n• Carta de condução válida e adequada ao veículo que conduz;\n\n• Documentos e registo do veículo devidamente atualizados;\n\n• As devidas condições de segurança e manutenção mecânica do veículo.\n\nO motorista reconhece e aceita que a aplicação não disponibiliza cobertura de seguro de transporte de passageiros ou acidentes, assumindo integralmente os riscos e potenciais danos decorrentes da sua atividade de condução. Se algum documento caducar, deve deixar de aceitar viagens imediatamente.",
     },
     {
-      titulo: 'Os documentos que nos enviou',
-      texto:
-        'Pedimos-lhe a carta de condução, o documento do veículo e uma fotografia sua. ' +
-        'Servem para confirmarmos que é quem diz ser — é isso que dá confiança ao ' +
-        'passageiro para entrar no seu carro.\n\n' +
-        'Ficam guardados na nossa base de dados e são vistos só por quem gere o ' +
-        'serviço. Não os mostramos aos passageiros nem os damos a mais ninguém.\n\n' +
-        'Pode pedir para os apagarmos; nesse caso a sua conta de motorista deixa de ' +
-        'poder receber viagens.',
+      titulo: "Validação e Proteção de Documentos",
+      texto: "Pedimos a carta de condução, o documento do veículo e uma fotografia sua exclusivamente para confirmar a sua identidade e elegibilidade formal – é isso que transmite confiança ao passageiro ao entrar no veículo. Estes documentos ficam guardados na nossa base de dados e são acedidos unicamente pela equipa de gestão da plataforma. Não são exibidos aos passageiros nem partilhados com terceiros. Pode solicitar a eliminação dos seus documentos, o que resultará no encerramento da sua conta de motorista.",
     },
     {
-      titulo: 'Segurança — sua e do passageiro',
-      texto:
-        'Conduza com cuidado e respeite as regras de trânsito. Não conduza sob efeito ' +
-        'de álcool ou de qualquer substância.\n\n' +
-        'Trate o passageiro com respeito, seja quem for. Não recusamos ninguém por ser ' +
-        'quem é.\n\n' +
-        'Também tem o botão de **Emergência** durante a viagem. Leva desconhecidos no ' +
-        'carro, muitas vezes de noite — use-o se for preciso, e ligue para o 112 se ' +
-        'houver perigo imediato.',
+      titulo: "Segurança e Regras de Conduta",
+      texto: "O motorista compromete-se a cumprir estritamente o Código da Estrada e a conduzir de forma prudente. É expressamente proibida a condução sob o efeito de álcool, estupefacientes ou substâncias psicotrópicas. É obrigatório o tratamento respeitoso e não discriminatório de todos os passageiros. Durante o serviço, o motorista dispõe do botão de Emergência na app para comunicar situações de risco, devendo acionar diretamente o 112, 110 e 115 em caso de perigo imediato.",
     },
     {
-      titulo: 'Cancelamentos e faltas',
-      texto:
-        'Se aceita uma viagem, o passageiro fica à sua espera e deixa de procurar ' +
-        'outro. Cancelar depois de aceitar deixa-o a pé.\n\n' +
-        'Acontece, e a app pergunta porquê. Mas cancelar muitas vezes, ou aceitar e não ' +
-        'aparecer, pode levar à suspensão da sua conta.',
+      titulo: "Política de Cancelamentos e Assiduidade",
+      texto: "Ao aceitar um pedido de viagem, o motorista assume o compromisso de a realizar. Cancelamentos injustificados ou o não comparecimento provocam transtornos graves aos passageiros e prejudicam a reputação da rede.\n\nO cancelamento sistemático ou injustificado após aceitação pode originar a suspensão temporária ou definitiva do acesso à plataforma.",
     },
     {
-      titulo: 'Quando podemos suspender a conta',
-      texto:
-        'Podemos suspender ou encerrar a sua conta se:\n\n' +
-        '• Os documentos forem falsos ou tiverem caducado\n' +
-        '• Houver queixas sérias de passageiros\n' +
-        '• Cancelar repetidamente sem motivo\n' +
-        '• Cobrar valor diferente do que a app mostrou\n\n' +
-        'Sempre que possível avisamos antes e ouvimos a sua versão.',
+      titulo: "Motivos de Suspensão e Desativação da Conta",
+      texto: "A TimorgianaRide reserva-se o direito de suspender ou desativar a conta do motorista nas seguintes situações:\n\n• Apresentação de documentação falsa, alterada ou caducada;\n\n• Receção de reclamações graves ou recorrentes quanto à segurança ou conduta;\n\n• Taxa excessiva de cancelamentos injustificados;\n\n• Cobrança de valores superiores ou divergentes do fixado pela app;\n\n• Violação das regras legais ou destes Termos.\n\nSempre que exequível, o motorista será notificado das razões da suspensão, concedendo-se a oportunidade de prestar esclarecimentos.",
     },
     {
-      titulo: 'Responsabilidade',
-      texto:
-        'Conduz por sua conta e risco. Não respondemos por acidentes, multas, danos no ' +
-        'veículo, nem por nada que aconteça durante uma viagem.\n\n' +
-        'A app põe em contacto pessoas; não é uma seguradora nem uma empresa de ' +
-        'transportes.\n\n' +
-        '⚖ Esta secção tem de ser confirmada à luz da lei de Timor-Leste antes do ' +
-        'lançamento público.',
+      titulo: "Exclusão de Responsabilidade",
+      texto: "O motorista exerce a sua atividade por sua conta e risco. A TimorgianaRide não responde por acidentes, multas de trânsito, danos no veículo ou por qualquer ocorrência durante a prestação da viagem. A aplicação é uma ferramenta tecnológica de intermediação; não é uma seguradora nem garante um número mínimo de viagens ou determinado nível de rendimentos.",
     },
   ],
 };

@@ -1,182 +1,91 @@
-// Termos em tétum. RASCUNHO — precisa de revisão por falante nativo
-// ANTES do lançamento, e com mais cuidado do que o resto da app: aqui uma
-// palavra mal escolhida muda o que a pessoa julga estar a aceitar.
+// Termu iha tetun — versaun revista husi Simão, 29-08-2026.
+//
+// Texto revisto por um falante nativo, a partir do documento de revisão.
+// Não é tradução minha: as escolhas de vocabulário são dele.
+//
+// PREVALECE O PORTUGUÊS em caso de dúvida — decisão dele, e faz sentido:
+// foi o português que passou pela revisão jurídica.
+//
+// Gerado a partir de piloto/TimorgianaRide-termos.docx.
 
 export const termosPassageiro = {
-  titulo: 'Termu uza nian',
-  subtitulo: 'Lee molok halo konta. Badak deʼit.',
-  atualizado: 'Versaun Agostu 2026',
+  titulo: "Termu ba Pasajeiru",
+  subtitulo: "Lee antes de kria konta. Lalais no klaresu.",
+  atualizado: 'Versaun 29 Agostu 2026',
 
   seccoes: [
     {
-      titulo: 'TimorgianaRide neʼe saida',
-      texto:
-        'TimorgianaRide liga ema neʼebé presiza transporte ho ema neʼebé fó ' +
-        'transporte. Ami la kompañia transporte nian no ami la lori kareta: ' +
-        'motorista sira serbisu ba sira-nia an rasik.\n\n' +
-        'Viajen neʼe akordu entre ita ho motorista. Ami hatudu malu deʼit, sura ' +
-        'folin, no fó dalan atu koʼalia.',
+      titulo: "Saida mak TimorgianaRide",
+      texto: "TimorgianaRide hanesan plataforma teknolojia intermediasaun nian ne’ebé ligatu ema ne’ebé presiza transporte ho motorista independente sira. Ami la’ós empreza transporte nian no la presta servisu kaer kareta ka motorizada: motorista sira hala’o operasaun ho sira-nia an rasik no risku rasik.\nViajen ne’e hanesan akordu direta no esklusiva entre ita-bo’ot ho motorista. Ami hatudu imi ba malu, halo estimasaun ba tarifa no fornese meius komunikasaun ba parte sira atu komunika malu.",
     },
     {
-      titulo: 'Selu ho osan, la iha komisaun',
-      texto:
-        'Ita selu motorista ho osan iha viajen rohan. Folin mak ida neʼebé ' +
-        'aplikasaun hatudu molok ita husu; nia la muda iha rohan.\n\n' +
-        'Iha faze primeiru neʼe, serbisu neʼe gratuita: ami la kobra buat ida ba ' +
-        'ita nem ba motorista. Se loron ida ami hahú kobra, ami hatete uluk — ' +
-        'nunka iha viajen klaran, nunka la ho avizu.',
+      titulo: "Pagamentu – ho osan-rahun (dinheiro), sem komisaun",
+      texto: "Pagamentu halo diretamente ba iha motorista, ho osan, bainhira termina ona viajen. Valor ne’ebé tenke selu mak valor ne’ebé aplikasaun hatudu iha momentu hodi halo pedidu viagen, no la iha mudansa bainhira termina viajen.\nIha faze inisiál husi teste ida-ne’e, servisu plataforma ida-ne’e gratuita (ami la cobra komisaun ba pasajeiru no mos motorista). Se iha futuru ami hahú husu taxa ruma, ami sei fó hatene antes – nunka iha viajen nia laran ka lahó avizu préviu ruma.",
     },
     {
-      titulo: 'Faze teste',
-      texto:
-        'Aplikasaun neʼe iha teste. Bele sala, bele la iha motorista disponivel, no ' +
-        'bele iha tempu neʼebé la funsiona.\n\n' +
-        'Ami la promete katak ita sempre hetan transporte. Se ita presiza toʼo fatin ' +
-        'ruma iha oras loos, keta fiar deʼit ba ami.',
+      titulo: "Faze Teste (Versaun Beta)",
+      texto: "Aplikasaun ne’e sei iha hela faze teste. Bele akontese difikuldade téknika no falha sira, servisu bele la disponível temporariamente ka motorista la disponível iha zona no oráriu ruma.\nPlataforma la garante katak ita sei hetan kedas ka la mosu erru ruma ho transporte. Se ita presiza to’o iha fatin ruma ho tuir lolos oras espesífika, favór labele depende de’it ba servisu ida-ne’e.",
     },
     {
-      titulo: 'Ita-nia seguransa',
-      texto:
-        'Molok tama, konfirma plaka no naran motorista iha ekrán. Se la hanesan, ' +
-        'keta tama.\n\n' +
-        'Durante viajen ita iha butaun rua: **Fahe viajen**, atu haruka ba ema ' +
-        'neʼebé ita fiar hodi hatete ita iha neʼebé, no **Emerjénsia**, neʼebé avisa ' +
-        'ami ho ita-nia fatin no husik ita telefone ba polísia.\n\n' +
-        'Iha perigu kedas, telefone uluk ba 112. Ami mak pasu daruak, laʼós primeiru.',
+      titulo: "Seguransa Pasajeiru Nian",
+      texto: "Antes atu sa’e veíkulu: konfirma didi’ak se matríkula, veíkulu nia modelu no motorista nia naran/fotografia hanesan ho dadus ne’ebé hatudu iha ekrã. Se la hanesan, labele sa’e ka tama ba veíkulu.\nIha viajen nia laran, ita iha botãu seguransa rua:\n• Fahe Viagen: Permite haruka ita-nia lokalizasaun iha tempu reál ba ema ruma ne’ebé ita fiar.\n• Emerjénsia: Aviza ami-nia sentral ho ita-nia pozisaun no fó atallu direta atu husu ajuda ba polísia, ambulánsia ka bombeiros.\nIha kazu perigu urjente, lian uluk ba 112, 110, no 115. Plataforma ne’e servisu de’it hanesan kanál apoiu komplementár, la’ós atu troka autoridade emerjénsia sira.",
     },
     {
-      titulo: 'Ita-nia dadus',
-      texto:
-        'Ami rai ita-nia naran, telefone, viajen sira neʼebé ita halo ona, no fatin ' +
-        'foti no destinu. Durante viajen ami rai motorista nia fatin, atu ita bele ' +
-        'haree iha mapa.\n\n' +
-        'Motorista haree ita-nia naran, telefone no destinu — nia presiza atu mai ' +
-        'foti ita. Ema seluk la haree.\n\n' +
-        'Ami la faan ita-nia dadus ba ema ida. Ita bele husu atu ami hamoos ita-nia ' +
-        'konta liuhusi kontaktu iha kraik.',
+      titulo: "Tratamentu Dadus Pessoais",
+      texto: "Ami halibur no prosesa dadus esensiál sira ba servisu nia funsionamentu: naran, númeru telemóvel, istóriku viajen nian no fatin foti/destinu. Iha viajen nia laran, geolokalizasaun veíkulu nian sei rejista ba efeitu navegasaun no seguransa.\nMotorista hare’e de’it ita-nia naran, númeru kontaktu no viajen nia pontu nesesáriu ba ezekusaun servisu nian.\nIta-nia dadus pessoais ami la fa’an ba ema seluk.\nIta bele husu atu taka ita-nia konta no apaga/anonimiza ó-nia dadus iha tempu kualker liuhusi kontaktu ne’ebé hatudu ona iha app ne’e.",
     },
     {
-      titulo: 'Saida mak ami hein husi ita',
-      texto:
-        'Trata motorista ho respeitu. Kansela dala ruma, neʼe normál; maibé kansela ' +
-        'beibeik bainhira motorista mai hela ona halo nia lakon tempu no mina, no ' +
-        'bele lori ba suspende konta.\n\n' +
-        'Keta uza aplikasaun neʼe ba buat ilegál.',
+      titulo: "Konduta no Uza ne’ebé Aseitavel",
+      texto: "Husu ba utilizadór sira atu trata motorista sira ho respeitu no sivilizmu.\nKanselamentu pontuál sira ne’e konpreensível. Maibé, kansela beibeik bainhira motorista simu tiha ona viajen sei soe leet de’it kustu kombustível notempu, no bele hakat ba suspensaun temporária ka definitiva ba konta.\nBandu tebes atu uza app ne’e ba finalidade ilísitu ka ilegal sira.",
     },
     {
-      titulo: 'Responsabilidade',
-      texto:
-        'Motorista sira serbisu ba sira-nia an rasik. Ami la kontrata sira, no ami la ' +
-        'responde ba asidente, atraza, sasán lakon, ka hahalok ema nian durante ' +
-        'viajen.\n\n' +
-        'Ami verifika dokumentu neʼebé motorista haruka, maibé neʼe konfirma deʼit ' +
-        'identidade — laʼós garantia katak nia lori kareta ho seguru.\n\n' +
-        '⚖ Seksaun neʼe tenke konfirma tuir lei Timor-Leste nian molok lansamentu ' +
-        'públiku.',
+      titulo: "Responsabilidade",
+      texto: "TimorgianaRide ne’e plataforma teknolojia intermediasaun nian no la presta servisu transporte rodoviáriu, la assume kualidade hanesan transportadór ka seguradora.\nPrestasaun servisu transporte nian hanesan akordu direta no eskluzivu entre pasajeiru no motorista. TimorgianaRide la hatán ba kualker parte sivíl, kontraordenasional ka penál ba:\n• Asidente viasaun, lezaun korporál, mate ka estragu materiál ne’ebé akontese iha viajen nia laran;\n• Atrasu, la kumpre oráriu ka mudansa rota husi motorista nia parte;\n• Lakon, na’ok, haluha ka estragu material no sasan pesoál nian iha veíkulu laran;\n• Hahalok, litígiu ka ofensa verbál/fízika ne’ebé akontese entre pasajeiru no motorista.\nHalibur no verifikasaun dokumentu sira (karta kondusaun, rejistu veíkulu) ba de’it atu validasaun kadastru motorista nian iha plataforma, la’ós garantia ka atestadu kapazidade atu konduz veíkulu, kondisaun mekánika veíkulu nian ka seguransa viajen nian.",
     },
     {
-      titulo: 'Koʼalia ho ami',
-      texto:
-        'Problema, dúvida ka pedidu kona-ba ita-nia dadus: koʼalia ho ami liuhusi ' +
-        'númeru neʼebé iha aplikasaun laran.\n\n' +
-        'Se ami troka termu sira neʼe, ami husu ita atu simu fila fali.',
+      titulo: "Kontaktus no Alterasaun ba Termos",
+      texto: "Ba kualker problema, dúvida ka husu konaba ita-nia dadus pessoais, halo kontaktu ho ami liuhusi númeru ne’ebé disponível iha aplikasaun laran. Karik termo sira-ne’e hetan alterasaun, ami sei husu ba ita atu aseita fila-fali antes kontinua uza servisu ne’e.",
     },
   ],
-
-  aceitar: 'Haʼu lee no simu termu sira',
-  aceitarCurto: 'Haʼu lee no simu **termu uza nian**',
 };
 
 export const termosMotorista = {
-  titulo: 'Termu ba motorista',
-  subtitulo: 'Saida mak ita simu bainhira lori kareta ho TimorgianaRide.',
-  atualizado: 'Versaun Agostu 2026',
+  titulo: "Termu ba Motorista",
+  subtitulo: "Kondisaun sira ne’ebé aplika ba prestasaun servisu transporte ne’ebé interligadu liu husi TimorgianaRide.",
+  atualizado: 'Versaun 29 Agostu 2026',
 
   seccoes: [
     {
-      titulo: 'Ita serbisu ba ita-nia an rasik',
-      texto:
-        'Ita laʼós ami-nia empregadu. La iha oráriu, la iha xefe, no ema ida la ' +
-        'obriga ita atu simu viajen. Ita sai disponivel bainhira ita hakarak.\n\n' +
-        'Neʼe mós katak ita la iha saláriu, feriadu selu, subsídiu ka indemnizasaun ' +
-        'husi ami. Ita profisionál independente neʼebé uza ami-nia aplikasaun atu ' +
-        'hetan pasajeiru.\n\n' +
-        '⚖ Enkuadramentu laborál relasaun neʼe nian tenke konfirma tuir lei ' +
-        'Timor-Leste nian molok lansamentu públiku.',
+      titulo: "Autonomia no Estatutu Profisionál",
+      texto: "Motorista servisu hanesan prestadór servisu no profisionál independente, sem kualker relasaun subordinasaun jurídika, vínkulu laborál ka eskluzividade ho TimorgianaRide.\nRelasaun ida-ne’e kesi ho prinsípiu autonomia sira ne’e:\n• La iha obrigasaun atu kumpre oráriu no la iha obrigasaun atu simu númeru mínimu viajen nian. Ita disponível no simu pedidu bainhira no iha ne’ebé ita hakarak.\n• Uza aplikasaun ne’e la fó direitu ba saláriu fixu, subsídiu sira, feriadu remuneratóriu, indemnizasaun ka benefísiu sira ne’ebé previstu iha Kódigu Trabalhu ba traballadór por conta de outrem.\n• Motorista mak iha responsabilidade ba nia veíkulu, ba kustu manutensaun, kombustível (gazolina/gazoil) no karga fiskál sira husi nia atividade independente.",
     },
     {
-      titulo: 'Osan hotu ba ita',
-      texto:
-        'Pasajeiru selu ita ho osan iha viajen rohan. Ami la kobra komisaun ida: iha ' +
-        'viajen $3, ita simu $3.\n\n' +
-        'Iha faze primeiru neʼe serbisu gratuita ba ita. Se loron ida ami hahú kobra ' +
-        'buat ruma, ami avisa uluk no ita livre atu sai.\n\n' +
-        'Folin mak aplikasaun mak fó no la negosia ho pasajeiru. Garantia neʼe mak ' +
-        'halo ema fiar serbisu neʼe.',
+      titulo: "Tarifa no Kobransa Valor Sira",
+      texto: "Pasajeiru selu ba ita ho osan bainhira termina ona viajen. Ami la kobra kualker komisaun iha faze inisiál ida-ne’e: iha viajen ida ho $3, ita sei simu $3. Se iha futuru mak introduz taxa ruma ba servisu, ami sei fó aviza antes no ita iha liberdade tomak atu para uza plataforma ne’e. Folin ne’e fiksu husi aplikasaun no la bele negosia ho pasajeiru – transparénsia ne’e mak hamosu fiar ba servisu ne’e.",
     },
     {
-      titulo: 'Saida mak tenke iha ordem',
-      texto:
-        'Molok simu viajen, ita tenke iha, no rai válidu:\n\n' +
-        '• Karta kondusaun válida ba veíkulu neʼebé ita lori\n' +
-        '• Dokumentu veíkulu iha ordem\n' +
-        '• Seguru neʼebé kobre transporte pasajeiru nian\n\n' +
-        'Seguru partikulár barak LA kobre transporte pasajeiru ho selu. Konfirma ho ' +
-        'ita-nia seguradór. Responsabilidade atu iha ordem, neʼe ita-nia.\n\n' +
-        'Se dokumentu ruma remata, ita tenke para simu viajen.',
+      titulo: "Requisitu Obrigatóriu no Dokumentasaun",
+      texto: "Antes simu viajen sira, ne’e ita-nia responsabilidade eskluziva no mantein válidu:\n• Karta kondusaun válidu no adekuadu ba veíkulu ne’ebé ita lori;\n• Dokumentu no rejistu veíkulu nian ne’ebé atualizadu ho lós;\n• Kondisaun seguransa no manutensaun mekánika ne’ebé di’ak ba veíkulu.\nMotorista rekoñese no aseita katak aplikasaun la disponibiliza kobertura seguru transporte pasajeiru nian ka aksidente, hodi asume tomak risku no estragu potensiál sira husi atividade konduz karreta nian. Se dokumentu ruma kaduka (liu ona tempu), tenke para kedas simu viajen sira.",
     },
     {
-      titulo: 'Dokumentu neʼebé ita haruka',
-      texto:
-        'Ami husu karta kondusaun, dokumentu veíkulu no ita-nia foto. Neʼe atu ami ' +
-        'konfirma katak ita mak ema neʼebé ita hatete — neʼe mak fó fiar ba ' +
-        'pasajeiru atu tama ita-nia kareta.\n\n' +
-        'Sira rai iha ami-nia base dadus no ema neʼebé jere serbisu deʼit mak haree. ' +
-        'Ami la hatudu ba pasajeiru no la fó ba ema seluk.\n\n' +
-        'Ita bele husu atu ami hamoos; nuneʼe ita-nia konta motorista la bele simu ' +
-        'viajen ona.',
+      titulo: "Validasaun no Protesaun Dokumentu Sira",
+      texto: "Ami husu kartaun kondusaun, dokumentu veíkulu no ita-nia fotografia eskluzivamente atu konfirma ita-nia identidade no elijibilidade formál – ne’e mak fó fiar ba pasajeiru bainhira tama ba veíkulu. Dokumentu sira-ne’e rai iha ami-nia base de dados no aseita de’it husi ekipa jestaun plataforma nian. La hatudu ba pasajeiru no la fahe ba parte seluk. Ita bele husu atu hamos tiha ita-nia dokumentu sira, no ne’e sei resulta taka ita-nia konta motorista nian.",
     },
     {
-      titulo: 'Seguransa — ita-nia no pasajeiru nian',
-      texto:
-        'Lori kareta ho kuidadu no respeita regra tránsitu nian. Keta lori kareta ' +
-        'bainhira hemu tua ka uza substánsia ruma.\n\n' +
-        'Trata pasajeiru ho respeitu, sé deʼit nia. Ami la rejeita ema tanba nia ' +
-        'ema saida.\n\n' +
-        'Ita mós iha butaun **Emerjénsia** durante viajen. Ita lori ema seidauk ' +
-        'koñese iha kareta, dala barak kalan — uza se presiza, no telefone ba 112 se ' +
-        'iha perigu kedas.',
+      titulo: "Seguransa no Regra Konduta Nian",
+      texto: "Motorista kompromete atu kumpre loloos Kódigu Estrada nian no konduz veíkulu ho kuidadu. Proibidu tebes konduz veíkulu ho efeitu tua/álcool, estupefasiente ka substánsia sikotrópika sira. Obrigatóriu atu trata pasajeiru hotu-hotu ho respeitu no sem diskriminasaun. Iha servisu laran, motorista iha botãu Emerjénsia iha app laran atu komunika situasaun risku nian, no tenke hato’o direta ba 112, 110 no 115 iha kazu perigu urjente.",
     },
     {
-      titulo: 'Kanselamentu no la mosu',
-      texto:
-        'Se ita simu viajen ida, pasajeiru hein ita no para buka motorista seluk. ' +
-        'Kansela depois simu husik nia iha dalan.\n\n' +
-        'Neʼe akontese, no aplikasaun husu tanbasá. Maibé kansela beibeik, ka simu ' +
-        'no la mosu, bele lori ba suspende konta.',
+      titulo: "Polítika Kanselamentu no Asiduidade",
+      texto: "Bainhira simu pedidu viajen nian ruma, motorista asume kompromisu atu realiza viajen refere. Kanselamentu lahó justifikasaun ka la mosu ba sei hamosu perturbasaun grave ba pasajeiru no estraga reputasaun rede nian.\nKanselamentu sistemátiku/tutuir malu ka lahó justifikasaun bainhira simu tiha ona pedidu bele hamosu suspensaun temporária ka definitiva hodi asesu ba plataforma.",
     },
     {
-      titulo: 'Bainhira ami bele suspende konta',
-      texto:
-        'Ami bele suspende ka taka ita-nia konta se:\n\n' +
-        '• Dokumentu falsu ka remata ona\n' +
-        '• Iha keixa sériu husi pasajeiru\n' +
-        '• Ita kansela beibeik la ho razaun\n' +
-        '• Ita kobra folin seluk husi neʼebé aplikasaun hatudu\n\n' +
-        'Bainhira bele, ami avisa uluk no rona ita-nia lian.',
+      titulo: "Motivu Suspensaun no Desativasaun ba Konta",
+      texto: "TimorgianaRide iha direitu atu suspende ka desativa motorista nia konta iha situasaun sira ne’e:\n• Hatudu dokumentasaun falsu, alteradu ka kaduk tiha ona;\n• Simu reklamasaun grave ka beibeik konaba seguransa ka hahalok;\n• Taxa aas husi kanselamentu sem motivu sira;\n• Kobransa ho valor ne’ebé aas liu ka diferenti husi valor ne’ebé fiksa tiha ona iha app;\n• Violasaun regra legál sira ka Termos sira-ne’e.\nBainhira posível, motorista sei simu notifikasaun konaba razaun suspensaun nian, hodi fó oportunidade atu hato’o esklaresimentu.",
     },
     {
-      titulo: 'Responsabilidade',
-      texto:
-        'Viajen neʼe entre ita ho pasajeiru. Ami la responde ba asidente, estragu, ' +
-        'multa, ka buat ruma neʼebé akontese durante viajen.\n\n' +
-        'Aplikasaun bele sala ka la funsiona. Ami la garante viajen hira nem rendimentu ' +
-        'ida.\n\n' +
-        '⚖ Seksaun neʼe tenke konfirma tuir lei Timor-Leste nian molok lansamentu ' +
-        'públiku.',
+      titulo: "Eskluzaun Responsabilidade",
+      texto: "Motorista hala’o nia atividade ho nia konta no risku rasik. TimorgianaRide la hatán ba asidente sira, multa tránsitu nian, estragu iha veíkulu ka kualker akontesimentu iha prestasaun viajen nia laran. Aplikasaun ne’e hanesan ferramenta teknolojia intermediasaun nian; la’ós seguradora no la garante númeru mínimu viajen nian ka nível rendimentu determinadu ruma.",
     },
   ],
-
-  aceitar: 'Haʼu lee no simu termu ba motorista',
-  aceitarCurto: 'Haʼu lee no simu **termu ba motorista**',
 };
