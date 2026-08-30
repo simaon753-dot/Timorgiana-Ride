@@ -49,7 +49,9 @@ projecto pessoal no momento em que um motorista real enviar a primeira foto.
       Nenhum motorista real deve aceitar isto antes de o teres lido.
       A versão está em `termos/versao.js` — muda-a se alterares o texto,
       senão quem aceitou o antigo fica marcado como tendo aceite o novo.
-- [ ] **Corrigir a lista de veículos.** `mobile/src/dados/veiculos.js` tem
+- [x] **Lista de veículos: MANTÉM-SE.** Decisão do Simão em 30/08/2026 —
+      serve de sugestão ao motorista, não de cadastro oficial.
+      (era:) **Corrigir a lista de veículos.** `mobile/src/dados/veiculos.js` tem
       29 motorizadas e 40 carros, montados a partir do mercado indonésio —
       **não é um registo oficial de Timor-Leste**. Vale a pena olhares para
       a rua e dizeres o que falta e o que lá está a mais. Os lugares de
@@ -65,9 +67,15 @@ projecto pessoal no momento em que um motorista real enviar a primeira foto.
       chave a chave a partir do documento. (era:) É mais urgente
       aqui do que no resto da app: uma palavra mal escolhida muda o que a
       pessoa julga estar a aceitar.
-- [ ] **Responsabilidade civil** — quem responde se houver um acidente
+- [x] **Responsabilidade civil: DO MOTORISTA.** Decidido em 30/08/2026 e
+      já escrito nos termos das três línguas.
+      (era:) **Responsabilidade civil** — quem responde se houver um acidente
       durante uma viagem marcada pela app. Decide isto antes, não depois.
-- [ ] **Seguro** — o dos motoristas cobre transporte de passageiros a
+- [x] **Seguro: DO MOTORISTA.** Decidido em 30/08/2026. Passou a requisito
+      expresso nos termos. FICA POR CONFIRMAR de facto se as apólices
+      praticadas em Timor-Leste cobrem transporte a título oneroso — muitas
+      excluem-no, e a cláusula não cria seguro nenhum.
+      (era:) **Seguro** — o dos motoristas cobre transporte de passageiros a
       pagamento? Muitas apólices particulares não cobrem.
 
 - [x] **Protecção de dados** — RESOLVIDO (30-08-2026) a partir do projecto
@@ -90,7 +98,10 @@ projecto pessoal no momento em que um motorista real enviar a primeira foto.
 - [x] Enviar a Fase 4 (`git push`) — feito 21/08/2026, servidor confirmado no ar
 - [ ] Abrir o painel de administração na app e confirmar que os números batem
 - [ ] Fazer um SOS de teste e confirmar que chega
-- [ ] Trocar a palavra-passe do Neon (a actual passou pela conversa)
+- [x] Trocar a palavra-passe do Neon — FEITO 30/08/2026. Rodada no Neon,
+      actualizada no Render e no .env local; confirmado que a antiga já é
+      recusada. A nova também passou pela conversa (numa fotografia), por
+      isso vale um último reset feito só pelo Simão quando quiser.
 - [x] Rever o tétum com um falante nativo — FEITO
 
 ---
