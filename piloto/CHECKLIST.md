@@ -14,11 +14,32 @@ Estás a guardar cartas de condução, documentos de veículos e fotografias de
 pessoas numa base de dados alojada em Singapura. Isso deixou de ser um
 projecto pessoal no momento em que um motorista real enviar a primeira foto.
 
-- [ ] **Licenciamento de transporte** — verificar se um serviço de
-      intermediação de transporte precisa de autorização em Timor-Leste, e
-      de qual entidade.
-- [ ] **Estatuto dos motoristas** — são trabalhadores independentes. Isso
-      tem de estar escrito, não subentendido, ou o risco é teu.
+- [x] **Licenciamento de transporte** — RESOLVIDO (30-08-2026). O estatuto
+      da Timorgiana, Lda registado no SERVE inclui no objecto social
+      **"Outros transportes terrestres (transportes terrestres de
+      passageiros)"**, e ainda "Consultoria e programação informática" e
+      "Atividades de processamento de dados, domiciliação de informações e
+      atividades relacionadas portais web" — ou seja, cobre os dois lados
+      do negócio: a plataforma e o transporte.
+
+      ⚠️ **MAS há uma tensão a resolver, e é do teu lado.** Os termos dizem
+      que a TimorgianaRide "não é uma empresa de transportes nem presta
+      serviços de condução". O estatuto diz que a sociedade tem por
+      objecto o transporte terrestre de passageiros.
+
+      Um objecto social largo é normal e não obriga a exercer tudo. Mas num
+      litígio, quem estiver do outro lado vai apontar para o estatuto e
+      dizer: "está registada como transportadora". A cláusula de exclusão
+      de responsabilidade fica mais fraca do que parece no papel.
+
+      Duas saídas, e a escolha é tua: ou o estatuto passa a distinguir a
+      actividade de intermediação da de transporte, ou os termos deixam de
+      negar de forma absoluta o que o estatuto afirma. Eu não sei qual é
+      melhor em Timor-Leste — sabes tu.
+- [x] **Estatuto dos motoristas** — ESCRITO na tua revisão dos termos:
+      "prestador de serviços e profissional independente, sem qualquer
+      relação de subordinação jurídica, vínculo laboral ou exclusividade".
+      Está explícito e não subentendido, que era o que faltava.
 - [x] **Termos de utilização**, PT + Tétum, dentro da app antes do registo
       — RASCUNHO FEITO, falta a tua revisão. Estão em
       `mobile/src/termos/`. Três secções marcadas com ⚖ dependem de
@@ -34,18 +55,33 @@ projecto pessoal no momento em que um motorista real enviar a primeira foto.
       a rua e dizeres o que falta e o que lá está a mais. Os lugares de
       cada carro também são estimativa minha. Há sempre "Outro" com
       escrita livre, por isso ninguém fica bloqueado.
-- [ ] **Rever o inglês dos termos.** A app passou a ter três línguas
+- [x] **Rever o inglês dos termos.** FEITO — traduzido do português (que
+      prevalece) e ligado ao selector de idioma. A app passou a ter três línguas
       (2026-08-22) porque a comunidade internacional em Díli — ONU, ONG,
       embaixadas, visitantes — é um segmento de passageiros com poder de
       compra. Os termos em inglês são tradução minha do português e têm o
       mesmo estatuto: rascunho a rever.
-- [ ] **Revisão do tétum dos termos por falante nativo.** É mais urgente
+- [x] **Revisão do tétum por falante nativo.** FEITA pelo Simão, e aplicada
+      chave a chave a partir do documento. (era:) É mais urgente
       aqui do que no resto da app: uma palavra mal escolhida muda o que a
       pessoa julga estar a aceitar.
 - [ ] **Responsabilidade civil** — quem responde se houver um acidente
       durante uma viagem marcada pela app. Decide isto antes, não depois.
 - [ ] **Seguro** — o dos motoristas cobre transporte de passageiros a
       pagamento? Muitas apólices particulares não cobrem.
+
+- [x] **Protecção de dados** — RESOLVIDO (30-08-2026) a partir do projecto
+      de Lei da Proteção de Dados Pessoais. A lei ainda NÃO está em vigor
+      (data de aprovação por preencher; entra em vigor 180 dias após
+      publicação, artigo 51.º) e a ANPD só se considera criada nessa data,
+      com membros eleitos até 120 dias depois (artigo 48.º). O aviso de
+      privacidade na app já nomeia a ANPD como autoridade futura e diz
+      para onde reclamar entretanto.
+
+      O artigo 49.º dá margem: nos primeiros 18 meses a ANPD privilegia
+      orientação, e as coimas por infracções leves por negligência só
+      começam 18 meses após a entrada em vigor — excepto em dados
+      sensíveis, violações graves de segurança ou recusa de cooperação.
 
 > Não sou advogado em Timor-Leste e tu és. Deixo a lista; a análise é tua.
 
@@ -55,7 +91,7 @@ projecto pessoal no momento em que um motorista real enviar a primeira foto.
 - [ ] Abrir o painel de administração na app e confirmar que os números batem
 - [ ] Fazer um SOS de teste e confirmar que chega
 - [ ] Trocar a palavra-passe do Neon (a actual passou pela conversa)
-- [ ] Rever o tétum com um falante nativo — o que está lá é primeira versão
+- [x] Rever o tétum com um falante nativo — FEITO
 
 ---
 
