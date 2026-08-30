@@ -422,4 +422,7 @@ export default {
   vehiclePlatePlaceholderMoto: 'e.g. A - 1234 TLS',
   vehiclePlateHint:
     'Write the plate exactly as it appears on your vehicle. The example only shows the shape.',
+  admAgora: 'Right now',
+  admQualidade: 'Service quality',
+  admStatusExpired: 'Expired',
 };

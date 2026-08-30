@@ -436,4 +436,7 @@ export default {
   vehiclePlatePlaceholderMoto: 'Ex.: A - 1234 TLS',
   vehiclePlateHint:
     'Escreva a matrícula tal como está na chapa do seu veículo. O exemplo serve só para mostrar a forma.',
+  admAgora: 'Agora',
+  admQualidade: 'Qualidade do serviço',
+  admStatusExpired: 'Caducado',
 };

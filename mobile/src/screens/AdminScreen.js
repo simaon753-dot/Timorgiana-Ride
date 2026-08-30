@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   Linking,
   Pressable,
@@ -16,6 +15,7 @@ import Button from '../components/Button.js';
 import Voltar from '../components/Voltar.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
+import { Metrica, Pastilha, Ponto, Bloco, Esqueleto, ESTADO } from '../design/painel.js';
 import BarraEstado from '../design/BarraEstado.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
@@ -161,8 +161,21 @@ export default function AdminScreen({ navigation }) {
 
   if (aCarregar) {
     return (
-      <SafeAreaView style={styles.centro}>
-        <ActivityIndicator color={colors.teal} size="large" />
+      <SafeAreaView style={styles.ecra} edges={['top']}>
+        <BarraEstado />
+        <View style={styles.topo}>
+          <Voltar navigation={navigation} />
+          <Text style={styles.titulo}>{t('adminTitle')}</Text>
+        </View>
+        {/* Esqueleto e não um círculo a girar: mostra a forma do que vem
+            aí, e nada se desloca quando os dados chegam. */}
+        <View style={{ padding: spacing.lg, gap: spacing.md }}>
+          <View style={styles.numeros}>
+            <Esqueleto linhas={1} altura={84} />
+            <Esqueleto linhas={1} altura={84} />
+          </View>
+          <Esqueleto linhas={3} altura={64} />
+        </View>
       </SafeAreaView>
     );
   }
@@ -325,17 +338,20 @@ export default function AdminScreen({ navigation }) {
 }
 
 function Alerta({ a, t, onResolver }) {
+  // Sem emoji: o 🚔 muda de desenho conforme o telemóvel, não recebe a
+  // cor do tema e não se alinha com o texto. A pastilha diz o mesmo e
+  // obedece ao desenho da aplicação.
   const rotulo =
     a.tipo === 'policia'
-      ? `🚔 ${t('emgTypePolicia')}`
+      ? t('emgTypePolicia')
       : a.tipo === 'medica'
-        ? `🚑 ${t('emgTypeMedica')}`
+        ? t('emgTypeMedica')
         : a.tipo === 'protecao'
-          ? `🚒 ${t('emgTypeProtecao')}`
+          ? t('emgTypeProtecao')
           : t('emgTypeOutro');
   return (
     <View style={styles.cartaoSos}>
-      <Text style={styles.sosTipo}>{rotulo}</Text>
+      <Pastilha texto={rotulo} estado={ESTADO.mau} />
       <Text style={styles.sosNome}>{a.quem}</Text>
       <Text style={styles.sosMeta}>
         {new Date(a.quando).toLocaleString('pt-PT')}
@@ -344,17 +360,17 @@ function Alerta({ a, t, onResolver }) {
       <View style={styles.linhaAcoes}>
         {a.telefone ? (
           <Pressable style={styles.accaoSos} onPress={() => Linking.openURL(`tel:${a.telefone}`)}>
-            <Text style={styles.accaoSosTexto}>📞 {a.telefone}</Text>
+            <Text style={styles.accaoSosTexto}>{a.telefone}</Text>
           </Pressable>
         ) : null}
         {a.lat != null && a.lng != null ? (
           <Pressable style={styles.accaoSos} onPress={() => abrirNoMapa(Linking, a.lat, a.lng)}>
-            <Text style={styles.accaoSosTexto}>🗺 {t('adminSosMap')}</Text>
+            <Text style={styles.accaoSosTexto}>{t('adminSosMap')}</Text>
           </Pressable>
         ) : null}
       </View>
       <Pressable onPress={onResolver}>
-        <Text style={styles.resolver}>✓ {t('adminSosResolve')}</Text>
+        <Text style={styles.resolver}>{t('adminSosResolve')}</Text>
       </Pressable>
     </View>
   );
@@ -362,35 +378,67 @@ function Alerta({ a, t, onResolver }) {
 
 function Resumo({ resumo, estat, t }) {
   const seg = estat?.segundosAteAceitar;
+  const disponiveis = resumo?.disponiveis ?? 0;
+  const esperando = resumo?.esperando ?? 0;
+  const semResposta = estat?.semResposta ?? 0;
+
+  // Cada número carrega o seu estado. Sem isto, oito números iguais
+  // obrigam a ler os oito para saber se está tudo bem — que é o oposto
+  // do que um painel serve para fazer.
+  //
+  // Nenhum motorista disponível é MAU, não neutro: sem motoristas a app
+  // não faz nada. Passageiros à espera é aviso enquanto forem poucos e
+  // mau quando passam de três — aí já é fila.
   return (
     <>
-      <View style={styles.numeros}>
-        <Numero valor={resumo?.aprovados} etiqueta={t('adminDrivers')} />
-        <Numero valor={resumo?.disponiveis} etiqueta={t('adminOnline')} destaque />
-        <Numero valor={resumo?.viagens24h} etiqueta={t('adminRides24h')} />
-        <Numero valor={resumo?.esperando} etiqueta={t('adminWaiting')} />
-      </View>
+      <Bloco titulo={t('admAgora')}>
+        <View style={styles.numeros}>
+          <Metrica valor={resumo?.aprovados} etiqueta={t('adminDrivers')} />
+          <Metrica
+            valor={disponiveis}
+            etiqueta={t('adminOnline')}
+            estado={disponiveis === 0 ? ESTADO.mau : ESTADO.bom}
+          />
+          <Metrica valor={resumo?.viagens24h} etiqueta={t('adminRides24h')} />
+          <Metrica
+            valor={esperando}
+            etiqueta={t('adminWaiting')}
+            estado={esperando === 0 ? ESTADO.neutro : esperando > 3 ? ESTADO.mau : ESTADO.aviso}
+          />
+        </View>
+      </Bloco>
 
       {/* O tempo de espera é o número que decide se o serviço funciona:
-          acima de dois ou três minutos, o passageiro desiste e não volta. */}
-      <View style={styles.par}>
-        <Cartao
-          rotulo={t('admWaitTime')}
-          valor={
-            seg == null
-              ? '—'
-              : seg < 120
-                ? t('admSeconds', { n: seg })
-                : t('admMinutes', { n: Math.round(seg / 60) })
-          }
-          mau={seg != null && seg > 180}
-        />
-        <Cartao
-          rotulo={t('admNoAnswer')}
-          valor={String(estat?.semResposta ?? 0)}
-          mau={(estat?.semResposta ?? 0) > 0}
-        />
-      </View>
+          acima de dois ou três minutos, o passageiro desiste e não volta.
+          Por isso leva limiares e não só um valor. */}
+      <Bloco titulo={t('admQualidade')}>
+        <View style={styles.par}>
+          <Metrica
+            valor={
+              seg == null
+                ? '—'
+                : seg < 120
+                  ? t('admSeconds', { n: seg })
+                  : t('admMinutes', { n: Math.round(seg / 60) })
+            }
+            etiqueta={t('admWaitTime')}
+            estado={
+              seg == null
+                ? ESTADO.neutro
+                : seg > 180
+                  ? ESTADO.mau
+                  : seg > 90
+                    ? ESTADO.aviso
+                    : ESTADO.bom
+            }
+          />
+          <Metrica
+            valor={semResposta}
+            etiqueta={t('admNoAnswer')}
+            estado={semResposta === 0 ? ESTADO.bom : ESTADO.mau}
+          />
+        </View>
+      </Bloco>
 
       {estat?.documentosACaducar?.length ? (
         <>
@@ -443,11 +491,13 @@ function Motorista({ m, t, token, navigation, onAprovar, onRecusar, onSuspender 
           style={{ flex: 1 }}
           onPress={() => navigation.navigate('AdminDetalhe', { tipoAlvo: 'utilizador', id: m.id })}
         >
-          <Text style={styles.nome}>
-            {m.online ? '🟢 ' : ''}
-            {m.name}
-            {'  ›'}
-          </Text>
+          <View style={styles.nomeLinha}>
+            <Ponto estado={m.online ? ESTADO.bom : ESTADO.neutro} />
+            <Text style={styles.nome} numberOfLines={1}>
+              {m.name}
+            </Text>
+            <Text style={styles.seta}>›</Text>
+          </View>
           <Text style={styles.meta}>
             {m.phone} · {m.vehicle?.type === 'motorbike' ? t('vehicleMotorbike') : t('vehicleCar')}
             {m.vehicle?.plate ? ` · ${m.vehicle.plate}` : ''}
@@ -490,12 +540,16 @@ function Motorista({ m, t, token, navigation, onAprovar, onRecusar, onSuspender 
                   de autorização, e nesse caso os documentos apareciam em
                   branco sem dizer porquê. */}
               <ImagemProtegida caminho={`/admin/documents/${d.id}`} style={styles.doc} />
-              {d.expirado ? <Text style={styles.docMau}>⚠</Text> : null}
+              {d.expirado ? (
+                <View style={styles.docAviso}>
+                  <Pastilha texto={t('admStatusExpired')} estado={ESTADO.mau} />
+                </View>
+              ) : null}
             </View>
           ))}
         </ScrollView>
       ) : (
-        <Text style={styles.semDocs}>⚠ {t('adminNoDocs')}</Text>
+        <Text style={styles.semDocs}>{t('adminNoDocs')}</Text>
       )}
 
       <View style={styles.botoes}>
@@ -570,9 +624,15 @@ function Contas({ contas, t, navigation, busca, setBusca, papel, setPapel, haMai
             }
           >
             <View style={{ flex: 1 }}>
-              <Text style={styles.contaNome} numberOfLines={1}>
-                {u.nome}
-                {u.isAdmin ? ' ★' : ''}
+              <View style={styles.contaLinha}>
+                <Text style={styles.contaNome} numberOfLines={1}>
+                  {u.nome}
+                </Text>
+                {u.isAdmin ? <Pastilha texto={t('admPapelAdmin')} estado={ESTADO.neutro} /> : null}
+              </View>
+              <Text style={styles.contaOculto}>
+                {u.online ? ' ' : ''}
+
                 {u.online ? ' •' : ''}
               </Text>
               <Text style={styles.contaMeta}>
@@ -725,33 +785,9 @@ function PedirMotivo({ pedido, t, onFechar, onConfirmar }) {
   );
 }
 
-function Numero({ valor, etiqueta, destaque }) {
-  return (
-    <View style={styles.numero}>
-      <Text style={[styles.numeroValor, destaque && { color: colors.coral }]}>{valor ?? '–'}</Text>
-      <Text style={styles.numeroEtiqueta}>{etiqueta}</Text>
-    </View>
-  );
-}
-
-function Cartao({ rotulo, valor, mau }) {
-  return (
-    <View style={styles.cartaoNumero}>
-      <Text style={styles.cartaoRotulo}>{rotulo}</Text>
-      <Text style={[styles.cartaoValor, mau && styles.estadoMau]}>{valor}</Text>
-    </View>
-  );
-}
-
 const criarEstilos = () =>
   StyleSheet.create({
     ecra: { flex: 1, backgroundColor: colors.paper },
-    centro: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.paper,
-    },
     topo: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -801,7 +837,6 @@ const criarEstilos = () =>
       padding: spacing.md,
       marginBottom: spacing.xs,
     },
-    sosTipo: { ...tipo.corpoForte, color: colors.danger },
     sosNome: { ...tipo.subtitulo, color: colors.text, marginTop: 2 },
     sosMeta: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
     linhaAcoes: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm, flexWrap: 'wrap' },
@@ -818,25 +853,8 @@ const criarEstilos = () =>
     resolver: { ...tipo.corpoForte, color: colors.teal, marginTop: spacing.sm },
 
     numeros: { flexDirection: 'row', gap: spacing.sm },
-    numero: {
-      flex: 1,
-      backgroundColor: colors.white,
-      borderRadius: radius.md,
-      paddingVertical: spacing.md,
-      alignItems: 'center',
-    },
-    numeroValor: { ...tipo.displayPequeno, color: colors.teal },
-    numeroEtiqueta: { fontSize: 11, color: colors.textMuted, marginTop: 2, textAlign: 'center' },
 
     par: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
-    cartaoNumero: {
-      flex: 1,
-      backgroundColor: colors.white,
-      borderRadius: radius.md,
-      padding: spacing.md,
-    },
-    cartaoRotulo: { fontSize: 11, color: colors.textMuted, fontWeight: '700' },
-    cartaoValor: { ...tipo.titulo, color: colors.text, marginTop: 2 },
 
     seccaoTitulo: {
       ...tipo.etiqueta,
@@ -890,6 +908,9 @@ const criarEstilos = () =>
       padding: spacing.md,
       marginBottom: spacing.sm,
     },
+    contaLinha: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    contaOculto: { height: 0, opacity: 0 },
+    docAviso: { position: 'absolute', top: 4, left: 4 },
     contaNome: { ...tipo.corpoForte, color: colors.text },
     contaMeta: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },
     viagemSeta: { fontSize: 22, color: colors.textMuted },
@@ -908,6 +929,8 @@ const criarEstilos = () =>
       marginBottom: spacing.md,
     },
     cabecalhoMotorista: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+    nomeLinha: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    seta: { fontSize: 20, color: colors.textMuted },
     nome: { ...tipo.subtitulo, color: colors.text },
     meta: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
     estado: { fontSize: 11, fontWeight: '800', color: colors.textMuted },
@@ -925,7 +948,6 @@ const criarEstilos = () =>
       marginRight: spacing.sm,
       backgroundColor: colors.border,
     },
-    docMau: { position: 'absolute', top: 2, right: 10, fontSize: 16 },
     semDocs: { ...tipo.legenda, marginTop: spacing.sm, color: colors.danger },
     botoes: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
     metade: { flex: 1 },

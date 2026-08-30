@@ -436,4 +436,7 @@ export default {
   vehiclePlatePlaceholderMoto: 'Ezemplu: A - 1234 TLS',
   vehiclePlateHint:
     'Hakerek matríkula hanesan iha xapa ita-nia veíkulu nian. Ezemplu hatudu deit formatu.',
+  admAgora: 'Agora daudaun',
+  admQualidade: 'Kualidade servisu',
+  admStatusExpired: 'Kaduk',
 };
