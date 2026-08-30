@@ -174,9 +174,80 @@ adminRouter.get(
         (SELECT COUNT(*) FROM sos_alerts WHERE resolved=FALSE)::int AS sos,
         (SELECT COUNT(*) FROM rides WHERE created_at > NOW() - INTERVAL '24 hours')::int AS viagens24h,
         (SELECT COUNT(*) FROM rides WHERE status='completed')::int AS concluidas,
-        (SELECT COUNT(*) FROM rides WHERE status='requested')::int AS esperando
+        (SELECT COUNT(*) FROM rides WHERE status='requested')::int AS esperando,
+        -- Veículos em serviço: motoristas com uma viagem a decorrer neste
+        -- momento. Não é o mesmo que "disponíveis" — um motorista pode estar
+        -- online sem passageiro, e é essa diferença que interessa ver.
+        (SELECT COUNT(DISTINCT driver_id) FROM rides
+          WHERE status IN ('accepted','arriving','in_progress') AND driver_id IS NOT NULL)::int
+          AS "veiculosServico",
+        (SELECT COUNT(*) FROM rides
+          WHERE status='cancelled' AND created_at > NOW() - INTERVAL '24 hours')::int
+          AS "canceladas24h",
+        -- Soma das tarifas cobradas PELOS MOTORISTAS nas viagens concluídas.
+        -- Não é receita da TimorgianaRide: a plataforma não cobra comissão e
+        -- não recebe nada. Chamar-lhe receita seria dizer, no próprio painel
+        -- da empresa, o contrário do que os termos afirmam.
+        (SELECT COALESCE(SUM(fare_usd),0) FROM rides
+          WHERE status='completed' AND created_at > NOW() - INTERVAL '24 hours')::float8
+          AS "tarifas24h"
     `);
     res.json({ resumo: n });
+  })
+);
+
+// GET /api/admin/notificacoes — o que precisa de atenção
+//
+// Não é uma tabela de notificações guardadas: é uma leitura do estado
+// actual. Uma notificação guardada tem de ser criada, marcada como lida e
+// depois limpa — três sítios onde pode ficar dessincronizada da realidade.
+// Aqui, quando o motorista for aprovado a notificação desaparece sozinha,
+// porque a razão dela desapareceu.
+adminRouter.get(
+  '/notificacoes',
+  wrap(async (_req, res) => {
+    const [n] = await query(`
+      SELECT
+        (SELECT COUNT(*) FROM users
+          WHERE role='driver' AND COALESCE(driver_status,'pending')='pending')::int
+          AS "aprovacoes",
+        (SELECT COUNT(*) FROM sos_alerts WHERE resolved=FALSE)::int AS "sos",
+        (SELECT COUNT(*) FROM rides
+          WHERE status='requested' AND created_at < NOW() - INTERVAL '5 minutes')::int
+          AS "semResposta",
+        (SELECT COUNT(DISTINCT user_id) FROM driver_documents
+          WHERE expires_on IS NOT NULL AND expires_on < CURRENT_DATE)::int
+          AS "docsCaducados",
+        (SELECT COUNT(DISTINCT user_id) FROM driver_documents
+          WHERE expires_on IS NOT NULL AND expires_on >= CURRENT_DATE
+            AND expires_on < CURRENT_DATE + 30)::int AS "docsACaducar",
+        (SELECT COUNT(*) FROM rides
+          WHERE status='cancelled' AND created_at > NOW() - INTERVAL '24 hours')::int
+          AS "canceladas",
+        (SELECT COUNT(*) FROM users WHERE driver_status='suspended')::int AS "suspensas"
+    `);
+
+    // Cada item traz a gravidade consigo. O ecrã não deve ter de decidir se
+    // um SOS é mais grave do que um documento caducado — isso é regra de
+    // negócio, e vive aqui.
+    const itens = [
+      { chave: 'sos', n: n.sos, nivel: 'mau', seccao: 'resumo' },
+      { chave: 'docsCaducados', n: n.docsCaducados, nivel: 'mau', seccao: 'motoristas' },
+      { chave: 'aprovacoes', n: n.aprovacoes, nivel: 'aviso', seccao: 'motoristas' },
+      { chave: 'semResposta', n: n.semResposta, nivel: 'aviso', seccao: 'viagens' },
+      { chave: 'docsACaducar', n: n.docsACaducar, nivel: 'aviso', seccao: 'motoristas' },
+      { chave: 'canceladas', n: n.canceladas, nivel: 'neutro', seccao: 'viagens' },
+      { chave: 'suspensas', n: n.suspensas, nivel: 'neutro', seccao: 'contas' },
+    ].filter((i) => i.n > 0);
+
+    // O número do sino conta só o que exige acção. Canceladas e suspensas
+    // são informação, não tarefas — se entrassem na conta, o sino estava
+    // sempre aceso e deixava de querer dizer nada.
+    const porTratar = itens
+      .filter((i) => i.nivel !== 'neutro')
+      .reduce((soma, i) => soma + i.n, 0);
+
+    res.json({ itens, porTratar });
   })
 );
 
@@ -297,6 +368,7 @@ adminRouter.get(
     if (papel === 'motoristas') cond.push('u.driver_status IS NOT NULL');
     if (papel === 'passageiros') cond.push('u.driver_status IS NULL');
     if (papel === 'admins') cond.push('u.is_admin = TRUE');
+    if (papel === 'suspensas') cond.push("u.driver_status = 'suspended'");
     const onde = cond.length ? `WHERE ${cond.join(' AND ')}` : '';
 
     args.push(POR_PAGINA + 1, pagina * POR_PAGINA);
@@ -516,10 +588,17 @@ adminRouter.get(
 adminRouter.get(
   '/registo',
   wrap(async (req, res) => {
+    // O período é filtrado no SQL e não no telemóvel. Filtrar depois de
+    // trazer as 100 linhas mais recentes daria um filtro que mente: com
+    // movimento a sério, "30 dias" mostraria apenas o que coubesse nessas
+    // 100 — e quem consulta uma auditoria não pode desconfiar do que vê.
+    const dias = [1, 7, 30].includes(Number(req.query.dias)) ? Number(req.query.dias) : 30;
     const rows = await query(
       `SELECT a.id, a.que, a.alvo_id, a.created_at, u.name AS admin
        FROM admin_acessos a JOIN users u ON u.id = a.admin_id
-       ORDER BY a.id DESC LIMIT 100`
+       WHERE a.created_at > NOW() - ($1 || ' days')::interval
+       ORDER BY a.id DESC LIMIT 200`,
+      [String(dias)]
     );
     res.json({
       acessos: rows.map((a) => ({

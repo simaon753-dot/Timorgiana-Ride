@@ -132,6 +132,7 @@ export const api = {
 
   adminResumo: (token) => request('/admin/resumo', { token }),
   adminSos: (token) => request('/admin/sos', { token }),
+  adminNotificacoes: (token) => request('/admin/notificacoes', { token }),
   adminResolverSos: (token, id) => request(`/admin/sos/${id}/resolver`, { method: 'POST', token }),
   adminDrivers: (token, status) => request(`/admin/drivers?status=${status}`, { token }),
   adminDecidir: (token, id, decision, motivo) =>
@@ -148,7 +149,7 @@ export const api = {
     }),
   adminUtilizador: (token, id) => request(`/admin/utilizadores/${id}`, { token }),
   adminViagem: (token, id) => request(`/admin/viagens/${id}`, { token }),
-  adminRegisto: (token) => request('/admin/registo', { token }),
+  adminRegisto: (token, dias = 30) => request(`/admin/registo?dias=${dias}`, { token }),
 
   savePushToken: (token, pushToken) =>
     request('/auth/push-token', { method: 'POST', body: { token: pushToken }, token }),

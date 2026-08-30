@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Linking,
+  Modal,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -60,6 +61,9 @@ export default function AdminScreen({ navigation }) {
   const [pagina, setPagina] = useState(0);
   const [haMais, setHaMais] = useState(false);
   const [registo, setRegisto] = useState([]);
+  const [notif, setNotif] = useState(null);
+  const [verNotif, setVerNotif] = useState(false);
+  const [dias, setDias] = useState(30);
 
   // Posição de cada separador, para o poder trazer à vista.
   //
@@ -81,16 +85,28 @@ export default function AdminScreen({ navigation }) {
 
   const carregar = useCallback(async () => {
     try {
-      const [r, s, d, e] = await Promise.all([
+      const [r, s, d, e, n] = await Promise.all([
         api.adminResumo(token),
         api.adminSos(token),
         api.adminDrivers(token, filtro),
         api.adminEstatisticas(token, 7),
+        // As notificações vêm com o resto e não numa chamada à parte: numa
+        // rede lenta, um pedido a mais é meio segundo antes de o painel
+        // aparecer.
+        //
+        // O `.catch` não é zelo a mais. As actualizações pelo ar chegam ao
+        // telemóvel em segundos; o servidor só muda quando for publicado.
+        // Entre os dois momentos a app é mais nova do que o servidor, e um
+        // endereço que ainda não existe devolve 404 — sem este `catch`, o
+        // `Promise.all` rejeitava e o painel INTEIRO ficava vazio por causa
+        // de um sino. O que é novo tem de poder faltar.
+        api.adminNotificacoes(token).catch(() => null),
       ]);
       setResumo(r.resumo);
       setAlertas(s.alertas || []);
       setMotoristas(d.drivers || []);
       setEstat(e);
+      setNotif(n);
     } catch (err) {
       Alert.alert(t('errGeneric'), err?.message || '');
     } finally {
@@ -126,12 +142,12 @@ export default function AdminScreen({ navigation }) {
 
   const carregarRegisto = useCallback(async () => {
     try {
-      const r = await api.adminRegisto(token);
+      const r = await api.adminRegisto(token, dias);
       setRegisto(r.acessos || []);
     } catch {
       /* fica o que já estava */
     }
-  }, [token]);
+  }, [token, dias]);
 
   useEffect(() => {
     if (seccao === 'registo') carregarRegisto();
@@ -201,7 +217,24 @@ export default function AdminScreen({ navigation }) {
       <View style={styles.topo}>
         <Voltar navigation={navigation} />
         <Text style={styles.titulo}>{t('adminTitle')}</Text>
-        <View style={{ width: 60 }} />
+        {/* O sino ocupa o lugar do espaçador, para o título continuar
+            centrado. */}
+        <Pressable
+          onPress={() => setVerNotif(true)}
+          hitSlop={10}
+          style={styles.sino}
+          accessibilityRole="button"
+          accessibilityLabel={t('admNotificacoes')}
+        >
+          <Text style={styles.sinoIcone}>🔔</Text>
+          {notif?.porTratar > 0 ? (
+            <View style={styles.sinoConta}>
+              <Text style={styles.sinoContaTexto}>
+                {notif.porTratar > 9 ? '9+' : notif.porTratar}
+              </Text>
+            </View>
+          ) : null}
+        </Pressable>
       </View>
 
       {/* Os alertas de emergência ficam FORA das secções: aparecem sempre,
@@ -340,7 +373,7 @@ export default function AdminScreen({ navigation }) {
         ) : seccao === 'viagens' ? (
           <Viagens viagens={viagens} t={t} navigation={navigation} />
         ) : (
-          <Registo acessos={registo} t={t} navigation={navigation} />
+          <Registo acessos={registo} t={t} navigation={navigation} dias={dias} setDias={setDias} />
         )}
       </ScrollView>
 
@@ -356,6 +389,47 @@ export default function AdminScreen({ navigation }) {
           }}
         />
       ) : null}
+
+      {/* Notificações.
+          Uma folha que sobe do fundo e não um ecrã novo: o que está aqui
+          decide-se em segundos e volta-se ao que se estava a fazer. Tocar
+          num item leva à secção onde o problema se resolve — uma
+          notificação que só informa obriga a procurar o sítio à mão. */}
+      <Modal
+        visible={verNotif}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setVerNotif(false)}
+      >
+        <Pressable style={styles.notifFundo} onPress={() => setVerNotif(false)} />
+        <View style={styles.notifFolha}>
+          <View style={styles.notifPega} />
+          <Text style={styles.notifTitulo}>{t('admNotificacoes')}</Text>
+
+          {!notif?.itens?.length ? (
+            <Text style={styles.vazio}>{t('admNadaATratar')}</Text>
+          ) : (
+            notif.itens.map((i) => (
+              <Pressable
+                key={i.chave}
+                style={styles.notifLinha}
+                onPress={() => {
+                  setVerNotif(false);
+                  setSeccao(i.seccao);
+                }}
+              >
+                <Ponto estado={ESTADO[i.nivel] ?? ESTADO.neutro} />
+                <Text style={styles.notifTexto} numberOfLines={2}>
+                  {t('admNotif' + i.chave.charAt(0).toUpperCase() + i.chave.slice(1))}
+                </Text>
+                <Text style={styles.notifConta}>{i.n}</Text>
+              </Pressable>
+            ))
+          )}
+
+          <Button title={t('admFechar')} variant="ghost" onPress={() => setVerNotif(false)} />
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -422,7 +496,27 @@ function Resumo({ resumo, estat, t }) {
             etiqueta={t('adminOnline')}
             estado={disponiveis === 0 ? ESTADO.mau : ESTADO.bom}
           />
+          {/* Em serviço não é o mesmo que disponível: um motorista pode estar
+              online sem ninguém no banco de trás. A diferença entre os dois
+              números é procura que não está a ser atendida. */}
+          <Metrica valor={resumo?.veiculosServico} etiqueta={t('admVeiculosServico')} />
           <Metrica valor={resumo?.viagens24h} etiqueta={t('adminRides24h')} />
+          <Metrica
+            valor={resumo?.canceladas24h}
+            etiqueta={t('admCanceladas24h')}
+            estado={resumo?.canceladas24h > 0 ? ESTADO.aviso : ESTADO.neutro}
+          />
+          {/* Tarifas, NÃO receita. A TimorgianaRide não cobra comissão e não
+              recebe nada disto — o dinheiro passa do passageiro ao motorista,
+              em mão. Chamar-lhe receita seria afirmar, no painel da própria
+              empresa, o contrário do que os termos dizem. */}
+          <Metrica
+            valor={
+              resumo?.tarifas24h != null ? `${'$'}${Number(resumo.tarifas24h).toFixed(2)}` : '—'
+            }
+            etiqueta={t('admTarifas24h')}
+            nota={t('admTarifasNota')}
+          />
           <Metrica
             valor={esperando}
             etiqueta={t('adminWaiting')}
@@ -600,7 +694,7 @@ function Motorista({ m, t, token, navigation, onAprovar, onRecusar, onSuspender 
 }
 
 // Todas as contas do sistema, com pesquisa e filtro por papel.
-const PAPEIS = ['todos', 'passageiros', 'motoristas', 'admins'];
+const PAPEIS = ['todos', 'passageiros', 'motoristas', 'admins', 'suspensas'];
 
 function Contas({ contas, t, navigation, busca, setBusca, papel, setPapel, haMais, onMais }) {
   return (
@@ -628,7 +722,9 @@ function Contas({ contas, t, navigation, busca, setBusca, papel, setPapel, haMai
                     ? 'admFiltroPassageiros'
                     : p === 'motoristas'
                       ? 'admFiltroMotoristas'
-                      : 'admPapelAdmin'
+                      : p === 'admins'
+                        ? 'admPapelAdmin'
+                        : 'admFiltroSuspensas'
               )}
             </Text>
           </Pressable>
@@ -686,95 +782,177 @@ function Contas({ contas, t, navigation, busca, setBusca, papel, setPapel, haMai
 // Existe para ser visto, não só escrito. Um registo que ninguém pode
 // consultar é o mesmo que não haver registo — serve para dizer que se
 // tem auditoria, não para responder a uma pergunta.
-function Registo({ acessos, t, navigation }) {
-  if (!acessos.length) return <Text style={styles.vazio}>{t('admRegistoVazio')}</Text>;
+function Registo({ acessos, t, navigation, dias, setDias }) {
+  // Os filtros ficam FORA do `if` de lista vazia. Se estivessem dentro,
+  // escolher "Hoje" num dia sem acessos deixava o ecrã sem forma de voltar
+  // a "30 dias" — um beco sem saída construído pelo próprio filtro.
+  const periodos = [
+    [1, 'admPeriodoHoje'],
+    [7, 'admPeriodo7'],
+    [30, 'admPeriodo30'],
+  ];
   return (
     <>
-      <Text style={styles.seccaoTitulo}>{t('admRegistoTitulo')}</Text>
-      {acessos.map((a) => (
-        <Pressable
-          key={a.id}
-          style={styles.conta}
-          onPress={() =>
-            a.alvo ? navigation.navigate('AdminDetalhe', { tipoAlvo: 'viagem', id: a.alvo }) : null
-          }
-        >
-          <View style={{ flex: 1 }}>
-            <Text style={styles.contaNome}>
-              {a.admin} · {a.que}
+      <View style={styles.filtros}>
+        {periodos.map(([d, chave]) => (
+          <Pressable
+            key={d}
+            onPress={() => setDias(d)}
+            style={[styles.filtro, dias === d && styles.filtroActivo]}
+          >
+            <Text style={[styles.filtroTexto, dias === d && styles.filtroTextoActivo]}>
+              {t(chave)}
             </Text>
-            <Text style={styles.contaMeta}>
-              {a.alvo ? `${t('admDetalheViagem')} #${a.alvo} · ` : ''}
-              {new Date(a.quando).toLocaleString(undefined, {
-                day: '2-digit',
-                month: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </Text>
-          </View>
-          {a.alvo ? <Text style={styles.viagemSeta}>›</Text> : null}
-        </Pressable>
-      ))}
+          </Pressable>
+        ))}
+      </View>
+
+      {!acessos.length ? (
+        <Text style={styles.vazio}>{t('admRegistoVazio')}</Text>
+      ) : (
+        <>
+          <Text style={styles.seccaoTitulo}>{t('admRegistoTitulo')}</Text>
+          {acessos.map((a) => (
+            <Pressable
+              key={a.id}
+              style={styles.conta}
+              onPress={() =>
+                a.alvo
+                  ? navigation.navigate('AdminDetalhe', { tipoAlvo: 'viagem', id: a.alvo })
+                  : null
+              }
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.contaNome}>
+                  {a.admin} · {a.que}
+                </Text>
+                <Text style={styles.contaMeta}>
+                  {a.alvo ? `${t('admDetalheViagem')} #${a.alvo} · ` : ''}
+                  {new Date(a.quando).toLocaleString(undefined, {
+                    day: '2-digit',
+                    month: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </Text>
+              </View>
+              {a.alvo ? <Text style={styles.viagemSeta}>›</Text> : null}
+            </Pressable>
+          ))}
+        </>
+      )}
     </>
   );
 }
+
+// Uma viagem, em cartão. Extraída porque agora aparece em dois sítios —
+// nas que estão a decorrer e nas recentes — e um cartão copiado é um
+// cartão que passa a divergir do outro à primeira correcção.
+function CartaoViagem({ v, t, navigation }) {
+  return (
+    <Pressable
+      key={v.id}
+      style={styles.viagem}
+      onPress={() => navigation.navigate('AdminDetalhe', { tipoAlvo: 'viagem', id: v.id })}
+    >
+      <View style={styles.viagemTopo}>
+        <Text style={styles.viagemDestino} numberOfLines={1}>
+          {v.destino}
+        </Text>
+        <Text style={styles.viagemPreco}>${v.preco ?? '—'}</Text>
+      </View>
+      <Text style={styles.viagemMeta}>
+        {v.passageiro}
+        {v.motorista ? ` → ${v.motorista}` : ' → —'}
+        {v.km ? ` · ${v.km} km` : ''}
+      </Text>
+      <View style={styles.viagemLinha}>
+        <Text
+          style={[
+            styles.viagemEstado,
+            v.estado === 'completed' && styles.estadoOk,
+            v.estado === 'cancelled' && styles.estadoMau,
+          ]}
+        >
+          {t(
+            v.estado === 'completed'
+              ? 'statusCompleted'
+              : v.estado === 'cancelled'
+                ? 'statusCancelled'
+                : v.estado === 'in_progress'
+                  ? 'statusInProgress'
+                  : v.estado === 'requested'
+                    ? 'statusRequested'
+                    : 'statusAccepted'
+          )}
+        </Text>
+        {v.motivoCancelamento ? (
+          <Text style={styles.viagemMotivo}>{t(`cancelReason_${v.motivoCancelamento}`)}</Text>
+        ) : null}
+      </View>
+      <Text style={styles.viagemSeta}>›</Text>
+    </Pressable>
+  );
+}
+
+// Estados em que a viagem ainda não acabou. Fica numa constante porque a
+// mesma pergunta — "isto ainda está a acontecer?" — é feita em três
+// sítios, e três listas escritas à mão divergem.
+const A_DECORRER = ['requested', 'accepted', 'arriving', 'in_progress'];
 
 function Viagens({ viagens, t, navigation }) {
+  // Contas feitas aqui e não no servidor: os dados já vieram todos, e numa
+  // rede como a de Díli um pedido a mais custa mais do que estas somas.
+  const activas = viagens.filter((v) => A_DECORRER.includes(v.estado));
+  const concluidas = viagens.filter((v) => v.estado === 'completed');
+  const canceladas = viagens.filter((v) => v.estado === 'cancelled');
+  const tarifas = concluidas.reduce((soma, v) => soma + (Number(v.preco) || 0), 0);
+
   if (!viagens.length) return <Text style={styles.vazio}>{t('admNoRides')}</Text>;
+
   return (
     <>
-      <Text style={styles.seccaoTitulo}>{t('admLast24h')}</Text>
-      {viagens.map((v) => (
-        <Pressable
-          key={v.id}
-          style={styles.viagem}
-          onPress={() => navigation.navigate('AdminDetalhe', { tipoAlvo: 'viagem', id: v.id })}
-        >
-          <View style={styles.viagemTopo}>
-            <Text style={styles.viagemDestino} numberOfLines={1}>
-              {v.destino}
-            </Text>
-            <Text style={styles.viagemPreco}>${v.preco ?? '—'}</Text>
-          </View>
-          <Text style={styles.viagemMeta}>
-            {v.passageiro}
-            {v.motorista ? ` → ${v.motorista}` : ' → —'}
-            {v.km ? ` · ${v.km} km` : ''}
-          </Text>
-          <View style={styles.viagemLinha}>
-            <Text
-              style={[
-                styles.viagemEstado,
-                v.estado === 'completed' && styles.estadoOk,
-                v.estado === 'cancelled' && styles.estadoMau,
-              ]}
-            >
-              {t(
-                v.estado === 'completed'
-                  ? 'statusCompleted'
-                  : v.estado === 'cancelled'
-                    ? 'statusCancelled'
-                    : v.estado === 'in_progress'
-                      ? 'statusInProgress'
-                      : v.estado === 'requested'
-                        ? 'statusRequested'
-                        : 'statusAccepted'
-              )}
-            </Text>
-            {v.motivoCancelamento ? (
-              <Text style={styles.viagemMotivo}>{t(`cancelReason_${v.motivoCancelamento}`)}</Text>
-            ) : null}
-          </View>
-          <Text style={styles.viagemSeta}>›</Text>
-        </Pressable>
-      ))}
+      <Bloco titulo={t('admResumoViagens')}>
+        <View style={styles.numeros}>
+          <Metrica valor={viagens.length} etiqueta={t('admTotalViagens')} />
+          <Metrica
+            valor={activas.length}
+            etiqueta={t('admEmAndamento')}
+            estado={activas.length > 0 ? ESTADO.bom : ESTADO.neutro}
+          />
+          <Metrica valor={concluidas.length} etiqueta={t('admConcluidas')} />
+          <Metrica
+            valor={canceladas.length}
+            etiqueta={t('admCanceladas24h')}
+            estado={canceladas.length > 0 ? ESTADO.aviso : ESTADO.neutro}
+          />
+          <Metrica
+            valor={`${'$'}${tarifas.toFixed(2)}`}
+            etiqueta={t('admTarifas24h')}
+            nota={t('admTarifasNota')}
+          />
+        </View>
+      </Bloco>
+
+      {/* As que estão a decorrer vêm primeiro e separadas. É a única parte
+          desta secção onde ainda se pode agir: quando uma viagem já
+          terminou, ler sobre ela é história. */}
+      <Text style={styles.seccaoTitulo}>{t('admViagensActivas')}</Text>
+      {activas.length === 0 ? (
+        <Text style={styles.vazio}>{t('admSemViagensActivas')}</Text>
+      ) : (
+        activas.map((v) => <CartaoViagem key={v.id} v={v} t={t} navigation={navigation} />)
+      )}
+
+      <Text style={styles.seccaoTitulo}>{t('admViagensRecentes')}</Text>
+      {viagens
+        .filter((v) => !A_DECORRER.includes(v.estado))
+        .map((v) => (
+          <CartaoViagem key={v.id} v={v} t={t} navigation={navigation} />
+        ))}
     </>
   );
 }
-
-// Painel de motivo. Existe porque o Alert.prompt do sistema só funciona no
-// iPhone — no Android não há forma de escrever num alerta.
 function PedirMotivo({ pedido, t, onFechar, onConfirmar }) {
   const [texto, setTexto] = useState('');
   return (
@@ -811,6 +989,56 @@ function PedirMotivo({ pedido, t, onFechar, onConfirmar }) {
 const criarEstilos = () =>
   StyleSheet.create({
     ecra: { flex: 1, backgroundColor: colors.paper },
+    // O sino tem a largura do espaçador que substituiu (60), para o
+    // título ficar centrado como estava.
+    sino: { width: 60, alignItems: 'flex-end', justifyContent: 'center' },
+    sinoIcone: { fontSize: 20 },
+    // Contador, não pastilha decorativa: o número é a informação, e por
+    // isso tem de se ler mesmo em cima do ícone.
+    sinoConta: {
+      position: 'absolute',
+      top: -2,
+      right: -4,
+      minWidth: 17,
+      height: 17,
+      borderRadius: 9,
+      backgroundColor: colors.danger,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 4,
+    },
+    sinoContaTexto: { color: colors.white, fontSize: 11, fontWeight: '700' },
+
+    notifFundo: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
+    notifFolha: {
+      backgroundColor: colors.paper,
+      borderTopLeftRadius: radius.xl,
+      borderTopRightRadius: radius.xl,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.xl,
+      gap: spacing.xs,
+    },
+    notifPega: {
+      alignSelf: 'center',
+      width: 36,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.border,
+      marginBottom: spacing.md,
+    },
+    notifTitulo: { ...tipo.subtitulo, color: colors.text, marginBottom: spacing.sm },
+    notifLinha: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      paddingVertical: spacing.md,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    notifTexto: { ...tipo.corpo, color: colors.text, flex: 1 },
+    notifConta: { ...tipo.corpoForte, color: colors.text, fontVariant: ['tabular-nums'] },
+
     topo: {
       flexDirection: 'row',
       alignItems: 'center',
