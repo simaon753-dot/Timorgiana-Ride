@@ -21,7 +21,7 @@ export const termosPassageiro = {
   seccoes: [
     {
       titulo: "O que a TimorgianaRide é",
-      texto: "A TimorgianaRide é uma plataforma tecnológica de intermediação que põe em contacto quem precisa de transporte com motoristas independentes. Não somos uma empresa de transportes nem prestamos serviços de condução: os motoristas operam por conta e risco próprios. A viagem constitui um acordo direto e exclusivo entre si e o motorista. A aplicação limita-se a disponibilizar a ligação, calcular a tarifa estimada e facultar meios de comunicação entre as partes.",
+      texto: "A TimorgianaRide é uma plataforma tecnológica de intermediação que põe em contacto quem precisa de transporte com motoristas independentes. Neste serviço, a TimorgianaRide atua exclusivamente como intermediária e não presta ela própria o transporte nem serviços de condução: os motoristas operam por conta e risco próprios. A viagem constitui um acordo direto e exclusivo entre si e o motorista. A aplicação limita-se a disponibilizar a ligação, calcular a tarifa estimada e facultar meios de comunicação entre as partes.",
     },
     {
       titulo: "Pagamento – em dinheiro, sem comissão",
@@ -45,7 +45,7 @@ export const termosPassageiro = {
     },
     {
       titulo: "Responsabilidade",
-      texto: "A TimorgianaRide é uma plataforma tecnológica de intermediação e não presta serviços de transporte rodoviário, não assumindo a qualidade de transportador nem de seguradora.\n\nA prestação do serviço de transporte constitui um acordo direto e exclusivo entre o passageiro e o motorista. A TimorgianaRide não responde civil, contraordenacional ou penalmente por:\n\n• Acidentes de viação, lesões corporais, morte ou danos materiais ocorridos durante a viagem;\n\n• Atrasos, incumprimento de horários ou alteração de rotas por parte do motorista;\n\n• Perda, roubo, esquecimento ou danos em objetos e pertences pessoais no interior do veículo;\n\n• Condutas, litígios ou ofensas verbais/físicas ocorridas entre passageiros e motoristas.\n\nA recolha e verificação de documentos (carta de condução, registo do veículo e fotografia) destina-se exclusivamente à validação cadastral do motorista na plataforma, não constituindo qualquer garantia ou atestado de perícia de condução, estado mecânico do veículo ou segurança da viagem.",
+      texto: "No âmbito da utilização desta aplicação, a TimorgianaRide atua exclusivamente como plataforma tecnológica de intermediação. O transporte é executado pelo motorista, com veículo próprio e sob a sua exclusiva responsabilidade, não assumindo a TimorgianaRide, nesta relação, a qualidade de transportador nem de seguradora.\n\nA prestação do serviço de transporte constitui um acordo direto e exclusivo entre o passageiro e o motorista. A TimorgianaRide não responde civil, contraordenacional ou penalmente por:\n\n• Acidentes de viação, lesões corporais, morte ou danos materiais ocorridos durante a viagem;\n\n• Atrasos, incumprimento de horários ou alteração de rotas por parte do motorista;\n\n• Perda, roubo, esquecimento ou danos em objetos e pertences pessoais no interior do veículo;\n\n• Condutas, litígios ou ofensas verbais/físicas ocorridas entre passageiros e motoristas.\n\nA recolha e verificação de documentos (carta de condução, registo do veículo e fotografia) destina-se exclusivamente à validação cadastral do motorista na plataforma, não constituindo qualquer garantia ou atestado de perícia de condução, estado mecânico do veículo ou segurança da viagem.",
     },
     {
       titulo: "Contactos e Alterações aos Termos",
@@ -70,7 +70,7 @@ export const termosMotorista = {
     },
     {
       titulo: "Requisitos Obrigatórios e Documentação",
-      texto: "Antes de aceitar viagens, é da sua exclusiva responsabilidade possuir e manter válidos:\n\n• Carta de condução válida e adequada ao veículo que conduz;\n\n• Documentos e registo do veículo devidamente atualizados;\n\n• As devidas condições de segurança e manutenção mecânica do veículo.\n\nO motorista reconhece e aceita que a aplicação não disponibiliza cobertura de seguro de transporte de passageiros ou acidentes, assumindo integralmente os riscos e potenciais danos decorrentes da sua atividade de condução. Se algum documento caducar, deve deixar de aceitar viagens imediatamente.",
+      texto: "Antes de aceitar viagens, é da sua exclusiva responsabilidade possuir e manter válidos:\n\n• Carta de condução válida e adequada ao veículo que conduz;\n\n• Documentos e registo do veículo devidamente atualizados;\n\n• Seguro do veículo válido e adequado à atividade que exerce, incluindo o transporte de passageiros;\n\n• As devidas condições de segurança e manutenção mecânica do veículo.\n\nA cobertura de seguro é da exclusiva responsabilidade do motorista: a TimorgianaRide não disponibiliza nem substitui qualquer seguro de transporte de passageiros ou de acidentes, assumindo o motorista integralmente os riscos e potenciais danos decorrentes da sua atividade de condução. Se algum documento caducar, deve deixar de aceitar viagens imediatamente.",
     },
     {
       titulo: "Validação e Proteção de Documentos",
@@ -90,7 +90,7 @@ export const termosMotorista = {
     },
     {
       titulo: "Exclusão de Responsabilidade",
-      texto: "O motorista exerce a sua atividade por sua conta e risco. A TimorgianaRide não responde por acidentes, multas de trânsito, danos no veículo ou por qualquer ocorrência durante a prestação da viagem. A aplicação é uma ferramenta tecnológica de intermediação; não é uma seguradora nem garante um número mínimo de viagens ou determinado nível de rendimentos.",
+      texto: "O motorista exerce a sua atividade por sua conta e risco. A TimorgianaRide não responde por acidentes, multas de trânsito, danos no veículo ou por qualquer ocorrência durante a prestação da viagem. Nesta relação, a TimorgianaRide atua exclusivamente como ferramenta tecnológica de intermediação; não é seguradora nem garante um número mínimo de viagens ou determinado nível de rendimentos.",
     },
   ],
 };

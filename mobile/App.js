@@ -8,6 +8,7 @@ import { useTipografia } from './src/design/tipografia.js';
 import LoadingScreen from './src/screens/LoadingScreen.js';
 import SlowBanner from './src/components/SlowBanner.js';
 import RootNavigator from './src/navigation/RootNavigator.js';
+import Barreira from './src/design/Barreira.js';
 
 export default function App() {
   // Os tipos de letra carregam-se antes de desenhar seja o que for. Se se
@@ -16,19 +17,23 @@ export default function App() {
   const letraPronta = useTipografia();
 
   return (
-    <SafeAreaProvider>
-      <TemaProvider>
-        <I18nProvider>
-          <AuthProvider>
-            {/* A faixa fica por cima de tudo: avisa que o servidor está a
+    <Barreira>
+      <SafeAreaProvider>
+        <TemaProvider>
+          <I18nProvider>
+            <AuthProvider>
+              {/* A faixa fica por cima de tudo: avisa que o servidor está a
               acordar, em qualquer ecrã onde o utilizador esteja. */}
-            <View style={{ flex: 1 }}>
-              <SlowBanner />
-              <View style={{ flex: 1 }}>{letraPronta ? <RootNavigator /> : <LoadingScreen />}</View>
-            </View>
-          </AuthProvider>
-        </I18nProvider>
-      </TemaProvider>
-    </SafeAreaProvider>
+              <View style={{ flex: 1 }}>
+                <SlowBanner />
+                <View style={{ flex: 1 }}>
+                  {letraPronta ? <RootNavigator /> : <LoadingScreen />}
+                </View>
+              </View>
+            </AuthProvider>
+          </I18nProvider>
+        </TemaProvider>
+      </SafeAreaProvider>
+    </Barreira>
   );
 }

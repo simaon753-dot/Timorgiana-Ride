@@ -16,7 +16,7 @@ export const termosPassageiro = {
   seccoes: [
     {
       titulo: "Saida mak TimorgianaRide",
-      texto: "TimorgianaRide hanesan plataforma teknolojia intermediasaun nian ne’ebé ligatu ema ne’ebé presiza transporte ho motorista independente sira. Ami la’ós empreza transporte nian no la presta servisu kaer kareta ka motorizada: motorista sira hala’o operasaun ho sira-nia an rasik no risku rasik.\nViajen ne’e hanesan akordu direta no esklusiva entre ita-bo’ot ho motorista. Ami hatudu imi ba malu, halo estimasaun ba tarifa no fornese meius komunikasaun ba parte sira atu komunika malu.",
+      texto: "TimorgianaRide hanesan plataforma teknolojia intermediasaun nian ne’ebé ligatu ema ne’ebé presiza transporte ho motorista independente sira. Iha servisu ida-ne’e, TimorgianaRide hala’o de’it knaar hanesan intermediáriu no la presta rasik servisu transporte ka servisu kaer kareta ka motorizada: motorista sira hala’o operasaun ho sira-nia an rasik no risku rasik.\nViajen ne’e hanesan akordu direta no esklusiva entre ita-bo’ot ho motorista. Ami hatudu imi ba malu, halo estimasaun ba tarifa no fornese meius komunikasaun ba parte sira atu komunika malu.",
     },
     {
       titulo: "Pagamentu – ho osan-rahun (dinheiro), sem komisaun",
@@ -40,7 +40,7 @@ export const termosPassageiro = {
     },
     {
       titulo: "Responsabilidade",
-      texto: "TimorgianaRide ne’e plataforma teknolojia intermediasaun nian no la presta servisu transporte rodoviáriu, la assume kualidade hanesan transportadór ka seguradora.\nPrestasaun servisu transporte nian hanesan akordu direta no eskluzivu entre pasajeiru no motorista. TimorgianaRide la hatán ba kualker parte sivíl, kontraordenasional ka penál ba:\n• Asidente viasaun, lezaun korporál, mate ka estragu materiál ne’ebé akontese iha viajen nia laran;\n• Atrasu, la kumpre oráriu ka mudansa rota husi motorista nia parte;\n• Lakon, na’ok, haluha ka estragu material no sasan pesoál nian iha veíkulu laran;\n• Hahalok, litígiu ka ofensa verbál/fízika ne’ebé akontese entre pasajeiru no motorista.\nHalibur no verifikasaun dokumentu sira (karta kondusaun, rejistu veíkulu) ba de’it atu validasaun kadastru motorista nian iha plataforma, la’ós garantia ka atestadu kapazidade atu konduz veíkulu, kondisaun mekánika veíkulu nian ka seguransa viajen nian.",
+      texto: "Iha uzu aplikasaun ida-ne’e nia laran, TimorgianaRide hala’o de’it knaar hanesan plataforma teknolojia intermediasaun nian. Transporte rasik motorista mak hala’o, ho nia veíkulu rasik no iha nia responsabilidade eskluziva; iha relasaun ida-ne’e TimorgianaRide la assume kualidade hanesan transportadór ka seguradora.\nPrestasaun servisu transporte nian hanesan akordu direta no eskluzivu entre pasajeiru no motorista. TimorgianaRide la hatán ba kualker parte sivíl, kontraordenasional ka penál ba:\n• Asidente viasaun, lezaun korporál, mate ka estragu materiál ne’ebé akontese iha viajen nia laran;\n• Atrasu, la kumpre oráriu ka mudansa rota husi motorista nia parte;\n• Lakon, na’ok, haluha ka estragu material no sasan pesoál nian iha veíkulu laran;\n• Hahalok, litígiu ka ofensa verbál/fízika ne’ebé akontese entre pasajeiru no motorista.\nHalibur no verifikasaun dokumentu sira (karta kondusaun, rejistu veíkulu) ba de’it atu validasaun kadastru motorista nian iha plataforma, la’ós garantia ka atestadu kapazidade atu konduz veíkulu, kondisaun mekánika veíkulu nian ka seguransa viajen nian.",
     },
     {
       titulo: "Kontaktus no Alterasaun ba Termos",
@@ -65,7 +65,7 @@ export const termosMotorista = {
     },
     {
       titulo: "Requisitu Obrigatóriu no Dokumentasaun",
-      texto: "Antes simu viajen sira, ne’e ita-nia responsabilidade eskluziva no mantein válidu:\n• Karta kondusaun válidu no adekuadu ba veíkulu ne’ebé ita lori;\n• Dokumentu no rejistu veíkulu nian ne’ebé atualizadu ho lós;\n• Kondisaun seguransa no manutensaun mekánika ne’ebé di’ak ba veíkulu.\nMotorista rekoñese no aseita katak aplikasaun la disponibiliza kobertura seguru transporte pasajeiru nian ka aksidente, hodi asume tomak risku no estragu potensiál sira husi atividade konduz karreta nian. Se dokumentu ruma kaduka (liu ona tempu), tenke para kedas simu viajen sira.",
+      texto: "Antes simu viajen sira, ne’e ita-nia responsabilidade eskluziva no mantein válidu:\n• Karta kondusaun válidu no adekuadu ba veíkulu ne’ebé ita lori;\n• Dokumentu no rejistu veíkulu nian ne’ebé atualizadu ho lós;\n• Seguru veíkulu nian ne’ebé válidu no adekuadu ba atividade ne’ebé ita hala’o, inklui transporte pasajeiru;\n• Kondisaun seguransa no manutensaun mekánika ne’ebé di’ak ba veíkulu.\nKobertura seguru nian ne’e motorista nia responsabilidade eskluziva: TimorgianaRide la disponibiliza no la substitui seguru transporte pasajeiru nian ka aksidente, no motorista mak asume tomak risku no estragu potensiál sira husi atividade konduz karreta nian. Se dokumentu ruma kaduka (liu ona tempu), tenke para kedas simu viajen sira.",
     },
     {
       titulo: "Validasaun no Protesaun Dokumentu Sira",
@@ -85,7 +85,7 @@ export const termosMotorista = {
     },
     {
       titulo: "Eskluzaun Responsabilidade",
-      texto: "Motorista hala’o nia atividade ho nia konta no risku rasik. TimorgianaRide la hatán ba asidente sira, multa tránsitu nian, estragu iha veíkulu ka kualker akontesimentu iha prestasaun viajen nia laran. Aplikasaun ne’e hanesan ferramenta teknolojia intermediasaun nian; la’ós seguradora no la garante númeru mínimu viajen nian ka nível rendimentu determinadu ruma.",
+      texto: "Motorista hala’o nia atividade ho nia konta no risku rasik. TimorgianaRide la hatán ba asidente sira, multa tránsitu nian, estragu iha veíkulu ka kualker akontesimentu iha prestasaun viajen nia laran. Iha relasaun ida-ne’e, TimorgianaRide hala’o de’it knaar hanesan ferramenta teknolojia intermediasaun nian; la’ós seguradora no la garante númeru mínimu viajen nian ka nível rendimentu determinadu ruma.",
     },
   ],
 };

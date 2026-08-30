@@ -31,7 +31,7 @@ export const termosPassageiro = {
     {
       titulo: 'What TimorgianaRide is',
       texto:
-        'TimorgianaRide is an intermediation technology platform that connects people who need transport with independent drivers. We are not a transport company and we do not provide driving services: drivers operate on their own account and at their own risk. The ride is a direct and exclusive agreement between you and the driver. The application is limited to providing the connection, calculating the estimated fare and providing means of communication between the parties.',
+        'TimorgianaRide is an intermediation technology platform that connects people who need transport with independent drivers. In this service, TimorgianaRide acts solely as an intermediary and does not itself provide the transport or any driving service: drivers operate on their own account and at their own risk. The ride is a direct and exclusive agreement between you and the driver. The application is limited to providing the connection, calculating the estimated fare and providing means of communication between the parties.',
     },
     {
       titulo: 'Payment — in cash, no commission',
@@ -68,7 +68,7 @@ export const termosPassageiro = {
     {
       titulo: 'Liability',
       texto:
-        'TimorgianaRide is an intermediation technology platform and does not provide road transport services; it acts neither as a carrier nor as an insurer.\n\n' +
+        'In the context of the use of this application, TimorgianaRide acts solely as an intermediation technology platform. The transport is carried out by the driver, with their own vehicle and under their own exclusive responsibility; in this relationship TimorgianaRide acts neither as a carrier nor as an insurer.\n\n' +
         'The provision of the transport service constitutes a direct and exclusive agreement between the passenger and the driver. TimorgianaRide bears no civil, administrative or criminal liability for:\n\n' +
         '• Road accidents, personal injury, death or material damage occurring during the ride;\n' +
         '• Delays, failure to keep to schedules, or changes of route by the driver;\n' +
@@ -111,8 +111,9 @@ export const termosMotorista = {
         'Before accepting rides, it is your sole responsibility to hold and keep valid:\n\n' +
         '• A driving licence valid and appropriate for the vehicle you drive;\n' +
         '• Duly updated vehicle documents and registration;\n' +
+        '• Valid vehicle insurance appropriate to the activity carried out, including the transport of passengers;\n' +
         '• The vehicle in proper safety and mechanical condition.\n\n' +
-        'The driver acknowledges and accepts that the application does not provide passenger transport or accident insurance cover, and assumes in full the risks and potential damage arising from their driving activity. If any document expires, you must stop accepting rides immediately.',
+        'Insurance cover is the driver’s exclusive responsibility: TimorgianaRide neither provides nor replaces any passenger transport or accident insurance, and the driver assumes in full the risks and potential damage arising from their driving activity. If any document expires, you must stop accepting rides immediately.',
     },
     {
       titulo: 'Document validation and protection',
@@ -144,7 +145,7 @@ export const termosMotorista = {
     {
       titulo: 'Exclusion of liability',
       texto:
-        'The driver carries out their activity on their own account and at their own risk. TimorgianaRide is not liable for accidents, traffic fines, damage to the vehicle, or any occurrence during the provision of the ride. The application is an intermediation technology tool; it is neither an insurer nor a guarantee of a minimum number of rides or any particular level of earnings.\n\n' +
+        'The driver carries out their activity on their own account and at their own risk. TimorgianaRide is not liable for accidents, traffic fines, damage to the vehicle, or any occurrence during the provision of the ride. In this relationship, TimorgianaRide acts solely as an intermediation technology tool; it is neither an insurer nor a guarantee of a minimum number of rides or any particular level of earnings.\n\n' +
         'These terms are published in Portuguese, Tetum and English. In the event of any divergence between the versions, the Portuguese text prevails.',
     },
   ],
