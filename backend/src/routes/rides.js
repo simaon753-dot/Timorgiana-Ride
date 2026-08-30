@@ -19,6 +19,7 @@ import { notificarPedidoNovo, notificarAceite, notificarAdminsSOS } from '../pus
 import { one, query } from '../db.js';
 import { rota, preco } from '../routing.js';
 import { config } from '../config.js';
+import { registarDia } from '../assinatura.js';
 
 // Motivos possíveis para cancelar. Os primeiros quatro são do passageiro,
 // os quatro seguintes do motorista; a app mostra os que interessam a cada
@@ -245,6 +246,19 @@ ridesRouter.post(
     }
 
     const updated = await setRideStatus(rideId, status);
+
+    // A viagem concluída é o que faz o dia contar. Em `try` porque a
+    // conclusão da viagem NUNCA pode falhar por causa da cobrança: se o
+    // registo do dia rebentar, o motorista trabalhou de graça — chato,
+    // mas muito melhor do que a viagem não fechar e ele ficar sem poder
+    // receber o passageiro seguinte.
+    if (status === 'completed' && updated?.driver_id) {
+      try {
+        await registarDia(updated.driver_id, rideId);
+      } catch (e) {
+        console.error('[assinatura] não foi possível registar o dia:', e?.message);
+      }
+    }
     notify(req.app.get('io'), updated, 'ride:update');
     return res.json({ ride: toPublicRide(updated) });
   })

@@ -25,6 +25,7 @@ export function RideProvider({ children }) {
   const [requests, setRequests] = useState([]); // só motoristas
   const [messages, setMessages] = useState([]);
   const [unread, setUnread] = useState(0);
+  const [bloqueio, setBloqueio] = useState(null);
   const [rated, setRated] = useState(false);
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -239,8 +240,15 @@ export function RideProvider({ children }) {
       try {
         const { online } = await api.setAvailability(token, valor);
         setOnlineState(!!online);
-      } catch {
+        setBloqueio(null);
+      } catch (e) {
         setOnlineState(!valor); // reverter se falhou
+        // O `catch` mudo que estava aqui era o pior dos dois mundos: o
+        // interruptor voltava atrás e ninguém dizia porquê. Um motorista
+        // sem saldo carregava, via o botão desligar-se sozinho, e ficava a
+        // pensar que a aplicação estava avariada. O motivo vem do servidor;
+        // guardá-lo é o que deixa o ecrã explicar-se.
+        setBloqueio(e?.motivo ? { motivo: e.motivo, mensagem: e.message } : null);
       }
     },
     [token]
@@ -283,6 +291,8 @@ export function RideProvider({ children }) {
         loading,
         online,
         toggleOnline,
+        bloqueio,
+        limparBloqueio: () => setBloqueio(null),
         driverLocation,
         driverPlace,
         minhaPosicao,

@@ -66,7 +66,9 @@ export default function AdminDetalheScreen({ navigation, route }) {
         ) : null}
 
         {v ? <DetalheViagem v={v} t={t} navigation={navigation} /> : null}
-        {c ? <DetalheConta d={dados} t={t} navigation={navigation} /> : null}
+        {c ? (
+          <DetalheConta d={dados} t={t} navigation={navigation} token={token} onMudou={carregar} />
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -139,7 +141,7 @@ function DetalheViagem({ v, t, navigation }) {
 }
 
 // ── Conta ─────────────────────────────────────────────────────────────
-function DetalheConta({ d, t, navigation }) {
+function DetalheConta({ d, t, navigation, token, onMudou }) {
   const c = d.conta;
   return (
     <>
@@ -166,6 +168,8 @@ function DetalheConta({ d, t, navigation }) {
 
       {/* Numa disputa, "aceitou os termos?" é a primeira pergunta — e não
           estava visível em lado nenhum. */}
+      {c.vehicle ? <Assinatura c={c} t={t} token={token} onMudou={onMudou} /> : null}
+
       <Seccao titulo={t('admTermos')}>
         <Linha
           rotulo={t('passenger')}
@@ -378,4 +382,118 @@ const criarEstilos = () =>
 let styles = criarEstilos();
 registarEstilos(() => {
   styles = criarEstilos();
+});
+
+// Carregar dias, do lado de quem recebe o dinheiro.
+//
+// Fica no ecrã da conta e não numa página à parte de propósito: quem
+// confirma que a transferência entrou é a mesma pessoa que está a olhar
+// para o motorista. Separar as duas coisas obrigaria a procurar o nome
+// outra vez noutro sítio — e é aí que se carregam dias na conta errada.
+//
+// Os pacotes vêm do servidor por outra razão: o preço muda, e não pode
+// mudar em três sítios.
+function Assinatura({ c, t, token, onMudou }) {
+  const [aGravar, setAGravar] = useState(false);
+  const [metodo, setMetodo] = useState('escritorio');
+
+  // Do servidor, sempre. Tinha-os escrito aqui à mão e isso punha o preço
+  // em dois sítios — o do motorista vindo do servidor, o do administrador
+  // escrito na app. Bastava mudar um pacote para os dois discordarem, e
+  // quem descobre uma discordância dessas é sempre o cliente.
+  const PACOTES = c.pacotes ?? [];
+  const METODOS = c.formasPagamento ?? [];
+
+  function carregarDias(p) {
+    // Confirmação porque isto é dinheiro. Um toque a mais numa lista de
+    // botões pequenos não pode dar dias a quem não pagou.
+    Alert.alert(t('admCarregarDias'), t('admConfirmarCarga', { dias: p.dias }), [
+      { text: t('cancel'), style: 'cancel' },
+      {
+        text: t('admCarregarDias'),
+        onPress: async () => {
+          setAGravar(true);
+          try {
+            await api.adminCarregar(token, c.id, {
+              dias: p.dias,
+              valorUsd: p.usd,
+              metodo,
+            });
+            onMudou?.();
+          } catch (e) {
+            Alert.alert(t('errGeneric'), e?.message || '');
+          } finally {
+            setAGravar(false);
+          }
+        },
+      },
+    ]);
+  }
+
+  return (
+    <Seccao titulo={t('admAssinatura')}>
+      <Linha rotulo={t('admDiasSaldo')} valor={String(c.dias ?? 0)} forte />
+
+      <Text style={estilosAssin.rotulo}>{t('admFormaPagamento')}</Text>
+      <View style={estilosAssin.linha}>
+        {METODOS.map((m) => (
+          <Pressable
+            key={m}
+            onPress={() => setMetodo(m)}
+            style={[estilosAssin.chip, metodo === m && estilosAssin.chipActivo]}
+          >
+            <Text style={[estilosAssin.chipTexto, metodo === m && estilosAssin.chipTextoActivo]}>
+              {m}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      <View style={estilosAssin.linha}>
+        {PACOTES.map((p) => (
+          <Pressable
+            key={p.dias}
+            disabled={aGravar}
+            onPress={() => carregarDias(p)}
+            style={[estilosAssin.pacote, aGravar && { opacity: 0.5 }]}
+          >
+            <Text style={estilosAssin.pacoteDias}>+{p.dias}</Text>
+            <Text style={estilosAssin.pacoteUsd}>${p.usd}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </Seccao>
+  );
+}
+
+const criarEstilosAssin = () =>
+  StyleSheet.create({
+    rotulo: { ...tipo.legenda, color: colors.textMuted, marginTop: spacing.md },
+    linha: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.xs },
+    chip: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.pill,
+      paddingVertical: 4,
+      paddingHorizontal: spacing.sm,
+    },
+    chipActivo: { borderColor: colors.teal, backgroundColor: colors.teal },
+    chipTexto: { ...tipo.legenda, color: colors.textMuted },
+    chipTextoActivo: { color: colors.onTeal },
+    pacote: {
+      flexGrow: 1,
+      flexBasis: '28%',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.teal,
+      borderRadius: radius.md,
+      paddingVertical: spacing.sm,
+    },
+    pacoteDias: { ...tipo.corpoForte, color: colors.teal },
+    pacoteUsd: { ...tipo.legenda, color: colors.textMuted },
+  });
+
+let estilosAssin = criarEstilosAssin();
+registarEstilos(() => {
+  estilosAssin = criarEstilosAssin();
 });

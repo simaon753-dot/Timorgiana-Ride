@@ -5,6 +5,7 @@ import { getDocument } from '../documents.js';
 import { toPublicUser } from '../users.js';
 import { alertasAbertos, resolverAlerta } from '../sos.js';
 import { fotosDeHoje, getFotoDeTurno } from '../turnos.js';
+import { carregar, FORMAS_PAGAMENTO, PACOTES } from '../assinatura.js';
 
 export const adminRouter = Router();
 adminRouter.use(requireAuth);
@@ -471,6 +472,15 @@ adminRouter.get(
         decisao: u.driver_status_em
           ? { motivo: u.driver_status_motivo, quando: u.driver_status_em, por: u.driver_status_por }
           : null,
+        // Saldo de dias, para o administrador poder carregar sem sair deste
+        // ecrã. Quem confirma a transferência é a mesma pessoa que está a
+        // olhar para a conta.
+        dias: u.dias_saldo ?? 0,
+        // Os preços vão daqui e não ficam escritos na app: um preço em dois
+        // sítios é um preço que vai divergir. Mudar um pacote passa a ser
+        // uma publicação do servidor.
+        pacotes: PACOTES[u.vehicle_type === 'motorbike' ? 'motorbike' : 'car'],
+        formasPagamento: FORMAS_PAGAMENTO,
       },
       documentos: docs.map((d) => ({
         id: d.id,
@@ -667,5 +677,40 @@ adminRouter.get(
         ate: d.ate,
       })),
     });
+  })
+);
+
+// POST /api/admin/drivers/:id/carregar — dar dias a um motorista
+//
+// O dinheiro entra por transferência (Mandiri, BNU, BNCTL, BRI), por
+// Telemor, por um agente, ou no escritório. Em qualquer dos casos há uma
+// pessoa a confirmar que entrou antes de os dias existirem — não há
+// pagamento automático nenhum, e não deve haver: numa cobrança em dinheiro
+// vivo, a confirmação humana É o sistema.
+adminRouter.post(
+  '/drivers/:id/carregar',
+  wrap(async (req, res) => {
+    const id = Number(req.params.id);
+    const { dias, valorUsd, metodo, referencia } = req.body || {};
+    if (!id) return res.status(400).json({ error: 'Motorista inválido.' });
+    if (metodo && !FORMAS_PAGAMENTO.includes(metodo)) {
+      return res.status(400).json({ error: 'Forma de pagamento desconhecida.' });
+    }
+    try {
+      const saldo = await carregar({
+        userId: id,
+        dias,
+        valorUsd,
+        metodo,
+        referencia,
+        adminId: req.user.id,
+      });
+      // Fica no registo de auditoria como qualquer outro acto: mexer no
+      // saldo de alguém é mexer no dinheiro dele.
+      registarAcesso(req.user.id, `carregou ${dias} dias`, id);
+      res.json({ dias: saldo });
+    } catch (e) {
+      res.status(400).json({ error: e.message });
+    }
   })
 );

@@ -1,10 +1,15 @@
 import { getApiUrl } from '../serverUrl.js';
 
 export class ApiError extends Error {
-  constructor(message, status) {
+  constructor(message, status, motivo) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    // O servidor manda um `motivo` legível por código junto com a mensagem
+    // — 'sem_saldo', 'foto_de_turno', 'documento_caducado'. Sem o guardar
+    // aqui, quem apanha o erro só tem a frase, e não pode decidir para onde
+    // levar a pessoa a seguir.
+    this.motivo = motivo ?? null;
   }
 }
 
@@ -65,7 +70,7 @@ async function request(path, { method = 'GET', body, token } = {}) {
   }
 
   if (!res.ok) {
-    throw new ApiError(data?.error || 'Erro inesperado.', res.status);
+    throw new ApiError(data?.error || 'Erro inesperado.', res.status, data?.motivo);
   }
   return data;
 }
@@ -133,6 +138,9 @@ export const api = {
   adminResumo: (token) => request('/admin/resumo', { token }),
   adminSos: (token) => request('/admin/sos', { token }),
   adminNotificacoes: (token) => request('/admin/notificacoes', { token }),
+  assinatura: (token) => request('/driver/assinatura', { token }),
+  adminCarregar: (token, id, body) =>
+    request(`/admin/drivers/${id}/carregar`, { method: 'POST', body, token }),
   adminResolverSos: (token, id) => request(`/admin/sos/${id}/resolver`, { method: 'POST', token }),
   adminDrivers: (token, status) => request(`/admin/drivers?status=${status}`, { token }),
   adminDecidir: (token, id, decision, motivo) =>

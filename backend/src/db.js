@@ -159,6 +159,38 @@ export async function initSchema() {
   await query('CREATE INDEX IF NOT EXISTS idx_rides_passenger ON rides(passenger_id)');
   await query('CREATE INDEX IF NOT EXISTS idx_messages_ride ON messages(ride_id)');
 
+  // Assinatura dos motoristas. Um dia conta quando houve uma viagem
+  // concluída — e a chave única (user_id, dia) é o que faz cumprir a regra
+  // "uma vez por dia" sem contar viagens em lado nenhum.
+  await query(`
+    CREATE TABLE IF NOT EXISTS dias_contados (
+      id         SERIAL PRIMARY KEY,
+      user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      dia        DATE NOT NULL,
+      ride_id    INTEGER,
+      gratuito   BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (user_id, dia)
+    )
+  `);
+  await query('CREATE INDEX IF NOT EXISTS idx_dias_user ON dias_contados(user_id, dia DESC)');
+
+  // Cada entrada de dinheiro fica registada com o método e a referência.
+  // Numa cobrança em dinheiro vivo, o registo é a única prova que existe —
+  // e tem de servir tanto ao motorista como à contabilidade.
+  await query(`
+    CREATE TABLE IF NOT EXISTS carregamentos (
+      id         SERIAL PRIMARY KEY,
+      user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      dias       INTEGER NOT NULL,
+      valor_usd  NUMERIC(8,2),
+      metodo     TEXT,
+      referencia TEXT,
+      admin_id   INTEGER,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
   // --- Migrações para bases criadas antes destas colunas ---
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS driver_status TEXT`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT FALSE`);
@@ -170,6 +202,7 @@ export async function initSchema() {
   );
 
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_online BOOLEAN NOT NULL DEFAULT FALSE`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS dias_saldo INTEGER NOT NULL DEFAULT 0`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_lat DOUBLE PRECISION`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_lng DOUBLE PRECISION`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ`);

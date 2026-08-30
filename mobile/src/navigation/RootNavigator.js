@@ -17,6 +17,7 @@ import AdminDetalheScreen from '../screens/AdminDetalheScreen.js';
 import TermosScreen from '../screens/TermosScreen.js';
 import OpcoesScreen from '../screens/OpcoesScreen.js';
 import PerfilScreen from '../screens/PerfilScreen.js';
+import AssinaturaScreen from '../screens/AssinaturaScreen.js';
 import Tabuladores from './Tabuladores.js';
 import LoadingScreen from '../screens/LoadingScreen.js';
 import { colors } from '../theme.js';
@@ -72,6 +73,7 @@ export default function RootNavigator() {
               <Stack.Screen name="DriverPending" component={DriverPendingScreen} />
               <Stack.Screen name="Chat" component={ChatScreen} />
               <Stack.Screen name="Perfil" component={PerfilScreen} />
+              <Stack.Screen name="Assinatura" component={AssinaturaScreen} />
               <Stack.Screen name="Opcoes" component={OpcoesScreen} />
               <Stack.Screen name="Server" component={ServerScreen} />
               <Stack.Screen name="Termos" component={TermosScreen} />

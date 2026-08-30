@@ -38,6 +38,7 @@ export default function DriverHomeScreen({ navigation }) {
   // piscar o cartão de fotografia a quem já a tirou.
   const [fotoDeHoje, setFotoDeHoje] = useState(null);
   const [avisoDocs, setAvisoDocs] = useState(null);
+  const [assinatura, setAssinatura] = useState(null);
   const [centroMapa, setCentroMapa] = useState(null);
 
   // Espelho do ecrã do passageiro: aqui só entram viagens que EU conduzo.
@@ -48,6 +49,7 @@ export default function DriverHomeScreen({ navigation }) {
       const r = await api.driverStatus(token);
       setFotoDeHoje(!!r.fotoDeHoje);
       setAvisoDocs(r.apto?.pode === false ? r.apto : null);
+      setAssinatura(r.assinatura || null);
     } catch {
       /* sem rede: não bloqueamos nada com base em desconhecimento */
     }
@@ -74,6 +76,7 @@ export default function DriverHomeScreen({ navigation }) {
     connected,
     online,
     toggleOnline,
+    bloqueio,
     minhaPosicao,
   } = useRides();
 
@@ -90,6 +93,14 @@ export default function DriverHomeScreen({ navigation }) {
           <View style={{ marginBottom: spacing.md }}>
             <FotoDeTurno feita={false} onFeita={verEstado} />
           </View>
+        ) : null}
+
+        {/* A assinatura fica ACIMA do interruptor, como a fotografia de
+            turno: as duas coisas que podem impedir o motorista de trabalhar
+            têm de estar à vista antes de ele carregar no botão, e não
+            depois de o botão recusar. */}
+        {!activeRide ? (
+          <FaixaAssinatura a={assinatura} bloqueio={bloqueio} navigation={navigation} />
         ) : null}
 
         {!activeRide && avisoDocs ? (
@@ -446,4 +457,68 @@ const criarEstilos = () =>
 let styles = criarEstilos();
 registarEstilos(() => {
   styles = criarEstilos();
+});
+
+// Faixa da assinatura.
+//
+// Três estados, e só um aparece de cada vez:
+//   · em período gratuito — verde, com a data. Diz o preço antes de o
+//     cobrar, que é a diferença entre "acabou a promoção" e "tiraram-me
+//     alguma coisa".
+//   · sem dias — coral, e leva ao ecrã onde se carrega.
+//   · com dias — nada. Um motorista a trabalhar não precisa de ver a
+//     contabilidade dele todos os dias.
+function FaixaAssinatura({ a, bloqueio, navigation }) {
+  const { t, lang } = useI18n();
+  if (!a) return null;
+
+  const bloqueado = bloqueio?.motivo === 'sem_saldo' || (!a.gratuito && (a.dias ?? 0) <= 0);
+  if (!a.gratuito && !bloqueado) return null;
+
+  // "2027-04-30" lê-se mal numa faixa. O nome do mês lê-se de relance — e
+  // é assim que o Simão o diz em voz alta. O tétum não é uma língua que o
+  // Intl conheça; os meses em português são o que qualquer motorista em
+  // Díli reconhece.
+  const quando = (() => {
+    try {
+      return new Date(`${a.gratuitoAte}T00:00:00`).toLocaleDateString(lang === 'en' ? 'en' : 'pt', {
+        month: 'long',
+        year: 'numeric',
+      });
+    } catch {
+      return a.gratuitoAte;
+    }
+  })();
+
+  return (
+    <Pressable
+      onPress={() => navigation.navigate('Assinatura')}
+      style={[estilosFaixa.faixa, bloqueado && estilosFaixa.faixaMau]}
+    >
+      <Text style={estilosFaixa.titulo}>
+        {bloqueado ? t('assinBloqueado') : t('assinGratuitaAte', { ate: quando })}
+      </Text>
+      <Text style={estilosFaixa.nota}>{bloqueado ? t('assinSemSaldo') : t('assinVer')}</Text>
+    </Pressable>
+  );
+}
+
+const criarEstilosFaixa = () =>
+  StyleSheet.create({
+    faixa: {
+      backgroundColor: colors.teal,
+      borderRadius: radius.md,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.md,
+      marginBottom: spacing.md,
+      gap: 2,
+    },
+    faixaMau: { backgroundColor: colors.danger },
+    titulo: { ...tipo.corpoForte, color: colors.onTeal },
+    nota: { ...tipo.pequeno, color: colors.onTeal, opacity: 0.9 },
+  });
+
+let estilosFaixa = criarEstilosFaixa();
+registarEstilos(() => {
+  estilosFaixa = criarEstilosFaixa();
 });

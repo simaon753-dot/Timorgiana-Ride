@@ -6,6 +6,7 @@ import { temFotoDeHoje, guardarFotoDeTurno, ultimaFotoDeTurno } from '../turnos.
 import { setOnline, savePushToken } from '../drivers.js';
 import { toPublicUser } from '../users.js';
 import { notificarAdminsMotoristaPronto } from '../push.js';
+import { podeEntrarAoServico, estadoDe, resumoDe } from '../assinatura.js';
 
 export const driverRouter = Router();
 // Sem guarda de papel: é por aqui que uma conta de passageiro se torna
@@ -20,10 +21,13 @@ driverRouter.get(
   '/status',
   wrap(async (req, res) => {
     const docs = await listDocuments(req.user.id);
-    const [apto, fotoHoje, ultimaFoto] = await Promise.all([
+    const [apto, fotoHoje, ultimaFoto, assinatura] = await Promise.all([
       podeTrabalhar(req.user.id),
       temFotoDeHoje(req.user.id),
       ultimaFotoDeTurno(req.user.id),
+      // Vai no mesmo pedido de propósito. Uma faixa de duas linhas no ecrã
+      // do motorista não justifica uma segunda ida à rede em Díli.
+      resumoDe(req.user.id),
     ]);
     res.json({
       user: toPublicUser(req.user),
@@ -41,6 +45,7 @@ driverRouter.get(
       // fotografia nova substituir a antiga no ecrã: muda a data, muda o
       // endereço, e a cache de imagens deixa de servir a de ontem.
       retratoDe: ultimaFoto ? ultimaFoto.dia : null,
+      assinatura,
     });
   })
 );
@@ -75,6 +80,18 @@ driverRouter.post(
       }
       if (!(await temFotoDeHoje(req.user.id))) {
         return res.status(428).json({ error: 'Tira uma fotografia para começar o dia.', motivo: 'foto_de_turno' });
+      }
+
+      // O saldo é a última condição, e de propósito: quem não tem dias deve
+      // sabê-lo DEPOIS de saber que os documentos estão em ordem. Ao
+      // contrário, um motorista sem saldo e com a carta caducada carregava
+      // dias e continuava bloqueado, sem perceber porquê.
+      const saldo = await podeEntrarAoServico(req.user.id);
+      if (!saldo.pode) {
+        return res.status(402).json({
+          error: 'A tua assinatura acabou. Carrega dias para voltar a receber viagens.',
+          motivo: 'sem_saldo',
+        });
       }
     }
 
@@ -309,5 +326,18 @@ driverRouter.post(
     } catch (e) {
       return res.status(400).json({ error: e.message });
     }
+  })
+);
+
+// GET /api/driver/assinatura — o que o motorista tem, e o que já gastou
+//
+// Devolve o histórico junto com o saldo, e não só o número. O número
+// sozinho não resolve uma discussão: quando um motorista diz "isto está
+// mal", o que responde é a lista dos dias, com as datas. Sem ela, a
+// discussão resolve-se contra quem não tem registo — que é sempre ele.
+driverRouter.get(
+  '/assinatura',
+  wrap(async (req, res) => {
+    res.json(await estadoDe(req.user.id));
   })
 );
