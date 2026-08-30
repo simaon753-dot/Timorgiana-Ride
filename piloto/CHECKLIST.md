@@ -96,6 +96,9 @@ projecto pessoal no momento em que um motorista real enviar a primeira foto.
 ### Técnico — feito, falta confirmares
 
 - [x] Enviar a Fase 4 (`git push`) — feito 21/08/2026, servidor confirmado no ar
+- [x] **Ecrã de registo.** Estava partido desde a regeneração dos termos
+      (campo `aceitarCurto` perdido). Arranjado e confirmado pelo Simão
+      em 30/08/2026.
 - [ ] Abrir o painel de administração na app e confirmar que os números batem
 - [ ] Fazer um SOS de teste e confirmar que chega
 - [x] Trocar a palavra-passe do Neon — FEITO 30/08/2026. Rodada no Neon,
