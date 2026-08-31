@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { pesquisarLugares } from '../lib/geocode.js';
+import { useAuth } from '../context/AuthContext.js';
 import { useI18n } from '../i18n/index.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
@@ -31,6 +32,7 @@ import { tipo } from '../design/tipografia.js';
 // abusivo e mais lento.
 export default function PlaceSearch({ placeholder, onEscolher, onFechar, onUsarLocalizacao }) {
   const { t } = useI18n();
+  const { token } = useAuth();
   const [termo, setTermo] = useState('');
   const [resultados, setResultados] = useState([]);
   const [aProcurar, setAProcurar] = useState(false);
@@ -48,7 +50,7 @@ export default function PlaceSearch({ placeholder, onEscolher, onFechar, onUsarL
       abortRef.current?.abort();
       const ctrl = new AbortController();
       abortRef.current = ctrl;
-      const rs = await pesquisarLugares(termo, ctrl.signal);
+      const rs = await pesquisarLugares(termo, ctrl.signal, token);
       setResultados(rs);
       setProcurou(true);
       setAProcurar(false);

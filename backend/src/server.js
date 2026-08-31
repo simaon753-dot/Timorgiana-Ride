@@ -15,6 +15,7 @@ import { quoteRouter } from './routes/quote.js';
 import { verifyToken } from './auth.js';
 import { setOnline, updateLocation } from './drivers.js';
 import { one } from './db.js';
+import { lugaresRouter } from './routes/lugares.js';
 
 const app = express();
 app.use(cors());
@@ -65,6 +66,7 @@ app.use('/api/rides', ridesRouter);
 app.use('/api/driver', driverRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/quote', quoteRouter);
+app.use('/api/lugares', lugaresRouter);
 
 app.use('/api', (req, res) => {
   res.status(404).json({ error: 'Rota não encontrada.' });

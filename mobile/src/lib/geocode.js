@@ -1,3 +1,4 @@
+import { getApiUrl } from '../serverUrl.js';
 // Pesquisa e nomes de lugares, via OpenStreetMap (Nominatim).
 //
 // O Nominatim exige que cada aplicação se identifique e pede que não se
@@ -55,14 +56,18 @@ function lembrar(k, valor) {
   return valor;
 }
 
-async function buscar(url, sinal) {
+async function buscar(url, sinal, token) {
   const ctrl = new AbortController();
   const relogio = setTimeout(() => ctrl.abort(), PRAZO_MS);
   // Um sinal vindo de fora (o utilizador mudou de ecrã) também corta.
   if (sinal) sinal.addEventListener?.('abort', () => ctrl.abort());
   try {
     const r = await fetch(url, {
-      headers: { Accept: 'application/json', 'User-Agent': UA },
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': UA,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       signal: ctrl.signal,
     });
     return r.ok ? await r.json() : null;
@@ -73,10 +78,33 @@ async function buscar(url, sinal) {
   }
 }
 
-export async function pesquisarLugares(termo, sinal) {
+// Busca de lugares, agora pelo nosso servidor.
+//
+// Antes ia direita ao Nominatim, do telemóvel. Passou a ir pelo servidor por
+// duas razões, e a segunda é a que mais se nota em Díli:
+//
+//   1. O servidor tem uma segunda camada — o Google — para os sítios que o
+//      OpenStreetMap ainda não conhece. A chave de facturação não pode viver
+//      dentro da app: quem descarrega o APK consegue tirá-la de lá.
+//   2. O servidor guarda as respostas. O segundo passageiro a procurar
+//      "Timor Plaza" recebe-a sem sair do país.
+//
+// Se o nosso servidor não responder, cai para o Nominatim como sempre fez.
+// O que é novo tem de poder falhar sem levar o resto atrás — o mesmo
+// princípio do sino das notificações.
+export async function pesquisarLugares(termo, sinal, token) {
   const q = String(termo || '').trim();
   if (q.length < 3) return [];
 
+  if (token) {
+    const r = await buscar(`${getApiUrl()}/lugares?q=${encodeURIComponent(q)}`, sinal, token);
+    if (Array.isArray(r?.lugares)) return r.lugares;
+  }
+  return pesquisarNoNominatim(q, sinal);
+}
+
+// O caminho antigo, guardado inteiro como rede de segurança.
+async function pesquisarNoNominatim(q, sinal) {
   const params = new URLSearchParams({
     q,
     format: 'json',
