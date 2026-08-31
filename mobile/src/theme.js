@@ -59,20 +59,30 @@ export const PALETAS = {
     // O fundo é preto, por isso a superfície tem de ser um pouco mais
     // clara — com o primeiro valor que escolhi (#111614) os cartões
     // desapareciam no fundo e o ecrã ficava uma mancha sem estrutura.
-    // Este destaca-se o suficiente para se ver onde acaba cada bloco, e
-    // mantém o toque de verde da marca.
-    white: '#202825',
+    // Este destaca-se o suficiente para se ver onde acaba cada bloco.
+    //
+    // Era #202825, com um toque de verde da marca. Passou a cinzento
+    // neutro a pedido do Simão, que mostrou o modelo que quer: fundo
+    // preto, superfícies cinzentas, letra branca. Sem tom nenhum.
+    white: '#1C1C1E',
 
-    // As letras.
-    text: '#FF8552',
-    // O secundário é o mesmo laranja mais apagado, e não um cinzento: um
-    // cinzento ao lado de laranja lê-se como texto desactivado.
-    textMuted: '#C97F55',
+    // As letras. Eram laranja e passaram a branco.
+    //
+    // O laranja tinha sido escolha minha. Além de ser o que ele prefere,
+    // branco sobre preto dá o contraste máximo possível — e quem lê isto
+    // está a conduzir de noite.
+    text: '#FFFFFF',
+    // Secundário em cinzento neutro, como no modelo. Dá 6,4:1 sobre preto:
+    // passa com folga o mínimo de 4,5:1, portanto continua a ler-se como
+    // texto e não como coisa desligada.
+    textMuted: '#8E8E93',
 
     // O contorno faz metade do trabalho de separar os blocos, por isso é
-    // mais claro do que a superfície onde assenta.
-    border: '#3D4C45',
-    inputBg: '#202825',
+    // mais claro do que a superfície onde assenta. Neutralizado também: um
+    // contorno esverdeado à volta de cinzentos neutros dá-se a ver, e fazia
+    // o preto parecer ter cor.
+    border: '#38383A',
+    inputBg: '#1C1C1E',
 
     // Vermelho afastado do laranja, senão o perigo confunde-se com texto
     // normal — que é o pior sítio para uma confusão.
