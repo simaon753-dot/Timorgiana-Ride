@@ -45,7 +45,13 @@ jobs:
           test -n "$DATABASE_URL" || { echo "Falta o segredo DATABASE_URL"; exit 1; }
           test -n "$SENHA" || { echo "Falta o segredo BACKUP_PASSPHRASE"; exit 1; }
 
-          NOME="timorgianaride-$(date -u +%Y-%m-%d).sql.gz.enc"
+          # O número da execução entra no nome.
+          #
+          # Sem ele, todas as cópias se chamam igual, e a pasta de
+          # transferências enche-se de ficheiros indistinguíveis. Passámos
+          # meia hora a testar senhas contra um ficheiro que afinal era de
+          # outra execução — sem forma de o saber.
+          NOME="timorgianaride-$(date -u +%Y-%m-%d)-exec${{ github.run_number }}.sql.gz.enc"
           echo "NOME=$NOME" >> "$GITHUB_ENV"
 
           # O pg_dump vem da imagem oficial do PostgreSQL 18, e não do
