@@ -248,6 +248,11 @@ export default function RequestRideScreen({ navigation, route }) {
                   t={t}
                 />
               ))}
+              {/* Taxas de entrada, logo a seguir à escolha do veículo.
+                  Aqui e não antes, porque no Timor Plaza só o carro paga —
+                  o aviso muda conforme o que se escolhe. */}
+              <TaxasDeEntrada taxas={orcamento.taxasDeEntrada} veiculo={veiculo} t={t} />
+
               {/* Só em carro: numa motorizada vai sempre uma pessoa, e
                   perguntar seria fazer perder tempo com uma resposta que
                   já se sabe. */}
@@ -455,4 +460,64 @@ const criarEstilos = () =>
 let styles = criarEstilos();
 registarEstilos(() => {
   styles = criarEstilos();
+});
+
+// Aviso das taxas de entrada.
+//
+// Existe por causa de uma discussão à porta de um carro. Um passageiro que
+// não sabe da taxa chega à cancela e recusa-se a pagar; quem fica a perder é
+// o motorista, que já entrou e tem de sair pela mesma cancela. Duas pessoas
+// zangadas por causa de uma informação que ninguém lhes deu.
+//
+// Só aparece se o veículo ESCOLHIDO pagar. No Timor Plaza a motorizada entra
+// de graça, e mostrar-lhe um aviso de taxa seria dizer-lhe uma coisa falsa.
+function TaxasDeEntrada({ taxas, veiculo, t }) {
+  const aplicaveis = (taxas ?? []).filter((x) => x.taxa?.[veiculo]);
+  if (!aplicaveis.length) return null;
+
+  return (
+    <View style={estilosTaxa.caixa}>
+      <Text style={estilosTaxa.titulo}>{t('taxaEntradaTitulo')}</Text>
+      {aplicaveis.map((x) => {
+        const c = x.taxa[veiculo];
+        const valor =
+          c.usd == null
+            ? t('taxaSemValor')
+            : c.por === 'hora'
+              ? t('taxaPorHora', { valor: `$${c.usd.toFixed(2)}` })
+              : t('taxaAEntrada', { valor: `$${c.usd.toFixed(2)}` });
+        const onde =
+          x.onde === 'estacionamento' ? t('taxaOndeEstacionamento') : t('taxaOndeRecinto');
+        return (
+          <Text key={x.id} style={estilosTaxa.linha}>
+            {x.nome} · {onde} — <Text style={estilosTaxa.valor}>{valor}</Text>
+          </Text>
+        );
+      })}
+      <Text style={estilosTaxa.nota}>{t('taxaEntradaPaga')}</Text>
+    </View>
+  );
+}
+
+const criarEstilosTaxa = () =>
+  StyleSheet.create({
+    // Contorno coral e fundo neutro: é um aviso, não um erro. O passageiro
+    // não fez nada de errado — só precisa de saber antes de ir.
+    caixa: {
+      borderWidth: 1,
+      borderColor: colors.coral,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.md,
+      gap: 4,
+    },
+    titulo: { ...tipo.corpoForte, color: colors.coral },
+    linha: { ...tipo.pequeno, color: colors.text },
+    valor: { ...tipo.corpoForte, color: colors.text },
+    nota: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
+  });
+
+let estilosTaxa = criarEstilosTaxa();
+registarEstilos(() => {
+  estilosTaxa = criarEstilosTaxa();
 });

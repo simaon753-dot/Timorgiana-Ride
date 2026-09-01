@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth } from '../auth.js';
 import { rota, preco, etaMinutos, straightKm } from '../routing.js';
 import { nearestDrivers } from '../drivers.js';
+import { taxasPara } from '../taxasDeEntrada.js';
 
 export const quoteRouter = Router();
 quoteRouter.use(requireAuth);
@@ -53,6 +54,13 @@ quoteRouter.post(
       approximate: viagem.aproximado,
       currency: 'USD',
       options: opcoes,
+      // Sítios onde entrar custa dinheiro — o estacionamento do Timor Plaza, o
+      // recinto do aeroporto. Vai com a tarifa e não à parte porque é aqui que
+      // já se sabem as duas pontas da viagem, e porque o passageiro tem de
+      // saber ANTES de pedir, não depois de estar à cancela.
+      //
+      // Não entra no preço: o dinheiro é entregue na cancela, não ao motorista.
+      taxasDeEntrada: taxasPara({ originLat: oLat, originLng: oLng, destLat: dLat, destLng: dLng }),
     });
   })
 );
