@@ -94,12 +94,26 @@ jobs:
           SENHA: ${{ secrets.BACKUP_PASSPHRASE }}
         run: |
           set -euo pipefail
+          # Escreve para ficheiro em vez de canalizar para `head`.
+          #
+          # A primeira versão fazia `... | gunzip | head -c 200 | grep`. O
+          # `head` fecha o cano assim que tem o que quer, o `gunzip` morre
+          # com "Broken pipe", e com `pipefail` a verificação dava ERRO
+          # mesmo quando a decifragem tinha corrido bem.
+          #
+          # Ou seja: uma verificação que inventava avarias. É pior do que não
+          # ter verificação nenhuma — manda arranjar o que não está partido.
           openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:SENHA -in "$NOME" \
-            | gunzip \
-            | head -c 200 \
-            | grep -qi "PostgreSQL database dump\|SET statement_timeout\|CREATE TABLE" \
-            && echo "A cópia decifra e contém SQL do pg_dump." \
-            || { echo "A cópia NÃO se consegue decifrar com a senha do segredo."; exit 1; }
+            | gunzip > /tmp/verificar.sql
+
+          if head -c 400 /tmp/verificar.sql | grep -qi "PostgreSQL database dump\|SET statement_timeout\|CREATE TABLE"; then
+            echo "A cópia decifra, e o que sai é SQL do pg_dump."
+            echo "Linhas: $(wc -l < /tmp/verificar.sql)"
+          else
+            echo "A cópia NÃO se consegue decifrar com a senha do segredo."
+            exit 1
+          fi
+          rm -f /tmp/verificar.sql
 
       - name: Confirmar que a cópia não está vazia
         # Uma cópia de segurança que falha em silêncio é pior do que não ter
