@@ -22,8 +22,16 @@ Sobre a `BACKUP_PASSPHRASE`:
 
 - **Não é a senha do Neon.** É uma senha nova, só para cifrar as cópias.
 - **Perdê-la é perder as cópias todas.** Não há como recuperar.
-- Guarda-a onde guardas as coisas que não podes perder — não no computador
-  onde está o projecto, porque se esse arder perdeste as duas coisas.
+- Vive em `~/Documents/senha-copias-timorgianaride.txt`, e **nunca se
+  escreve à mão**. Copia-se de lá para o GitHub, e lê-se de lá ao decifrar.
+
+  Isto não é comodidade. No primeiro ensaio, três tentativas de decifrar
+  deram três resultados diferentes — porque a senha estava a ser escrita à
+  mão e saía diferente de cada vez. Escrever uma senha aleatória é uma
+  operação que falha.
+
+- **Copia esse ficheiro para outro sítio.** Uma pen, outro computador. Se
+  este Mac se perder, perdem-se as cópias com ele.
 
 ---
 
@@ -44,60 +52,79 @@ cifrado. Podes guardá-lo num disco externo sem preocupação.
 
 ## 3. Restaurar
 
-### Precisas do psql
+Ensaiado a sério em 01/09/2026. O que está aqui foi todo executado, não é
+teoria.
 
-Não vem com o macOS. A forma mais simples:
+### Não precisas de instalar nada
 
-```bash
-brew install libpq && brew link --force libpq
-```
+Usa o `node` que já tens. O `psql` não é preciso — a cópia é feita com
+`--inserts` exactamente para isso.
 
 ### Decifrar
 
 ```bash
+cd ~/Downloads
 openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 \
-  -in timorgianaride-2026-09-01.sql.gz.enc | gunzip > copia.sql
+  -pass file:~/Documents/senha-copias-timorgianaride.txt \
+  -in timorgianaride-AAAA-MM-DD-execN.sql.gz.enc | gunzip > copia.sql
 ```
 
-Pede a senha. Se a senha estiver errada, dá erro — não produz lixo em
-silêncio.
+Não pede senha nenhuma — lê-a do ficheiro.
 
 Confirma que ficou bom:
 
 ```bash
-head -20 copia.sql
+head -3 copia.sql
 ```
 
-Deve começar com linhas de `CREATE TABLE` e afins.
+Deve dizer `-- PostgreSQL database dump`.
 
-### ⚠️ NÃO restaures por cima da base a funcionar
+### ⚠️ Precisas de uma base VAZIA
 
-Restaurar apaga o que lá está. Se a cópia tiver um problema, ficas sem as
-duas coisas.
+Restaurar apaga o que lá está. E um *branch* do Neon **não serve**: nasce com
+uma cópia dos dados do pai.
 
-**Faz assim:** no Neon, cria um *branch* novo (`Branches → Create branch`).
-Um branch é uma cópia independente e não toca na de produção. Restauras para
-lá, confirmas que está tudo, e só depois trocas.
+O que serve é uma **base de dados nova**, no mesmo projecto:
+`Neon → Databases → New Database`.
 
-```bash
-psql "LIGAÇÃO_DO_BRANCH_NOVO" < copia.sql
-```
-
-### Confirmar antes de trocar
+Atenção a um pormenor que nos apanhou: o Neon cria em cada base um esquema
+chamado `neon_auth`, e a cópia também o traz. Se a base de destino já o
+tiver, o restauro falha a meio com *"schema neon_auth already exists"*. Para
+a esvaziar por completo, corre contra ELA (nunca contra a que está a
+funcionar):
 
 ```sql
-SELECT COUNT(*) FROM users;
-SELECT COUNT(*) FROM carregamentos;
-SELECT SUM(dias_saldo) FROM users;
+DROP SCHEMA IF EXISTS neon_auth CASCADE;
+DROP SCHEMA IF EXISTS public CASCADE;
+CREATE SCHEMA public;
 ```
 
-Os dias em saldo são o número que mais importa: é o que as pessoas pagaram
-e ainda não usaram.
+### Restaurar
 
-### Trocar
+```bash
+cd "/Users/gabinetejuridico/Documents/Claude Code/TimorgianaRide/backend"
+node scripts/restaurar.mjs ~/Downloads/copia.sql "LIGACAO_DA_BASE_DE_ENSAIO"
+```
 
-No Render, `Environment → DATABASE_URL`, mete a ligação do branch novo.
-Guarda. Dois minutos e está.
+A ligação é a do Neon com o nome da base trocado no fim — `/neondb?` passa a
+`/nome_da_base_nova?`.
+
+O script recusa-se a correr se a base de destino tiver tabelas. É a última
+protecção contra restaurar por cima da base verdadeira.
+
+No fim conta o que restaurou. **Compara com a base a funcionar** — se os
+números baterem, a cópia presta.
+
+### Depois do ensaio, limpa
+
+O `copia.sql` são cinco megabytes de nomes, telemóveis e documentos de
+identificação **sem cifra nenhuma**, na pasta das transferências.
+
+```bash
+rm -f ~/Downloads/copia.sql
+```
+
+E esvazia a base de ensaio, que ficou com uma cópia de tudo.
 
 ---
 

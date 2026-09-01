@@ -105,8 +105,10 @@ projecto pessoal no momento em que um motorista real enviar a primeira foto.
 - [x] **Cópia de segurança a funcionar.** FEITO 01/09/2026 — os dois
       segredos no GitHub e uma execução manual verde. Corre todas as noites
       às 02:00 de Díli, cifrada, guardada 90 dias.
-- [ ] **Ensaiar um restauro** para um branch novo do Neon, uma vez, com
-      calma. Uma cópia que nunca foi restaurada não é uma cópia.
+- [x] **Restauro ensaiado.** FEITO 01/09/2026. A cópia foi descarregada,
+      decifrada e restaurada para uma base vazia; as nove contagens bateram
+      certo com a base a funcionar. O SQL decifrado e a base de ensaio foram
+      apagados a seguir.
 - [ ] **SOS de teste durante uma viagem a decorrer.** O que foi testado em
       30/08/2026 foi o atalho das Opções, que só consulta e liga — e esse
       funciona. O SOS que grava alerta e aparece no painel é o botão que só

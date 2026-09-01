@@ -111,15 +111,21 @@ try {
 console.log(`  ✓ restaurado em ${((Date.now() - inicio) / 1000).toFixed(1)}s`);
 console.log();
 
+// O ficheiro do pg_dump esvazia o search_path da sessão — é uma protecção
+// dele contra esquemas maliciosos. Sem repor isto, tudo o que se pergunte a
+// seguir por nome simples dá "tabela não existe", e parece que o restauro
+// falhou quando na verdade correu bem.
+await cliente.query('SET search_path = public');
+
 // O que interessa contar. Os dias em saldo vêm primeiro porque são o número
 // que representa dinheiro: o que as pessoas pagaram e ainda não usaram.
 const contas = [
-  ['dias em saldo (pagos e por usar)', 'SELECT COALESCE(SUM(dias_saldo),0)::int AS n FROM users'],
-  ['carregamentos', 'SELECT COUNT(*)::int AS n FROM carregamentos'],
-  ['dias contados', 'SELECT COUNT(*)::int AS n FROM dias_contados'],
-  ['contas', 'SELECT COUNT(*)::int AS n FROM users'],
-  ['viagens', 'SELECT COUNT(*)::int AS n FROM rides'],
-  ['documentos de motorista', 'SELECT COUNT(*)::int AS n FROM driver_documents'],
+  ['dias em saldo (pagos e por usar)', 'SELECT COALESCE(SUM(dias_saldo),0)::int AS n FROM public.users'],
+  ['carregamentos', 'SELECT COUNT(*)::int AS n FROM public.carregamentos'],
+  ['dias contados', 'SELECT COUNT(*)::int AS n FROM public.dias_contados'],
+  ['contas', 'SELECT COUNT(*)::int AS n FROM public.users'],
+  ['viagens', 'SELECT COUNT(*)::int AS n FROM public.rides'],
+  ['documentos de motorista', 'SELECT COUNT(*)::int AS n FROM public.driver_documents'],
 ];
 console.log('  ── o que ficou na base restaurada ──');
 for (const [nome, q] of contas) {
