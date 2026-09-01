@@ -25,8 +25,14 @@ import { registarDia } from '../assinatura.js';
 // os quatro seguintes do motorista; a app mostra os que interessam a cada
 // um. Guardar o código e não a frase permite contá-los depois.
 const MOTIVOS_VALIDOS = [
-  'mudei_de_ideias', 'motorista_demora', 'enganei_destino', 'outro_transporte',
-  'longe_demais', 'passageiro_nao_aparece', 'problema_veiculo', 'destino_inacessivel',
+  'mudei_de_ideias',
+  'motorista_demora',
+  'enganei_destino',
+  'outro_transporte',
+  'longe_demais',
+  'passageiro_nao_aparece',
+  'problema_veiculo',
+  'destino_inacessivel',
   'outro',
 ];
 
@@ -61,9 +67,15 @@ ridesRouter.post(
   // quem também conduz.
   wrap(async (req, res) => {
     const {
-      destLabel, destLat, destLng,
-      originLabel, originLat, originLng,
-      vehicleType, fareUsd, passengers,
+      destLabel,
+      destLat,
+      destLng,
+      originLabel,
+      originLat,
+      originLng,
+      vehicleType,
+      fareUsd,
+      passengers,
     } = req.body || {};
     if (!destLabel || !destLabel.trim()) {
       return res.status(400).json({ error: 'Indica o destino.' });
@@ -71,9 +83,7 @@ ridesRouter.post(
 
     const existing = await getActiveRideForUser(req.user);
     if (existing) {
-      return res
-        .status(409)
-        .json({
+      return res.status(409).json({
         error: 'Já tens uma viagem a decorrer.',
         // É a viagem dele: leva o código, senão quem reabre a app por aqui
         // fica sem a senha que tem de dizer ao motorista.
@@ -88,8 +98,7 @@ ridesRouter.post(
     let precoFinal = fareUsd;
     let kmViagem = null;
     let minViagem = null;
-    const temCoords =
-      originLat != null && originLng != null && destLat != null && destLng != null;
+    const temCoords = originLat != null && originLng != null && destLat != null && destLng != null;
     if (temCoords) {
       const viagem = await rota(
         { lat: Number(originLat), lng: Number(originLng) },
@@ -102,8 +111,12 @@ ridesRouter.post(
 
     const row = await createRide({
       passengerId: req.user.id,
-      destLabel, destLat, destLng,
-      originLabel, originLat, originLng,
+      destLabel,
+      destLat,
+      destLng,
+      originLabel,
+      originLat,
+      originLng,
       vehicleType,
       fareUsd: precoFinal,
       distanceKm: kmViagem,
@@ -117,7 +130,12 @@ ridesRouter.post(
     const paraMotoristas = toPublicRide(row);
 
     const io = req.app.get('io');
-    io.to(row.vehicle_type ? `drivers:${row.vehicle_type}` : 'drivers').emit('ride:new', paraMotoristas);
+    // Só para o município da recolha. Sem município — viagem sem coordenadas
+    // de origem — vai para todos: mais vale um pedido a mais na lista de
+    // alguém do que um pedido que ninguém chega a ver.
+    const salaTipo = row.vehicle_type ? `drivers:${row.vehicle_type}` : 'drivers';
+    const sala = row.municipio && row.vehicle_type ? `${salaTipo}:${row.municipio}` : salaTipo;
+    io.to(sala).emit('ride:new', paraMotoristas);
 
     // Notificação para quem tem a app fechada. Deliberadamente sem await:
     // se o serviço de notificações estiver lento, o passageiro não fica à
@@ -189,7 +207,9 @@ ridesRouter.post(
       ) {
         return res
           .status(409)
-          .json({ error: `Esta viagem é para ${atual.passengers} pessoas e o teu carro leva ${req.user.vehicle_seats}.` });
+          .json({
+            error: `Esta viagem é para ${atual.passengers} pessoas e o teu carro leva ${req.user.vehicle_seats}.`,
+          });
       }
       return res.status(409).json({ error: 'Esta viagem já não está disponível.' });
     }
@@ -238,9 +258,7 @@ ridesRouter.post(
     // começado — ou de estados antigos, para não travar viagens que já
     // estavam em curso quando isto foi acrescentado.
     const permitido =
-      status === 'arriving'
-        ? ['accepted']
-        : ['in_progress', 'accepted', 'arriving'];
+      status === 'arriving' ? ['accepted'] : ['in_progress', 'accepted', 'arriving'];
     if (!permitido.includes(row.status)) {
       return res.status(409).json({ error: 'Não é possível mudar o estado desta viagem.' });
     }

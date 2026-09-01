@@ -1,4 +1,5 @@
 import { query, one } from './db.js';
+import { municipioDe } from './municipios.js';
 
 // Marca o motorista como disponível ou indisponível para receber pedidos.
 export function setOnline(userId, online) {
@@ -14,8 +15,9 @@ export function setOnline(userId, online) {
 // deliberadamente leve: um UPDATE simples, sem leituras.
 export function updateLocation(userId, lat, lng) {
   return query(
-    `UPDATE users SET last_lat = $1, last_lng = $2, last_seen_at = NOW() WHERE id = $3`,
-    [lat, lng, userId]
+    `UPDATE users SET last_lat = $1, last_lng = $2, last_seen_at = NOW(), municipio = $4
+      WHERE id = $3`,
+    [lat, lng, userId, municipioDe(lat, lng)]
   );
 }
 

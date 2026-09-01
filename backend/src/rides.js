@@ -1,4 +1,5 @@
 import { query, one } from './db.js';
+import { municipioDe } from './municipios.js';
 
 // Estados que ainda contam como "viagem a decorrer"
 // Estados em que a viagem AINDA ESTÁ A ACONTECER e tem de aparecer ao
@@ -90,9 +91,18 @@ export function getRideById(id) {
 // instrução, por isso um SELECT no mesmo comando não encontraria a linha
 // que o INSERT acabou de criar.
 export async function createRide({
-  passengerId, destLabel, destLat, destLng,
-  originLabel, originLat, originLng, vehicleType, fareUsd,
-  distanceKm = null, durationMin = null, passengers = null,
+  passengerId,
+  destLabel,
+  destLat,
+  destLng,
+  originLabel,
+  originLat,
+  originLng,
+  vehicleType,
+  fareUsd,
+  distanceKm = null,
+  durationMin = null,
+  passengers = null,
 }) {
   // Quatro dígitos, com zeros à frente. Não é um segredo criptográfico —
   // é uma senha dita em voz alta à porta do carro, e vive uns minutos.
@@ -101,8 +111,8 @@ export async function createRide({
     `INSERT INTO rides
        (passenger_id, dest_label, dest_lat, dest_lng, origin_label, origin_lat, origin_lng,
         vehicle_type, fare_usd, distance_km, duration_min, passengers,
-        pickup_code, status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'requested')
+        pickup_code, municipio, status)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'requested')
      RETURNING id`,
     [
       passengerId,
@@ -118,6 +128,10 @@ export async function createRide({
       durationMin != null ? Math.round(Number(durationMin)) : null,
       passengers != null ? Math.max(1, Math.min(8, Number(passengers))) : null,
       codigo,
+      // O município é o da RECOLHA, não o do destino. É de onde o passageiro
+      // está à espera que interessa a quem o vai buscar: uma viagem de Díli
+      // para Baucau é um pedido de Díli, e é em Díli que tem de aparecer.
+      municipioDe(num(originLat), num(originLng)),
     ]
   );
   return getRideById(inserted.id);
@@ -165,6 +179,16 @@ export function getRideHistoryForUser(user, limit = 50) {
 // sequer aparecer a quem tem 4 lugares: mostrar e depois recusar seria
 // fazer o motorista perder tempo e o passageiro perder a viagem.
 export function getAvailableRidesForDriver(driverVehicleType, driverLat, driverLng, driverSeats) {
+  // Município do motorista, calculado da posição dele.
+  //
+  // Sem posição conhecida, fica `null` e o filtro deixa passar tudo. É
+  // deliberado: um motorista de quem não sabemos onde está não pode ficar
+  // sem trabalho nenhum por causa disso. O mesmo vale para viagens sem
+  // município — pedidos antigos, ou sem coordenadas de origem.
+  const meuMunicipio = municipioDe(
+    typeof driverLat === 'number' ? driverLat : null,
+    typeof driverLng === 'number' ? driverLng : null
+  );
   // Uma só forma de consulta, sempre com os mesmos quatro parâmetros. A
   // versão anterior montava o SQL de duas maneiras conforme houvesse
   // posição, e no caso sem posição sobravam parâmetros que a consulta não
@@ -184,13 +208,15 @@ export function getAvailableRidesForDriver(driverVehicleType, driverLat, driverL
      FROM (${RIDE_SELECT}
        WHERE r.status = 'requested' AND r.driver_id IS NULL
          AND (r.vehicle_type IS NULL OR r.vehicle_type = $1)
-         AND (r.passengers IS NULL OR $4::int IS NULL OR r.passengers <= $4::int)) sub
+         AND (r.passengers IS NULL OR $4::int IS NULL OR r.passengers <= $4::int)
+         AND (r.municipio IS NULL OR $5::text IS NULL OR r.municipio = $5::text)) sub
      ORDER BY pickup_km ASC NULLS LAST, sub.id ASC`,
     [
       driverVehicleType,
       typeof driverLat === 'number' ? driverLat : null,
       typeof driverLng === 'number' ? driverLng : null,
       driverSeats ?? null,
+      meuMunicipio,
     ]
   );
 }

@@ -17,6 +17,7 @@ import { setOnline, updateLocation } from './drivers.js';
 import { one } from './db.js';
 import { lugaresRouter } from './routes/lugares.js';
 import { estadoDaBusca } from './lugares.js';
+import { municipioDe } from './municipios.js';
 
 const app = express();
 app.use(cors());
@@ -101,6 +102,7 @@ io.use(async (socket, next) => {
       driverStatus: user.driver_status || null,
       isOnline: !!user.is_online,
       isAdmin: !!user.is_admin,
+      municipio: user.municipio || null,
     };
     next();
   } catch (e) {
@@ -121,14 +123,41 @@ io.on('connection', (socket) => {
   // por omissão e não entra nas salas — o que está certo.
   const podeReceberPedidos = user.driverStatus === 'approved';
 
+  // Sala do município, além da do tipo de veículo.
+  //
+  // O Simão decidiu que cada município vê os seus pedidos: quem está em
+  // Lospalos não recebe uma viagem pedida em Díli. Filtrar só a lista não
+  // chegava — o `ride:new` empurra o pedido para o telemóvel em tempo real e
+  // o motorista continuaria a vê-lo aparecer.
+  //
+  // A sala muda quando o motorista muda de município, o que se sabe a cada
+  // posição comunicada. Começa no último município conhecido para não haver
+  // um vazio entre ligar-se e mexer-se.
+  let salaMunicipio = null;
+  let dentroDasSalas = false;
+
+  const ajustarMunicipio = (m) => {
+    const nova = m ? `drivers:${user.vehicleType}:${m}` : null;
+    if (nova === salaMunicipio) return;
+    if (salaMunicipio) socket.leave(salaMunicipio);
+    if (nova && dentroDasSalas) socket.join(nova);
+    salaMunicipio = nova;
+  };
+
   const entrarNasSalas = () => {
+    dentroDasSalas = true;
     socket.join('drivers');
     socket.join(`drivers:${user.vehicleType}`);
+    if (salaMunicipio) socket.join(salaMunicipio);
   };
   const sairDasSalas = () => {
+    dentroDasSalas = false;
     socket.leave('drivers');
     socket.leave(`drivers:${user.vehicleType}`);
+    if (salaMunicipio) socket.leave(salaMunicipio);
   };
+
+  if (user.role === 'driver') ajustarMunicipio(user.municipio);
 
   // Só entra nas salas se estiver aprovado E disponível. Um motorista a
   // almoçar não deve receber pedidos que não vai aceitar — para o
@@ -166,6 +195,8 @@ io.on('connection', (socket) => {
     if (typeof lat !== 'number' || typeof lng !== 'number') return;
     try {
       await updateLocation(user.id, lat, lng);
+      // Mudou de município? Muda de sala, e passa a ver os pedidos de lá.
+      ajustarMunicipio(municipioDe(lat, lng));
       const viagem = await one(
         `SELECT id, passenger_id FROM rides
          WHERE driver_id = $1 AND status IN ('accepted','arriving')

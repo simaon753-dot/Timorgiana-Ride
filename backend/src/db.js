@@ -203,6 +203,13 @@ export async function initSchema() {
 
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_online BOOLEAN NOT NULL DEFAULT FALSE`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS dias_saldo INTEGER NOT NULL DEFAULT 0`);
+
+  // Município, guardado em vez de calculado a cada consulta. Assim o
+  // filtro dos pedidos é uma igualdade simples, e não catorze cálculos de
+  // distância dentro do SQL a cada vez que um motorista abre a lista.
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS municipio TEXT`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS municipio TEXT`);
+  await query('CREATE INDEX IF NOT EXISTS idx_rides_municipio ON rides(municipio, status)');
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_lat DOUBLE PRECISION`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_lng DOUBLE PRECISION`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ`);
