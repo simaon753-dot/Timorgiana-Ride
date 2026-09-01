@@ -41,6 +41,7 @@ const SECCOES = [
   ['contas', 'admSecContas'],
   ['viagens', 'admSecRides'],
   ['registo', 'admSecRegisto'],
+  ['lugares', 'admSecLugares'],
 ];
 const FILTROS = ['todos', 'pending', 'approved', 'suspended'];
 
@@ -64,6 +65,7 @@ export default function AdminScreen({ navigation }) {
   const [notif, setNotif] = useState(null);
   const [verNotif, setVerNotif] = useState(false);
   const [dias, setDias] = useState(30);
+  const [lugares, setLugares] = useState([]);
 
   // Posição de cada separador, para o poder trazer à vista.
   //
@@ -148,6 +150,19 @@ export default function AdminScreen({ navigation }) {
       /* fica o que já estava */
     }
   }, [token, dias]);
+
+  const carregarLugares = useCallback(async () => {
+    try {
+      const r = await api.adminLugares(token);
+      setLugares(r.lugares || []);
+    } catch {
+      /* fica o que já estava */
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (seccao === 'lugares') carregarLugares();
+  }, [seccao, carregarLugares]);
 
   useEffect(() => {
     if (seccao === 'registo') carregarRegisto();
@@ -372,8 +387,21 @@ export default function AdminScreen({ navigation }) {
           />
         ) : seccao === 'viagens' ? (
           <Viagens viagens={viagens} t={t} navigation={navigation} />
-        ) : (
+        ) : seccao === 'registo' ? (
           <Registo acessos={registo} t={t} navigation={navigation} dias={dias} setDias={setDias} />
+        ) : (
+          <Lugares
+            lugares={lugares}
+            t={t}
+            onDecidir={async (id, estado) => {
+              try {
+                await api.adminLugarEstado(token, id, estado);
+                carregarLugares();
+              } catch (e) {
+                Alert.alert(t('errGeneric'), e?.message || '');
+              }
+            }}
+          />
         )}
       </ScrollView>
 
@@ -1246,3 +1274,47 @@ let styles = criarEstilos();
 registarEstilos(() => {
   styles = criarEstilos();
 });
+
+// Sítios que os passageiros nomearam.
+//
+// Cada linha é alguém que corrigiu o mapa: escreveu um nome diferente do que
+// a app lhe mostrou. É a mesma matéria-prima com que a Grab construiu o
+// GrabMaps — quem anda na rua sabe o que o mapa não sabe.
+//
+// O botão abre o editor do OpenStreetMap já nas coordenadas certas. Sem
+// isso, acrescentar um sítio obrigava a procurar a posição à mão, e o que dá
+// trabalho não se faz.
+function Lugares({ lugares, t, onDecidir }) {
+  if (!lugares.length) return <Text style={styles.vazio}>{t('admLugaresVazio')}</Text>;
+  return (
+    <>
+      <Text style={styles.seccaoTitulo}>{t('admLugaresTitulo')}</Text>
+      {lugares.map((l) => (
+        <View key={l.id} style={styles.conta}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.contaNome}>{l.nome}</Text>
+            <Text style={styles.contaMeta}>
+              {l.nomeMapa ? `${t('admLugaresMapaDizia')}: ${l.nomeMapa}` : ''}
+              {l.quem ? ` · ${l.quem}` : ''}
+            </Text>
+            <Text style={styles.contaMeta}>
+              {l.lat.toFixed(5)}, {l.lng.toFixed(5)}
+            </Text>
+
+            <View style={styles.filtros}>
+              <Pressable style={styles.filtro} onPress={() => Linking.openURL(l.editar)}>
+                <Text style={styles.filtroTexto}>{t('admLugarEditar')}</Text>
+              </Pressable>
+              <Pressable style={styles.filtro} onPress={() => onDecidir(l.id, 'aceite')}>
+                <Text style={styles.filtroTexto}>{t('admLugarAceite')}</Text>
+              </Pressable>
+              <Pressable style={styles.filtro} onPress={() => onDecidir(l.id, 'recusado')}>
+                <Text style={styles.filtroTexto}>{t('admLugarRecusado')}</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      ))}
+    </>
+  );
+}

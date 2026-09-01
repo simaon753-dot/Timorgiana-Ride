@@ -210,6 +210,29 @@ export async function initSchema() {
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS municipio TEXT`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS municipio TEXT`);
   await query('CREATE INDEX IF NOT EXISTS idx_rides_municipio ON rides(municipio, status)');
+
+  // Sítios que os passageiros nomearam e o mapa não conhece.
+  //
+  // É a mesma ideia que a Grab usou para construir o GrabMaps: quem anda na
+  // rua sabe coisas que o mapa não sabe. Quando alguém toca no mapa e escreve
+  // "Bidau Toko Baru" por cima do nome da rua que lhe mostrámos, está a
+  // corrigir o mapa — e essa correcção não se deve deitar fora.
+  //
+  // Depois de revistos, entram no OpenStreetMap e passam a existir para toda
+  // a gente: para nós, para a Grab, para o Google que também o importa.
+  await query(`
+    CREATE TABLE IF NOT EXISTS lugares_propostos (
+      id         SERIAL PRIMARY KEY,
+      user_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      nome       TEXT NOT NULL,
+      nome_mapa  TEXT,
+      lat        DOUBLE PRECISION NOT NULL,
+      lng        DOUBLE PRECISION NOT NULL,
+      estado     TEXT NOT NULL DEFAULT 'novo',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await query('CREATE INDEX IF NOT EXISTS idx_propostos_estado ON lugares_propostos(estado, id DESC)');
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_lat DOUBLE PRECISION`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_lng DOUBLE PRECISION`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ`);

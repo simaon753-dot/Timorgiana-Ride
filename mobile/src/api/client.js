@@ -139,6 +139,10 @@ export const api = {
   adminSos: (token) => request('/admin/sos', { token }),
   adminNotificacoes: (token) => request('/admin/notificacoes', { token }),
   assinatura: (token) => request('/driver/assinatura', { token }),
+  proporLugar: (token, body) => request('/lugares/propor', { method: 'POST', body, token }),
+  adminLugares: (token, estado = 'novo') => request(`/admin/lugares?estado=${estado}`, { token }),
+  adminLugarEstado: (token, id, estado) =>
+    request(`/admin/lugares/${id}/estado`, { method: 'POST', body: { estado }, token }),
   adminCarregar: (token, id, body) =>
     request(`/admin/drivers/${id}/carregar`, { method: 'POST', body, token }),
   adminResolverSos: (token, id) => request(`/admin/sos/${id}/resolver`, { method: 'POST', token }),

@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, Pressable, ActivityIndicator, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ActivityIndicator,
+  ScrollView,
+  Modal,
+  TextInput,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import OSMMap from '../components/OSMMap.js';
@@ -20,6 +29,8 @@ export default function RequestRideScreen({ navigation, route }) {
   const { t } = useI18n();
   const { token } = useAuth();
   const { requestRide } = useRides();
+  // O sítio que está a ser nomeado, e o nome que a app lhe tinha dado.
+  const [aNomear, setANomear] = useState(null);
 
   const [origem, setOrigem] = useState(null); // { lat, lng, label }
   // Um destino pode chegar já escolhido — de um lugar guardado ou de um
@@ -233,6 +244,16 @@ export default function RequestRideScreen({ navigation, route }) {
             vazio={t('searchOrTap')}
             onPress={() => setPesquisa('destino')}
           />
+          {/* Corrigir o nome do sítio.
+              O mapa de Díli está a ser feito agora, e há sítios que ele não
+              conhece — o que o passageiro escrever aqui é a única fonte que
+              existe para eles. É a mesma ideia com que a Grab construiu o
+              GrabMaps: quem anda na rua sabe o que o mapa não sabe. */}
+          {destino && !destino.provisorio ? (
+            <Pressable onPress={() => setANomear({ ponto: destino, qual: 'destino' })} hitSlop={8}>
+              <Text style={styles.corrigirNome}>{t('lugarCorrigirLigacao')}</Text>
+            </Pressable>
+          ) : null}
 
           {aCalcular ? (
             <ActivityIndicator color={colors.teal} style={{ marginVertical: spacing.lg }} />
@@ -316,6 +337,34 @@ export default function RequestRideScreen({ navigation, route }) {
           )}
         </Pressable>
       </View>
+
+      {/* Dar nome a um sítio.
+          Guarda a correcção no servidor E muda o rótulo aqui. As duas coisas
+          porque servem fins diferentes: o rótulo é para esta viagem, a
+          correcção é para o mapa de toda a gente. */}
+      <NomearLugar
+        alvo={aNomear}
+        t={t}
+        onFechar={() => setANomear(null)}
+        onGuardar={async (nome) => {
+          const p = aNomear.ponto;
+          setANomear(null);
+          if (aNomear.qual === 'destino') setDestino({ ...p, label: nome });
+          else setOrigem({ ...p, label: nome });
+          try {
+            await api.proporLugar(token, {
+              nome,
+              nomeMapa: p.label,
+              lat: p.lat,
+              lng: p.lng,
+            });
+          } catch {
+            // Se falhar, não se diz nada. A viagem dele não depende disto, e
+            // um erro sobre uma contribuição ao mapa no meio de um pedido de
+            // transporte é ruído no pior momento.
+          }
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -443,6 +492,7 @@ const criarEstilos = () =>
     },
     pagamentoTexto: { ...tipo.subtitulo, color: colors.text },
 
+    corrigirNome: { ...tipo.legenda, color: colors.teal, marginTop: 2, marginLeft: 28 },
     erro: { ...tipo.pequeno, color: colors.danger, marginTop: spacing.sm },
 
     botao: {
@@ -520,4 +570,101 @@ const criarEstilosTaxa = () =>
 let estilosTaxa = criarEstilosTaxa();
 registarEstilos(() => {
   estilosTaxa = criarEstilosTaxa();
+});
+
+// Perguntar como se chama um sítio.
+//
+// O texto explica PORQUÊ, e isso não é enfeite: sem razão, um campo que
+// pergunta o nome de um sítio parece burocracia. Com razão — "o mapa de
+// Díli está a ser feito agora, e o que escrever ajuda toda a gente" —
+// passa a ser um convite.
+function NomearLugar({ alvo, t, onFechar, onGuardar }) {
+  const [nome, setNome] = useState('');
+
+  useEffect(() => {
+    setNome(alvo?.ponto?.label ?? '');
+  }, [alvo]);
+
+  if (!alvo) return null;
+  const limpo = nome.trim();
+
+  return (
+    <Modal visible transparent animationType="slide" onRequestClose={onFechar}>
+      <Pressable style={estilosNome.fundo} onPress={onFechar} />
+      <View style={estilosNome.folha}>
+        <View style={estilosNome.pega} />
+        <Text style={estilosNome.titulo}>{t('lugarCorrigirTitulo')}</Text>
+        <Text style={estilosNome.explica}>{t('lugarCorrigirExplica')}</Text>
+
+        <Text style={estilosNome.rotulo}>{t('lugarCorrigirCampo')}</Text>
+        <TextInput
+          style={estilosNome.campo}
+          value={nome}
+          onChangeText={setNome}
+          autoFocus
+          selectTextOnFocus
+          placeholderTextColor={colors.textMuted}
+          returnKeyType="done"
+          onSubmitEditing={() => limpo.length >= 2 && onGuardar(limpo)}
+        />
+
+        <Pressable
+          style={[estilosNome.botao, limpo.length < 2 && estilosNome.botaoInactivo]}
+          disabled={limpo.length < 2}
+          onPress={() => onGuardar(limpo)}
+        >
+          <Text style={estilosNome.botaoTexto}>{t('lugarGuardar')}</Text>
+        </Pressable>
+      </View>
+    </Modal>
+  );
+}
+
+const criarEstilosNome = () =>
+  StyleSheet.create({
+    fundo: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
+    folha: {
+      backgroundColor: colors.paper,
+      borderTopLeftRadius: radius.xl,
+      borderTopRightRadius: radius.xl,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.xl,
+      gap: spacing.sm,
+    },
+    pega: {
+      alignSelf: 'center',
+      width: 36,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.border,
+      marginBottom: spacing.md,
+    },
+    titulo: { ...tipo.subtitulo, color: colors.text },
+    explica: { ...tipo.pequeno, color: colors.textMuted },
+    rotulo: { ...tipo.legenda, color: colors.textMuted, marginTop: spacing.sm },
+    campo: {
+      ...tipo.corpo,
+      color: colors.text,
+      backgroundColor: colors.white,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+    },
+    botao: {
+      backgroundColor: colors.coral,
+      borderRadius: radius.md,
+      paddingVertical: spacing.md,
+      alignItems: 'center',
+      marginTop: spacing.sm,
+    },
+    botaoInactivo: { opacity: 0.4 },
+    botaoTexto: { ...tipo.corpoForte, color: '#22100A' },
+  });
+
+let estilosNome = criarEstilosNome();
+registarEstilos(() => {
+  estilosNome = criarEstilosNome();
 });

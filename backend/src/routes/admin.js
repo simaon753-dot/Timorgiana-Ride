@@ -714,3 +714,56 @@ adminRouter.post(
     }
   })
 );
+
+// GET /api/admin/lugares — sítios que os passageiros nomearam
+//
+// A lista de revisão. Cada linha é alguém que corrigiu o mapa: escreveu um
+// nome diferente do que a app lhe mostrou. Os que fizerem sentido entram no
+// OpenStreetMap e passam a existir para toda a gente.
+adminRouter.get(
+  '/lugares',
+  wrap(async (req, res) => {
+    const estado = ['novo', 'aceite', 'recusado', 'todos'].includes(req.query.estado)
+      ? req.query.estado
+      : 'novo';
+    const cond = estado === 'todos' ? '' : 'WHERE p.estado = $1';
+    const args = estado === 'todos' ? [] : [estado];
+    const rows = await query(
+      `SELECT p.id, p.nome, p.nome_mapa, p.lat, p.lng, p.estado, p.created_at, u.name AS quem
+         FROM lugares_propostos p LEFT JOIN users u ON u.id = p.user_id
+         ${cond}
+        ORDER BY p.id DESC LIMIT 100`,
+      args
+    );
+    res.json({
+      lugares: rows.map((r) => ({
+        id: r.id,
+        nome: r.nome,
+        nomeMapa: r.nome_mapa,
+        lat: Number(r.lat),
+        lng: Number(r.lng),
+        estado: r.estado,
+        quando: r.created_at,
+        quem: r.quem,
+        // Abre o editor do OpenStreetMap já no sítio certo, com zoom de rua.
+        // Sem isto, acrescentar um lugar obriga a procurar as coordenadas à
+        // mão — e o que dá trabalho não se faz.
+        editar: `https://www.openstreetmap.org/edit#map=19/${Number(r.lat).toFixed(5)}/${Number(r.lng).toFixed(5)}`,
+      })),
+    });
+  })
+);
+
+// POST /api/admin/lugares/:id/estado — marcar como acrescentado ou recusado
+adminRouter.post(
+  '/lugares/:id/estado',
+  wrap(async (req, res) => {
+    const id = Number(req.params.id);
+    const estado = req.body?.estado;
+    if (!['novo', 'aceite', 'recusado'].includes(estado)) {
+      return res.status(400).json({ error: 'Estado inválido.' });
+    }
+    await query('UPDATE lugares_propostos SET estado = $2 WHERE id = $1', [id, estado]);
+    res.json({ ok: true });
+  })
+);
