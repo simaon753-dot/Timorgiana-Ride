@@ -29,9 +29,11 @@ export const LOCAIS_COM_TAXA = [
     onde: 'estacionamento',
     // No Timor Plaza só o carro paga. A motorizada entra sem taxa.
     taxa: {
-      // POR CONFIRMAR com o Simão. Enquanto for null, o aviso aparece sem
-      // valor — que já é melhor do que não avisar.
-      car: { usd: null, por: 'entrada' },
+      // Um dólar, valor dado pelo Simão em 01/09/2026. Marcado como taxa de
+      // ENTRADA e não por hora: ele disse "a entrada do carro é paga", ao
+      // contrário do aeroporto onde especificou o preço à hora. Se afinal for
+      // por hora, muda-se 'entrada' para 'hora' e publica-se.
+      car: { usd: 1, por: 'entrada' },
       motorbike: null,
     },
   },
