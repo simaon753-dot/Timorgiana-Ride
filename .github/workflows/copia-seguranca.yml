@@ -36,17 +36,6 @@ jobs:
   copiar:
     runs-on: ubuntu-latest
     steps:
-      - name: Instalar o pg_dump certo
-        # O Neon corre PostgreSQL 18. Um pg_dump mais antigo do que o
-        # servidor RECUSA-SE a trabalhar — não avisa, falha. Por isso vem do
-        # repositório oficial do PostgreSQL e não do que a Ubuntu traz.
-        run: |
-          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/pgdg.gpg
-          sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/pgdg.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq postgresql-client-18
-          pg_dump --version
-
       - name: Copiar, comprimir e cifrar
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -59,7 +48,19 @@ jobs:
           NOME="timorgianaride-$(date -u +%Y-%m-%d).sql.gz.enc"
           echo "NOME=$NOME" >> "$GITHUB_ENV"
 
-          pg_dump "$DATABASE_URL" --no-owner --no-privileges \
+          # O pg_dump vem da imagem oficial do PostgreSQL 18, e não do
+          # `apt`.
+          #
+          # A primeira versão instalava `postgresql-client-18` no runner. O
+          # passo ficava verde e o pg_dump que corria era o 16 — a Ubuntu já
+          # traz um, e é esse que fica no caminho. O pg_dump recusa-se a
+          # copiar de um servidor mais novo do que ele, e só descobrimos
+          # isso a ver o registo.
+          #
+          # Com a imagem, a versão está no nome: se um dia o Neon passar ao
+          # 19, muda-se um número aqui e acabou.
+          docker run --rm -e PGURL="$DATABASE_URL" postgres:18-alpine \
+            sh -c 'pg_dump "$PGURL" --no-owner --no-privileges' \
             | gzip -9 \
             | openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -pass env:SENHA \
             > "$NOME"
