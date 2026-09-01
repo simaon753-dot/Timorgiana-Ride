@@ -26,12 +26,12 @@
 // segunda pessoa a procurar "Timor Plaza" recebe a resposta sem sair do
 // país.
 
-const UA = 'TimorgianaRide/1.0 (app de transporte, Dili, Timor-Leste)';
+const UA = "TimorgianaRide/1.0 (app de transporte, Dili, Timor-Leste)";
 
 // A mesma caixa que a app usava, com margem nas pontas para não cortar
 // Oecusse nem o norte de Ataúro.
 const TIMOR = {
-  viewbox: '123.8,-9.8,127.6,-8.0',
+  viewbox: "123.8,-9.8,127.6,-8.0",
   sul: -9.8,
   norte: -8.0,
   oeste: 123.8,
@@ -69,13 +69,46 @@ function guardar(q, lugares) {
   return lugares;
 }
 
-async function comPrazo(url, opcoes = {}) {
+// O último erro do Google, para o /api/health o poder mostrar.
+//
+// Isto existe porque a versão anterior engolia tudo: se o Google recusasse
+// a chave, ou a API não estivesse activada, ou a facturação falhasse, a
+// função devolvia lista vazia e ninguém ficava a saber. O Simão viu a busca
+// sem resultados e eu não tinha como lhe dizer porquê.
+//
+// Um caminho novo tem de conseguir explicar-se quando falha. Foi a lição do
+// ecrã de registo, que esteve partido semanas em silêncio.
+let ultimoErroGoogle = null;
+
+async function comPrazo(url, opcoes = {}, guardarErro = false) {
   const ctrl = new AbortController();
   const relogio = setTimeout(() => ctrl.abort(), PRAZO_MS);
   try {
     const r = await fetch(url, { ...opcoes, signal: ctrl.signal });
-    return r.ok ? await r.json() : null;
-  } catch {
+    if (r.ok) {
+      if (guardarErro) ultimoErroGoogle = null;
+      return await r.json();
+    }
+    if (guardarErro) {
+      // O corpo do erro do Google diz exactamente o que está mal — chave
+      // recusada, API por activar, facturação em falta. Guardamos um
+      // excerto; a chave nunca aparece nestas respostas.
+      const texto = await r.text().catch(() => "");
+      ultimoErroGoogle = {
+        http: r.status,
+        quando: new Date().toISOString(),
+        diz: texto.slice(0, 300),
+      };
+    }
+    return null;
+  } catch (e) {
+    if (guardarErro) {
+      ultimoErroGoogle = {
+        http: 0,
+        quando: new Date().toISOString(),
+        diz: e?.message || "sem resposta",
+      };
+    }
     return null;
   } finally {
     clearTimeout(relogio);
@@ -83,31 +116,31 @@ async function comPrazo(url, opcoes = {}) {
 }
 
 function nomeCurto(display) {
-  return display.split(',').slice(0, 2).join(',').trim();
+  return display.split(",").slice(0, 2).join(",").trim();
 }
 
 // ── Camada 1 ────────────────────────────────────────────────────────
 async function noNominatim(q) {
   const p = new URLSearchParams({
     q,
-    format: 'json',
-    limit: '6',
-    addressdetails: '0',
-    countrycodes: 'tl',
+    format: "json",
+    limit: "6",
+    addressdetails: "0",
+    countrycodes: "tl",
     viewbox: TIMOR.viewbox,
-    bounded: '1',
+    bounded: "1",
   });
   const rs = await comPrazo(`https://nominatim.openstreetmap.org/search?${p}`, {
-    headers: { Accept: 'application/json', 'User-Agent': UA },
+    headers: { Accept: "application/json", "User-Agent": UA },
   });
   if (!Array.isArray(rs)) return [];
   return rs.map((x) => ({
-    id: `osm:${x.osm_type || 'x'}${x.osm_id || Math.random()}`,
+    id: `osm:${x.osm_type || "x"}${x.osm_id || Math.random()}`,
     label: nomeCurto(x.display_name),
-    detalhe: x.display_name.split(',').slice(2, 4).join(',').trim(),
+    detalhe: x.display_name.split(",").slice(2, 4).join(",").trim(),
     lat: Number(x.lat),
     lng: Number(x.lon),
-    fonte: 'osm',
+    fonte: "osm",
   }));
 }
 
@@ -120,40 +153,44 @@ async function noGoogle(q) {
   const chave = process.env.GOOGLE_MAPS_KEY;
   if (!chave) return [];
 
-  const j = await comPrazo('https://places.googleapis.com/v1/places:searchText', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': chave,
-      // A máscara de campos não é detalhe: o Google cobra por escalão
-      // conforme o que se pede. Pedir só o essencial mantém a chamada no
-      // escalão mais barato.
-      'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location',
-    },
-    body: JSON.stringify({
-      textQuery: q,
-      regionCode: 'TL',
-      maxResultCount: 6,
-      locationRestriction: {
-        rectangle: {
-          low: { latitude: TIMOR.sul, longitude: TIMOR.oeste },
-          high: { latitude: TIMOR.norte, longitude: TIMOR.leste },
-        },
+  const j = await comPrazo(
+    "https://places.googleapis.com/v1/places:searchText",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": chave,
+        // A máscara de campos não é detalhe: o Google cobra por escalão
+        // conforme o que se pede. Pedir só o essencial mantém a chamada no
+        // escalão mais barato.
+        "X-Goog-FieldMask":
+          "places.id,places.displayName,places.formattedAddress,places.location",
       },
-    }),
-  });
-
+      body: JSON.stringify({
+        textQuery: q,
+        regionCode: "TL",
+        maxResultCount: 6,
+        locationRestriction: {
+          rectangle: {
+            low: { latitude: TIMOR.sul, longitude: TIMOR.oeste },
+            high: { latitude: TIMOR.norte, longitude: TIMOR.leste },
+          },
+        },
+      }),
+    },
+    true,
+  );
   const places = j?.places;
   if (!Array.isArray(places)) return [];
   return places
     .filter((p) => p?.location?.latitude != null)
     .map((p) => ({
       id: `g:${p.id}`,
-      label: p.displayName?.text || p.formattedAddress || '',
-      detalhe: p.formattedAddress || '',
+      label: p.displayName?.text || p.formattedAddress || "",
+      detalhe: p.formattedAddress || "",
       lat: p.location.latitude,
       lng: p.location.longitude,
-      fonte: 'google',
+      fonte: "google",
     }))
     .filter((p) => p.label);
 }
@@ -168,11 +205,11 @@ function mesmoSitio(a, b) {
 }
 
 export async function procurar(termo) {
-  const q = String(termo || '').trim();
-  if (q.length < 3) return { lugares: [], fonte: 'curto' };
+  const q = String(termo || "").trim();
+  if (q.length < 3) return { lugares: [], fonte: "curto" };
 
   const guardados = daMemoria(q.toLowerCase());
-  if (guardados) return { lugares: guardados, fonte: 'memoria' };
+  if (guardados) return { lugares: guardados, fonte: "memoria" };
 
   // OS DOIS AO MESMO TEMPO, e não um depois do outro.
   //
@@ -203,7 +240,14 @@ export async function procurar(termo) {
   guardar(q.toLowerCase(), lugares.slice(0, 8));
   return {
     lugares: lugares.slice(0, 8),
-    fonte: google.length && osm.length ? 'ambos' : google.length ? 'google' : osm.length ? 'osm' : 'nada',
+    fonte:
+      google.length && osm.length
+        ? "ambos"
+        : google.length
+          ? "google"
+          : osm.length
+            ? "osm"
+            : "nada",
   };
 }
 
@@ -212,5 +256,8 @@ export function estadoDaBusca() {
   return {
     google: !!process.env.GOOGLE_MAPS_KEY,
     memoria: memoria.size,
+    // `null` quer dizer que a última chamada ao Google correu bem — ou que
+    // ainda não houve nenhuma desde o arranque.
+    ultimoErroGoogle,
   };
 }
