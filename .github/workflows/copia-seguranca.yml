@@ -45,6 +45,14 @@ jobs:
           test -n "$DATABASE_URL" || { echo "Falta o segredo DATABASE_URL"; exit 1; }
           test -n "$SENHA" || { echo "Falta o segredo BACKUP_PASSPHRASE"; exit 1; }
 
+          # Tira espaços e mudanças de linha da senha.
+          #
+          # Ao colar num campo de segredo é fácil arrastar um \n ou um espaço
+          # sem dar por isso, e a senha passa a ser outra — sem aviso nenhum,
+          # porque o openssl aceita qualquer coisa como senha. Limpar aqui e
+          # do lado de quem decifra garante que os dois lados falam do mesmo.
+          SENHA="$(printf '%s' "$SENHA" | tr -d '[:space:]')"
+
           # O número da execução entra no nome.
           #
           # Sem ele, todas as cópias se chamam igual, e a pasta de
