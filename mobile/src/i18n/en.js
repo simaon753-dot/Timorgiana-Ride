@@ -484,6 +484,8 @@ export default {
   tipoEscritorio: 'Office',
   tipoBairro: 'Neighbourhood',
   tipoOutro: 'Other',
+  lugarPerguntaNome: 'Is this not the right name?',
+  lugarCorrigirBotao: 'Fix it',
   admFechar: 'Close',
   admNotificacoes: 'Notifications',
   admNadaATratar: 'Nothing to deal with.',

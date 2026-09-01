@@ -498,6 +498,8 @@ export default {
   tipoEscritorio: 'Escritório',
   tipoBairro: 'Bairro ou zona',
   tipoOutro: 'Outro',
+  lugarPerguntaNome: 'Não é este o nome?',
+  lugarCorrigirBotao: 'Corrigir',
   admFechar: 'Fechar',
   admNotificacoes: 'Notificações',
   admNadaATratar: 'Nada por tratar.',

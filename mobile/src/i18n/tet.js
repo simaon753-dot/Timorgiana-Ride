@@ -498,6 +498,8 @@ export default {
   tipoEscritorio: 'Eskritóriu',
   tipoBairro: 'Bairru ka zona',
   tipoOutro: 'Seluk',
+  lugarPerguntaNome: 'Naran mak ne’e ka lae?',
+  lugarCorrigirBotao: 'Hadia',
   admFechar: 'Taka',
   admNotificacoes: 'Notifikasaun',
   admNadaATratar: 'La iha buat ida atu trata.',

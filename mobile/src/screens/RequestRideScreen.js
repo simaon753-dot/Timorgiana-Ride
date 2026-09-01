@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
+  Alert,
   View,
   Text,
   StyleSheet,
@@ -33,6 +34,23 @@ export default function RequestRideScreen({ navigation, route }) {
   const { requestRide } = useRides();
   // O sítio que está a ser nomeado, e o nome que a app lhe tinha dado.
   const [aNomear, setANomear] = useState(null);
+
+  // Dois passos, e de propósito.
+  //
+  // O ícone sozinho não diz para que serve — um "!" ao lado de um nome pode
+  // querer dizer muita coisa. A pergunta explica antes de abrir um formulário,
+  // e quem tocou por curiosidade sai com um toque.
+  //
+  // Só quem responder "Corrigir" chega ao formulário do OpenStreetMap.
+  const perguntarNome = useCallback(
+    (alvo) => {
+      Alert.alert(t('lugarPerguntaNome'), `${alvo.ponto.label}\n\n${t('lugarCorrigirExplica')}`, [
+        { text: t('cancel'), style: 'cancel' },
+        { text: t('lugarCorrigirBotao'), onPress: () => setANomear(alvo) },
+      ]);
+    },
+    [t]
+  );
 
   const [origem, setOrigem] = useState(null); // { lat, lng, label }
   // Um destino pode chegar já escolhido — de um lugar guardado ou de um
@@ -231,22 +249,21 @@ export default function RequestRideScreen({ navigation, route }) {
             visível e as respostas por baixo da dobra, sem nada a dizer
             que havia mais. Parecia avariado, e não estava. */}
         <ScrollView>
+          {/* O ! aparece nos dois campos. Quem está PARADO num sítio é quem
+              melhor sabe como ele se chama — muito mais do que quem vai a
+              caminho —, por isso a recolha é, das duas, a melhor fonte. */}
           <Ponto
             cor={colors.teal}
             rotulo={t('pickupPoint')}
             valor={origem?.label}
             vazio={gps ? t('gettingLocation') : t('useMyLocation')}
             onPress={() => setPesquisa('origem')}
+            onCorrigir={
+              origem && !origem.provisorio
+                ? () => perguntarNome({ ponto: origem, qual: 'origem' })
+                : undefined
+            }
           />
-          {/* Também na recolha, e não só no destino.
-              Quem está PARADO num sítio é quem melhor sabe como ele se chama —
-              muito mais do que quem ainda vai a caminho. É por isso que a
-              recolha é, das duas, a melhor fonte. */}
-          {origem && !origem.provisorio ? (
-            <Pressable onPress={() => setANomear({ ponto: origem, qual: 'origem' })} hitSlop={8}>
-              <Text style={styles.corrigirNome}>{t('lugarCorrigirLigacao')}</Text>
-            </Pressable>
-          ) : null}
           <View style={styles.linha} />
           <Ponto
             cor={colors.coral}
@@ -254,17 +271,12 @@ export default function RequestRideScreen({ navigation, route }) {
             valor={destino?.label}
             vazio={t('searchOrTap')}
             onPress={() => setPesquisa('destino')}
+            onCorrigir={
+              destino && !destino.provisorio
+                ? () => perguntarNome({ ponto: destino, qual: 'destino' })
+                : undefined
+            }
           />
-          {/* Corrigir o nome do sítio.
-              O mapa de Díli está a ser feito agora, e há sítios que ele não
-              conhece — o que o passageiro escrever aqui é a única fonte que
-              existe para eles. É a mesma ideia com que a Grab construiu o
-              GrabMaps: quem anda na rua sabe o que o mapa não sabe. */}
-          {destino && !destino.provisorio ? (
-            <Pressable onPress={() => setANomear({ ponto: destino, qual: 'destino' })} hitSlop={8}>
-              <Text style={styles.corrigirNome}>{t('lugarCorrigirLigacao')}</Text>
-            </Pressable>
-          ) : null}
 
           {aCalcular ? (
             <ActivityIndicator color={colors.teal} style={{ marginVertical: spacing.lg }} />
@@ -381,7 +393,7 @@ export default function RequestRideScreen({ navigation, route }) {
   );
 }
 
-function Ponto({ cor, rotulo, valor, vazio, onPress }) {
+function Ponto({ cor, rotulo, valor, vazio, onPress, onCorrigir }) {
   return (
     <Pressable style={styles.ponto} onPress={onPress}>
       <View style={[styles.bolinha, { backgroundColor: cor }]} />
@@ -391,6 +403,26 @@ function Ponto({ cor, rotulo, valor, vazio, onPress }) {
           {valor || vazio}
         </Text>
       </View>
+
+      {/* O ! ao lado do nome, e não uma frase por baixo.
+          A frase ocupava uma linha em cada campo e empurrava tudo para
+          baixo — duas linhas de texto para uma coisa que quase ninguém
+          usa. O ícone diz o mesmo num canto: há aqui uma dúvida, toca se
+          quiseres.
+          `stopPropagation` porque a linha inteira já abre a pesquisa: sem
+          isso, tocar no ! abria a pesquisa em vez do aviso. */}
+      {onCorrigir ? (
+        <Pressable
+          onPress={(e) => {
+            e.stopPropagation();
+            onCorrigir();
+          }}
+          hitSlop={12}
+          style={styles.avisoNome}
+        >
+          <Text style={styles.avisoNomeTexto}>!</Text>
+        </Pressable>
+      ) : null}
     </Pressable>
   );
 }
@@ -504,7 +536,28 @@ const criarEstilos = () =>
     },
     pagamentoTexto: { ...tipo.subtitulo, color: colors.text },
 
-    corrigirNome: { ...tipo.legenda, color: colors.teal, marginTop: 2, marginLeft: 28 },
+    // O "!" ao lado do nome.
+    //
+    // Vermelho por dentro, aro branco por fora. O aro não é enfeite: sem ele o
+    // ícone desaparecia sobre o fundo claro do painel no tema claro, e sobre o
+    // preto no tema escuro. Assim lê-se nos dois.
+    avisoNome: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      backgroundColor: colors.danger,
+      borderWidth: 1.5,
+      borderColor: '#FFFFFF',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: spacing.sm,
+    },
+    avisoNomeTexto: {
+      color: '#FFFFFF',
+      fontSize: 13,
+      lineHeight: 16,
+      fontWeight: '800',
+    },
     erro: { ...tipo.pequeno, color: colors.danger, marginTop: spacing.sm },
 
     botao: {
