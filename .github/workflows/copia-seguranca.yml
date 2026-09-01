@@ -59,8 +59,20 @@ jobs:
           #
           # Com a imagem, a versão está no nome: se um dia o Neon passar ao
           # 19, muda-se um número aqui e acabou.
+          #
+          # `--inserts` é a decisão que mais importa aqui, e não é técnica.
+          #
+          # Por omissão o pg_dump escreve os dados em blocos `COPY`, que só o
+          # psql sabe ler — e o psql não vem com o macOS. Uma cópia que
+          # obriga a instalar ferramentas não serve para o dia em que fizer
+          # falta: ninguém quer estar a instalar o Homebrew num sábado com a
+          # base perdida.
+          #
+          # Com `--inserts`, os dados saem como INSERT normais e restauram-se
+          # com o `node` que já está no computador. O ficheiro fica maior; a
+          # base tem 17 MB e isso não é problema nenhum.
           docker run --rm -e PGURL="$DATABASE_URL" postgres:18-alpine \
-            sh -c 'pg_dump "$PGURL" --no-owner --no-privileges' \
+            sh -c 'pg_dump "$PGURL" --no-owner --no-privileges --inserts --rows-per-insert=200' \
             | gzip -9 \
             | openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -pass env:SENHA \
             > "$NOME"
