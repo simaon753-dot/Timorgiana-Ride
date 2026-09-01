@@ -3,14 +3,18 @@
 // Camada 1: Nominatim (OpenStreetMap). Gratuito, e num teste com dezasseis
 // destinos reais de Díli acertou em catorze.
 //
-// Camada 2: Google Places — e SÓ quando a primeira não devolve nada. Os dois
-// que o Nominatim falhou foram a Universidade Nacional e Bidau Toko Baru,
-// que é a morada da própria Timorgiana. São exactamente o tipo de sítio que
-// um passageiro escreve.
+// Camada 2: Google Places, chamado AO MESMO TEMPO e não a seguir.
 //
-// A ordem importa por causa do dinheiro. O Google dá 10.000 chamadas por mês
-// sem custo; chamando-o só quando o Nominatim falha, seriam precisas umas
-// 83.000 buscas por mês para lá chegar. É mais do que Díli inteira faz.
+// A primeira versão só o chamava quando o Nominatim devolvia zero, para
+// poupar. Estava errado, e o Simão descobriu-o em dois minutos de uso: com
+// "Universidade" o Nominatim devolve seis resultados irrelevantes, e como
+// não devolveu zero o Google nunca era consultado. Quem escreve um destino
+// escreve meia palavra — esperar pelo zero é esperar por um caso que quase
+// nunca acontece a meio de uma palavra.
+//
+// O Google dá 10.000 chamadas por mês sem custo. Chamando-o sempre, e com a
+// memória de 24 horas a apanhar as repetições, continua muito acima do que
+// Díli faz.
 //
 // POR QUE RAZÃO ISTO VIVE NO SERVIDOR e não no telemóvel: a chave do Google
 // é uma senha de facturação. Dentro da app, qualquer pessoa que descarregue
@@ -154,6 +158,15 @@ async function noGoogle(q) {
     .filter((p) => p.label);
 }
 
+// Dois lugares são o mesmo se estiverem a menos de cem metros um do outro.
+// Comparar nomes não serve: o Google diz "Universidade Nacional Timor
+// Lorosa'e" e o OpenStreetMap diz "UNTL" — são a mesma porta.
+function mesmoSitio(a, b) {
+  const dLat = (a.lat - b.lat) * 111.32;
+  const dLng = (a.lng - b.lng) * 111.32 * Math.cos((a.lat * Math.PI) / 180);
+  return Math.hypot(dLat, dLng) < 0.1;
+}
+
 export async function procurar(termo) {
   const q = String(termo || '').trim();
   if (q.length < 3) return { lugares: [], fonte: 'curto' };
@@ -161,15 +174,37 @@ export async function procurar(termo) {
   const guardados = daMemoria(q.toLowerCase());
   if (guardados) return { lugares: guardados, fonte: 'memoria' };
 
-  const osm = await noNominatim(q);
-  if (osm.length) {
-    guardar(q.toLowerCase(), osm);
-    return { lugares: osm, fonte: 'osm' };
+  // OS DOIS AO MESMO TEMPO, e não um depois do outro.
+  //
+  // A primeira versão só chamava o Google quando o Nominatim devolvia
+  // ZERO. Parecia poupado e estava errado: com "Universidade" o Nominatim
+  // devolve seis resultados — nenhum deles a Universidade Nacional — e
+  // como não devolveu zero, o Google nunca era consultado. A resposta
+  // certa existia e não aparecia.
+  //
+  // Quem escreve um destino escreve meia palavra e espera. Esperar pelo
+  // zero é esperar por um caso que quase nunca acontece a meio de uma
+  // palavra.
+  //
+  // Custa mais? Chama o Google em todas as buscas em vez de 12% delas. Mas
+  // a memória de 24 horas apanha as repetições, e são precisas 10.000
+  // chamadas por mês para sair do gratuito — muito acima do que Díli faz.
+  const [osm, google] = await Promise.all([noNominatim(q), noGoogle(q)]);
+
+  // O Google primeiro: em Timor-Leste conhece os negócios e os edifícios
+  // que o OpenStreetMap ainda não tem, e é isso que as pessoas escrevem.
+  // Do OpenStreetMap entra o que não for repetido — tem ruas e bairros que
+  // o Google às vezes não devolve.
+  const lugares = [...google];
+  for (const o of osm) {
+    if (!lugares.some((g) => mesmoSitio(g, o))) lugares.push(o);
   }
 
-  const google = await noGoogle(q);
-  guardar(q.toLowerCase(), google);
-  return { lugares: google, fonte: google.length ? 'google' : 'nada' };
+  guardar(q.toLowerCase(), lugares.slice(0, 8));
+  return {
+    lugares: lugares.slice(0, 8),
+    fonte: google.length && osm.length ? 'ambos' : google.length ? 'google' : osm.length ? 'osm' : 'nada',
+  };
 }
 
 // Para o painel: saber se a segunda camada está ligada, sem revelar a chave.

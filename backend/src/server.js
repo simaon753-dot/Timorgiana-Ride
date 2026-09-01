@@ -16,6 +16,7 @@ import { verifyToken } from './auth.js';
 import { setOnline, updateLocation } from './drivers.js';
 import { one } from './db.js';
 import { lugaresRouter } from './routes/lugares.js';
+import { estadoDaBusca } from './lugares.js';
 
 const app = express();
 app.use(cors());
@@ -38,6 +39,10 @@ app.get('/api/health', async (req, res) => {
     time: new Date().toISOString(),
     versao: VERSAO,
     desde: ARRANQUE,
+    // Diz se a segunda camada da busca está ligada — nunca a chave, só se
+    // ela existe. Sem isto, a única forma de saber era escrever destinos na
+    // app e adivinhar pela resposta.
+    busca: estadoDaBusca(),
   };
   try {
     await query('SELECT 1');
