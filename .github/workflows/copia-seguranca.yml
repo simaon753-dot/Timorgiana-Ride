@@ -79,6 +79,28 @@ jobs:
 
           echo "Tamanho: $(du -h "$NOME" | cut -f1)"
 
+      - name: Confirmar que a cópia se consegue DECIFRAR
+        # Isto faltava, e a falta custou-nos uma noite.
+        #
+        # A cópia era cifrada e guardada sem nunca se confirmar que a senha
+        # do segredo a abria de volta. Uma cópia que não se consegue decifrar
+        # não é uma cópia — é um ficheiro. E só se descobre no dia em que faz
+        # falta, que é o pior dia possível.
+        #
+        # Agora cada execução decifra o que acabou de cifrar e confirma que
+        # sai um ficheiro comprimido válido. Se a senha do segredo estiver
+        # errada, a execução falha HOJE, a vermelho, e não daqui a meio ano.
+        env:
+          SENHA: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:SENHA -in "$NOME" \
+            | gunzip \
+            | head -c 200 \
+            | grep -qi "PostgreSQL database dump\|SET statement_timeout\|CREATE TABLE" \
+            && echo "A cópia decifra e contém SQL do pg_dump." \
+            || { echo "A cópia NÃO se consegue decifrar com a senha do segredo."; exit 1; }
+
       - name: Confirmar que a cópia não está vazia
         # Uma cópia de segurança que falha em silêncio é pior do que não ter
         # nenhuma: dá a sensação de estar protegido. Se o ficheiro sair
