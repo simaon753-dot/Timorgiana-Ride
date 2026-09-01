@@ -102,9 +102,9 @@ projecto pessoal no momento em que um motorista real enviar a primeira foto.
 - [x] **Painel de administração: números confirmados** em 30/08/2026, um a um
       contra a base de dados. 1 motorista, 0 disponível, 0 viagens em 24h,
       0 à espera, 3 canceladas. Tudo bate.
-- [ ] **Cópia de segurança: pôr os dois segredos no GitHub** e correr uma
-      vez à mão para confirmar. Enquanto não estiverem lá, o trabalho
-      diário falha e não há cópia nenhuma. Ver COPIA-DE-SEGURANCA.md.
+- [x] **Cópia de segurança a funcionar.** FEITO 01/09/2026 — os dois
+      segredos no GitHub e uma execução manual verde. Corre todas as noites
+      às 02:00 de Díli, cifrada, guardada 90 dias.
 - [ ] **Ensaiar um restauro** para um branch novo do Neon, uma vez, com
       calma. Uma cópia que nunca foi restaurada não é uma cópia.
 - [ ] **SOS de teste durante uma viagem a decorrer.** O que foi testado em
