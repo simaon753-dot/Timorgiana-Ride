@@ -6,6 +6,7 @@ import { toPublicUser } from '../users.js';
 import { alertasAbertos, resolverAlerta } from '../sos.js';
 import { fotosDeHoje, getFotoDeTurno } from '../turnos.js';
 import { carregar, FORMAS_PAGAMENTO, PACOTES } from '../assinatura.js';
+import { etiquetaOsm } from '../tiposDeLugar.js';
 
 export const adminRouter = Router();
 adminRouter.use(requireAuth);
@@ -729,7 +730,8 @@ adminRouter.get(
     const cond = estado === 'todos' ? '' : 'WHERE p.estado = $1';
     const args = estado === 'todos' ? [] : [estado];
     const rows = await query(
-      `SELECT p.id, p.nome, p.nome_mapa, p.lat, p.lng, p.estado, p.created_at, u.name AS quem
+      `SELECT p.id, p.nome, p.nome_mapa, p.lat, p.lng, p.estado, p.tipo, p.created_at,
+              u.name AS quem
          FROM lugares_propostos p LEFT JOIN users u ON u.id = p.user_id
          ${cond}
         ORDER BY p.id DESC LIMIT 100`,
@@ -745,6 +747,10 @@ adminRouter.get(
         estado: r.estado,
         quando: r.created_at,
         quem: r.quem,
+        tipo: r.tipo,
+        // A etiqueta pronta a escrever no editor do OpenStreetMap. Poupa a quem
+        // revê o trabalho de a ir procurar na documentação.
+        etiqueta: etiquetaOsm(r.tipo),
         // Abre o editor do OpenStreetMap já no sítio certo, com zoom de rua.
         // Sem isto, acrescentar um lugar obriga a procurar as coordenadas à
         // mão — e o que dá trabalho não se faz.

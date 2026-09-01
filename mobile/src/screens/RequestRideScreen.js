@@ -8,6 +8,8 @@ import {
   ScrollView,
   Modal,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
@@ -355,7 +357,7 @@ export default function RequestRideScreen({ navigation, route }) {
         alvo={aNomear}
         t={t}
         onFechar={() => setANomear(null)}
-        onGuardar={async (nome) => {
+        onGuardar={async (nome, tipo) => {
           const p = aNomear.ponto;
           setANomear(null);
           if (aNomear.qual === 'destino') setDestino({ ...p, label: nome });
@@ -366,6 +368,7 @@ export default function RequestRideScreen({ navigation, route }) {
               nomeMapa: p.label,
               lat: p.lat,
               lng: p.lng,
+              tipo,
             });
           } catch {
             // Se falhar, não se diz nada. A viagem dele não depende disto, e
@@ -587,11 +590,33 @@ registarEstilos(() => {
 // pergunta o nome de um sítio parece burocracia. Com razão — "o mapa de
 // Díli está a ser feito agora, e o que escrever ajuda toda a gente" —
 // passa a ser um convite.
+// Os tipos, na ordem em que aparecem.
+//
+// Vivem aqui e não no servidor porque cada um precisa de uma palavra
+// traduzida ao lado — e essa palavra está na app. Pôr a lista no servidor
+// não pouparia uma publicação nenhuma; só afastaria as duas metades da
+// mesma coisa.
+const LISTA_TIPOS = [
+  'casa',
+  'edificio',
+  'loja',
+  'restaurante',
+  'escola',
+  'hotel',
+  'igreja',
+  'mercado',
+  'escritorio',
+  'bairro',
+  'outro',
+];
+
 function NomearLugar({ alvo, t, onFechar, onGuardar }) {
   const [nome, setNome] = useState('');
+  const [tipo, setTipo] = useState(null);
 
   useEffect(() => {
     setNome(alvo?.ponto?.label ?? '');
+    setTipo(null);
   }, [alvo]);
 
   if (!alvo) return null;
@@ -599,32 +624,58 @@ function NomearLugar({ alvo, t, onFechar, onGuardar }) {
 
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onFechar}>
-      <Pressable style={estilosNome.fundo} onPress={onFechar} />
-      <View style={estilosNome.folha}>
-        <View style={estilosNome.pega} />
-        <Text style={estilosNome.titulo}>{t('lugarCorrigirTitulo')}</Text>
-        <Text style={estilosNome.explica}>{t('lugarCorrigirExplica')}</Text>
+      {/* O teclado tapava o campo por completo: escrevia-se às cegas.
+          Com isto, a folha sobe com ele. */}
+      <KeyboardAvoidingView
+        style={{ flex: 1, justifyContent: 'flex-end' }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <Pressable style={estilosNome.fundo} onPress={onFechar} />
+        <View style={estilosNome.folha}>
+          <View style={estilosNome.pega} />
+          <Text style={estilosNome.titulo}>{t('lugarCorrigirTitulo')}</Text>
+          <Text style={estilosNome.explica}>{t('lugarCorrigirExplica')}</Text>
 
-        <Text style={estilosNome.rotulo}>{t('lugarCorrigirCampo')}</Text>
-        <TextInput
-          style={estilosNome.campo}
-          value={nome}
-          onChangeText={setNome}
-          autoFocus
-          selectTextOnFocus
-          placeholderTextColor={colors.textMuted}
-          returnKeyType="done"
-          onSubmitEditing={() => limpo.length >= 2 && onGuardar(limpo)}
-        />
+          <Text style={estilosNome.rotulo}>{t('lugarCorrigirCampo')}</Text>
+          <TextInput
+            style={estilosNome.campo}
+            value={nome}
+            onChangeText={setNome}
+            autoFocus
+            selectTextOnFocus
+            placeholderTextColor={colors.textMuted}
+            returnKeyType="done"
+            onSubmitEditing={() => limpo.length >= 2 && onGuardar(limpo)}
+          />
 
-        <Pressable
-          style={[estilosNome.botao, limpo.length < 2 && estilosNome.botaoInactivo]}
-          disabled={limpo.length < 2}
-          onPress={() => onGuardar(limpo)}
-        >
-          <Text style={estilosNome.botaoTexto}>{t('lugarGuardar')}</Text>
-        </Pressable>
-      </View>
+          {/* O tipo de sítio, na linguagem do OpenStreetMap mas em palavras
+            que se reconhecem. É o que falta saber a quem for acrescentar:
+            sem isto, o nome sozinho não diz se é uma loja ou um bairro.
+            Opcional de propósito — quem não souber, salta. */}
+          <Text style={estilosNome.rotulo}>{t('lugarQueTipo')}</Text>
+          <View style={estilosNome.tipos}>
+            {LISTA_TIPOS.map((x) => (
+              <Pressable
+                key={x}
+                onPress={() => setTipo(tipo === x ? null : x)}
+                style={[estilosNome.tipo, tipo === x && estilosNome.tipoActivo]}
+              >
+                <Text style={[estilosNome.tipoTexto, tipo === x && estilosNome.tipoTextoActivo]}>
+                  {t('tipo' + x.charAt(0).toUpperCase() + x.slice(1))}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <Pressable
+            style={[estilosNome.botao, limpo.length < 2 && estilosNome.botaoInactivo]}
+            disabled={limpo.length < 2}
+            onPress={() => onGuardar(limpo, tipo)}
+          >
+            <Text style={estilosNome.botaoTexto}>{t('lugarGuardar')}</Text>
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -669,6 +720,17 @@ const criarEstilosNome = () =>
       alignItems: 'center',
       marginTop: spacing.sm,
     },
+    tipos: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+    tipo: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.pill,
+      paddingVertical: 6,
+      paddingHorizontal: spacing.sm,
+    },
+    tipoActivo: { borderColor: colors.teal, backgroundColor: colors.teal },
+    tipoTexto: { ...tipo.pequeno, color: colors.textMuted },
+    tipoTextoActivo: { color: colors.onTeal },
     botaoInactivo: { opacity: 0.4 },
     botaoTexto: { ...tipo.corpoForte, color: '#22100A' },
   });

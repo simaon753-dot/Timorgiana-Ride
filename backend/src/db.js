@@ -233,6 +233,7 @@ export async function initSchema() {
     )
   `);
   await query('CREATE INDEX IF NOT EXISTS idx_propostos_estado ON lugares_propostos(estado, id DESC)');
+  await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS tipo TEXT`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_lat DOUBLE PRECISION`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_lng DOUBLE PRECISION`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ`);

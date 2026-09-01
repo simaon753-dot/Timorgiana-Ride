@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth } from '../auth.js';
 import { procurar } from '../lugares.js';
 import { query } from '../db.js';
+import { tipoValido } from '../tiposDeLugar.js';
 
 export const lugaresRouter = Router();
 
@@ -28,7 +29,8 @@ lugaresRouter.get(
 lugaresRouter.post(
   '/propor',
   wrap(async (req, res) => {
-    const { nome, nomeMapa, lat, lng } = req.body || {};
+    const { nome, nomeMapa, lat, lng, tipo } = req.body || {};
+    if (!tipoValido(tipo)) return res.status(400).json({ error: 'Tipo desconhecido.' });
     const n = String(nome || '').trim();
     if (n.length < 2 || n.length > 120) return res.status(400).json({ error: 'Nome inválido.' });
     if (typeof lat !== 'number' || typeof lng !== 'number') {
@@ -41,9 +43,9 @@ lugaresRouter.post(
       return res.json({ guardado: false, motivo: 'igual' });
     }
     await query(
-      `INSERT INTO lugares_propostos (user_id, nome, nome_mapa, lat, lng)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [req.user.id, n, String(nomeMapa || '').trim() || null, lat, lng]
+      `INSERT INTO lugares_propostos (user_id, nome, nome_mapa, lat, lng, tipo)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [req.user.id, n, String(nomeMapa || '').trim() || null, lat, lng, tipo || null]
     );
     res.json({ guardado: true });
   })

@@ -1299,6 +1299,7 @@ function Lugares({ lugares, t, onDecidir }) {
             </Text>
             <Text style={styles.contaMeta}>
               {l.lat.toFixed(5)}, {l.lng.toFixed(5)}
+              {l.etiqueta ? `  ·  ${l.etiqueta}` : ''}
             </Text>
 
             <View style={styles.filtros}>
