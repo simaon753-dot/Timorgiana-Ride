@@ -10,7 +10,7 @@ const dictionaries = { pt, tet, en };
 // por isso há também uma forma curta para os sítios apertados.
 export const LANGUAGES = [
   { code: 'pt', label: 'Português', curto: 'PT' },
-  { code: 'tet', label: 'Tetun', curto: 'TET' },
+  { code: 'tet', label: 'Tétum', curto: 'TET' },
   { code: 'en', label: 'English', curto: 'EN' },
 ];
 

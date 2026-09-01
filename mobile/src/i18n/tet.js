@@ -1,4 +1,4 @@
-// Tetum (Tetun Dili) — PRIMEIRA VERSÃO.
+// Tétum (Tétum Praça, de Díli) — PRIMEIRA VERSÃO.
 // As traduções devem ser revistas por um falante nativo antes do lançamento.
 export default {
   appName: 'TimorgianaRide',
@@ -474,7 +474,7 @@ export default {
   taxaSemValor: 'valor selu iha fatin',
   taxaOndeEstacionamento: 'estasionamentu',
   taxaOndeRecinto: 'resintu',
-  lugarCorrigirLigacao: 'Naran ne’e la loos? Hadia',
+  lugarCorrigirLigacao: 'Naran mak ne’e ka lae? Hadia',
   lugarCorrigirTitulo: 'Fatin ne’e naran saida?',
   lugarCorrigirExplica: 'Mapa seidauk hatene fatin barak iha Díli. Saida mak Ita hakerek iha ne’e ajuda hadia — ba Ita no ba ema hotu.',
   lugarCorrigirCampo: 'Naran fatin nian',

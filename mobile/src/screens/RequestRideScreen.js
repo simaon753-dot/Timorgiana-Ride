@@ -236,6 +236,15 @@ export default function RequestRideScreen({ navigation, route }) {
             vazio={gps ? t('gettingLocation') : t('useMyLocation')}
             onPress={() => setPesquisa('origem')}
           />
+          {/* Também na recolha, e não só no destino.
+              Quem está PARADO num sítio é quem melhor sabe como ele se chama —
+              muito mais do que quem ainda vai a caminho. É por isso que a
+              recolha é, das duas, a melhor fonte. */}
+          {origem && !origem.provisorio ? (
+            <Pressable onPress={() => setANomear({ ponto: origem, qual: 'origem' })} hitSlop={8}>
+              <Text style={styles.corrigirNome}>{t('lugarCorrigirLigacao')}</Text>
+            </Pressable>
+          ) : null}
           <View style={styles.linha} />
           <Ponto
             cor={colors.coral}
