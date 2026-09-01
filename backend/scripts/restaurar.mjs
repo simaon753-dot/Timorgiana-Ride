@@ -43,7 +43,20 @@ if (!fs.existsSync(ficheiro)) {
   process.exit(1);
 }
 
-const sql = fs.readFileSync(ficheiro, 'utf8');
+// Tira as linhas que começam por `\`.
+//
+// O PostgreSQL 18 passou a pôr `\restrict` e `\unrestrict` no início e no
+// fim do ficheiro, para proteger o psql de nomes de tabela maliciosos. São
+// comandos DO PSQL, não SQL — e o driver de node não os entende: rebentava
+// à quinta linha.
+//
+// Retirá-los é seguro aqui porque o que eles protegem é o psql a interpretar
+// o ficheiro, e nós não usamos o psql.
+const bruto = fs.readFileSync(ficheiro, 'utf8');
+const sql = bruto
+  .split('\n')
+  .filter((l) => !l.startsWith('\\'))
+  .join('\n');
 
 // Um ficheiro decifrado com a senha errada não dá erro no openssl em todos
 // os casos — pode sair lixo. Se não parecer SQL do pg_dump, é melhor parar
