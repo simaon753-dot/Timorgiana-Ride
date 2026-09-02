@@ -202,6 +202,26 @@ export async function initSchema() {
      WHERE role = 'driver' AND driver_status IS NULL`
   );
 
+  // O contrário, e este apanhou uma conta real.
+  //
+  // Quem se registou como passageiro e mais tarde declarou um veículo ficava
+  // com `driver_status` preenchido e `role` em 'passenger' — porque a rota
+  // que declara o veículo nunca escrevia o papel. A conta podia ser aprovada
+  // no painel e continuava invisível ao despacho, que filtra tudo por
+  // `role = 'driver'`.
+  //
+  // Aprovada e sem receber um único pedido, sem nada que o explicasse.
+  const papelPorCorrigir = await query(
+    `UPDATE users SET role = 'driver'
+      WHERE driver_status IS NOT NULL AND role <> 'driver'
+      RETURNING id`
+  );
+  if (papelPorCorrigir.length) {
+    console.log(
+      `[db] ${papelPorCorrigir.length} conta(s) aprovadas como motorista tinham o papel errado — corrigido`
+    );
+  }
+
   await query(
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS is_online BOOLEAN NOT NULL DEFAULT FALSE`
   );

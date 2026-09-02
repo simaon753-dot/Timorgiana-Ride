@@ -159,13 +159,29 @@ export function getActiveRideForUser(user) {
 }
 
 // Histórico: viagens terminadas, com as estrelas que ESTE utilizador deu
+//
+// NAS DUAS COLUNAS, e não na que o papel mandar.
+//
+// A versão anterior escolhia a coluna pelo `role`: passageiro via as viagens
+// que pediu, motorista via as que conduziu. Parecia razoável até uma pessoa
+// ser as duas coisas — que é o caso normal aqui, porque tornar-se motorista
+// numa conta de passageiro é um caminho que a app tem de propósito. Uma
+// pessoa em Timor-Leste só pode ter três números de telemóvel; obrigá-la a
+// uma segunda conta para conduzir era gastar um deles.
+//
+// Ao passar a `role = 'driver'`, o histórico de passageiro dela desaparecia
+// do ecrã. As viagens continuavam na base — mas quem as tinha feito deixava
+// de as ver, e isso é indistinguível de as ter perdido.
+//
+// A viagem activa já procurava nas duas colunas. Isto passa a fazer o mesmo.
 export function getRideHistoryForUser(user, limit = 50) {
-  const col = user.role === 'passenger' ? 'r.passenger_id' : 'r.driver_id';
   return query(
     `SELECT sub.*, (
        SELECT stars FROM ratings WHERE ride_id = sub.id AND rater_id = $1
      ) AS my_stars
-     FROM (${RIDE_SELECT} WHERE ${col} = $1 AND r.status IN ('completed','cancelled')) sub
+     FROM (${RIDE_SELECT}
+            WHERE (r.passenger_id = $1 OR r.driver_id = $1)
+              AND r.status IN ('completed','cancelled')) sub
      ORDER BY sub.id DESC LIMIT $2`,
     [user.id, limit]
   );

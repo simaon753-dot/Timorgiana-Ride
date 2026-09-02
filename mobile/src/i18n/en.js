@@ -136,6 +136,8 @@ export default {
   pendingTitle: 'Account under review',
   pendingExplain:
     'Before you can take rides, we need to confirm who you are. Send the documents below — we will review them and let you know.',
+  approvedTitle: 'Account approved',
+  approvedExplain: 'You can drive. Go back and go online when you want to start.',
   rejectedTitle: 'Account not approved',
   rejectedExplain:
     'Your driver account was not approved. If you think this is a mistake, please contact us.',

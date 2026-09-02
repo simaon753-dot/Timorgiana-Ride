@@ -142,6 +142,8 @@ export default {
   pendingTitle: 'Konta iha análize',
   pendingExplain:
     'Molok simu viajen, ami presiza konfirma ita-nia identidade. Haruka dokumentu sira iha kraik — ami analiza no avisa ita.',
+  approvedTitle: 'Konta aprovadu',
+  approvedExplain: 'Ita bele lori. Fila fali no liga servisu bainhira Ita hakarak hahú.',
   rejectedTitle: 'Konta la aprova',
   rejectedExplain:
     'Ita-nia konta motorista la aprova. Se ita hanoin katak iha sala ruma, kontakta ami.',

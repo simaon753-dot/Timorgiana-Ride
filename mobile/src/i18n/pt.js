@@ -143,6 +143,8 @@ export default {
   pendingTitle: 'Conta em análise',
   pendingExplain:
     'Antes de começar a receber viagens, precisamos de confirmar quem é. Envie os documentos abaixo — analisamos e avisamos.',
+  approvedTitle: 'Conta aprovada',
+  approvedExplain: 'Pode conduzir. Volte atrás e ligue o serviço quando quiser começar.',
   rejectedTitle: 'Conta não aprovada',
   rejectedExplain:
     'A sua conta de motorista não foi aprovada. Se achar que houve engano, contacte-nos.',

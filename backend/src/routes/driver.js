@@ -227,6 +227,19 @@ driverRouter.post(
       `UPDATE users
        SET vehicle_type = $1, vehicle_model = $2, vehicle_plate = $3,
            vehicle_color = $4, vehicle_seats = $5,
+           -- O PAPEL PASSA A MOTORISTA, e a falta desta linha era um
+           -- defeito silencioso: a conta ficava aprovada e o sistema de
+           -- motoristas continuava a não a ver.
+           --
+           -- Todas as consultas de despacho filtram por `role = 'driver'`
+           -- — quem fica online, quem recebe pedidos, quem entra nas salas
+           -- do socket. Uma conta aprovada com role 'passenger' nunca
+           -- receberia um pedido, e nada no ecrã explicava porquê.
+           --
+           -- Não tira nada ao lado de passageiro. A viagem activa já
+           -- procura nas duas colunas, e o histórico passou a fazer o
+           -- mesmo. Quem conduz também anda de boleia.
+           role = 'driver',
            -- Só passa a "à espera" se ainda não tinha pedido nada. Um
            -- motorista já aprovado que corrija a matrícula não deve
            -- recomeçar a análise do zero.

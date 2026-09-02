@@ -46,6 +46,11 @@ export default function DriverPendingScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
 
   const rejected = user?.driverStatus === 'rejected';
+  // O ecrã dizia "Conta em análise" mesmo depois de aprovada, porque só
+  // conhecia dois estados: recusado e tudo o resto. Quem tinha acabado de ser
+  // aprovado no painel voltava aqui e lia que continuava à espera — e não há
+  // maneira de distinguir isso de a aprovação não ter funcionado.
+  const aprovado = user?.driverStatus === 'approved';
 
   const carregar = useCallback(async () => {
     try {
@@ -154,11 +159,23 @@ export default function DriverPendingScreen({ navigation }) {
           <FormularioVeiculo onPronto={carregar} />
         ) : (
           <>
-            <View style={[styles.card, rejected && styles.cardRejected]}>
-              <Text style={styles.icon}>{rejected ? '⛔' : '⏳'}</Text>
-              <Text style={styles.title}>{rejected ? t('rejectedTitle') : t('pendingTitle')}</Text>
+            <View
+              style={[
+                styles.card,
+                rejected && styles.cardRejected,
+                aprovado && styles.cardAprovado,
+              ]}
+            >
+              <Text style={styles.icon}>{rejected ? '⛔' : aprovado ? '✓' : '⏳'}</Text>
+              <Text style={styles.title}>
+                {rejected ? t('rejectedTitle') : aprovado ? t('approvedTitle') : t('pendingTitle')}
+              </Text>
               <Text style={styles.explain}>
-                {rejected ? t('rejectedExplain') : t('pendingExplain')}
+                {rejected
+                  ? t('rejectedExplain')
+                  : aprovado
+                    ? t('approvedExplain')
+                    : t('pendingExplain')}
               </Text>
             </View>
 
@@ -342,6 +359,7 @@ const criarEstilos = () =>
       alignItems: 'center',
     },
     cardRejected: { backgroundColor: colors.tintaPerigo, borderColor: colors.contornoPerigo },
+    cardAprovado: { borderColor: colors.teal },
     icon: { fontSize: 38, marginBottom: spacing.sm },
     title: { ...tipo.titulo, color: colors.text, textAlign: 'center' },
     explain: {
