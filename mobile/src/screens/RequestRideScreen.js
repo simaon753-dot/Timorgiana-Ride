@@ -7,16 +7,13 @@ import {
   Pressable,
   ActivityIndicator,
   ScrollView,
-  Modal,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import OSMMap from '../components/OSMMap.js';
 import PlaceSearch from '../components/PlaceSearch.js';
 import EscolherLugares from '../components/EscolherLugares.js';
+import NomearLugar from '../components/NomearLugar.js';
 import SegmentedPicker from '../components/SegmentedPicker.js';
 import { LUGARES } from '../dados/veiculos.js';
 import { nomeDoLugar, rotuloCoordenadas } from '../lib/geocode.js';
@@ -367,9 +364,8 @@ export default function RequestRideScreen({ navigation, route }) {
           correcção é para o mapa de toda a gente. */}
       <NomearLugar
         alvo={aNomear}
-        t={t}
         onFechar={() => setANomear(null)}
-        onGuardar={async (nome, tipo) => {
+        onGuardar={async (nome, tipo, morada) => {
           const p = aNomear.ponto;
           setANomear(null);
           if (aNomear.qual === 'destino') setDestino({ ...p, label: nome });
@@ -381,6 +377,7 @@ export default function RequestRideScreen({ navigation, route }) {
               lat: p.lat,
               lng: p.lng,
               tipo,
+              ...morada,
             });
           } catch {
             // Se falhar, não se diz nada. A viagem dele não depende disto, e
@@ -649,146 +646,3 @@ registarEstilos(() => {
 // traduzida ao lado — e essa palavra está na app. Pôr a lista no servidor
 // não pouparia uma publicação nenhuma; só afastaria as duas metades da
 // mesma coisa.
-const LISTA_TIPOS = [
-  'casa',
-  'edificio',
-  'loja',
-  'restaurante',
-  'escola',
-  'hotel',
-  'igreja',
-  'mercado',
-  'escritorio',
-  'bairro',
-  'outro',
-];
-
-function NomearLugar({ alvo, t, onFechar, onGuardar }) {
-  const [nome, setNome] = useState('');
-  const [tipo, setTipo] = useState(null);
-
-  useEffect(() => {
-    setNome(alvo?.ponto?.label ?? '');
-    setTipo(null);
-  }, [alvo]);
-
-  if (!alvo) return null;
-  const limpo = nome.trim();
-
-  return (
-    <Modal visible transparent animationType="slide" onRequestClose={onFechar}>
-      {/* O teclado tapava o campo por completo: escrevia-se às cegas.
-          Com isto, a folha sobe com ele. */}
-      <KeyboardAvoidingView
-        style={{ flex: 1, justifyContent: 'flex-end' }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <Pressable style={estilosNome.fundo} onPress={onFechar} />
-        <View style={estilosNome.folha}>
-          <View style={estilosNome.pega} />
-          <Text style={estilosNome.titulo}>{t('lugarCorrigirTitulo')}</Text>
-          <Text style={estilosNome.explica}>{t('lugarCorrigirExplica')}</Text>
-
-          <Text style={estilosNome.rotulo}>{t('lugarCorrigirCampo')}</Text>
-          <TextInput
-            style={estilosNome.campo}
-            value={nome}
-            onChangeText={setNome}
-            autoFocus
-            selectTextOnFocus
-            placeholderTextColor={colors.textMuted}
-            returnKeyType="done"
-            onSubmitEditing={() => limpo.length >= 2 && onGuardar(limpo)}
-          />
-
-          {/* O tipo de sítio, na linguagem do OpenStreetMap mas em palavras
-            que se reconhecem. É o que falta saber a quem for acrescentar:
-            sem isto, o nome sozinho não diz se é uma loja ou um bairro.
-            Opcional de propósito — quem não souber, salta. */}
-          <Text style={estilosNome.rotulo}>{t('lugarQueTipo')}</Text>
-          <View style={estilosNome.tipos}>
-            {LISTA_TIPOS.map((x) => (
-              <Pressable
-                key={x}
-                onPress={() => setTipo(tipo === x ? null : x)}
-                style={[estilosNome.tipo, tipo === x && estilosNome.tipoActivo]}
-              >
-                <Text style={[estilosNome.tipoTexto, tipo === x && estilosNome.tipoTextoActivo]}>
-                  {t('tipo' + x.charAt(0).toUpperCase() + x.slice(1))}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-
-          <Pressable
-            style={[estilosNome.botao, limpo.length < 2 && estilosNome.botaoInactivo]}
-            disabled={limpo.length < 2}
-            onPress={() => onGuardar(limpo, tipo)}
-          >
-            <Text style={estilosNome.botaoTexto}>{t('lugarGuardar')}</Text>
-          </Pressable>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
-}
-
-const criarEstilosNome = () =>
-  StyleSheet.create({
-    fundo: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
-    folha: {
-      backgroundColor: colors.paper,
-      borderTopLeftRadius: radius.xl,
-      borderTopRightRadius: radius.xl,
-      paddingHorizontal: spacing.lg,
-      paddingTop: spacing.sm,
-      paddingBottom: spacing.xl,
-      gap: spacing.sm,
-    },
-    pega: {
-      alignSelf: 'center',
-      width: 36,
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: colors.border,
-      marginBottom: spacing.md,
-    },
-    titulo: { ...tipo.subtitulo, color: colors.text },
-    explica: { ...tipo.pequeno, color: colors.textMuted },
-    rotulo: { ...tipo.legenda, color: colors.textMuted, marginTop: spacing.sm },
-    campo: {
-      ...tipo.corpo,
-      color: colors.text,
-      backgroundColor: colors.white,
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: radius.md,
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.md,
-    },
-    botao: {
-      backgroundColor: colors.coral,
-      borderRadius: radius.md,
-      paddingVertical: spacing.md,
-      alignItems: 'center',
-      marginTop: spacing.sm,
-    },
-    tipos: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-    tipo: {
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: radius.pill,
-      paddingVertical: 6,
-      paddingHorizontal: spacing.sm,
-    },
-    tipoActivo: { borderColor: colors.teal, backgroundColor: colors.teal },
-    tipoTexto: { ...tipo.pequeno, color: colors.textMuted },
-    tipoTextoActivo: { color: colors.onTeal },
-    botaoInactivo: { opacity: 0.4 },
-    botaoTexto: { ...tipo.corpoForte, color: '#22100A' },
-  });
-
-let estilosNome = criarEstilosNome();
-registarEstilos(() => {
-  estilosNome = criarEstilosNome();
-});

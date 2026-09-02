@@ -140,6 +140,12 @@ export const api = {
   adminNotificacoes: (token) => request('/admin/notificacoes', { token }),
   assinatura: (token) => request('/driver/assinatura', { token }),
   proporLugar: (token, body) => request('/lugares/propor', { method: 'POST', body, token }),
+  // Onde fica este ponto, na divisão administrativa. Devolve também os
+  // sucos do posto e as aldeias que já foram escritas neles.
+  lugarAdministrativo: (token, lat, lng) =>
+    request(`/lugares/administrativo?lat=${lat}&lng=${lng}`, { token }),
+  // A árvore toda, para escolher à mão quando as coordenadas não chegam.
+  lugarMunicipios: (token) => request('/lugares/municipios', { token }),
   adminLugares: (token, estado = 'novo') => request(`/admin/lugares?estado=${estado}`, { token }),
   adminLugarEstado: (token, id, estado) =>
     request(`/admin/lugares/${id}/estado`, { method: 'POST', body: { estado }, token }),

@@ -444,14 +444,17 @@ export default {
   admTarifasNota: 'Cobradas pelos motoristas. A plataforma não recebe comissão.',
   assinTitulo: 'Assinatura',
   assinGratuitaAte: 'Gratuita até {ate}',
-  assinGratuitaExplica: 'Até lá não pagas nada e não és bloqueado. Os dias vão sendo registados para veres como funciona.',
+  assinGratuitaExplica:
+    'Até lá não pagas nada e não és bloqueado. Os dias vão sendo registados para veres como funciona.',
   assinSaldo: 'Dias no teu saldo',
   assinDias: 'dias',
   assinSemSaldo: 'Sem dias. Carrega para voltares a receber viagens.',
-  assinRegra: 'Um dia só conta quando concluíres pelo menos uma viagem. Dias sem viagens não descontam nada, e dez viagens no mesmo dia contam uma vez.',
+  assinRegra:
+    'Um dia só conta quando concluíres pelo menos uma viagem. Dias sem viagens não descontam nada, e dez viagens no mesmo dia contam uma vez.',
   assinPacotes: 'Pacotes',
   assinComoPagar: 'Como carregar',
-  assinComoPagarNota: 'Depois de pagares, avisa-nos com o comprovativo. Os dias entram na tua conta assim que confirmarmos.',
+  assinComoPagarNota:
+    'Depois de pagares, avisa-nos com o comprovativo. Os dias entram na tua conta assim que confirmarmos.',
   assinHistorico: 'Dias contados',
   assinSemHistorico: 'Ainda não foi contado nenhum dia.',
   assinGratis: 'grátis',
@@ -476,9 +479,30 @@ export default {
   taxaOndeRecinto: 'recinto',
   lugarCorrigirLigacao: 'Não é este o nome? Corrigir',
   lugarCorrigirTitulo: 'Como se chama este sítio?',
-  lugarCorrigirExplica: 'O mapa ainda não conhece muitos sítios de Díli. O que escrever aqui ajuda a corrigi-lo — para si e para toda a gente.',
+  lugarCorrigirExplica:
+    'O mapa ainda não conhece muitos sítios de Díli. O que escrever aqui ajuda a corrigi-lo — para si e para toda a gente.',
   lugarCorrigirCampo: 'Nome do sítio',
   lugarGuardar: 'Guardar',
+
+  // A morada, como o OpenStreetMap a quer. Tudo opcional: quem tiver pressa
+  // escreve o nome e guarda.
+  lugarMorada: 'Onde fica',
+  lugarMoradaExplica:
+    'Para o mapa aceitar o sítio, ajuda saber onde ele fica. Preenchemos o que já sabemos pelas coordenadas.',
+  lugarEndereco: 'Endereço',
+  lugarEnderecoDica: 'Rua, número, ou uma referência',
+  lugarMunicipio: 'Município',
+  lugarPosto: 'Posto administrativo',
+  lugarSuco: 'Suco',
+  lugarAldeia: 'Aldeia',
+  lugarAldeiaDica: 'Escreva o nome da aldeia',
+  lugarPorPreencher: 'Escolher',
+  lugarProcurar: 'Procurar',
+  lugarSemResultados: 'Nada com esse nome.',
+  lugarADescobrir: 'A ver onde fica…',
+  lugarCoordenadas: 'Coordenadas',
+  lugarEscolhaPostoPrimeiro: 'Escolha o posto administrativo primeiro.',
+  lugarOpcional: 'opcional',
   admSecLugares: 'Lugares',
   admLugaresTitulo: 'Sítios que os passageiros nomearam',
   admLugaresVazio: 'Ninguém corrigiu o mapa ainda.',

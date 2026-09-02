@@ -1194,6 +1194,7 @@ const criarEstilos = () =>
     docAviso: { position: 'absolute', top: 4, left: 4 },
     contaNome: { ...tipo.corpoForte, color: colors.text },
     contaMeta: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },
+    contaMorada: { ...tipo.pequeno, color: colors.text, marginTop: 2 },
     viagemSeta: { fontSize: 22, color: colors.textMuted },
     mais: { alignItems: 'center', paddingVertical: spacing.md },
     maisTexto: { ...tipo.corpoForte, color: colors.teal },
@@ -1297,6 +1298,11 @@ function Lugares({ lugares, t, onDecidir }) {
               {l.nomeMapa ? `${t('admLugaresMapaDizia')}: ${l.nomeMapa}` : ''}
               {l.quem ? ` · ${l.quem}` : ''}
             </Text>
+            {/* A morada que quem propôs preencheu, do mais pequeno para o
+                maior. É o que faltava para a proposta se conseguir mesmo
+                submeter: o OpenStreetMap não aceita um ponto solto, quer
+                saber em que suco e em que posto ele fica. */}
+            {l.morada ? <Text style={styles.contaMorada}>{l.morada}</Text> : null}
             <Text style={styles.contaMeta}>
               {l.lat.toFixed(5)}, {l.lng.toFixed(5)}
               {l.etiqueta ? `  ·  ${l.etiqueta}` : ''}

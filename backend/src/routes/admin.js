@@ -118,11 +118,16 @@ adminRouter.post(
 
     const io = req.app.get('io');
     // Avisar o motorista na hora, para ele não ficar a recarregar a app
-    io.to(`user:${row.id}`).emit('driver:status', { status: decision, motivo: row.driver_status_motivo });
+    io.to(`user:${row.id}`).emit('driver:status', {
+      status: decision,
+      motivo: row.driver_status_motivo,
+    });
     // E tirá-lo das salas do tempo real, senão continuava a receber
     // pedidos até fechar a app.
     if (decision !== 'approved') {
-      await io.in(`user:${row.id}`).socketsLeave(['drivers', `drivers:${row.vehicle_type || 'car'}`]);
+      await io
+        .in(`user:${row.id}`)
+        .socketsLeave(['drivers', `drivers:${row.vehicle_type || 'car'}`]);
     }
 
     res.json({ driver: toPublicUser(row) });
@@ -245,9 +250,7 @@ adminRouter.get(
     // O número do sino conta só o que exige acção. Canceladas e suspensas
     // são informação, não tarefas — se entrassem na conta, o sino estava
     // sempre aceso e deixava de querer dizer nada.
-    const porTratar = itens
-      .filter((i) => i.nivel !== 'neutro')
-      .reduce((soma, i) => soma + i.n, 0);
+    const porTratar = itens.filter((i) => i.nivel !== 'neutro').reduce((soma, i) => soma + i.n, 0);
 
     res.json({ itens, porTratar });
   })
@@ -566,9 +569,18 @@ adminRouter.get(
         comecou: r.started_at,
         actualizada: r.updated_at,
         cancelamento: r.cancelled_by
-          ? { por: r.cancelou_nome, motivo: r.cancel_reason, quem: r.cancelled_by === r.passenger_id ? 'passageiro' : 'motorista' }
+          ? {
+              por: r.cancelou_nome,
+              motivo: r.cancel_reason,
+              quem: r.cancelled_by === r.passenger_id ? 'passageiro' : 'motorista',
+            }
           : null,
-        passageiro: { id: r.passenger_id, nome: r.p_nome, telefone: r.p_tel, estrelas: r.p_estrelas },
+        passageiro: {
+          id: r.passenger_id,
+          nome: r.p_nome,
+          telefone: r.p_tel,
+          estrelas: r.p_estrelas,
+        },
         motorista: r.driver_id
           ? {
               id: r.driver_id,
@@ -731,6 +743,7 @@ adminRouter.get(
     const args = estado === 'todos' ? [] : [estado];
     const rows = await query(
       `SELECT p.id, p.nome, p.nome_mapa, p.lat, p.lng, p.estado, p.tipo, p.created_at,
+              p.endereco, p.municipio, p.posto, p.suco, p.aldeia,
               u.name AS quem
          FROM lugares_propostos p LEFT JOIN users u ON u.id = p.user_id
          ${cond}
@@ -748,6 +761,11 @@ adminRouter.get(
         quando: r.created_at,
         quem: r.quem,
         tipo: r.tipo,
+        // A morada, como quem propôs a preencheu. Vai como uma linha só
+        // porque é assim que ela se lê e é assim que se escreve no editor:
+        // aldeia, suco, posto, município — do mais pequeno para o maior.
+        morada:
+          [r.endereco, r.aldeia, r.suco, r.posto, r.municipio].filter(Boolean).join(', ') || null,
         // A etiqueta pronta a escrever no editor do OpenStreetMap. Poupa a quem
         // revê o trabalho de a ir procurar na documentação.
         etiqueta: etiquetaOsm(r.tipo),

@@ -201,7 +201,9 @@ export async function initSchema() {
      WHERE role = 'driver' AND driver_status IS NULL`
   );
 
-  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_online BOOLEAN NOT NULL DEFAULT FALSE`);
+  await query(
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS is_online BOOLEAN NOT NULL DEFAULT FALSE`
+  );
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS dias_saldo INTEGER NOT NULL DEFAULT 0`);
 
   // Município, guardado em vez de calculado a cada consulta. Assim o
@@ -232,14 +234,37 @@ export async function initSchema() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
-  await query('CREATE INDEX IF NOT EXISTS idx_propostos_estado ON lugares_propostos(estado, id DESC)');
+  await query(
+    'CREATE INDEX IF NOT EXISTS idx_propostos_estado ON lugares_propostos(estado, id DESC)'
+  );
   await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS tipo TEXT`);
+
+  // A morada, como o OpenStreetMap a quer.
+  //
+  // O OpenStreetMap não guarda um sítio só com nome e coordenadas — quer
+  // saber onde ele fica na divisão administrativa. Quem propõe um nome pela
+  // app passa a poder dar essa informação, e o que chega ao painel deixa de
+  // ser "um nome num ponto" e passa a ser uma proposta que se consegue
+  // mesmo submeter.
+  //
+  // Tudo opcional. Um passageiro com pressa escreve só o nome, e isso
+  // continua a valer mais do que nada.
+  await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS endereco  TEXT`);
+  await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS municipio TEXT`);
+  await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS posto     TEXT`);
+  await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS suco      TEXT`);
+  await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS aldeia    TEXT`);
+  // Para procurar depressa as aldeias já escritas num suco. É a consulta
+  // que faz o campo da aldeia aprender.
+  await query(`CREATE INDEX IF NOT EXISTS idx_propostos_aldeia ON lugares_propostos(suco, aldeia)`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_lat DOUBLE PRECISION`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_lng DOUBLE PRECISION`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS push_token TEXT`);
 
-  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS cancelled_by INTEGER REFERENCES users(id)`);
+  await query(
+    `ALTER TABLE rides ADD COLUMN IF NOT EXISTS cancelled_by INTEGER REFERENCES users(id)`
+  );
   // A rota é calculada para fixar o preço; guardá-la evita pedir outra vez
   // ao OSRM só para mostrar quanto tempo demora a viagem.
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS distance_km REAL`);
@@ -339,9 +364,13 @@ export async function initSchema() {
   // campo sem historial.
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS driver_status_motivo TEXT`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS driver_status_em TIMESTAMPTZ`);
-  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS driver_status_por INTEGER REFERENCES users(id)`);
+  await query(
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS driver_status_por INTEGER REFERENCES users(id)`
+  );
   await query('CREATE INDEX IF NOT EXISTS idx_sos_aberto ON sos_alerts(resolved, created_at DESC)');
-  await query('CREATE INDEX IF NOT EXISTS idx_users_online ON users(is_online) WHERE role = \'driver\'');
+  await query(
+    "CREATE INDEX IF NOT EXISTS idx_users_online ON users(is_online) WHERE role = 'driver'"
+  );
 
   const [{ now }] = await query('SELECT NOW() AS now');
   console.log('[db] PostgreSQL pronto —', now.toISOString());
