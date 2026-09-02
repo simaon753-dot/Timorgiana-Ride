@@ -44,7 +44,10 @@ adminRouter.get(
          SELECT json_agg(json_build_object(
            'id', d.id, 'kind', d.kind, 'mime', d.mime,
            'expiresOn', TO_CHAR(d.expires_on,'YYYY-MM-DD'),
-           'expirado', (d.expires_on IS NOT NULL AND d.expires_on < CURRENT_DATE)))
+           'expirado', (d.expires_on IS NOT NULL AND d.expires_on < CURRENT_DATE),
+           'motivo', d.motivo_atualizacao,
+           'porRever', (d.motivo_atualizacao IS NOT NULL
+                          AND (d.revisto_em IS NULL OR d.revisto_em < d.created_at))))
          FROM driver_documents d WHERE d.user_id = u.id
        ) AS docs
        FROM users u

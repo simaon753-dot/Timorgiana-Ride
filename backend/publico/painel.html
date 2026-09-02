@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>TimorgianaRide · Aprovações</title>
+<style>
+  :root {
+    --teal: #0e5c54; --teal-claro: #e7f0ee; --coral: #ff6b4a;
+    --papel: #faf7f2; --branco: #fff; --texto: #1a1a1a; --suave: #6b6b6b;
+    --borda: #e2ddd5; --mau: #c0392b; --bom: #1e7d4f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--papel); color: var(--texto);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  header { background: var(--teal); color: #fff; padding: 14px 20px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  header h1 { font-size: 17px; margin: 0; font-weight: 600; }
+  header .espaco { flex: 1; }
+  header button { background: rgba(255,255,255,.15); color: #fff; border: 0;
+    padding: 7px 13px; border-radius: 7px; cursor: pointer; font-size: 13px; }
+  main { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+  .entrar { max-width: 340px; margin: 12vh auto; background: var(--branco);
+    border: 1px solid var(--borda); border-radius: 14px; padding: 26px; }
+  .entrar h2 { margin: 0 0 4px; font-size: 19px; }
+  .entrar p { margin: 0 0 18px; color: var(--suave); font-size: 13px; }
+  label { display: block; font-size: 12px; color: var(--suave);
+    text-transform: uppercase; letter-spacing: .5px; margin: 12px 0 5px; }
+  input { width: 100%; padding: 11px 12px; border: 1px solid var(--borda);
+    border-radius: 9px; font-size: 15px; background: var(--branco); color: var(--texto); }
+  .principal { width: 100%; margin-top: 18px; padding: 12px; background: var(--coral);
+    color: #22100a; border: 0; border-radius: 9px; font-size: 15px; font-weight: 600;
+    cursor: pointer; }
+
+  .filtros { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+  .filtros button { background: var(--branco); border: 1px solid var(--borda);
+    padding: 7px 14px; border-radius: 999px; cursor: pointer; font-size: 13px; color: var(--texto); }
+  .filtros button[aria-pressed="true"] { background: var(--teal); border-color: var(--teal); color: #fff; }
+
+  .conta { background: var(--branco); border: 1px solid var(--borda); border-radius: 14px;
+    padding: 18px; margin-bottom: 16px; display: grid; gap: 16px;
+    grid-template-columns: 220px 1fr 210px; align-items: start; }
+  @media (max-width: 900px) { .conta { grid-template-columns: 1fr; } }
+  .conta h3 { margin: 0 0 2px; font-size: 17px; }
+  .meta { color: var(--suave); font-size: 13px; }
+  .docs { display: flex; gap: 10px; flex-wrap: wrap; }
+  .doc { width: 116px; }
+  .doc img { width: 116px; height: 88px; object-fit: cover; border-radius: 8px;
+    border: 1px solid var(--borda); background: var(--teal-claro); cursor: zoom-in; display: block; }
+  .doc .falta { width: 116px; height: 88px; border-radius: 8px; border: 1px dashed var(--mau);
+    display: flex; align-items: center; justify-content: center; color: var(--mau); font-size: 12px; }
+  .doc b { display: block; font-size: 11.5px; margin-top: 5px; font-weight: 600; }
+  .doc span { display: block; font-size: 11.5px; color: var(--suave); }
+  .doc span.mau { color: var(--mau); font-weight: 600; }
+
+  .checklist { list-style: none; margin: 0 0 12px; padding: 0; font-size: 13px; }
+  .checklist li { padding: 3px 0; }
+  .checklist .ok::before { content: "✓ "; color: var(--bom); font-weight: 700; }
+  .checklist .no::before { content: "✗ "; color: var(--mau); font-weight: 700; }
+  .checklist .duvida::before { content: "! "; color: var(--coral); font-weight: 700; }
+  .accoes { display: flex; flex-direction: column; gap: 8px; }
+  .aprovar { padding: 11px; background: var(--teal); color: #fff; border: 0;
+    border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .confirmar { padding: 10px; background: var(--teal-claro); color: var(--teal);
+    border: 1px solid var(--teal); border-radius: 9px; font-size: 13px; cursor: pointer; }
+  .recusar { padding: 11px; background: var(--branco); color: var(--mau);
+    border: 1px solid var(--mau); border-radius: 9px; font-size: 14px; cursor: pointer; }
+  .vazio { text-align: center; padding: 60px 20px; color: var(--suave); }
+  .erro { background: #fdecea; border: 1px solid var(--mau); color: var(--mau);
+    padding: 11px 13px; border-radius: 9px; margin-bottom: 14px; font-size: 14px; }
+  dialog { border: 0; border-radius: 14px; padding: 0; max-width: 94vw; max-height: 94vh; }
+  dialog::backdrop { background: rgba(0,0,0,.75); }
+  dialog img { display: block; max-width: 94vw; max-height: 88vh;
+    transition: transform .15s; transform-origin: center; }
+  dialog img.r90  { transform: rotate(90deg)  scale(.72); }
+  dialog img.r180 { transform: rotate(180deg); }
+  dialog img.r270 { transform: rotate(270deg) scale(.72); }
+  .lupaBarra { display: flex; gap: 8px; justify-content: flex-end; padding: 10px;
+    background: var(--papel); border-bottom: 1px solid var(--borda); }
+  .lupaBarra button { background: var(--teal); color: #fff; border: 0;
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div id="ecraEntrar" class="entrar" hidden>
+  <h2>Aprovações</h2>
+  <p>TimorgianaRide · entre com a sua conta de administrador.</p>
+  <div id="erroEntrar"></div>
+  <label for="tel">Telemóvel</label>
+  <input id="tel" type="tel" autocomplete="username" />
+  <label for="pw">Palavra-passe</label>
+  <input id="pw" type="password" autocomplete="current-password" />
+  <button class="principal" id="btEntrar">Entrar</button>
+</div>
+
+<div id="ecraPainel" hidden>
+  <header>
+    <h1>TimorgianaRide · Aprovações</h1>
+    <span class="espaco"></span>
+    <span id="quem" class="meta" style="color:rgba(255,255,255,.8)"></span>
+    <button id="btAtualizar">Atualizar</button>
+    <button id="btSair">Sair</button>
+  </header>
+  <main>
+    <div class="filtros">
+      <button data-estado="pending" aria-pressed="true">À espera</button>
+      <button data-estado="approved" aria-pressed="false">Aprovados</button>
+      <button data-estado="rejected" aria-pressed="false">Recusados</button>
+      <button data-estado="todos" aria-pressed="false">Todos</button>
+    </div>
+    <div id="erro"></div>
+    <div id="lista"></div>
+  </main>
+</div>
+
+<dialog id="lupa">
+  <!-- Rodar, porque um cartão fotografado ao alto aparece deitado.
+       Quem fotografa o Kartaun Inspesaun segura-o na mão e tira a foto
+       como o telemóvel está — e o cartão é largo. Sem isto, quem revê
+       inclina a cabeça para ler uma data. -->
+  <div class="lupaBarra">
+    <button id="btRodar">Rodar ⟳</button>
+    <button id="btFechar">Fechar</button>
+  </div>
+  <img id="lupaImg" alt="" />
+</dialog>
+
+<script>
+// Painel de aprovações, para o browser.
+//
+// PORQUE EXISTE. O Simão é advogado e tem outro trabalho. Aprovar um
+// motorista obrigava-o a pegar no telemóvel e a percorrer cinco fotografias
+// num ecrã pequeno, uma de cada vez. Os minutos livres dele são no
+// computador do escritório — é aí que isto tem de estar.
+//
+// Um ficheiro só, sem dependências e sem compilação. Servido pelo mesmo
+// servidor que já corre no Render: não há segundo alojamento, segunda conta
+// nem segundo custo. Falar com a API na mesma origem também dispensa CORS e
+// deixa a sessão simples.
+
+const TIPOS = [
+  ['photo', 'Fotografia'],
+  ['identity', 'Identificação'],
+  ['licence', 'Carta de condução'],
+  ['vehicle', 'Registo do veículo'],
+  ['inspection', 'Inspeção'],
+];
+
+// Quanto tempo é PLAUSÍVEL faltar para cada documento caducar.
+//
+// É aqui que a máquina ajuda de verdade. As datas são escritas pelo próprio
+// motorista a olhar para o cartão, e ninguém as confere — nada o impede de
+// escrever 2035. A app não sabe ler o cartão, mas sabe que um Kartaun
+// Inspesaun vale um ano: uma validade a três anos de distância não é um
+// documento válido, é um engano ou uma invenção.
+//
+// Não recusa nada. Levanta o dedo, para quem decide olhar com atenção para
+// AQUELA fotografia em vez de olhar para as cinco com a mesma atenção.
+const MAX_DIAS = { inspection: 400, licence: 5500, vehicle: 5500 };
+
+let token = localStorage.getItem('tr_token') || '';
+let estado = 'pending';
+const porUrl = new Map();
+
+const $ = (id) => document.getElementById(id);
+const mostrarErro = (onde, msg) => {
+  $(onde).innerHTML = msg ? `<div class="erro">${msg}</div>` : '';
+};
+
+async function api(caminho, opcoes = {}) {
+  const r = await fetch('/api' + caminho, {
+    ...opcoes,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: 'Bearer ' + token } : {}),
+      ...(opcoes.headers || {}),
+    },
+  });
+  if (r.status === 401 || r.status === 403) {
+    sair();
+    throw new Error('A sessão terminou. Entre outra vez.');
+  }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'Falhou.');
+  return j;
+}
+
+// As imagens vêm por fetch e não em <img src>.
+//
+// O endereço do documento exige o cabeçalho Authorization, e um <img> não
+// consegue mandar cabeçalhos. Buscar o ficheiro por fetch, transformá-lo em
+// blob e apontar a imagem para esse blob resolve — sem abrir os documentos
+// de identificação a quem tenha só o endereço.
+async function imagemDoDocumento(id) {
+  if (porUrl.has(id)) return porUrl.get(id);
+  const r = await fetch('/api/admin/documents/' + id, {
+    headers: { Authorization: 'Bearer ' + token },
+  });
+  if (!r.ok) return null;
+  const url = URL.createObjectURL(await r.blob());
+  porUrl.set(id, url);
+  return url;
+}
+
+function diasAte(iso) {
+  if (!iso) return null;
+  return Math.round((new Date(iso + 'T00:00:00Z') - new Date()) / 86400000);
+}
+const mostrarData = (iso) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : '—';
+};
+
+// O que a máquina consegue verificar sozinha.
+function verificar(d) {
+  const porTipo = Object.fromEntries((d.documents || []).map((x) => [x.kind, x]));
+  const linhas = [];
+  const faltam = TIPOS.filter(([k]) => !porTipo[k]).map(([, n]) => n);
+  linhas.push(
+    faltam.length
+      ? { c: 'no', t: `Faltam: ${faltam.join(', ')}` }
+      : { c: 'ok', t: 'Os cinco documentos' }
+  );
+
+  const semData = ['licence', 'vehicle', 'inspection'].filter((k) => porTipo[k] && !porTipo[k].expiresOn);
+  if (semData.length) linhas.push({ c: 'no', t: `Sem data de validade: ${semData.length}` });
+
+  const caducados = (d.documents || []).filter((x) => x.expirado);
+  if (caducados.length) linhas.push({ c: 'no', t: `Caducado: ${caducados.length}` });
+  else if (!semData.length && !faltam.length) linhas.push({ c: 'ok', t: 'Nenhum caducado' });
+
+  for (const [k, nome] of TIPOS) {
+    const doc = porTipo[k];
+    if (!doc?.expiresOn || !MAX_DIAS[k]) continue;
+    const dias = diasAte(doc.expiresOn);
+    if (dias > MAX_DIAS[k]) {
+      linhas.push({ c: 'duvida', t: `${nome}: validade longe demais (${Math.round(dias / 365)} anos)` });
+    } else if (dias >= 0 && dias <= 30) {
+      // Dito NA ALTURA DE APROVAR, e não só quando o motorista o vê.
+      // Aprovar alguém cuja carta acaba daqui a três semanas é aprovar
+      // trabalho para dali a três semanas. Melhor saber agora e dizer-lhe
+      // já para tratar disso.
+      linhas.push({ c: 'duvida', t: `${nome}: caduca em ${dias} dia${dias === 1 ? '' : 's'}` });
+    }
+  }
+
+  // Documentos substituídos depois de já terem sido verificados. É a outra
+  // coisa nesta app que espera por uma pessoa, e por isso vive aqui também:
+  // um painel que só mostra metade do que precisa de atenção obriga a
+  // procurar a outra metade noutro sítio.
+  for (const [k, nome] of TIPOS) {
+    const doc = porTipo[k];
+    if (doc?.porRever) {
+      linhas.push({ c: 'duvida', t: `${nome}: substituído (${doc.motivo || '—'}) — por confirmar` });
+    }
+  }
+  return linhas;
+}
+
+// Puxa a imagem quando o cartão dela chega ao ecrã.
+//
+// `rootMargin` de 300px: começa a buscar um pouco antes de aparecer, para a
+// imagem já estar lá quando se chega a ela em vez de aparecer depois.
+const observador = new IntersectionObserver(
+  (entradas) => {
+    for (const e of entradas) {
+      if (!e.isIntersecting) continue;
+      const img = e.target;
+      observador.unobserve(img);
+      imagemDoDocumento(img.dataset.doc).then((u) => u && (img.src = u));
+    }
+  },
+  { rootMargin: '300px' }
+);
+
+async function desenhar() {
+  const { drivers } = await api('/admin/drivers?status=' + estado);
+  const lista = $('lista');
+  if (!drivers.length) {
+    lista.innerHTML = '<div class="vazio">Nada por tratar.</div>';
+    return;
+  }
+  lista.innerHTML = '';
+  for (const d of drivers) {
+    const porTipo = Object.fromEntries((d.documents || []).map((x) => [x.kind, x]));
+    const linhas = verificar(d);
+    const impede = linhas.some((l) => l.c === 'no');
+
+    const el = document.createElement('div');
+    el.className = 'conta';
+    el.innerHTML = `
+      <div>
+        <h3>${escapar(d.name)}</h3>
+        <div class="meta">${escapar(d.phone || '')}</div>
+        <div class="meta">${d.vehicle?.type === 'motorbike' ? 'Motorizada' : 'Carro'}
+          ${escapar(d.vehicle?.model || '')} ${escapar(d.vehicle?.plate || '')}</div>
+        <div class="meta">${d.viagens || 0} viagens · estado: ${escapar(d.driverStatus || '')}</div>
+      </div>
+      <div class="docs">
+        ${TIPOS.map(([k, nome]) => {
+          const doc = porTipo[k];
+          if (!doc) return `<div class="doc"><div class="falta">falta</div><b>${nome}</b></div>`;
+          const dias = diasAte(doc.expiresOn);
+          const mau = doc.expirado || (MAX_DIAS[k] && dias > MAX_DIAS[k]);
+          return `<div class="doc">
+            <img data-doc="${doc.id}" alt="${nome}" />
+            <b>${nome}</b>
+            <span class="${mau ? 'mau' : ''}">${doc.expiresOn ? mostrarData(doc.expiresOn) : (MAX_DIAS[k] ? 'sem data' : '')}</span>
+          </div>`;
+        }).join('')}
+      </div>
+      <div>
+        <ul class="checklist">
+          ${linhas.map((l) => `<li class="${l.c}">${escapar(l.t)}</li>`).join('')}
+        </ul>
+        <div class="accoes">
+          <button class="aprovar" data-aprovar="${d.id}">
+            ${impede ? 'Aprovar mesmo assim' : 'Aprovar'}
+          </button>
+          <button class="recusar" data-recusar="${d.id}">Recusar</button>
+          ${(d.documents || [])
+            .filter((x) => x.porRever)
+            .map(
+              (x) =>
+                `<button class="confirmar" data-revisto="${x.id}">Confirmar ${
+                  (TIPOS.find(([k]) => k === x.kind) || [, x.kind])[1]
+                }</button>`
+            )
+            .join('')}
+        </div>
+      </div>`;
+    lista.appendChild(el);
+
+    for (const img of el.querySelectorAll('img[data-doc]')) {
+      // SÓ SE BUSCA O QUE ESTÁ À VISTA.
+      //
+      // Os documentos são fotografias de telemóvel: 1900 a 3800 píxeis de
+      // largura, um a dois megabytes cada. Cinco por candidato. Buscá-los
+      // todos ao abrir a página seriam dezenas de megabytes numa ligação de
+      // Díli — para encher miniaturas de 116 píxeis que talvez nem se veja.
+      //
+      // Com o observador, cada cartão só puxa as suas imagens quando chega
+      // ao ecrã. Quem aprova o primeiro candidato e fecha a página nunca
+      // descarregou os outros dezanove.
+      observador.observe(img);
+      img.onclick = () => {
+        if (!img.src) return;
+        rodado = 0;
+        $('lupaImg').src = img.src;
+        aplicarRotacao();
+        $('lupa').showModal();
+      };
+    }
+  }
+}
+
+function escapar(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
+  );
+}
+
+async function decidir(id, decision) {
+  let motivo = null;
+  if (decision !== 'approved') {
+    // O motivo é obrigatório do lado do servidor, e ainda bem: uma recusa
+    // sem explicação deixa o motorista sem saber o que corrigir, e a
+    // corrigir por telefone.
+    motivo = prompt('Porque está a recusar? O motorista vai ler isto.');
+    if (!motivo || !motivo.trim()) return;
+  }
+  await api(`/admin/drivers/${id}/decision`, {
+    method: 'POST',
+    body: JSON.stringify({ decision, motivo }),
+  });
+  await desenhar();
+}
+
+document.addEventListener('click', async (e) => {
+  const ap = e.target.closest('[data-aprovar]');
+  const re = e.target.closest('[data-recusar]');
+  const rv = e.target.closest('[data-revisto]');
+  try {
+    if (ap) await decidir(ap.dataset.aprovar, 'approved');
+    if (re) await decidir(re.dataset.recusar, 'rejected');
+    if (rv) {
+      await api(`/admin/documents/${rv.dataset.revisto}/revisto`, { method: 'POST' });
+      await desenhar();
+    }
+  } catch (err) {
+    mostrarErro('erro', err.message);
+  }
+});
+
+let rodado = 0;
+function aplicarRotacao() {
+  const img = $('lupaImg');
+  img.className = rodado ? 'r' + rodado : '';
+}
+$('btRodar').onclick = () => {
+  rodado = (rodado + 90) % 360;
+  aplicarRotacao();
+};
+$('btFechar').onclick = () => $('lupa').close();
+// Clicar fora fecha, mas clicar NA IMAGEM não: senão a primeira tentativa de
+// olhar de perto fechava a janela.
+$('lupa').onclick = (e) => {
+  if (e.target === $('lupa')) $('lupa').close();
+};
+
+for (const b of document.querySelectorAll('.filtros button')) {
+  b.onclick = async () => {
+    estado = b.dataset.estado;
+    for (const o of document.querySelectorAll('.filtros button')) {
+      o.setAttribute('aria-pressed', String(o === b));
+    }
+    try {
+      await desenhar();
+      mostrarErro('erro', '');
+    } catch (err) {
+      mostrarErro('erro', err.message);
+    }
+  };
+}
+
+$('btAtualizar').onclick = async () => {
+  try {
+    await desenhar();
+    mostrarErro('erro', '');
+  } catch (err) {
+    mostrarErro('erro', err.message);
+  }
+};
+
+function sair() {
+  token = '';
+  localStorage.removeItem('tr_token');
+  for (const u of porUrl.values()) URL.revokeObjectURL(u);
+  porUrl.clear();
+  $('ecraPainel').hidden = true;
+  $('ecraEntrar').hidden = false;
+}
+$('btSair').onclick = sair;
+
+$('btEntrar').onclick = async () => {
+  mostrarErro('erroEntrar', '');
+  try {
+    const r = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: $('tel').value.trim(), password: $('pw').value }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'Não entrou.');
+    if (!j.user?.isAdmin) throw new Error('Esta conta não é de administrador.');
+    token = j.token;
+    localStorage.setItem('tr_token', token);
+    $('pw').value = '';
+    await abrirPainel(j.user);
+  } catch (err) {
+    mostrarErro('erroEntrar', err.message);
+  }
+};
+$('pw').addEventListener('keydown', (e) => e.key === 'Enter' && $('btEntrar').click());
+
+async function abrirPainel(user) {
+  $('quem').textContent = user?.name || '';
+  $('ecraEntrar').hidden = true;
+  $('ecraPainel').hidden = false;
+  await desenhar();
+}
+
+// Ao abrir: se já houver sessão guardada, tenta usá-la.
+(async () => {
+  if (!token) return ($('ecraEntrar').hidden = false);
+  try {
+    const me = await api('/auth/me');
+    if (!me.user?.isAdmin) throw new Error('sem permissão');
+    await abrirPainel(me.user);
+  } catch {
+    sair();
+  }
+})();
+</script>
+</body>
+</html>

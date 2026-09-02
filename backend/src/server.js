@@ -18,6 +18,7 @@ import { one } from './db.js';
 import { lugaresRouter } from './routes/lugares.js';
 import { estadoDaBusca } from './lugares.js';
 import { municipioDe } from './municipios.js';
+import { fileURLToPath } from 'node:url';
 
 const app = express();
 app.use(cors());
@@ -65,6 +66,34 @@ app.get('/api/config/fares', (req, res) => {
 // perigo pode ter a sessão expirada, e nada aqui é privado.
 app.get('/api/config/emergencia', (req, res) => {
   res.json({ numeros: config.numerosEmergencia });
+});
+
+// O painel de aprovações, no browser.
+//
+// Servido pelo MESMO servidor que serve a API, e isso é a decisão que faz
+// tudo o resto ser simples: mesma origem, portanto sem CORS, sem segundo
+// alojamento, sem segunda conta para manter viva. Um ficheiro estático que
+// vai no mesmo deploy do resto.
+//
+// `noindex` no cabeçalho e `no-store` para o browser não guardar em disco
+// uma página que mostra documentos de identificação. A página em si não tem
+// dados nenhuns — pede-os à API com a mesma senha da app — mas não custa
+// nada dizer aos motores de busca que não têm nada que fazer aqui.
+// Quem escreve só o endereço do serviço no browser quer o painel — não há
+// mais nada aqui para uma pessoa ver. Sem isto apanhava um 404 seco.
+app.get('/', (req, res) => res.redirect('/painel'));
+
+app.get('/painel', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  // `fileURLToPath` e não `.pathname`.
+  //
+  // O `.pathname` de uma URL devolve o caminho CODIFICADO: a pasta deste
+  // projecto chama-se "Claude Code", com um espaço, e saía
+  // ".../Claude%20Code/..." — que o sistema de ficheiros não encontra.
+  // No servidor do Render o caminho não tem espaços e isto nunca teria dado
+  // erro; só se via no computador de quem o escreveu.
+  res.sendFile(fileURLToPath(new URL('../publico/painel.html', import.meta.url)));
 });
 
 app.use('/api/auth', authRouter);
