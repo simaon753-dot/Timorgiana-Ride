@@ -361,6 +361,21 @@ export async function initSchema() {
     CHECK (kind IN ('licence', 'vehicle', 'photo', 'inspection', 'identity'))
   `);
 
+  // Porque é que um documento já verificado foi substituído.
+  //
+  // Depois de aprovado, substituir deixou de ser um gesto livre: obriga a
+  // dizer porquê. Não é burocracia — é o que transforma "este documento
+  // mudou" em "este documento mudou POR ISTO", e é a diferença entre um
+  // registo que se consegue auditar e um que só mostra o estado de hoje.
+  //
+  // Guardado no documento e não à parte: o que interessa saber é o motivo da
+  // ÚLTIMA substituição, e é esse que fica ao lado da fotografia no painel.
+  await query(`ALTER TABLE driver_documents ADD COLUMN IF NOT EXISTS motivo_atualizacao TEXT`);
+  // Quando alguém do painel confirmou o documento novo. Comparado com o
+  // `created_at`: se for anterior, é porque o documento mudou depois da
+  // última revisão e está por rever outra vez.
+  await query(`ALTER TABLE driver_documents ADD COLUMN IF NOT EXISTS revisto_em TIMESTAMPTZ`);
+
   // Foto do turno: quem está ao volante HOJE. Os documentos verificam a
   // conta; isto verifica a pessoa. Um motorista aprovado que empresta o
   // telemóvel ao primo é o problema mais comum deste negócio.

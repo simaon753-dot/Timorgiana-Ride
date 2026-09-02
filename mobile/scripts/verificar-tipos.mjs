@@ -88,12 +88,35 @@ for (const id of naAppDocs) {
   if (faltam.length) problemas.push(`${chave} — falta em ${faltam.join(', ')}`);
 }
 
+// ── e os motivos de substituição de documento, pela terceira vez ──
+//
+// `t('motivo' + m.charAt(0).toUpperCase() + m.slice(1))`. É a terceira lista
+// do projecto montada assim, e as três só estão verificadas porque alguém se
+// lembrou de as trazer para aqui. Se aparecer uma quarta, o sítio é este.
+const noServidorMotivos = idsDe(
+  '../backend/src/documents.js',
+  'export const MOTIVOS_ATUALIZACAO = ['
+);
+const naAppMotivos = idsDe('src/screens/DriverPendingScreen.js', 'const MOTIVOS = [');
+
+for (const x of noServidorMotivos) {
+  if (!naAppMotivos.includes(x)) problemas.push(`motivo '${x}' está no servidor mas não na app`);
+}
+for (const x of naAppMotivos) {
+  if (!noServidorMotivos.includes(x)) {
+    problemas.push(`motivo '${x}' está na app mas o servidor recusa-o — a substituição falharia`);
+  }
+  const chave = 'motivo' + x.charAt(0).toUpperCase() + x.slice(1);
+  const faltam = LINGUAS.filter((l) => dicionarios[l][chave] == null);
+  if (faltam.length) problemas.push(`${chave} — falta em ${faltam.join(', ')}`);
+}
+
 if (problemas.length) {
   console.error('  ✗ tipos de lugar:\n');
   for (const p of problemas) console.error('    ' + p);
   process.exit(1);
 }
 console.log(
-  `  ✓ ${naApp.length} tipos de lugar e ${naAppDocs.length} documentos, ` +
-    `traduzidos e iguais nos dois lados`
+  `  ✓ ${naApp.length} tipos de lugar, ${naAppDocs.length} documentos e ` +
+    `${naAppMotivos.length} motivos, traduzidos e iguais nos dois lados`
 );

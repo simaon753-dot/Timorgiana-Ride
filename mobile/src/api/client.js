@@ -155,6 +155,9 @@ export const api = {
     request(`/admin/lugares/${id}/estado`, { method: 'POST', body: { estado }, token }),
   adminCarregar: (token, id, body) =>
     request(`/admin/drivers/${id}/carregar`, { method: 'POST', body, token }),
+  // Confirmar um documento que o motorista substituiu depois de aprovado.
+  adminDocRevisto: (token, id) =>
+    request(`/admin/documents/${id}/revisto`, { method: 'POST', token }),
   adminResolverSos: (token, id) => request(`/admin/sos/${id}/resolver`, { method: 'POST', token }),
   adminDrivers: (token, status) => request(`/admin/drivers?status=${status}`, { token }),
   adminDecidir: (token, id, decision, motivo) =>

@@ -427,7 +427,10 @@ adminRouter.get(
     const [docs, viagens, avaliacoes, turnos, sos] = await Promise.all([
       query(
         `SELECT id, kind, size_bytes, created_at, TO_CHAR(expires_on,'YYYY-MM-DD') AS expires_on,
-                (expires_on IS NOT NULL AND expires_on < CURRENT_DATE) AS caducado
+                (expires_on IS NOT NULL AND expires_on < CURRENT_DATE) AS caducado,
+                motivo_atualizacao,
+                (motivo_atualizacao IS NOT NULL
+                   AND (revisto_em IS NULL OR revisto_em < created_at)) AS por_rever
          FROM driver_documents WHERE user_id = $1 ORDER BY kind`,
         [id]
       ),
@@ -494,6 +497,11 @@ adminRouter.get(
         quando: d.created_at,
         validade: d.expires_on,
         caducado: !!d.caducado,
+        // Porque foi substituído depois de já ter sido verificado, e se
+        // ainda falta confirmar. Um documento trocado sem passar por
+        // ninguém é exactamente o que o Simão quis evitar ao fechá-los.
+        motivo: d.motivo_atualizacao || null,
+        porRever: !!d.por_rever,
       })),
       viagens: viagens.map((r) => ({
         id: r.id,
@@ -797,6 +805,25 @@ adminRouter.get(
 );
 
 // POST /api/admin/lugares/:id/estado — marcar como acrescentado ou recusado
+// POST /api/admin/documents/:id/revisto — confirmar um documento substituído
+//
+// Depois de aprovado, o motorista só substitui um documento dizendo porquê —
+// caducou, perdeu-o, danificou-se, enviou o errado. O documento novo entra a
+// funcionar logo, para ninguém ficar parado à espera, mas fica marcado POR
+// REVER até alguém aqui olhar para ele.
+//
+// É este botão que fecha esse ciclo. Sem ele, a marca ficava acesa para
+// sempre e deixava de querer dizer alguma coisa.
+adminRouter.post(
+  '/documents/:id/revisto',
+  wrap(async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) return res.status(400).json({ error: 'Documento inválido.' });
+    await query('UPDATE driver_documents SET revisto_em = NOW() WHERE id = $1', [id]);
+    res.json({ ok: true });
+  })
+);
+
 adminRouter.post(
   '/lugares/:id/estado',
   wrap(async (req, res) => {

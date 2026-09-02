@@ -7,6 +7,8 @@ import {
   podeTrabalhar,
   getOwnDocument,
   definirValidade,
+  motivoValido,
+  OBRIGATORIOS,
 } from '../documents.js';
 import { temFotoDeHoje, guardarFotoDeTurno, ultimaFotoDeTurno } from '../turnos.js';
 import { setOnline, savePushToken } from '../drivers.js';
@@ -48,6 +50,11 @@ driverRouter.get(
         // "está quase" — quatro dias mandam tratar disso hoje, "está quase"
         // não manda fazer nada.
         dias: d.dias == null ? null : Number(d.dias),
+        // Porque foi substituído, e se ainda está por confirmar. A app usa
+        // os dois para dizer ao motorista que o documento novo já lá está
+        // mas ainda não passou por ninguém.
+        motivo: d.motivo_atualizacao || null,
+        porRever: !!d.por_rever,
       })),
       apto,
       fotoDeHoje: fotoHoje,
@@ -352,13 +359,31 @@ driverRouter.post(
     if (!base64) return res.status(400).json({ error: 'Ficheiro em falta.' });
 
     try {
-      const doc = await saveDocument({ userId: req.user.id, kind, mime, base64, expiresOn });
+      // O motivo, quando é uma substituição de documento já verificado.
+      //
+      // Recusado se for desconhecido, em vez de guardado como veio: uma
+      // coluna que aceita qualquer texto deixa de servir para contar nada, e
+      // contar é a razão de ela existir.
+      const motivo = req.body?.motivo || null;
+      if (!motivoValido(motivo)) return res.status(400).json({ error: 'Motivo desconhecido.' });
+
+      const doc = await saveDocument({
+        userId: req.user.id,
+        kind,
+        mime,
+        base64,
+        expiresOn,
+        motivo,
+      });
 
       // Só avisa quando o conjunto ficar completo. Avisar a cada ficheiro
       // daria três notificações pela mesma pessoa e ensinaria a ignorá-las.
       const todos = await listDocuments(req.user.id);
       const tipos = new Set(todos.map((d) => d.kind));
-      const completo = ['licence', 'vehicle', 'photo'].every((k) => tipos.has(k));
+      // A lista real e não três tipos escritos à mão. Estava desactualizada
+      // desde que entraram a inspeção e a identificação: um motorista ficava
+      // "completo" com três documentos e ninguém era avisado dos outros dois.
+      const completo = OBRIGATORIOS.every((k) => tipos.has(k));
       // Só avisa quem pediu MESMO para conduzir. Com o registo aberto a
       // qualquer conta, `null || 'pending'` faria soar o alarme por
       // alguém que enviou documentos sem sequer declarar um veículo.

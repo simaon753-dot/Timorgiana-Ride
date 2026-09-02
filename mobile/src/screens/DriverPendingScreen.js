@@ -32,6 +32,17 @@ import BarraEstado from '../design/BarraEstado.js';
 //
 // A fotografia não é um documento — é o retrato da pessoa, e serve para saber
 // quem está ao volante. Por isso está na lista mas não caduca.
+// Porque é que um documento já verificado está a ser substituído.
+//
+// Lista fechada e não texto livre. Duas razões: assim contam-se — ao fim de
+// um ano sabe-se quantos documentos se perdem em Díli, e isso é informação —
+// e assim o motorista escolhe em vez de escrever, que num telemóvel dentro
+// de um carro é a diferença entre fazer e desistir.
+//
+// O 'errado' é o que evita que alguém escolha um motivo falso por não
+// encontrar o seu: quem se enganou a fotografar precisa de o poder dizer.
+const MOTIVOS = ['caducado', 'perdido', 'danificado', 'errado'];
+
 const TIPOS = [
   { kind: 'photo', label: 'docPhoto' },
   // Quem é a pessoa. A fotografia mostra a cara; isto liga a cara a um nome
@@ -63,6 +74,10 @@ export default function DriverPendingScreen({ navigation }) {
   // O que está à espera de confirmação: a fotografia escolhida e a data
   // escrita, antes de irem para o servidor.
   const [porConfirmar, setPorConfirmar] = useState(null);
+  // Que documento está a ser desbloqueado para substituição, e com que
+  // motivo. Enquanto for `null`, os documentos verificados estão fechados.
+  const [aAtualizar, setAAtualizar] = useState(null);
+  const [motivos, setMotivos] = useState({});
   const [loading, setLoading] = useState(true);
 
   const rejected = user?.driverStatus === 'rejected';
@@ -94,9 +109,16 @@ export default function DriverPendingScreen({ navigation }) {
   //    Antes, um motorista recusado nem sequer via a lista de documentos —
   //    lia que não foi aprovado e não tinha o que fazer a seguir. Isso era
   //    um beco sem saída, e passa a não ser.
-  function podeMexer(doc) {
+  //
+  // 3. O motorista carregou em "Atualizar" e escolheu um motivo. É a
+  //    abertura que o Simão pediu a 02/09/2026: um documento pode perder-se
+  //    ou estragar-se em qualquer altura, e não só quando está a caducar.
+  //    Continua a não ser um gesto livre — obriga a dizer porquê, e o motivo
+  //    fica guardado e aparece no painel marcado por rever.
+  function podeMexer(doc, kind) {
     if (!aprovado) return true;
     if (!doc) return true;
+    if (motivos[kind]) return true;
     return !!doc.expirado || !!doc.aExpirar;
   }
 
@@ -179,6 +201,7 @@ export default function DriverPendingScreen({ navigation }) {
       mime: res.assets[0].mimeType || 'image/jpeg',
       base64: res.assets[0].base64,
       expiresOn: validade,
+      motivo: motivos[kind] || null,
     });
   }
 
@@ -193,7 +216,11 @@ export default function DriverPendingScreen({ navigation }) {
         mime: c.mime,
         base64: c.base64,
         ...(c.expiresOn ? { expiresOn: c.expiresOn } : {}),
+        ...(c.motivo ? { motivo: c.motivo } : {}),
       });
+      // O documento voltou a fechar-se: substituir outra vez obriga a
+      // escolher o motivo outra vez.
+      setMotivos((m) => ({ ...m, [c.kind]: undefined }));
       await carregar();
     } catch (e) {
       setError(e?.message === 'NETWORK' ? t('errNetwork') : e?.message || t('errGeneric'));
@@ -269,6 +296,12 @@ export default function DriverPendingScreen({ navigation }) {
                           <Text style={[styles.docState, enviado && styles.docStateOk]}>
                             {enviado ? `✓ ${t('docSent')}` : t('docMissing')}
                           </Text>
+                          {/* Substituído e ainda por confirmar. Dizê-lo
+                          evita o telefonema de quem enviou o documento novo
+                          e não sabe se chegou. */}
+                          {doc?.porRever ? (
+                            <Text style={styles.docPorRever}>{t('docPorConfirmar')}</Text>
+                          ) : null}
                           {/* Um documento enviado e sem data conta como
                           fora de ordem — é o que impede a regra de ser
                           decorativa. Dizê-lo aqui evita que alguém veja
@@ -298,7 +331,7 @@ export default function DriverPendingScreen({ navigation }) {
                               apagado nem cinzento: ausente. Um botão que não
                               faz nada convida a carregar, e obriga a
                               explicar porque é que não fez nada. */}
-                        {podeMexer(doc) ? (
+                        {podeMexer(doc, tp.kind) ? (
                           <Pressable
                             style={[styles.docBtn, enviado && styles.docBtnSecondary]}
                             onPress={() => enviar(tp.kind)}
@@ -317,7 +350,12 @@ export default function DriverPendingScreen({ navigation }) {
                             </Text>
                           </Pressable>
                         ) : (
-                          <Text style={styles.docFechado}>{t('docVerificado')}</Text>
+                          <View style={styles.docFechadoCaixa}>
+                            <Text style={styles.docFechado}>{t('docVerificado')}</Text>
+                            <Pressable onPress={() => setAAtualizar(tp.kind)} hitSlop={8}>
+                              <Text style={styles.docAtualizarLink}>{t('docAtualizar')}</Text>
+                            </Pressable>
+                          </View>
                         )}
                       </View>
 
@@ -325,7 +363,7 @@ export default function DriverPendingScreen({ navigation }) {
                       selector de imagens aberto o teclado não cabe, e
                       pedi-la depois obrigaria a repetir tudo se estivesse
                       errada. */}
-                      {precisaValidade(tp.kind) && podeMexer(doc) ? (
+                      {precisaValidade(tp.kind) && podeMexer(doc, tp.kind) ? (
                         <View style={styles.validadeCaixa}>
                           <TextField
                             label={t('docExpiry')}
@@ -387,6 +425,38 @@ export default function DriverPendingScreen({ navigation }) {
           </>
         )}
       </ScrollView>
+
+      {/* Escolher o motivo antes de desbloquear.
+          O documento só se abre depois de dito porquê — e o motivo segue com
+          a fotografia, para o painel poder mostrar "substituído: perdido"
+          em vez de só "mudou". */}
+      <Modal
+        visible={!!aAtualizar}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setAAtualizar(null)}
+      >
+        <Pressable style={styles.motivoFundo} onPress={() => setAAtualizar(null)} />
+        <View style={styles.motivoFolha}>
+          <View style={styles.motivoPega} />
+          <Text style={styles.motivoTitulo}>{t('docAtualizarTitulo')}</Text>
+          <Text style={styles.motivoExplica}>{t('docAtualizarExplica')}</Text>
+          {MOTIVOS.map((m) => (
+            <Pressable
+              key={m}
+              style={styles.motivoItem}
+              onPress={() => {
+                setMotivos((x) => ({ ...x, [aAtualizar]: m }));
+                setAAtualizar(null);
+              }}
+            >
+              <Text style={styles.motivoItemTexto}>
+                {t('motivo' + m.charAt(0).toUpperCase() + m.slice(1))}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </Modal>
 
       {/* Ver antes de enviar. */}
       <Modal
@@ -519,6 +589,35 @@ const criarEstilos = () =>
     docBtnText: { ...tipo.corpoForte, color: colors.white },
     docBtnTextSecondary: { color: colors.teal },
     docFechado: { ...tipo.pequeno, color: colors.teal, paddingHorizontal: spacing.sm },
+    docPorRever: { ...tipo.legenda, color: colors.coral },
+    docFechadoCaixa: { alignItems: 'flex-end', paddingHorizontal: spacing.sm, gap: 2 },
+    docAtualizarLink: { ...tipo.legenda, color: colors.coral, textDecorationLine: 'underline' },
+    motivoFundo: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
+    motivoFolha: {
+      backgroundColor: colors.paper,
+      borderTopLeftRadius: radius.xl,
+      borderTopRightRadius: radius.xl,
+      padding: spacing.lg,
+      gap: spacing.xs,
+    },
+    motivoPega: {
+      alignSelf: 'center',
+      width: 36,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.border,
+      marginBottom: spacing.sm,
+    },
+    motivoTitulo: { ...tipo.subtitulo, color: colors.text },
+    motivoExplica: { ...tipo.pequeno, color: colors.textMuted, marginBottom: spacing.sm },
+    motivoItem: {
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.sm,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    motivoItemTexto: { ...tipo.corpo, color: colors.text },
     confFundo: {
       flex: 1,
       backgroundColor: 'rgba(0,0,0,0.55)',

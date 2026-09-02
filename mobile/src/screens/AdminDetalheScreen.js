@@ -24,6 +24,13 @@ import { paraMostrar } from '../lib/datas.js';
 // duplicava tudo para mudar meia dúzia de campos.
 // Num mapa e não montado letra a letra: uma chave de tradução construída em
 // tempo de execução escapa ao verificador. Ver scripts/verificar-tipos.mjs.
+const MOTIVO_TEXTO = {
+  caducado: 'motivoCaducado',
+  perdido: 'motivoPerdido',
+  danificado: 'motivoDanificado',
+  errado: 'motivoErrado',
+};
+
 const NOME_DO_DOC = {
   licence: 'docLicence',
   vehicle: 'docVehicle',
@@ -153,6 +160,17 @@ function DetalheViagem({ v, t, navigation }) {
 
 // ── Conta ─────────────────────────────────────────────────────────────
 function DetalheConta({ d, t, navigation, token, onMudou }) {
+  // Confirmar um documento substituído. Recarrega a seguir, para a marca
+  // "por confirmar" desaparecer sem ter de sair e voltar ao ecrã.
+  async function marcarRevisto(id) {
+    try {
+      await api.adminDocRevisto(token, id);
+      onMudou?.();
+    } catch {
+      /* sem rede: o botão continua lá para a próxima */
+    }
+  }
+
   const c = d.conta;
   return (
     <>
@@ -225,6 +243,24 @@ function DetalheConta({ d, t, navigation, token, onMudou }) {
                 <Text style={[styles.docValidade, doc.caducado && styles.mauTexto]}>
                   {doc.validade ? paraMostrar(doc.validade) : t('docSemValidade')}
                 </Text>
+                {/* Substituído depois de já ter sido verificado, e ainda por
+                    confirmar. É exactamente o caso que o Simão quis vigiar ao
+                    fechar os documentos: o motorista pode trocá-los, mas tem
+                    de dizer porquê e alguém tem de olhar. */}
+                {doc.porRever ? (
+                  <>
+                    <Text style={styles.docMotivo}>
+                      {t(MOTIVO_TEXTO[doc.motivo] || 'admDocPorRever')}
+                    </Text>
+                    <Pressable
+                      style={styles.docRevisto}
+                      onPress={() => marcarRevisto(doc.id)}
+                      accessibilityRole="button"
+                    >
+                      <Text style={styles.docRevistoTexto}>{t('admDocConfirmar')}</Text>
+                    </Pressable>
+                  </>
+                ) : null}
               </View>
             ))}
           </ScrollView>
@@ -389,6 +425,21 @@ const criarEstilos = () =>
     doc: { width: 92, height: 92, borderRadius: radius.md, backgroundColor: colors.tintaTeal },
     docNome: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
     docValidade: { ...tipo.legenda, color: colors.textMuted, textAlign: 'center' },
+    docMotivo: {
+      ...tipo.legenda,
+      color: colors.coral,
+      textAlign: 'center',
+      marginTop: 2,
+    },
+    docRevisto: {
+      marginTop: 4,
+      borderWidth: 1,
+      borderColor: colors.teal,
+      borderRadius: radius.pill,
+      paddingVertical: 4,
+      paddingHorizontal: spacing.sm,
+    },
+    docRevistoTexto: { ...tipo.legenda, color: colors.teal, textAlign: 'center' },
 
     registado: {
       ...tipo.legenda,
