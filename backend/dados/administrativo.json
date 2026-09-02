@@ -1,0 +1,2249 @@
+{
+  "fonte": "Humanitarian Data Exchange, COD-AB Timor-Leste (Nações Unidas)",
+  "gerado": "2026-09-02",
+  "nota": "Ataúro corrigido para município (Lei de 2022). Sucos do diploma de 2023 por acrescentar.",
+  "municipios": [
+    {
+      "id": "TL02",
+      "nome": "Aileu",
+      "postos": [
+        {
+          "id": "TL0201",
+          "nome": "Aileu Vila",
+          "sucos": [
+            {
+              "id": "TL020101",
+              "nome": "Aisirimou"
+            },
+            {
+              "id": "TL020102",
+              "nome": "Bandudato"
+            },
+            {
+              "id": "TL020103",
+              "nome": "Fahiria"
+            },
+            {
+              "id": "TL020104",
+              "nome": "Fatubosa"
+            },
+            {
+              "id": "TL020107",
+              "nome": "Hoholau"
+            },
+            {
+              "id": "TL020105",
+              "nome": "Lahae"
+            },
+            {
+              "id": "TL020106",
+              "nome": "Lausi"
+            },
+            {
+              "id": "TL020110",
+              "nome": "Saboria"
+            },
+            {
+              "id": "TL020109",
+              "nome": "Seloi Craic"
+            },
+            {
+              "id": "TL020108",
+              "nome": "Seloi Malere"
+            },
+            {
+              "id": "TL020111",
+              "nome": "Suco Liurai"
+            }
+          ]
+        },
+        {
+          "id": "TL0204",
+          "nome": "Laulara",
+          "sucos": [
+            {
+              "id": "TL020401",
+              "nome": "Cotolau"
+            },
+            {
+              "id": "TL020405",
+              "nome": "Fatisi"
+            },
+            {
+              "id": "TL020403",
+              "nome": "Madabeno"
+            },
+            {
+              "id": "TL020402",
+              "nome": "Talitu"
+            },
+            {
+              "id": "TL020404",
+              "nome": "Tohumeta"
+            }
+          ]
+        },
+        {
+          "id": "TL0202",
+          "nome": "Liquidoe",
+          "sucos": [
+            {
+              "id": "TL020202",
+              "nome": "Acubilitoho"
+            },
+            {
+              "id": "TL020205",
+              "nome": "Bereleu"
+            },
+            {
+              "id": "TL020203",
+              "nome": "Betulau"
+            },
+            {
+              "id": "TL020206",
+              "nome": "Fahisoi"
+            },
+            {
+              "id": "TL020204",
+              "nome": "Faturilau"
+            },
+            {
+              "id": "TL020207",
+              "nome": "Manucasa"
+            },
+            {
+              "id": "TL020201",
+              "nome": "Namoleso"
+            }
+          ]
+        },
+        {
+          "id": "TL0203",
+          "nome": "Remexio",
+          "sucos": [
+            {
+              "id": "TL020301",
+              "nome": "Acumau"
+            },
+            {
+              "id": "TL020305",
+              "nome": "Fadabloco"
+            },
+            {
+              "id": "TL020308",
+              "nome": "Fahisoi"
+            },
+            {
+              "id": "TL020304",
+              "nome": "Faturasa"
+            },
+            {
+              "id": "TL020307",
+              "nome": "Hautoho"
+            },
+            {
+              "id": "TL020306",
+              "nome": "Maumeta"
+            },
+            {
+              "id": "TL020303",
+              "nome": "Suco-Liurai"
+            },
+            {
+              "id": "TL020302",
+              "nome": "Tulataqueo"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TL01",
+      "nome": "Ainaro",
+      "postos": [
+        {
+          "id": "TL0101",
+          "nome": "Ainaro",
+          "sucos": [
+            {
+              "id": "TL010101",
+              "nome": "Ainaro"
+            },
+            {
+              "id": "TL010105",
+              "nome": "Cassa"
+            },
+            {
+              "id": "TL010104",
+              "nome": "Manutasi"
+            },
+            {
+              "id": "TL010107",
+              "nome": "Mau-Nuno"
+            },
+            {
+              "id": "TL010106",
+              "nome": "Mau-Ulo"
+            },
+            {
+              "id": "TL010103",
+              "nome": "Soro"
+            },
+            {
+              "id": "TL010102",
+              "nome": "Suro-Craik"
+            }
+          ]
+        },
+        {
+          "id": "TL0102",
+          "nome": "Hatu-Builico",
+          "sucos": [
+            {
+              "id": "TL010203",
+              "nome": "Mau-Chiga"
+            },
+            {
+              "id": "TL010201",
+              "nome": "Mulo"
+            },
+            {
+              "id": "TL010202",
+              "nome": "Nuno-Mogue"
+            }
+          ]
+        },
+        {
+          "id": "TL0104",
+          "nome": "Hatu-Udo",
+          "sucos": [
+            {
+              "id": "TL010402",
+              "nome": "Foho-ai-Lico"
+            },
+            {
+              "id": "TL010401",
+              "nome": "Lleolima"
+            }
+          ]
+        },
+        {
+          "id": "TL0103",
+          "nome": "Maubisse",
+          "sucos": [
+            {
+              "id": "TL010304",
+              "nome": "Aitutu"
+            },
+            {
+              "id": "TL010305",
+              "nome": "Edi"
+            },
+            {
+              "id": "TL010309",
+              "nome": "Fatu-Besi"
+            },
+            {
+              "id": "TL010307",
+              "nome": "Horai-Quic"
+            },
+            {
+              "id": "TL010302",
+              "nome": "Manelobas"
+            },
+            {
+              "id": "TL010303",
+              "nome": "Manetu"
+            },
+            {
+              "id": "TL010301",
+              "nome": "Maubisse"
+            },
+            {
+              "id": "TL010306",
+              "nome": "Maulau"
+            },
+            {
+              "id": "TL010308",
+              "nome": "Suco Liurai"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TL14",
+      "nome": "Ataúro",
+      "postos": [
+        {
+          "id": "TL0604",
+          "nome": "Ataúro",
+          "sucos": [
+            {
+              "id": "TL060401",
+              "nome": "Atauro Vila/Maumeta"
+            },
+            {
+              "id": "TL060403",
+              "nome": "Beloi"
+            },
+            {
+              "id": "TL060405",
+              "nome": "Biceli"
+            },
+            {
+              "id": "TL060404",
+              "nome": "Macadade"
+            },
+            {
+              "id": "TL060402",
+              "nome": "Maquili"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TL03",
+      "nome": "Baucau",
+      "postos": [
+        {
+          "id": "TL0304",
+          "nome": "Baguia",
+          "sucos": [
+            {
+              "id": "TL030401",
+              "nome": "Afaloicai"
+            },
+            {
+              "id": "TL030402",
+              "nome": "Alaua Craic"
+            },
+            {
+              "id": "TL030403",
+              "nome": "Alaua Leten"
+            },
+            {
+              "id": "TL030408",
+              "nome": "Defa Uassi"
+            },
+            {
+              "id": "TL030404",
+              "nome": "Haeconi"
+            },
+            {
+              "id": "TL030406",
+              "nome": "Lari Sula"
+            },
+            {
+              "id": "TL030409",
+              "nome": "Lavateri"
+            },
+            {
+              "id": "TL030405",
+              "nome": "Ossu-Huna"
+            },
+            {
+              "id": "TL030407",
+              "nome": "Samalari"
+            },
+            {
+              "id": "TL030410",
+              "nome": "Uacala"
+            }
+          ]
+        },
+        {
+          "id": "TL0301",
+          "nome": "Baucau",
+          "sucos": [
+            {
+              "id": "TL030101",
+              "nome": "Bahu"
+            },
+            {
+              "id": "TL030102",
+              "nome": "Bucoli"
+            },
+            {
+              "id": "TL030104",
+              "nome": "Buibau"
+            },
+            {
+              "id": "TL030103",
+              "nome": "Buruma"
+            },
+            {
+              "id": "TL030111",
+              "nome": "Caibada"
+            },
+            {
+              "id": "TL030107",
+              "nome": "Fariuai"
+            },
+            {
+              "id": "TL030106",
+              "nome": "Samalari"
+            },
+            {
+              "id": "TL030110",
+              "nome": "Seical"
+            },
+            {
+              "id": "TL030108",
+              "nome": "Triloca"
+            },
+            {
+              "id": "TL030109",
+              "nome": "Trilolo"
+            },
+            {
+              "id": "TL030105",
+              "nome": "Wailili"
+            }
+          ]
+        },
+        {
+          "id": "TL0302",
+          "nome": "Laga",
+          "sucos": [
+            {
+              "id": "TL030201",
+              "nome": "Atelari"
+            },
+            {
+              "id": "TL030207",
+              "nome": "Libagua"
+            },
+            {
+              "id": "TL030206",
+              "nome": "Nunira"
+            },
+            {
+              "id": "TL030208",
+              "nome": "Saelari"
+            },
+            {
+              "id": "TL030205",
+              "nome": "Sagadati"
+            },
+            {
+              "id": "TL030204",
+              "nome": "Samalari"
+            },
+            {
+              "id": "TL030203",
+              "nome": "Soba"
+            },
+            {
+              "id": "TL030202",
+              "nome": "Tequino Mata"
+            }
+          ]
+        },
+        {
+          "id": "TL0303",
+          "nome": "Quelicai",
+          "sucos": [
+            {
+              "id": "TL030315",
+              "nome": "Abafala"
+            },
+            {
+              "id": "TL030308",
+              "nome": "Abo"
+            },
+            {
+              "id": "TL030310",
+              "nome": "Afaca"
+            },
+            {
+              "id": "TL030301",
+              "nome": "Baguia"
+            },
+            {
+              "id": "TL030306",
+              "nome": "Bualale"
+            },
+            {
+              "id": "TL030309",
+              "nome": "Guruca"
+            },
+            {
+              "id": "TL030312",
+              "nome": "Laisorolai de Baixo"
+            },
+            {
+              "id": "TL030311",
+              "nome": "Laisorolai de Cima"
+            },
+            {
+              "id": "TL030307",
+              "nome": "Lelalai"
+            },
+            {
+              "id": "TL030303",
+              "nome": "Letemuno"
+            },
+            {
+              "id": "TL030302",
+              "nome": "Locoliu"
+            },
+            {
+              "id": "TL030305",
+              "nome": "Macalaco"
+            },
+            {
+              "id": "TL030313",
+              "nome": "Maluro"
+            },
+            {
+              "id": "TL030314",
+              "nome": "Namanei"
+            },
+            {
+              "id": "TL030304",
+              "nome": "Waitame"
+            }
+          ]
+        },
+        {
+          "id": "TL0305",
+          "nome": "Vemasse",
+          "sucos": [
+            {
+              "id": "TL030507",
+              "nome": "Caicua"
+            },
+            {
+              "id": "TL030504",
+              "nome": "Loilubo"
+            },
+            {
+              "id": "TL030503",
+              "nome": "Ossoala"
+            },
+            {
+              "id": "TL030502",
+              "nome": "Ostico"
+            },
+            {
+              "id": "TL030505",
+              "nome": "Uaigae"
+            },
+            {
+              "id": "TL030506",
+              "nome": "Uatu-Lari"
+            },
+            {
+              "id": "TL030501",
+              "nome": "Vemase"
+            }
+          ]
+        },
+        {
+          "id": "TL0306",
+          "nome": "Venilale",
+          "sucos": [
+            {
+              "id": "TL030601",
+              "nome": "Bado Ho'o"
+            },
+            {
+              "id": "TL030602",
+              "nome": "Baha Mori"
+            },
+            {
+              "id": "TL030607",
+              "nome": "Fatulia"
+            },
+            {
+              "id": "TL030603",
+              "nome": "Uailaha"
+            },
+            {
+              "id": "TL030604",
+              "nome": "Uaiolo"
+            },
+            {
+              "id": "TL030608",
+              "nome": "Uataco"
+            },
+            {
+              "id": "TL030605",
+              "nome": "Uma Ana Ico"
+            },
+            {
+              "id": "TL030606",
+              "nome": "Uma Ana Ulu"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TL04",
+      "nome": "Bobonaro",
+      "postos": [
+        {
+          "id": "TL0404",
+          "nome": "Atabae",
+          "sucos": [
+            {
+              "id": "TL040401",
+              "nome": "Aidabaleten"
+            },
+            {
+              "id": "TL040402",
+              "nome": "Atabae"
+            },
+            {
+              "id": "TL040404",
+              "nome": "Hataz"
+            },
+            {
+              "id": "TL040403",
+              "nome": "Rairobo"
+            }
+          ]
+        },
+        {
+          "id": "TL0403",
+          "nome": "Balibo",
+          "sucos": [
+            {
+              "id": "TL040301",
+              "nome": "Balibo Vila"
+            },
+            {
+              "id": "TL040306",
+              "nome": "Batugade"
+            },
+            {
+              "id": "TL040303",
+              "nome": "Cowa"
+            },
+            {
+              "id": "TL040302",
+              "nome": "Leohito"
+            },
+            {
+              "id": "TL040304",
+              "nome": "Leolima"
+            },
+            {
+              "id": "TL040305",
+              "nome": "Sanirin"
+            }
+          ]
+        },
+        {
+          "id": "TL0406",
+          "nome": "Bobonaro",
+          "sucos": [
+            {
+              "id": "TL040601",
+              "nome": "Ai-Assa"
+            },
+            {
+              "id": "TL040602",
+              "nome": "Atu-Aben"
+            },
+            {
+              "id": "TL040603",
+              "nome": "Bobonaro"
+            },
+            {
+              "id": "TL040604",
+              "nome": "Carabau"
+            },
+            {
+              "id": "TL040605",
+              "nome": "Colimau"
+            },
+            {
+              "id": "TL040606",
+              "nome": "Cotabot"
+            },
+            {
+              "id": "TL040618",
+              "nome": "Ilat-Laun"
+            },
+            {
+              "id": "TL040609",
+              "nome": "Leber"
+            },
+            {
+              "id": "TL040608",
+              "nome": "Lour"
+            },
+            {
+              "id": "TL040607",
+              "nome": "Lourba"
+            },
+            {
+              "id": "TL040612",
+              "nome": "Male-Ubu"
+            },
+            {
+              "id": "TL040610",
+              "nome": "Malilait"
+            },
+            {
+              "id": "TL040611",
+              "nome": "Molop"
+            },
+            {
+              "id": "TL040613",
+              "nome": "Oe-leu"
+            },
+            {
+              "id": "TL040615",
+              "nome": "Sibuni"
+            },
+            {
+              "id": "TL040614",
+              "nome": "Soilesu"
+            },
+            {
+              "id": "TL040616",
+              "nome": "Tapo"
+            },
+            {
+              "id": "TL040617",
+              "nome": "Tebabui"
+            }
+          ]
+        },
+        {
+          "id": "TL0402",
+          "nome": "Cailaco",
+          "sucos": [
+            {
+              "id": "TL040204",
+              "nome": "Atudara"
+            },
+            {
+              "id": "TL040206",
+              "nome": "Dau Udo"
+            },
+            {
+              "id": "TL040202",
+              "nome": "Goulolo"
+            },
+            {
+              "id": "TL040207",
+              "nome": "Guenu Lai"
+            },
+            {
+              "id": "TL040208",
+              "nome": "Manapa"
+            },
+            {
+              "id": "TL040203",
+              "nome": "Meligo"
+            },
+            {
+              "id": "TL040205",
+              "nome": "Ppurugoa"
+            },
+            {
+              "id": "TL040201",
+              "nome": "Rraiheu"
+            }
+          ]
+        },
+        {
+          "id": "TL0405",
+          "nome": "Lolotoe",
+          "sucos": [
+            {
+              "id": "TL040504",
+              "nome": "Deudet"
+            },
+            {
+              "id": "TL040507",
+              "nome": "Gildapil"
+            },
+            {
+              "id": "TL040503",
+              "nome": "Guda"
+            },
+            {
+              "id": "TL040505",
+              "nome": "Lebos"
+            },
+            {
+              "id": "TL040506",
+              "nome": "Lontas"
+            },
+            {
+              "id": "TL040502",
+              "nome": "Lupal"
+            },
+            {
+              "id": "TL040501",
+              "nome": "Opa"
+            }
+          ]
+        },
+        {
+          "id": "TL0401",
+          "nome": "Maliana",
+          "sucos": [
+            {
+              "id": "TL040105",
+              "nome": "Holsa"
+            },
+            {
+              "id": "TL040101",
+              "nome": "Lahomea"
+            },
+            {
+              "id": "TL040104",
+              "nome": "Odomau"
+            },
+            {
+              "id": "TL040103",
+              "nome": "Ritabou"
+            },
+            {
+              "id": "TL040102",
+              "nome": "Rraifun"
+            },
+            {
+              "id": "TL040107",
+              "nome": "Saburai"
+            },
+            {
+              "id": "TL040106",
+              "nome": "Tapo/Memo"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TL05",
+      "nome": "Covalima",
+      "postos": [
+        {
+          "id": "TL0501",
+          "nome": "Fatululic",
+          "sucos": [
+            {
+              "id": "TL050101",
+              "nome": "Fatululic"
+            },
+            {
+              "id": "TL050102",
+              "nome": "Taroman"
+            }
+          ]
+        },
+        {
+          "id": "TL0502",
+          "nome": "Fatumean",
+          "sucos": [
+            {
+              "id": "TL050202",
+              "nome": "Belulik Leten"
+            },
+            {
+              "id": "TL050201",
+              "nome": "Fatumea"
+            },
+            {
+              "id": "TL050203",
+              "nome": "Nanu"
+            }
+          ]
+        },
+        {
+          "id": "TL0503",
+          "nome": "Forohem",
+          "sucos": [
+            {
+              "id": "TL050303",
+              "nome": "Dato Rua"
+            },
+            {
+              "id": "TL050304",
+              "nome": "Dato Tolu"
+            },
+            {
+              "id": "TL050301",
+              "nome": "Fohoren"
+            },
+            {
+              "id": "TL050302",
+              "nome": "Lactos"
+            }
+          ]
+        },
+        {
+          "id": "TL0504",
+          "nome": "Maukatar",
+          "sucos": [
+            {
+              "id": "TL050404",
+              "nome": "Belecasac"
+            },
+            {
+              "id": "TL050401",
+              "nome": "Holpilat"
+            },
+            {
+              "id": "TL050403",
+              "nome": "Matai"
+            },
+            {
+              "id": "TL050402",
+              "nome": "Ogues"
+            }
+          ]
+        },
+        {
+          "id": "TL0505",
+          "nome": "Suai",
+          "sucos": [
+            {
+              "id": "TL050501",
+              "nome": "Beco"
+            },
+            {
+              "id": "TL050504",
+              "nome": "Camenaça"
+            },
+            {
+              "id": "TL050502",
+              "nome": "Debos"
+            },
+            {
+              "id": "TL050505",
+              "nome": "Labarai"
+            },
+            {
+              "id": "TL050503",
+              "nome": "Suai Loro"
+            }
+          ]
+        },
+        {
+          "id": "TL0506",
+          "nome": "Tilomar",
+          "sucos": [
+            {
+              "id": "TL050604",
+              "nome": "Casabauc"
+            },
+            {
+              "id": "TL050601",
+              "nome": "Foholulic"
+            },
+            {
+              "id": "TL050602",
+              "nome": "Lalawa"
+            },
+            {
+              "id": "TL050603",
+              "nome": "Maudemo"
+            }
+          ]
+        },
+        {
+          "id": "TL0507",
+          "nome": "Zumalai",
+          "sucos": [
+            {
+              "id": "TL050704",
+              "nome": "Fatuleto"
+            },
+            {
+              "id": "TL050706",
+              "nome": "Lepo"
+            },
+            {
+              "id": "TL050703",
+              "nome": "Lour"
+            },
+            {
+              "id": "TL050705",
+              "nome": "Mape"
+            },
+            {
+              "id": "TL050701",
+              "nome": "Raimea"
+            },
+            {
+              "id": "TL050708",
+              "nome": "Tashilin"
+            },
+            {
+              "id": "TL050707",
+              "nome": "Ucecai"
+            },
+            {
+              "id": "TL050702",
+              "nome": "Zulo"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TL06",
+      "nome": "Dili",
+      "postos": [
+        {
+          "id": "TL0606",
+          "nome": "Cristo Rei",
+          "sucos": [
+            {
+              "id": "TL060605",
+              "nome": "Balibar"
+            },
+            {
+              "id": "TL060602",
+              "nome": "Becora"
+            },
+            {
+              "id": "TL060607",
+              "nome": "Bidau Santana"
+            },
+            {
+              "id": "TL060603",
+              "nome": "Camea"
+            },
+            {
+              "id": "TL060601",
+              "nome": "Culu Hun"
+            },
+            {
+              "id": "TL060604",
+              "nome": "Hera"
+            },
+            {
+              "id": "TL060606",
+              "nome": "Meti Aut"
+            }
+          ]
+        },
+        {
+          "id": "TL0605",
+          "nome": "Dom Aleixo",
+          "sucos": [
+            {
+              "id": "TL060504",
+              "nome": "Bairro Pite"
+            },
+            {
+              "id": "TL060503",
+              "nome": "Comoro"
+            },
+            {
+              "id": "TL060501",
+              "nome": "Fatuhada"
+            },
+            {
+              "id": "TL060502",
+              "nome": "Kampung Alor"
+            }
+          ]
+        },
+        {
+          "id": "TL0603",
+          "nome": "Metinaro",
+          "sucos": [
+            {
+              "id": "TL060302",
+              "nome": "Duyung (Sereia)"
+            },
+            {
+              "id": "TL060301",
+              "nome": "Sabuli"
+            }
+          ]
+        },
+        {
+          "id": "TL0602",
+          "nome": "Nain Feto",
+          "sucos": [
+            {
+              "id": "TL060202",
+              "nome": "Acadiru Hun"
+            },
+            {
+              "id": "TL060203",
+              "nome": "Bemori"
+            },
+            {
+              "id": "TL060205",
+              "nome": "Bidau Lecidere"
+            },
+            {
+              "id": "TL060206",
+              "nome": "Gricenfor"
+            },
+            {
+              "id": "TL060204",
+              "nome": "Lahane Oriental"
+            },
+            {
+              "id": "TL060201",
+              "nome": "Santa Cruz"
+            }
+          ]
+        },
+        {
+          "id": "TL0601",
+          "nome": "Vera Cruz",
+          "sucos": [
+            {
+              "id": "TL060104",
+              "nome": "Caicoli"
+            },
+            {
+              "id": "TL060105",
+              "nome": "Colmera"
+            },
+            {
+              "id": "TL060107",
+              "nome": "Dare"
+            },
+            {
+              "id": "TL060101",
+              "nome": "Lahane Ocidental"
+            },
+            {
+              "id": "TL060103",
+              "nome": "Macarenhas"
+            },
+            {
+              "id": "TL060106",
+              "nome": "Motael"
+            },
+            {
+              "id": "TL060102",
+              "nome": "Vila Verde"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TL07",
+      "nome": "Ermera",
+      "postos": [
+        {
+          "id": "TL0704",
+          "nome": "Atsabe",
+          "sucos": [
+            {
+              "id": "TL070409",
+              "nome": "Atadame/Malabe"
+            },
+            {
+              "id": "TL070402",
+              "nome": "Atara"
+            },
+            {
+              "id": "TL070403",
+              "nome": "Baboi Craic"
+            },
+            {
+              "id": "TL070406",
+              "nome": "Batumanu"
+            },
+            {
+              "id": "TL070412",
+              "nome": "Beboi Leten"
+            },
+            {
+              "id": "TL070411",
+              "nome": "Laclo"
+            },
+            {
+              "id": "TL070405",
+              "nome": "Lasaun"
+            },
+            {
+              "id": "TL070408",
+              "nome": "Laubono"
+            },
+            {
+              "id": "TL070410",
+              "nome": "Leimea Leten"
+            },
+            {
+              "id": "TL070404",
+              "nome": "Obulo"
+            },
+            {
+              "id": "TL070401",
+              "nome": "Paramin"
+            },
+            {
+              "id": "TL070407",
+              "nome": "Tiarlelo"
+            }
+          ]
+        },
+        {
+          "id": "TL0702",
+          "nome": "Ermera",
+          "sucos": [
+            {
+              "id": "TL070210",
+              "nome": "Estado"
+            },
+            {
+              "id": "TL070206",
+              "nome": "Humboe"
+            },
+            {
+              "id": "TL070208",
+              "nome": "Lauala"
+            },
+            {
+              "id": "TL070205",
+              "nome": "Leguimea"
+            },
+            {
+              "id": "TL070204",
+              "nome": "Mirtutu"
+            },
+            {
+              "id": "TL070201",
+              "nome": "Poetete"
+            },
+            {
+              "id": "TL070202",
+              "nome": "Ponilala"
+            },
+            {
+              "id": "TL070209",
+              "nome": "Raimerhei"
+            },
+            {
+              "id": "TL070207",
+              "nome": "Riheu"
+            },
+            {
+              "id": "TL070203",
+              "nome": "Talimoro"
+            }
+          ]
+        },
+        {
+          "id": "TL0705",
+          "nome": "Hatolia",
+          "sucos": [
+            {
+              "id": "TL070504",
+              "nome": "Ailelo"
+            },
+            {
+              "id": "TL070503",
+              "nome": "Asulau"
+            },
+            {
+              "id": "TL070502",
+              "nome": "Coliate-Leotelo"
+            },
+            {
+              "id": "TL070512",
+              "nome": "Fatubolu"
+            },
+            {
+              "id": "TL070513",
+              "nome": "Fatuessi"
+            },
+            {
+              "id": "TL070508",
+              "nome": "Hatolia"
+            },
+            {
+              "id": "TL070505",
+              "nome": "Leimeacraic"
+            },
+            {
+              "id": "TL070501",
+              "nome": "Lemia Sorimbalu"
+            },
+            {
+              "id": "TL070511",
+              "nome": "Lissapat"
+            },
+            {
+              "id": "TL070507",
+              "nome": "Manusae"
+            },
+            {
+              "id": "TL070510",
+              "nome": "Mau-Ubu"
+            },
+            {
+              "id": "TL070506",
+              "nome": "Samara"
+            },
+            {
+              "id": "TL070509",
+              "nome": "Urahou"
+            }
+          ]
+        },
+        {
+          "id": "TL0703",
+          "nome": "Letefoho",
+          "sucos": [
+            {
+              "id": "TL070305",
+              "nome": "Catrai Leten"
+            },
+            {
+              "id": "TL070304",
+              "nome": "Catrai-Craic"
+            },
+            {
+              "id": "TL070301",
+              "nome": "Ducurai"
+            },
+            {
+              "id": "TL070307",
+              "nome": "Eraulo"
+            },
+            {
+              "id": "TL070306",
+              "nome": "Goulolo"
+            },
+            {
+              "id": "TL070308",
+              "nome": "Hatugau"
+            },
+            {
+              "id": "TL070302",
+              "nome": "Haupu"
+            },
+            {
+              "id": "TL070303",
+              "nome": "Lauana"
+            }
+          ]
+        },
+        {
+          "id": "TL0701",
+          "nome": "Railaco",
+          "sucos": [
+            {
+              "id": "TL070108",
+              "nome": "Deleco"
+            },
+            {
+              "id": "TL070104",
+              "nome": "Fatuquero"
+            },
+            {
+              "id": "TL070101",
+              "nome": "Lihu"
+            },
+            {
+              "id": "TL070102",
+              "nome": "Matata"
+            },
+            {
+              "id": "TL070105",
+              "nome": "Rrailaco Craic"
+            },
+            {
+              "id": "TL070106",
+              "nome": "Rrailaco Leten"
+            },
+            {
+              "id": "TL070107",
+              "nome": "Samalete"
+            },
+            {
+              "id": "TL070109",
+              "nome": "Taraço"
+            },
+            {
+              "id": "TL070103",
+              "nome": "Tocoluli"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TL09",
+      "nome": "Lautém",
+      "postos": [
+        {
+          "id": "TL0903",
+          "nome": "Iliomar",
+          "sucos": [
+            {
+              "id": "TL090301",
+              "nome": "Ailebere"
+            },
+            {
+              "id": "TL090302",
+              "nome": "Cainliu"
+            },
+            {
+              "id": "TL090303",
+              "nome": "Fuat"
+            },
+            {
+              "id": "TL090304",
+              "nome": "Iliomar I"
+            },
+            {
+              "id": "TL090305",
+              "nome": "Iliomar II"
+            },
+            {
+              "id": "TL090306",
+              "nome": "Tirilolo"
+            }
+          ]
+        },
+        {
+          "id": "TL0902",
+          "nome": "Lautém",
+          "sucos": [
+            {
+              "id": "TL090201",
+              "nome": "Baduro"
+            },
+            {
+              "id": "TL090202",
+              "nome": "Com"
+            },
+            {
+              "id": "TL090203",
+              "nome": "Daudare"
+            },
+            {
+              "id": "TL090204",
+              "nome": "Euquisi"
+            },
+            {
+              "id": "TL090205",
+              "nome": "Ililai"
+            },
+            {
+              "id": "TL090206",
+              "nome": "Maina I"
+            },
+            {
+              "id": "TL090207",
+              "nome": "Maina II"
+            },
+            {
+              "id": "TL090208",
+              "nome": "Pairara"
+            },
+            {
+              "id": "TL090209",
+              "nome": "Parlamento"
+            },
+            {
+              "id": "TL090210",
+              "nome": "Serelau"
+            }
+          ]
+        },
+        {
+          "id": "TL0901",
+          "nome": "Lospalos",
+          "sucos": [
+            {
+              "id": "TL090101",
+              "nome": "Bauro"
+            },
+            {
+              "id": "TL090104",
+              "nome": "Cacavem"
+            },
+            {
+              "id": "TL090102",
+              "nome": "Fuiloro"
+            },
+            {
+              "id": "TL090103",
+              "nome": "Home"
+            },
+            {
+              "id": "TL090105",
+              "nome": "Leuro"
+            },
+            {
+              "id": "TL090106",
+              "nome": "Lore I"
+            },
+            {
+              "id": "TL090107",
+              "nome": "Lore II"
+            },
+            {
+              "id": "TL090108",
+              "nome": "Muapitine"
+            },
+            {
+              "id": "TL090109",
+              "nome": "Raça"
+            },
+            {
+              "id": "TL090110",
+              "nome": "Souro"
+            }
+          ]
+        },
+        {
+          "id": "TL0904",
+          "nome": "Luro",
+          "sucos": [
+            {
+              "id": "TL090401",
+              "nome": "Afabubu"
+            },
+            {
+              "id": "TL090402",
+              "nome": "Baricafa"
+            },
+            {
+              "id": "TL090403",
+              "nome": "Cotamutu"
+            },
+            {
+              "id": "TL090404",
+              "nome": "Lacawa"
+            },
+            {
+              "id": "TL090405",
+              "nome": "Luro"
+            },
+            {
+              "id": "TL090406",
+              "nome": "Wairoce"
+            }
+          ]
+        },
+        {
+          "id": "TL0905",
+          "nome": "Tutuala",
+          "sucos": [
+            {
+              "id": "TL090501",
+              "nome": "Mehara"
+            },
+            {
+              "id": "TL090502",
+              "nome": "Tutuala"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TL08",
+      "nome": "Liquiçá",
+      "postos": [
+        {
+          "id": "TL0801",
+          "nome": "Bazartete",
+          "sucos": [
+            {
+              "id": "TL080102",
+              "nome": "Fahilebo"
+            },
+            {
+              "id": "TL080101",
+              "nome": "Fatumasi"
+            },
+            {
+              "id": "TL080106",
+              "nome": "Lauhata"
+            },
+            {
+              "id": "TL080107",
+              "nome": "Leorema"
+            },
+            {
+              "id": "TL080108",
+              "nome": "Maumeta"
+            },
+            {
+              "id": "TL080105",
+              "nome": "Metagou"
+            },
+            {
+              "id": "TL080104",
+              "nome": "Motaulun"
+            },
+            {
+              "id": "TL080103",
+              "nome": "Tibar"
+            },
+            {
+              "id": "TL080109",
+              "nome": "Ulmera"
+            }
+          ]
+        },
+        {
+          "id": "TL0802",
+          "nome": "Liquiçá",
+          "sucos": [
+            {
+              "id": "TL080206",
+              "nome": "Açumano"
+            },
+            {
+              "id": "TL080203",
+              "nome": "Darulete"
+            },
+            {
+              "id": "TL080201",
+              "nome": "Dato"
+            },
+            {
+              "id": "TL080205",
+              "nome": "Hatuquessi"
+            },
+            {
+              "id": "TL080207",
+              "nome": "Leoteala"
+            },
+            {
+              "id": "TL080202",
+              "nome": "Loidahar"
+            },
+            {
+              "id": "TL080204",
+              "nome": "Luculai"
+            }
+          ]
+        },
+        {
+          "id": "TL0803",
+          "nome": "Maubara",
+          "sucos": [
+            {
+              "id": "TL080307",
+              "nome": "Gugleur"
+            },
+            {
+              "id": "TL080302",
+              "nome": "Guiço"
+            },
+            {
+              "id": "TL080301",
+              "nome": "Lissadila"
+            },
+            {
+              "id": "TL080305",
+              "nome": "Maubaralissa"
+            },
+            {
+              "id": "TL080304",
+              "nome": "Vatuboro"
+            },
+            {
+              "id": "TL080303",
+              "nome": "Vatuvou"
+            },
+            {
+              "id": "TL080306",
+              "nome": "Vaviquinia"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TL11",
+      "nome": "Manatuto",
+      "postos": [
+        {
+          "id": "TL1105",
+          "nome": "Barique/Natarbora",
+          "sucos": [
+            {
+              "id": "TL110503",
+              "nome": "Abat Oan"
+            },
+            {
+              "id": "TL110501",
+              "nome": "Aubeon"
+            },
+            {
+              "id": "TL110504",
+              "nome": "Barique"
+            },
+            {
+              "id": "TL110505",
+              "nome": "Manehat"
+            },
+            {
+              "id": "TL110502",
+              "nome": "Uma Boco"
+            }
+          ]
+        },
+        {
+          "id": "TL1103",
+          "nome": "Laclo",
+          "sucos": [
+            {
+              "id": "TL110304",
+              "nome": "Hohorai"
+            },
+            {
+              "id": "TL110301",
+              "nome": "Lacumesac"
+            },
+            {
+              "id": "TL110303",
+              "nome": "Uma Naruc"
+            },
+            {
+              "id": "TL110302",
+              "nome": "Umacaduac"
+            }
+          ]
+        },
+        {
+          "id": "TL1106",
+          "nome": "Laclubar",
+          "sucos": [
+            {
+              "id": "TL110604",
+              "nome": "Batara"
+            },
+            {
+              "id": "TL110605",
+              "nome": "Fatumaquerec"
+            },
+            {
+              "id": "TL110602",
+              "nome": "Funar"
+            },
+            {
+              "id": "TL110603",
+              "nome": "Manelima"
+            },
+            {
+              "id": "TL110601",
+              "nome": "Orlalan"
+            },
+            {
+              "id": "TL110606",
+              "nome": "Sanana'in"
+            }
+          ]
+        },
+        {
+          "id": "TL1102",
+          "nome": "Laleia",
+          "sucos": [
+            {
+              "id": "TL110203",
+              "nome": "Cairui"
+            },
+            {
+              "id": "TL110202",
+              "nome": "Haturalan"
+            },
+            {
+              "id": "TL110201",
+              "nome": "Lifau"
+            }
+          ]
+        },
+        {
+          "id": "TL1101",
+          "nome": "Manatuto",
+          "sucos": [
+            {
+              "id": "TL110106",
+              "nome": "Ailili"
+            },
+            {
+              "id": "TL110102",
+              "nome": "Aiteas"
+            },
+            {
+              "id": "TL110101",
+              "nome": "Cribas"
+            },
+            {
+              "id": "TL110105",
+              "nome": "Iliheu"
+            },
+            {
+              "id": "TL110103",
+              "nome": "Ma'abat"
+            },
+            {
+              "id": "TL110104",
+              "nome": "Sau"
+            }
+          ]
+        },
+        {
+          "id": "TL1104",
+          "nome": "Soibada",
+          "sucos": [
+            {
+              "id": "TL110403",
+              "nome": "Fatumacerec"
+            },
+            {
+              "id": "TL110402",
+              "nome": "Leo Hat"
+            },
+            {
+              "id": "TL110404",
+              "nome": "Manlala"
+            },
+            {
+              "id": "TL110405",
+              "nome": "Manufahi"
+            },
+            {
+              "id": "TL110401",
+              "nome": "Samoro"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TL10",
+      "nome": "Manufahi",
+      "postos": [
+        {
+          "id": "TL1002",
+          "nome": "Alas",
+          "sucos": [
+            {
+              "id": "TL100201",
+              "nome": "Aituha"
+            },
+            {
+              "id": "TL100202",
+              "nome": "Dotic"
+            },
+            {
+              "id": "TL100204",
+              "nome": "Mahaquidan"
+            },
+            {
+              "id": "TL100203",
+              "nome": "Taitudac"
+            },
+            {
+              "id": "TL100205",
+              "nome": "Uma Berloic"
+            }
+          ]
+        },
+        {
+          "id": "TL1003",
+          "nome": "Fatuberliu",
+          "sucos": [
+            {
+              "id": "TL100301",
+              "nome": "Bubususo"
+            },
+            {
+              "id": "TL100305",
+              "nome": "Caicasa"
+            },
+            {
+              "id": "TL100302",
+              "nome": "Clacuc"
+            },
+            {
+              "id": "TL100303",
+              "nome": "Fahinehan"
+            },
+            {
+              "id": "TL100304",
+              "nome": "Fatucahi"
+            }
+          ]
+        },
+        {
+          "id": "TL1001",
+          "nome": "Same",
+          "sucos": [
+            {
+              "id": "TL100103",
+              "nome": "Babulu"
+            },
+            {
+              "id": "TL100104",
+              "nome": "Betano"
+            },
+            {
+              "id": "TL100105",
+              "nome": "Daisua"
+            },
+            {
+              "id": "TL100106",
+              "nome": "Grotu"
+            },
+            {
+              "id": "TL100102",
+              "nome": "Holarua"
+            },
+            {
+              "id": "TL100101",
+              "nome": "Letefoho"
+            },
+            {
+              "id": "TL100107",
+              "nome": "Rotuto"
+            },
+            {
+              "id": "TL100108",
+              "nome": "Tutuluro"
+            }
+          ]
+        },
+        {
+          "id": "TL1004",
+          "nome": "Turiscai",
+          "sucos": [
+            {
+              "id": "TL100401",
+              "nome": "Aitemua"
+            },
+            {
+              "id": "TL100402",
+              "nome": "Beremana"
+            },
+            {
+              "id": "TL100403",
+              "nome": "Caimauc"
+            },
+            {
+              "id": "TL100411",
+              "nome": "Fatucalo"
+            },
+            {
+              "id": "TL100410",
+              "nome": "Foholau"
+            },
+            {
+              "id": "TL100404",
+              "nome": "Lesuata"
+            },
+            {
+              "id": "TL100405",
+              "nome": "Liurai"
+            },
+            {
+              "id": "TL100406",
+              "nome": "Manumera"
+            },
+            {
+              "id": "TL100407",
+              "nome": "Matorec"
+            },
+            {
+              "id": "TL100408",
+              "nome": "Mindelo"
+            },
+            {
+              "id": "TL100409",
+              "nome": "Orana"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TL12",
+      "nome": "Oecussi",
+      "postos": [
+        {
+          "id": "TL1202",
+          "nome": "Nitibe",
+          "sucos": [
+            {
+              "id": "TL120205",
+              "nome": "Banafi"
+            },
+            {
+              "id": "TL120202",
+              "nome": "Bene-Ufe"
+            },
+            {
+              "id": "TL120204",
+              "nome": "Lela-Ufe"
+            },
+            {
+              "id": "TL120203",
+              "nome": "Suni-Ufe"
+            },
+            {
+              "id": "TL120201",
+              "nome": "Usi-Taco"
+            }
+          ]
+        },
+        {
+          "id": "TL1203",
+          "nome": "Oesilo",
+          "sucos": [
+            {
+              "id": "TL120301",
+              "nome": "Bobometo"
+            },
+            {
+              "id": "TL120303",
+              "nome": "Usi-Tacae"
+            },
+            {
+              "id": "TL120302",
+              "nome": "Usi-Taqueno"
+            }
+          ]
+        },
+        {
+          "id": "TL1201",
+          "nome": "Pante Macassar",
+          "sucos": [
+            {
+              "id": "TL120107",
+              "nome": "Bobocase"
+            },
+            {
+              "id": "TL120104",
+              "nome": "Costa"
+            },
+            {
+              "id": "TL120103",
+              "nome": "Cunha"
+            },
+            {
+              "id": "TL120106",
+              "nome": "Lalisuc"
+            },
+            {
+              "id": "TL120102",
+              "nome": "Lifau"
+            },
+            {
+              "id": "TL120108",
+              "nome": "Naimeco"
+            },
+            {
+              "id": "TL120101",
+              "nome": "Nipani"
+            },
+            {
+              "id": "TL120105",
+              "nome": "Taiboco"
+            }
+          ]
+        },
+        {
+          "id": "TL1204",
+          "nome": "Passabe",
+          "sucos": [
+            {
+              "id": "TL120401",
+              "nome": "Abani"
+            },
+            {
+              "id": "TL120402",
+              "nome": "Malelat"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TL13",
+      "nome": "Viqueque",
+      "postos": [
+        {
+          "id": "TL1305",
+          "nome": "Lacluta",
+          "sucos": [
+            {
+              "id": "TL130503",
+              "nome": "Ahic"
+            },
+            {
+              "id": "TL130504",
+              "nome": "Dilor"
+            },
+            {
+              "id": "TL130501",
+              "nome": "Laline"
+            },
+            {
+              "id": "TL130502",
+              "nome": "Uma Tolu"
+            }
+          ]
+        },
+        {
+          "id": "TL1302",
+          "nome": "Ossu",
+          "sucos": [
+            {
+              "id": "TL130202",
+              "nome": "Builale"
+            },
+            {
+              "id": "TL130209",
+              "nome": "Liaruca"
+            },
+            {
+              "id": "TL130207",
+              "nome": "Loi-Huno"
+            },
+            {
+              "id": "TL130203",
+              "nome": "Mahareca"
+            },
+            {
+              "id": "TL130206",
+              "nome": "Ossorua"
+            },
+            {
+              "id": "TL130204",
+              "nome": "Ossu de Cima"
+            },
+            {
+              "id": "TL130208",
+              "nome": "Uabubo"
+            },
+            {
+              "id": "TL130201",
+              "nome": "Uaibobo"
+            },
+            {
+              "id": "TL130205",
+              "nome": "Uaigia"
+            }
+          ]
+        },
+        {
+          "id": "TL1303",
+          "nome": "Uato-Lari",
+          "sucos": [
+            {
+              "id": "TL130306",
+              "nome": "Afaloicai"
+            },
+            {
+              "id": "TL130305",
+              "nome": "Babulo"
+            },
+            {
+              "id": "TL130301",
+              "nome": "Macadique"
+            },
+            {
+              "id": "TL130303",
+              "nome": "Matahoi"
+            },
+            {
+              "id": "TL130302",
+              "nome": "Uaitame"
+            },
+            {
+              "id": "TL130304",
+              "nome": "Vessoru"
+            }
+          ]
+        },
+        {
+          "id": "TL1301",
+          "nome": "Uatucarbau",
+          "sucos": [
+            {
+              "id": "TL130104",
+              "nome": "Afaloicai"
+            },
+            {
+              "id": "TL130105",
+              "nome": "Bahatata"
+            },
+            {
+              "id": "TL130101",
+              "nome": "Irabin de Baixo"
+            },
+            {
+              "id": "TL130102",
+              "nome": "Irabin de Cima"
+            },
+            {
+              "id": "TL130106",
+              "nome": "Loi Ulu"
+            },
+            {
+              "id": "TL130103",
+              "nome": "Uani Uma"
+            }
+          ]
+        },
+        {
+          "id": "TL1304",
+          "nome": "Viqueque",
+          "sucos": [
+            {
+              "id": "TL130402",
+              "nome": "Bahalarauain"
+            },
+            {
+              "id": "TL130404",
+              "nome": "Bibileo"
+            },
+            {
+              "id": "TL130407",
+              "nome": "Caraubalo"
+            },
+            {
+              "id": "TL130410",
+              "nome": "Luca"
+            },
+            {
+              "id": "TL130409",
+              "nome": "Maluro"
+            },
+            {
+              "id": "TL130406",
+              "nome": "Uai Mori"
+            },
+            {
+              "id": "TL130403",
+              "nome": "Uma Quic"
+            },
+            {
+              "id": "TL130401",
+              "nome": "Uma Uain Craic"
+            },
+            {
+              "id": "TL130408",
+              "nome": "Uma Uain Leten"
+            },
+            {
+              "id": "TL130405",
+              "nome": "Watu Dere"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
