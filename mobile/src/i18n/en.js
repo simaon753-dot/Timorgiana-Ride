@@ -444,6 +444,7 @@ export default {
   admPedida: 'Requested',
   admComecou: 'Started',
   admRegistoTitulo: 'Who viewed which documents',
+  admRegistoDe: 'documents of',
   admRegistoVazio: 'No access logged.',
   admNadaAqui: 'No data.',
   admMensagensN: 'Messages exchanged',

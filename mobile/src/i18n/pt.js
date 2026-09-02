@@ -458,6 +458,7 @@ export default {
   admPedida: 'Pedida',
   admComecou: 'Começou',
   admRegistoTitulo: 'Quem viu que documentos',
+  admRegistoDe: 'documentos de',
   admRegistoVazio: 'Nenhum acesso registado.',
   admNadaAqui: 'Sem dados.',
   admMensagensN: 'Mensagens trocadas',

@@ -806,7 +806,19 @@ function Contas({ contas, t, navigation, busca, setBusca, papel, setPapel, haMai
   );
 }
 
-// Registo de acessos: quem leu conversas privadas, e quando.
+// Registo de acessos: QUEM VIU OS DOCUMENTOS DE QUEM, e quando.
+//
+// Cartas de condução, bilhetes de identidade e fotografias são dados
+// pessoais sensíveis. Quem os abre fica registado — e o registo existe para
+// responder a uma pergunta concreta, no dia em que alguém a fizer: quem
+// andou a ver os meus documentos?
+//
+// Não trava nada e nunca faz um pedido falhar. Um painel que deixa de
+// funcionar porque a auditoria falhou é pior do que um sem auditoria.
+//
+// Nasceu para o chat, que era POR VIAGEM — daí o ecrã ter mostrado durante
+// meses "Viagem #4" quando o número é o de uma PESSOA. A administração
+// deixou de poder ler conversas; o rótulo é que ficou para trás.
 //
 // Existe para ser visto, não só escrito. Um registo que ninguém pode
 // consultar é o mesmo que não haver registo — serve para dizer que se
@@ -847,7 +859,7 @@ function Registo({ acessos, t, navigation, dias, setDias }) {
               style={styles.conta}
               onPress={() =>
                 a.alvo
-                  ? navigation.navigate('AdminDetalhe', { tipoAlvo: 'viagem', id: a.alvo })
+                  ? navigation.navigate('AdminDetalhe', { tipoAlvo: 'conta', id: a.alvo })
                   : null
               }
             >
@@ -856,7 +868,11 @@ function Registo({ acessos, t, navigation, dias, setDias }) {
                   {a.admin} · {a.que}
                 </Text>
                 <Text style={styles.contaMeta}>
-                  {a.alvo ? `${t('admDetalheViagem')} #${a.alvo} · ` : ''}
+                  {a.alvoNome
+                    ? `${t('admRegistoDe')} ${a.alvoNome} · `
+                    : a.alvo
+                      ? `#${a.alvo} · `
+                      : ''}
                   {new Date(a.quando).toLocaleString(undefined, {
                     day: '2-digit',
                     month: '2-digit',

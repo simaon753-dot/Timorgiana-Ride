@@ -345,12 +345,34 @@ adminRouter.get(
 // Não trava nada e nunca faz o pedido falhar: se o registo falhar, o
 // administrador continua a ver o que pediu. Um painel que deixa de
 // funcionar porque a auditoria falhou é pior do que um sem auditoria.
+//
+// UMA LINHA POR CONSULTA, E NÃO POR FICHEIRO.
+//
+// Cada documento aberto gravava uma linha. Com o painel na web, que mostra
+// os cinco documentos de uma vez, abrir a página de um candidato escrevia
+// CINCO linhas iguais — e abri-la três vezes escrevia quinze. O Simão abriu
+// o separador Registo e encontrou um muro de linhas repetidas.
+//
+// Um registo de auditoria ilegível não é um registo: ninguém o lê, e a
+// pergunta a que ele existe para responder — quem viu os documentos de quem,
+// e quando — deixa de ter resposta.
+//
+// Dez minutos é a janela. Olhar para os cinco documentos da mesma pessoa é
+// UM acto de consulta, não cinco; voltar lá no dia seguinte é outro, e fica
+// registado como outro.
+const JANELA_MINUTOS = 10;
+
 function registarAcesso(adminId, que, alvoId) {
-  query('INSERT INTO admin_acessos (admin_id, que, alvo_id) VALUES ($1,$2,$3)', [
-    adminId,
-    que,
-    alvoId ?? null,
-  ]).catch(() => {});
+  query(
+    `INSERT INTO admin_acessos (admin_id, que, alvo_id)
+     SELECT $1, $2, $3
+      WHERE NOT EXISTS (
+        SELECT 1 FROM admin_acessos
+         WHERE admin_id = $1 AND que = $2 AND alvo_id IS NOT DISTINCT FROM $3
+           AND created_at > NOW() - ($4 || ' minutes')::interval
+      )`,
+    [adminId, que, alvoId ?? null, String(JANELA_MINUTOS)]
+  ).catch(() => {});
 }
 
 // GET /api/admin/utilizadores — TODAS as contas, não só motoristas
@@ -629,8 +651,11 @@ adminRouter.get(
     // 100 — e quem consulta uma auditoria não pode desconfiar do que vê.
     const dias = [1, 7, 30].includes(Number(req.query.dias)) ? Number(req.query.dias) : 30;
     const rows = await query(
-      `SELECT a.id, a.que, a.alvo_id, a.created_at, u.name AS admin
-       FROM admin_acessos a JOIN users u ON u.id = a.admin_id
+      `SELECT a.id, a.que, a.alvo_id, a.created_at, u.name AS admin,
+              alvo.name AS alvo_nome
+       FROM admin_acessos a
+       JOIN users u ON u.id = a.admin_id
+       LEFT JOIN users alvo ON alvo.id = a.alvo_id
        WHERE a.created_at > NOW() - ($1 || ' days')::interval
        ORDER BY a.id DESC LIMIT 200`,
       [String(dias)]
@@ -640,6 +665,11 @@ adminRouter.get(
         id: a.id,
         que: a.que,
         alvo: a.alvo_id,
+        // O NOME de quem foi consultado. O `alvo_id` é uma PESSOA — nunca foi
+        // uma viagem — e o ecrã mostrava "Viagem #4" porque este registo
+        // nasceu para o chat, que era por viagem. O chat deixou de ser
+        // legível pela administração há muito; o rótulo é que ficou.
+        alvoNome: a.alvo_nome || null,
         admin: a.admin,
         quando: a.created_at,
       })),

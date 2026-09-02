@@ -458,6 +458,7 @@ export default {
   admPedida: 'Husu iha',
   admComecou: 'Hahú iha',
   admRegistoTitulo: 'Sé mak haree dokumentu ida ne’ebé',
+  admRegistoDe: 'dokumentu husi',
   admRegistoVazio: 'La rejistadu asesu ruma.',
   admNadaAqui: 'Laiha dadus.',
   admMensagensN: 'Troka mensajen ba malu',
