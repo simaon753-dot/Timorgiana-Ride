@@ -254,6 +254,10 @@ export async function initSchema() {
   await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS posto     TEXT`);
   await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS suco      TEXT`);
   await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS aldeia    TEXT`);
+  // O bairro não é um nível administrativo — não está no diploma nem no
+  // conjunto da ONU. Mas é como as pessoas em Díli dizem onde moram, e um
+  // endereço sem ele fica irreconhecível para quem lá vive.
+  await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS bairro    TEXT`);
   // Para procurar depressa as aldeias já escritas num suco. É a consulta
   // que faz o campo da aldeia aprender.
   await query(`CREATE INDEX IF NOT EXISTS idx_propostos_aldeia ON lugares_propostos(suco, aldeia)`);

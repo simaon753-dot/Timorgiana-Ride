@@ -124,6 +124,7 @@ lugaresRouter.post(
     const posto = texto(req.body?.posto, 60);
     const suco = texto(req.body?.suco, 60);
     const aldeia = texto(req.body?.aldeia, 60);
+    const bairro = texto(req.body?.bairro, 60);
 
     // Se o que ele escreveu for igual ao que já lá estava, não há nada a
     // guardar — a NÃO SER que tenha preenchido a morada.
@@ -137,7 +138,7 @@ lugaresRouter.post(
       String(nomeMapa || '')
         .trim()
         .toLowerCase();
-    const temMorada = Boolean(endereco || suco || aldeia);
+    const temMorada = Boolean(endereco || suco || aldeia || bairro);
     if (mesmoNome && !temMorada) {
       return res.json({ guardado: false, motivo: 'igual' });
     }
@@ -145,8 +146,8 @@ lugaresRouter.post(
     await query(
       `INSERT INTO lugares_propostos
          (user_id, nome, nome_mapa, lat, lng, tipo,
-          endereco, municipio, posto, suco, aldeia)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+          endereco, municipio, posto, suco, aldeia, bairro)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       [
         req.user.id,
         n,
@@ -159,6 +160,7 @@ lugaresRouter.post(
         posto,
         suco,
         aldeia,
+        bairro,
       ]
     );
     res.json({ guardado: true });

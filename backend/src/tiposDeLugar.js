@@ -23,6 +23,17 @@ export const TIPOS_DE_LUGAR = [
   { id: 'mercado', osm: 'amenity=marketplace' },
   { id: 'escritorio', osm: 'office=yes' },
   { id: 'bairro', osm: 'place=neighbourhood' },
+  // Ponto de interesse.
+  //
+  // O OpenStreetMap NÃO TEM uma etiqueta para "ponto de interesse" — quer
+  // sempre saber de que se trata, e "POI" não lhe diz nada. `tourism=attraction`
+  // é o mais perto que existe de "sítio que vale a pena estar no mapa":
+  // monumentos, miradouros, sítios conhecidos.
+  //
+  // Fica como ponto de partida para quem revê, não como palavra final. Se
+  // afinal for uma igreja ou um edifício do Estado, corrige-se no editor —
+  // que é onde se tem tempo para pensar nisso.
+  { id: 'poi', osm: 'tourism=attraction' },
   { id: 'outro', osm: null },
 ];
 

@@ -44,6 +44,7 @@ const LISTA_TIPOS = [
   'mercado',
   'escritorio',
   'bairro',
+  'poi',
   'outro',
 ];
 
@@ -65,6 +66,7 @@ export default function NomearLugar({ alvo, onFechar, onGuardar }) {
   const [posto, setPosto] = useState(null); // { id, nome }
   const [suco, setSuco] = useState(null); // { id, nome }
   const [aldeia, setAldeia] = useState('');
+  const [bairro, setBairro] = useState('');
 
   const [arvore, setArvore] = useState(arvoreEmCache);
   const [sucosDoPosto, setSucosDoPosto] = useState([]);
@@ -81,6 +83,7 @@ export default function NomearLugar({ alvo, onFechar, onGuardar }) {
     setPosto(null);
     setSuco(null);
     setAldeia('');
+    setBairro('');
     setSucosDoPosto([]);
     setAldeiasConhecidas([]);
     if (!alvo?.ponto) return;
@@ -203,6 +206,7 @@ export default function NomearLugar({ alvo, onFechar, onGuardar }) {
       posto: posto?.nome ?? null,
       suco: suco?.nome ?? null,
       aldeia: aldeia.trim() || null,
+      bairro: bairro.trim() || null,
     });
   }
 
@@ -323,6 +327,22 @@ export default function NomearLugar({ alvo, onFechar, onGuardar }) {
                 ))}
               </View>
             ) : null}
+
+            {/* O bairro NÃO é um nível administrativo — não está no diploma
+                nem no conjunto da ONU, e por isso não há lista para escolher.
+                Mas é como se diz onde se mora em Díli: quem procura o "Bairro
+                Formosa" não procura o suco de Motael. Fica em texto livre, no
+                fim, porque é acrescento e não estrutura. */}
+            <Text style={estilosNome.rotulo}>
+              {t('lugarBairro')} · {t('lugarOpcional')}
+            </Text>
+            <TextInput
+              style={estilosNome.campo}
+              value={bairro}
+              onChangeText={setBairro}
+              placeholder={t('lugarBairroDica')}
+              placeholderTextColor={colors.textMuted}
+            />
 
             {/* As coordenadas mostram-se e não se escrevem.
                 São as do ponto que ele marcou no mapa: deixá-las editáveis

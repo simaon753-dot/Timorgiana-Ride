@@ -743,7 +743,7 @@ adminRouter.get(
     const args = estado === 'todos' ? [] : [estado];
     const rows = await query(
       `SELECT p.id, p.nome, p.nome_mapa, p.lat, p.lng, p.estado, p.tipo, p.created_at,
-              p.endereco, p.municipio, p.posto, p.suco, p.aldeia,
+              p.endereco, p.municipio, p.posto, p.suco, p.aldeia, p.bairro,
               u.name AS quem
          FROM lugares_propostos p LEFT JOIN users u ON u.id = p.user_id
          ${cond}
@@ -763,9 +763,13 @@ adminRouter.get(
         tipo: r.tipo,
         // A morada, como quem propôs a preencheu. Vai como uma linha só
         // porque é assim que ela se lê e é assim que se escreve no editor:
-        // aldeia, suco, posto, município — do mais pequeno para o maior.
+        // do mais pequeno para o maior. O bairro fica ao lado da aldeia
+        // porque é da mesma escala — não é um nível acima nem abaixo, é a
+        // outra maneira de dizer a mesma zona.
         morada:
-          [r.endereco, r.aldeia, r.suco, r.posto, r.municipio].filter(Boolean).join(', ') || null,
+          [r.endereco, r.aldeia, r.bairro, r.suco, r.posto, r.municipio]
+            .filter(Boolean)
+            .join(', ') || null,
         // A etiqueta pronta a escrever no editor do OpenStreetMap. Poupa a quem
         // revê o trabalho de a ir procurar na documentação.
         etiqueta: etiquetaOsm(r.tipo),
