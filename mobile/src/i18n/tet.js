@@ -323,10 +323,11 @@ export default {
 
   // Validade dokumentu nian
   docExpiry: 'Válidu toʼo',
-  docExpiryHelp: 'Data neʼebé iha dokumentu (tinan-fulan-loron).',
+  docExpiryHelp:
+    'Data ne’ebé iha dokumentu, iha loron/fulan/tinan. Iha Kartaun Inspesaun mak linha «Valido Inspesaun».',
   docExpired: '⚠ Remata ona',
   docExpiringSoon: '⚠ Sei kaduka iha tempu badak',
-  docExpiryRequired: 'Hakerek data validade nian.',
+  docExpiryRequired: 'Hakerek data hanesan iha dokumentu — ezemplu 22/12/2026.',
   cannotGoOnlineExpired: 'La bele disponível: iha dokumentu ida ne’ebé kaduka ona.',
   cannotGoOnlineNoDate: 'La bele fica disponivel: falta data validade dokumentu nian.',
   docSemValidade: 'la iha data validade',
@@ -337,6 +338,8 @@ export default {
   docSuspensoTitulo: 'Konta suspensu',
   docSuspensoExplica: 'Konta fila fali kedas bainhira haruka dokumentu foun.',
   docMultaAviso: 'Lori kareta ho Kartaun Inspesaun remata ona fó multa dobru.',
+  docInspecaoRenovar:
+    'Kartaun Inspesaun bele renova husi loron 10 antes remata. Bá lalais liu, viajen baibain deit.',
   docGuardarData: 'Rai data',
   // Modu
   modeRide: 'Husu',

@@ -11,6 +11,7 @@ import { colors, spacing, radius, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
+import { paraMostrar } from '../lib/datas.js';
 
 // Detalhe de administração: uma conta ou uma viagem, por inteiro.
 //
@@ -221,7 +222,7 @@ function DetalheConta({ d, t, navigation, token, onMudou }) {
                     o cartão. Quem verifica é quem está aqui — mas só consegue
                     verificar se vir as duas coisas ao mesmo tempo. */}
                 <Text style={[styles.docValidade, doc.caducado && styles.mauTexto]}>
-                  {doc.validade || t('docSemValidade')}
+                  {doc.validade ? paraMostrar(doc.validade) : t('docSemValidade')}
                 </Text>
               </View>
             ))}

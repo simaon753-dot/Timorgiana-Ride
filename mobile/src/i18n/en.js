@@ -310,10 +310,11 @@ export default {
   errCameraPermission: 'No permission to use the camera.',
 
   docExpiry: 'Valid until',
-  docExpiryHelp: 'The date on the document (year-month-day).',
+  docExpiryHelp:
+    'The date on the document, as day/month/year. On the Kartaun Inspesaun it is the «Valido Inspesaun» line.',
   docExpired: '⚠ Expired',
   docExpiringSoon: '⚠ Expires soon',
-  docExpiryRequired: 'Please enter the expiry date.',
+  docExpiryRequired: 'Type the date as it appears on the document — for example 22/12/2026.',
   cannotGoOnlineExpired: 'You cannot go available: one of your documents has expired.',
   cannotGoOnlineNoDate: 'You cannot go online: a document is missing its expiry date.',
   docSemValidade: 'no expiry date',
@@ -324,6 +325,8 @@ export default {
   docSuspensoTitulo: 'Account suspended',
   docSuspensoExplica: 'The account comes back on its own as soon as you send the renewed document.',
   docMultaAviso: 'Driving with an expired inspection card means a double fine.',
+  docInspecaoRenovar:
+    'The inspection card can be renewed from 10 days before it expires. Going earlier is a wasted trip.',
   docGuardarData: 'Save date',
 
   modeRide: 'Ride',

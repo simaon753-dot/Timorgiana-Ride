@@ -12,6 +12,7 @@ import { VERSAO_TERMOS_MOTORISTA } from '../termos/index.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
+import { paraISO, paraMostrar } from '../lib/datas.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 import BarraEstado from '../design/BarraEstado.js';
@@ -82,8 +83,8 @@ export default function DriverPendingScreen({ navigation }) {
   // escrever uma data seria trabalho que não serve para nada.
   async function guardarData(kind) {
     setError(null);
-    const d = (validades[kind] || '').trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return setError(t('docExpiryRequired'));
+    const d = paraISO(validades[kind]);
+    if (!d) return setError(t('docExpiryRequired'));
     setBusy(kind);
     try {
       await api.definirValidadeDoc(token, kind, d);
@@ -97,9 +98,10 @@ export default function DriverPendingScreen({ navigation }) {
 
   async function enviar(kind) {
     setError(null);
-    if (precisaValidade(kind) && !/^\d{4}-\d{2}-\d{2}$/.test((validades[kind] || '').trim())) {
-      return setError(t('docExpiryRequired'));
-    }
+    // A data é lida como está no documento — "22/12/2026" no Kartaun
+    // Inspesaun — e convertida aqui. Ver src/lib/datas.js.
+    const validade = precisaValidade(kind) ? paraISO(validades[kind]) : null;
+    if (precisaValidade(kind) && !validade) return setError(t('docExpiryRequired'));
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) return setError(t('errPermissionPhotos'));
 
@@ -116,7 +118,7 @@ export default function DriverPendingScreen({ navigation }) {
         kind,
         mime: res.assets[0].mimeType || 'image/jpeg',
         base64: res.assets[0].base64,
-        ...(precisaValidade(kind) ? { expiresOn: validades[kind].trim() } : {}),
+        ...(validade ? { expiresOn: validade } : {}),
       });
       await carregar();
     } catch (e) {
@@ -199,7 +201,7 @@ export default function DriverPendingScreen({ navigation }) {
                                   ? t('docExpired')
                                   : doc.aExpirar
                                     ? t('docExpiringSoon')
-                                    : `${t('docExpiry')} ${doc.expiresOn}`}
+                                    : `${t('docExpiry')} ${paraMostrar(doc.expiresOn)}`}
                               </Text>
                             ) : null}
                           </View>
@@ -232,10 +234,13 @@ export default function DriverPendingScreen({ navigation }) {
                               onChangeText={(v) =>
                                 setValidades((a) => ({
                                   ...a,
-                                  [tp.kind]: v.replace(/[^\d-]/g, '').slice(0, 10),
+                                  // Barras, traços e pontos: quem tem o
+                                  // cartão na mão copia o que lá está, e o
+                                  // que lá está tem barras.
+                                  [tp.kind]: v.replace(/[^\d/\-.]/g, '').slice(0, 10),
                                 }))
                               }
-                              placeholder="2028-03-10"
+                              placeholder="22/12/2026"
                               keyboardType="numbers-and-punctuation"
                             />
                             <Text style={styles.validadeAjuda}>{t('docExpiryHelp')}</Text>

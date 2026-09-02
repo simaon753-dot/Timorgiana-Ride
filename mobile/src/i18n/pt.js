@@ -324,10 +324,11 @@ export default {
 
   // Validade dos documentos
   docExpiry: 'Válido até',
-  docExpiryHelp: 'Data que está no documento (ano-mês-dia).',
+  docExpiryHelp:
+    'A data que está no documento, em dia/mês/ano. No Kartaun Inspesaun é a linha «Valido Inspesaun».',
   docExpired: '⚠ Caducado',
   docExpiringSoon: '⚠ Caduca em breve',
-  docExpiryRequired: 'Indique a data de validade.',
+  docExpiryRequired: 'Escreva a data como está no documento — por exemplo 22/12/2026.',
   cannotGoOnlineExpired: 'Não pode ficar disponível: há um documento caducado.',
   cannotGoOnlineNoDate: 'Não pode ficar disponível: falta a data de validade de um documento.',
   docSemValidade: 'sem data de validade',
@@ -338,6 +339,8 @@ export default {
   docSuspensoTitulo: 'Conta suspensa',
   docSuspensoExplica: 'A conta volta sozinha assim que enviar o documento renovado.',
   docMultaAviso: 'Conduzir com o cartão de inspeção caducado dá multa a dobrar.',
+  docInspecaoRenovar:
+    'O cartão de inspeção renova-se a partir de 10 dias antes de acabar. Ir mais cedo é viagem à toa.',
   docGuardarData: 'Guardar data',
   // Modo
   modeRide: 'Pedir',

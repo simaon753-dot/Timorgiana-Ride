@@ -20,6 +20,7 @@ import PedirCodigo from '../components/PedirCodigo.js';
 import FotoDeTurno from '../components/FotoDeTurno.js';
 import BotaoPower from '../components/BotaoPower.js';
 import { api } from '../api/client.js';
+import { paraMostrar } from '../lib/datas.js';
 import ChatButton from '../components/ChatButton.js';
 import SosButton from '../components/SosButton.js';
 import RatingPanel from '../components/RatingPanel.js';
@@ -157,10 +158,18 @@ export default function DriverHomeScreen({ navigation }) {
               <Text key={d.qual} style={styles.avisoValidadeTexto}>
                 {t(NOME_DO_DOC[d.qual] || 'docLicence')}:{' '}
                 {(d.dias <= 0 ? t('docPorAcabarHoje') : t('docPorAcabar'))
-                  .replace('{ate}', d.ate)
+                  .replace('{ate}', paraMostrar(d.ate))
                   .replace('{dias}', String(d.dias))}
               </Text>
             ))}
+            {/* O próprio cartão diz, no rodapé, para renovar a partir de dez
+                dias antes. Avisamos aos quinze — que é o tempo de reparar no
+                aviso — mas quem for logo no primeiro dia faz viagem à toa até
+                à DNTT. Um aviso que provoca uma deslocação inútil é um aviso
+                mal feito. */}
+            {docsACaducar.some((d) => d.qual === 'inspection') ? (
+              <Text style={styles.avisoValidadeTexto}>{t('docInspecaoRenovar')}</Text>
+            ) : null}
           </Pressable>
         ) : null}
 
