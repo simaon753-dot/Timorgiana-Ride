@@ -494,6 +494,7 @@ export default {
   admLugaresVazio: 'Nobody has corrected the map yet.',
   admLugaresMapaDizia: 'the map said',
   admLugarEditar: 'Open in OpenStreetMap',
+  admLugarEtiquetas: 'Tags for the editor — press and hold to copy',
   admLugarAceite: 'Added',
   admLugarRecusado: 'Reject',
   lugarQueTipo: 'What kind of place is it?',

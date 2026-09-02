@@ -7,6 +7,7 @@ import { alertasAbertos, resolverAlerta } from '../sos.js';
 import { fotosDeHoje, getFotoDeTurno } from '../turnos.js';
 import { carregar, FORMAS_PAGAMENTO, PACOTES } from '../assinatura.js';
 import { etiquetaOsm } from '../tiposDeLugar.js';
+import { linhasOsm } from '../etiquetasOsm.js';
 
 export const adminRouter = Router();
 adminRouter.use(requireAuth);
@@ -770,6 +771,19 @@ adminRouter.get(
           [r.endereco, r.aldeia, r.bairro, r.suco, r.posto, r.municipio]
             .filter(Boolean)
             .join(', ') || null,
+        // O bloco de etiquetas pronto a colar na vista de texto do editor.
+        // Poupa a quem revê preencher campo a campo — e poupa-lhe decidir
+        // que etiquetas usar, que era a parte em que se erra.
+        etiquetas: linhasOsm({
+          nome: r.nome,
+          tipo: r.tipo,
+          endereco: r.endereco,
+          aldeia: r.aldeia,
+          bairro: r.bairro,
+          suco: r.suco,
+          posto: r.posto,
+          municipio: r.municipio,
+        }),
         // A etiqueta pronta a escrever no editor do OpenStreetMap. Poupa a quem
         // revê o trabalho de a ir procurar na documentação.
         etiqueta: etiquetaOsm(r.tipo),

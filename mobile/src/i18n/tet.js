@@ -508,6 +508,7 @@ export default {
   admLugaresVazio: 'Seidauk iha ema ida hadia mapa.',
   admLugaresMapaDizia: 'mapa dehan',
   admLugarEditar: 'Loke iha OpenStreetMap',
+  admLugarEtiquetas: 'Etiketa ba editór — kaer kleur atu kopia',
   admLugarAceite: 'Tama ona',
   admLugarRecusado: 'La simu',
   lugarQueTipo: 'Fatin ida-ne’e tipu saida?',

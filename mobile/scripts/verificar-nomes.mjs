@@ -44,5 +44,35 @@ for (const f of ficheiros('src').concat(['App.js'])) {
     },
   });
 }
+// ── e as cores do tema, que são nomes na mesma ──
+//
+// `colors.bg` não existe. O Babel não se queixa — é só o acesso a uma
+// propriedade — e o React Native também não: `backgroundColor: undefined`
+// desenha transparente e segue. Um fundo que devia ser cinzento fica
+// invisível, e só se descobre olhando para o ecrã certo no telemóvel certo.
+//
+// Foi escrito depois de eu ter posto exactamente isso no painel, em
+// 02/09/2026, e de nada nesta suite o ter apanhado.
+//
+// Importa o tema em vez de o ler como texto. A primeira tentativa fatiava o
+// ficheiro à procura do objecto e encontrou duas cores em vez de vinte —
+// deu uma lista de trezentos falsos positivos que quase me convenceu de que
+// a app estava partida.
+const { colors, PALETAS } = await import('../src/theme.js');
+const CORES = new Set(Object.keys(colors));
+for (const paleta of Object.values(PALETAS)) for (const c of Object.keys(paleta)) CORES.add(c);
+
+for (const f of ficheiros('src').concat(['App.js'])) {
+  if (f.endsWith('theme.js')) continue;
+  const visto = new Set();
+  for (const m of fs.readFileSync(f, 'utf8').matchAll(/\bcolors\.([a-zA-Z][a-zA-Z0-9]*)/g)) {
+    if (!CORES.has(m[1]) && !visto.has(m[1])) {
+      visto.add(m[1]);
+      console.log(`  ✗ ${f}: "colors.${m[1]}" não existe no tema — ficaria transparente`);
+      mau++;
+    }
+  }
+}
+
 console.log(mau ? `\n  ${mau} nome(s) por resolver` : '  ✓ nenhum nome por resolver');
 process.exit(mau ? 1 : 0);

@@ -510,6 +510,7 @@ export default {
   admLugaresVazio: 'Ninguém corrigiu o mapa ainda.',
   admLugaresMapaDizia: 'o mapa dizia',
   admLugarEditar: 'Abrir no OpenStreetMap',
+  admLugarEtiquetas: 'Etiquetas para o editor — toque e segure para copiar',
   admLugarAceite: 'Acrescentado',
   admLugarRecusado: 'Recusar',
   lugarQueTipo: 'Que tipo de sítio é?',

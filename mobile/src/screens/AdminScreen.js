@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Linking,
+  Platform,
   Modal,
   Pressable,
   RefreshControl,
@@ -1195,6 +1196,23 @@ const criarEstilos = () =>
     contaNome: { ...tipo.corpoForte, color: colors.text },
     contaMeta: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },
     contaMorada: { ...tipo.pequeno, color: colors.text, marginTop: 2 },
+    etiquetas: {
+      backgroundColor: colors.inputBg,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.sm,
+      marginTop: spacing.sm,
+      gap: 4,
+    },
+    etiquetasTitulo: { ...tipo.legenda, color: colors.textMuted },
+    // Monoespaçada: são pares chave=valor, e alinhados lêem-se de relance.
+    etiquetasTexto: {
+      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+      fontSize: 12,
+      lineHeight: 18,
+      color: colors.text,
+    },
     viagemSeta: { fontSize: 22, color: colors.textMuted },
     mais: { alignItems: 'center', paddingVertical: spacing.md },
     maisTexto: { ...tipo.corpoForte, color: colors.teal },
@@ -1307,6 +1325,25 @@ function Lugares({ lugares, t, onDecidir }) {
               {l.lat.toFixed(5)}, {l.lng.toFixed(5)}
               {l.etiqueta ? `  ·  ${l.etiqueta}` : ''}
             </Text>
+
+            {/* As etiquetas prontas a colar.
+                O editor do OpenStreetMap tem, no painel das etiquetas, um
+                botão que troca a tabela por texto — e essa vista aceita
+                linhas `chave=valor` coladas de uma vez. Quem revê deixa de
+                preencher campo a campo.
+
+                SELECCIONÁVEL e não um botão de copiar: um botão obrigava a
+                acrescentar um pacote com código nativo, e isso obriga a
+                compilar de novo e a reinstalar a app. Tocar e segurar faz o
+                mesmo, e chega hoje. */}
+            {l.etiquetas?.length ? (
+              <View style={styles.etiquetas}>
+                <Text style={styles.etiquetasTitulo}>{t('admLugarEtiquetas')}</Text>
+                <Text style={styles.etiquetasTexto} selectable>
+                  {l.etiquetas.join('\n')}
+                </Text>
+              </View>
+            ) : null}
 
             <View style={styles.filtros}>
               <Pressable style={styles.filtro} onPress={() => Linking.openURL(l.editar)}>
