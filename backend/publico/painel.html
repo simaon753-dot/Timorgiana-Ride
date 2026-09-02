@@ -70,6 +70,17 @@
   .vazio { text-align: center; padding: 60px 20px; color: var(--suave); }
   .erro { background: #fdecea; border: 1px solid var(--mau); color: var(--mau);
     padding: 11px 13px; border-radius: 9px; margin-bottom: 14px; font-size: 14px; }
+  /* O aviso é FIXO e não fica no topo da página.
+     A primeira versão punha as mensagens numa div no cimo do <main>. Quem
+     estivesse a decidir o quinto candidato, com a página a meio, não via
+     nada — nem o sucesso nem o erro. Uma mensagem que só se lê depois de
+     rolar para cima é uma mensagem que não existe. */
+  #aviso { position: fixed; left: 50%; transform: translateX(-50%); bottom: 24px;
+    z-index: 50; padding: 13px 20px; border-radius: 10px; font-size: 15px;
+    font-weight: 600; box-shadow: 0 6px 24px rgba(0,0,0,.22); }
+  #aviso.bom { background: var(--teal); color: #fff; }
+  #aviso.mau { background: var(--mau); color: #fff; }
+  button[disabled] { opacity: .6; cursor: progress; }
   dialog { border: 0; border-radius: 14px; padding: 0; max-width: 94vw; max-height: 94vh; }
   dialog::backdrop { background: rgba(0,0,0,.75); }
   dialog img { display: block; max-width: 94vw; max-height: 88vh;
@@ -111,10 +122,11 @@
       <button data-estado="rejected" aria-pressed="false">Recusados</button>
       <button data-estado="todos" aria-pressed="false">Todos</button>
     </div>
-    <div id="erro"></div>
     <div id="lista"></div>
   </main>
 </div>
+
+<div id="aviso" hidden></div>
 
 <dialog id="lupa">
   <!-- Rodar, porque um cartão fotografado ao alto aparece deitado.
@@ -363,7 +375,18 @@ function escapar(s) {
   );
 }
 
-async function decidir(id, decision) {
+// Mensagem que se vê sempre, aconteça o que acontecer.
+let relogioAviso;
+function avisar(texto, mau) {
+  const el = $('aviso');
+  el.textContent = texto;
+  el.className = mau ? 'mau' : 'bom';
+  el.hidden = false;
+  clearTimeout(relogioAviso);
+  relogioAviso = setTimeout(() => (el.hidden = true), mau ? 8000 : 4000);
+}
+
+async function decidir(id, decision, botao) {
   let motivo = null;
   if (decision !== 'approved') {
     // O motivo é obrigatório do lado do servidor, e ainda bem: uma recusa
@@ -372,11 +395,41 @@ async function decidir(id, decision) {
     motivo = prompt('Porque está a recusar? O motorista vai ler isto.');
     if (!motivo || !motivo.trim()) return;
   }
-  await api(`/admin/drivers/${id}/decision`, {
-    method: 'POST',
-    body: JSON.stringify({ decision, motivo }),
-  });
-  await desenhar();
+
+  // O BOTÃO TEM DE RESPONDER AO DEDO, e é isto que faltava.
+  //
+  // O Simão disse que carregava em Aprovar e "nada acontecia". Testei: o
+  // pedido saía e o servidor respondia 200. O que não havia era MANEIRA DE
+  // O SABER — o pedido ia em silêncio e a lista voltava a desenhar-se igual,
+  // porque a conta dele já estava aprovada.
+  //
+  // Repare que ele disse que os outros botões funcionavam. O Recusar abre
+  // uma caixa a perguntar o motivo, portanto responde. O Aprovar era o único
+  // que não dava sinal nenhum de vida. Uma acção sem resposta é
+  // indistinguível de uma acção partida — e a pessoa carrega outra vez, e
+  // outra, e conclui que está avariado.
+  const textoOriginal = botao ? botao.textContent : '';
+  if (botao) {
+    botao.disabled = true;
+    botao.textContent = decision === 'approved' ? 'A aprovar…' : 'A recusar…';
+  }
+  try {
+    const r = await api(`/admin/drivers/${id}/decision`, {
+      method: 'POST',
+      body: JSON.stringify({ decision, motivo }),
+    });
+    avisar(
+      decision === 'approved'
+        ? `${r.driver?.name || 'Motorista'} aprovado. Já pode conduzir.`
+        : `${r.driver?.name || 'Motorista'} recusado.`
+    );
+    await desenhar();
+  } finally {
+    if (botao && botao.isConnected) {
+      botao.disabled = false;
+      botao.textContent = textoOriginal;
+    }
+  }
 }
 
 document.addEventListener('click', async (e) => {
@@ -384,14 +437,16 @@ document.addEventListener('click', async (e) => {
   const re = e.target.closest('[data-recusar]');
   const rv = e.target.closest('[data-revisto]');
   try {
-    if (ap) await decidir(ap.dataset.aprovar, 'approved');
-    if (re) await decidir(re.dataset.recusar, 'rejected');
+    if (ap) await decidir(ap.dataset.aprovar, 'approved', ap);
+    if (re) await decidir(re.dataset.recusar, 'rejected', re);
     if (rv) {
+      rv.disabled = true;
       await api(`/admin/documents/${rv.dataset.revisto}/revisto`, { method: 'POST' });
+      avisar('Documento confirmado.');
       await desenhar();
     }
   } catch (err) {
-    mostrarErro('erro', err.message);
+    avisar(err.message, true);
   }
 });
 
@@ -419,9 +474,8 @@ for (const b of document.querySelectorAll('.filtros button')) {
     }
     try {
       await desenhar();
-      mostrarErro('erro', '');
     } catch (err) {
-      mostrarErro('erro', err.message);
+      avisar(err.message, true);
     }
   };
 }
@@ -429,9 +483,9 @@ for (const b of document.querySelectorAll('.filtros button')) {
 $('btAtualizar').onclick = async () => {
   try {
     await desenhar();
-    mostrarErro('erro', '');
+    avisar('Lista atualizada.');
   } catch (err) {
-    mostrarErro('erro', err.message);
+    avisar(err.message, true);
   }
 };
 
