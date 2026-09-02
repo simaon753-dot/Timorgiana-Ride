@@ -483,6 +483,7 @@ export default {
     'O mapa ainda não conhece muitos sítios de Díli. O que escrever aqui ajuda a corrigi-lo — para si e para toda a gente.',
   lugarCorrigirCampo: 'Nome do sítio',
   lugarGuardar: 'Guardar',
+  lugarPorRever: 'por rever — para já, só você vê',
 
   // A morada, como o OpenStreetMap a quer. Tudo opcional: quem tiver pressa
   // escreve o nome e guarda.

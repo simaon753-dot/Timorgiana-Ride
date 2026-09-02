@@ -483,6 +483,7 @@ export default {
     'Mapa seidauk hatene fatin barak iha Díli. Saida mak Ita hakerek iha ne’e ajuda hadia — ba Ita no ba ema hotu.',
   lugarCorrigirCampo: 'Naran fatin nian',
   lugarGuardar: 'Rai',
+  lugarPorRever: 'seidauk revizaun — agora Ita mesak deit mak haree',
 
   lugarMorada: 'Fatin ne’e iha ne’ebé',
   lugarMoradaExplica:

@@ -1,5 +1,6 @@
 import pg from 'pg';
 import { config } from './config.js';
+import { normalizar } from './texto.js';
 
 const { Pool } = pg;
 
@@ -258,6 +259,31 @@ export async function initSchema() {
   // conjunto da ONU. Mas é como as pessoas em Díli dizem onde moram, e um
   // endereço sem ele fica irreconhecível para quem lá vive.
   await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS bairro    TEXT`);
+  // O nome sem acentos e em minúsculas, para a busca.
+  //
+  // O `ILIKE` do Postgres não ignora acentos: sem isto, quem escreve
+  // "liquica" não encontra "Liquiçá". A extensão `unaccent` resolvia, mas
+  // punha a busca a depender de uma extensão que pode não existir na base
+  // seguinte — e um restauro que perde a busca é um restauro incompleto.
+  await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS nome_busca TEXT`);
+  await query(
+    `CREATE INDEX IF NOT EXISTS idx_propostos_busca
+       ON lugares_propostos(nome_busca) WHERE estado IN ('novo','aceite')`
+  );
+  // Preenche o que ficou para trás. Corre a cada arranque e não custa nada
+  // quando não há nada a fazer — mas resolve sozinho o dia em que houver.
+  const porNormalizar = await query(
+    `SELECT id, nome FROM lugares_propostos WHERE nome_busca IS NULL LIMIT 5000`
+  );
+  for (const r of porNormalizar) {
+    await query('UPDATE lugares_propostos SET nome_busca = $2 WHERE id = $1', [
+      r.id,
+      normalizar(r.nome),
+    ]);
+  }
+  if (porNormalizar.length) {
+    console.log(`[db] ${porNormalizar.length} nome(s) de lugar normalizados para a busca`);
+  }
   // Para procurar depressa as aldeias já escritas num suco. É a consulta
   // que faz o campo da aldeia aprender.
   await query(`CREATE INDEX IF NOT EXISTS idx_propostos_aldeia ON lugares_propostos(suco, aldeia)`);

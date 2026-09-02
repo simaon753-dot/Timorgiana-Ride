@@ -115,6 +115,12 @@ export default function PlaceSearch({ placeholder, onEscolher, onFechar, onUsarL
                       {r.detalhe}
                     </Text>
                   ) : null}
+                  {/* Um nome que o próprio deu e que ainda ninguém reviu.
+                      Dizer-lho evita a confusão de o encontrar hoje, contar a
+                      alguém, e essa pessoa não o encontrar. */}
+                  {r.porRever ? (
+                    <Text style={styles.itemPorRever}>{t('lugarPorRever')}</Text>
+                  ) : null}
                 </View>
               </Pressable>
             ))
@@ -178,6 +184,7 @@ const criarEstilos = () =>
     itemIcone: { fontSize: 18, marginRight: spacing.md },
     itemNome: { ...tipo.subtitulo, color: colors.text },
     itemDetalhe: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },
+    itemPorRever: { ...tipo.legenda, color: colors.coral, marginTop: 1 },
     vazio: {
       ...tipo.pequeno,
       textAlign: 'center',

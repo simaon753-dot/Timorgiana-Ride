@@ -469,6 +469,7 @@ export default {
     'The map still does not know many places in Díli. What you write here helps fix it — for you and for everyone.',
   lugarCorrigirCampo: 'Name of the place',
   lugarGuardar: 'Save',
+  lugarPorRever: 'not yet reviewed — only you can see it',
 
   lugarMorada: 'Where it is',
   lugarMoradaExplica:

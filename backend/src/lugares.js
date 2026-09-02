@@ -1,4 +1,13 @@
-// Busca de lugares, em duas camadas.
+// Busca de lugares, em três camadas.
+//
+// Camada 0: os NOSSOS lugares — os que os passageiros baptizaram e que
+// alguém já aceitou. Vêm primeiro, e não por vaidade: são exactamente os
+// sítios que as outras camadas não têm. Se o OpenStreetMap soubesse o que é
+// a "Kios Mana Rita", ninguém teria tido de a escrever.
+//
+// Esta camada fecha o ciclo. Antes, aceitar uma proposta mudava uma palavra
+// na base de dados e mais nada — quem baptizou um sítio não o voltava a
+// encontrar, nem ele próprio.
 //
 // Camada 1: Nominatim (OpenStreetMap). Gratuito, e num teste com dezasseis
 // destinos reais de Díli acertou em catorze.
@@ -26,12 +35,14 @@
 // segunda pessoa a procurar "Timor Plaza" recebe a resposta sem sair do
 // país.
 
-const UA = "TimorgianaRide/1.0 (app de transporte, Dili, Timor-Leste)";
+import { procurarNossos } from './lugaresNossos.js';
+
+const UA = 'TimorgianaRide/1.0 (app de transporte, Dili, Timor-Leste)';
 
 // A mesma caixa que a app usava, com margem nas pontas para não cortar
 // Oecusse nem o norte de Ataúro.
 const TIMOR = {
-  viewbox: "123.8,-9.8,127.6,-8.0",
+  viewbox: '123.8,-9.8,127.6,-8.0',
   sul: -9.8,
   norte: -8.0,
   oeste: 123.8,
@@ -93,7 +104,7 @@ async function comPrazo(url, opcoes = {}, guardarErro = false) {
       // O corpo do erro do Google diz exactamente o que está mal — chave
       // recusada, API por activar, facturação em falta. Guardamos um
       // excerto; a chave nunca aparece nestas respostas.
-      const texto = await r.text().catch(() => "");
+      const texto = await r.text().catch(() => '');
       ultimoErroGoogle = {
         http: r.status,
         quando: new Date().toISOString(),
@@ -106,7 +117,7 @@ async function comPrazo(url, opcoes = {}, guardarErro = false) {
       ultimoErroGoogle = {
         http: 0,
         quando: new Date().toISOString(),
-        diz: e?.message || "sem resposta",
+        diz: e?.message || 'sem resposta',
       };
     }
     return null;
@@ -116,31 +127,31 @@ async function comPrazo(url, opcoes = {}, guardarErro = false) {
 }
 
 function nomeCurto(display) {
-  return display.split(",").slice(0, 2).join(",").trim();
+  return display.split(',').slice(0, 2).join(',').trim();
 }
 
 // ── Camada 1 ────────────────────────────────────────────────────────
 async function noNominatim(q) {
   const p = new URLSearchParams({
     q,
-    format: "json",
-    limit: "6",
-    addressdetails: "0",
-    countrycodes: "tl",
+    format: 'json',
+    limit: '6',
+    addressdetails: '0',
+    countrycodes: 'tl',
     viewbox: TIMOR.viewbox,
-    bounded: "1",
+    bounded: '1',
   });
   const rs = await comPrazo(`https://nominatim.openstreetmap.org/search?${p}`, {
-    headers: { Accept: "application/json", "User-Agent": UA },
+    headers: { Accept: 'application/json', 'User-Agent': UA },
   });
   if (!Array.isArray(rs)) return [];
   return rs.map((x) => ({
-    id: `osm:${x.osm_type || "x"}${x.osm_id || Math.random()}`,
+    id: `osm:${x.osm_type || 'x'}${x.osm_id || Math.random()}`,
     label: nomeCurto(x.display_name),
-    detalhe: x.display_name.split(",").slice(2, 4).join(",").trim(),
+    detalhe: x.display_name.split(',').slice(2, 4).join(',').trim(),
     lat: Number(x.lat),
     lng: Number(x.lon),
-    fonte: "osm",
+    fonte: 'osm',
   }));
 }
 
@@ -154,21 +165,20 @@ async function noGoogle(q) {
   if (!chave) return [];
 
   const j = await comPrazo(
-    "https://places.googleapis.com/v1/places:searchText",
+    'https://places.googleapis.com/v1/places:searchText',
     {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": chave,
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': chave,
         // A máscara de campos não é detalhe: o Google cobra por escalão
         // conforme o que se pede. Pedir só o essencial mantém a chamada no
         // escalão mais barato.
-        "X-Goog-FieldMask":
-          "places.id,places.displayName,places.formattedAddress,places.location",
+        'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location',
       },
       body: JSON.stringify({
         textQuery: q,
-        regionCode: "TL",
+        regionCode: 'TL',
         maxResultCount: 6,
         locationRestriction: {
           rectangle: {
@@ -178,7 +188,7 @@ async function noGoogle(q) {
         },
       }),
     },
-    true,
+    true
   );
   const places = j?.places;
   if (!Array.isArray(places)) return [];
@@ -186,11 +196,11 @@ async function noGoogle(q) {
     .filter((p) => p?.location?.latitude != null)
     .map((p) => ({
       id: `g:${p.id}`,
-      label: p.displayName?.text || p.formattedAddress || "",
-      detalhe: p.formattedAddress || "",
+      label: p.displayName?.text || p.formattedAddress || '',
+      detalhe: p.formattedAddress || '',
       lat: p.location.latitude,
       lng: p.location.longitude,
-      fonte: "google",
+      fonte: 'google',
     }))
     .filter((p) => p.label);
 }
@@ -204,12 +214,28 @@ function mesmoSitio(a, b) {
   return Math.hypot(dLat, dLng) < 0.1;
 }
 
-export async function procurar(termo) {
-  const q = String(termo || "").trim();
-  if (q.length < 3) return { lugares: [], fonte: "curto" };
+export async function procurar(termo, userId) {
+  const q = String(termo || '').trim();
+  if (q.length < 3) return { lugares: [], fonte: 'curto' };
+
+  // Os nossos vêm SEMPRE da base, mesmo quando o resto vem da memória.
+  //
+  // A memória é partilhada por toda a gente e guarda 24 horas. Os nossos
+  // lugares dependem de QUEM procura — cada um vê os seus por rever — e
+  // mudam no instante em que alguém aceita uma proposta. Guardá-los fazia
+  // duas asneiras ao mesmo tempo: um nome recém-aceite não aparecia durante
+  // um dia, e um passageiro via os lugares por rever de outro. É uma
+  // consulta a uma tabela pequena com índice; não é onde se poupa.
+  const nossos = await procurarNossos(q, userId);
 
   const guardados = daMemoria(q.toLowerCase());
-  if (guardados) return { lugares: guardados, fonte: "memoria" };
+  if (guardados) {
+    const lugares = [...nossos];
+    for (const g of guardados) {
+      if (!lugares.some((n) => mesmoSitio(n, g))) lugares.push(g);
+    }
+    return { lugares: lugares.slice(0, 8), fonte: nossos.length ? 'nossos+memoria' : 'memoria' };
+  }
 
   // OS DOIS AO MESMO TEMPO, e não um depois do outro.
   //
@@ -232,23 +258,29 @@ export async function procurar(termo) {
   // que o OpenStreetMap ainda não tem, e é isso que as pessoas escrevem.
   // Do OpenStreetMap entra o que não for repetido — tem ruas e bairros que
   // o Google às vezes não devolve.
-  const lugares = [...google];
+  const deFora = [...google];
   for (const o of osm) {
-    if (!lugares.some((g) => mesmoSitio(g, o))) lugares.push(o);
+    if (!deFora.some((g) => mesmoSitio(g, o))) deFora.push(o);
   }
 
-  guardar(q.toLowerCase(), lugares.slice(0, 8));
-  return {
-    lugares: lugares.slice(0, 8),
-    fonte:
-      google.length && osm.length
-        ? "ambos"
-        : google.length
-          ? "google"
-          : osm.length
-            ? "osm"
-            : "nada",
-  };
+  // Só o que vem de fora vai para a memória. Os nossos entram depois, a
+  // cada busca — ver o comentário lá em cima.
+  guardar(q.toLowerCase(), deFora.slice(0, 8));
+
+  // Os nossos à frente, e o de fora que não seja o mesmo sítio a seguir. Um
+  // nome que um passageiro escreveu ganha ao "Rua Sem Nome" do mapa: é
+  // precisamente por o mapa não lhe saber o nome que alguém teve o trabalho
+  // de lho dar.
+  const lugares = [...nossos];
+  for (const d of deFora) {
+    if (!lugares.some((n) => mesmoSitio(n, d))) lugares.push(d);
+  }
+
+  const de = [];
+  if (nossos.length) de.push('nossos');
+  if (google.length) de.push('google');
+  if (osm.length) de.push('osm');
+  return { lugares: lugares.slice(0, 8), fonte: de.join('+') || 'nada' };
 }
 
 // Para o painel: saber se a segunda camada está ligada, sem revelar a chave.

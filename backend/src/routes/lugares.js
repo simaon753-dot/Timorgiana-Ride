@@ -3,6 +3,7 @@ import { requireAuth } from '../auth.js';
 import { procurar } from '../lugares.js';
 import { query } from '../db.js';
 import { tipoValido } from '../tiposDeLugar.js';
+import { normalizar } from '../texto.js';
 import { MUNICIPIOS, ondeFica } from '../administrativo.js';
 
 export const lugaresRouter = Router();
@@ -23,7 +24,7 @@ const texto = (v, max) => {
 lugaresRouter.get(
   '/',
   wrap(async (req, res) => {
-    const r = await procurar(req.query.q);
+    const r = await procurar(req.query.q, req.user.id);
     res.json(r);
   })
 );
@@ -146,8 +147,8 @@ lugaresRouter.post(
     await query(
       `INSERT INTO lugares_propostos
          (user_id, nome, nome_mapa, lat, lng, tipo,
-          endereco, municipio, posto, suco, aldeia, bairro)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+          endereco, municipio, posto, suco, aldeia, bairro, nome_busca)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
       [
         req.user.id,
         n,
@@ -161,6 +162,7 @@ lugaresRouter.post(
         suco,
         aldeia,
         bairro,
+        normalizar(n),
       ]
     );
     res.json({ guardado: true });

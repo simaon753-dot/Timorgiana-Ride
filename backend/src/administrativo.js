@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { normalizar } from './texto.js';
 
 // A divisão administrativa de Timor-Leste: município, posto, suco.
 //
@@ -20,20 +21,6 @@ const dados = JSON.parse(
 );
 
 export const MUNICIPIOS = dados.municipios;
-
-// Nomes sem acentos e em minúsculas, para comparar.
-//
-// O Nominatim devolve "Dili" e a lista diz "Dili"; devolve "Oecussi" e a
-// lista diz "Oecussi" — mas basta uma fonte escrever "Díli" ou "Oe-Cusse"
-// para a comparação directa falhar. Normalizar evita depender da sorte.
-function normalizar(s) {
-  return String(s || '')
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
-}
 
 export function acharMunicipio(nome) {
   const n = normalizar(nome);
