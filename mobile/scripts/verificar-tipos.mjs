@@ -53,9 +53,47 @@ for (const id of naApp) {
   if (faltam.length) problemas.push(`${chave} — falta em ${faltam.join(', ')}`);
 }
 
+// ── e os documentos do motorista, pela mesma razão ──
+//
+// A app chama `t(tp.label)` e `t(NOME_DO_DOC[qual])`. São chaves montadas em
+// tempo de execução tal como as dos tipos de lugar, e portanto invisíveis ao
+// verificar-traducoes.mjs. Um documento novo sem tétum mostraria
+// "docInspection" no ecrã de quem o tem de enviar.
+//
+// Confere também que as duas listas coincidem: se o servidor exigir um
+// documento que a app não pede, o motorista fica bloqueado sem ter onde
+// carregar para se desbloquear — e não há ecrã nenhum que lhe explique isso.
+const noServidorDocs = idsDe('../backend/src/documents.js', 'export const OBRIGATORIOS = [');
+const naAppDocs = [
+  ...readFileSync('src/screens/DriverPendingScreen.js', 'utf8').matchAll(
+    /\{\s*kind:\s*'([a-z]+)'/g
+  ),
+].map((m) => m[1]);
+
+for (const x of noServidorDocs) {
+  if (!naAppDocs.includes(x)) {
+    problemas.push(
+      `documento '${x}' é exigido pelo servidor mas a app não o pede — bloqueio sem saída`
+    );
+  }
+}
+for (const x of naAppDocs) {
+  if (!noServidorDocs.includes(x)) {
+    problemas.push(`documento '${x}' é pedido pela app mas o servidor não o conhece`);
+  }
+}
+for (const id of naAppDocs) {
+  const chave = 'doc' + id.charAt(0).toUpperCase() + id.slice(1);
+  const faltam = LINGUAS.filter((l) => dicionarios[l][chave] == null);
+  if (faltam.length) problemas.push(`${chave} — falta em ${faltam.join(', ')}`);
+}
+
 if (problemas.length) {
   console.error('  ✗ tipos de lugar:\n');
   for (const p of problemas) console.error('    ' + p);
   process.exit(1);
 }
-console.log(`  ✓ ${naApp.length} tipos de lugar, traduzidos e iguais nos dois lados`);
+console.log(
+  `  ✓ ${naApp.length} tipos de lugar e ${naAppDocs.length} documentos, ` +
+    `traduzidos e iguais nos dois lados`
+);

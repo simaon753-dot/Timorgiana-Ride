@@ -21,6 +21,15 @@ import { api } from '../api/client.js';
 // Um ecrã só para os dois casos, e não dois ecrãs: a estrutura é a mesma
 // (cabeçalho, secções, listas que levam a outro detalhe) e separá-los
 // duplicava tudo para mudar meia dúzia de campos.
+// Num mapa e não montado letra a letra: uma chave de tradução construída em
+// tempo de execução escapa ao verificador. Ver scripts/verificar-tipos.mjs.
+const NOME_DO_DOC = {
+  licence: 'docLicence',
+  vehicle: 'docVehicle',
+  inspection: 'docInspection',
+  photo: 'docPhoto',
+};
+
 export default function AdminDetalheScreen({ navigation, route }) {
   const { t } = useI18n();
   const { token } = useAuth();
@@ -203,8 +212,16 @@ function DetalheConta({ d, t, navigation, token, onMudou }) {
               <View key={doc.id} style={styles.docCaixa}>
                 <ImagemProtegida caminho={`/admin/documents/${doc.id}`} style={styles.doc} />
                 <Text style={[styles.docNome, doc.caducado && styles.mauTexto]}>
-                  {doc.tipo}
+                  {NOME_DO_DOC[doc.tipo] ? t(NOME_DO_DOC[doc.tipo]) : doc.tipo}
                   {doc.caducado ? ' ⚠' : ''}
+                </Text>
+                {/* A DATA AO LADO DA FOTOGRAFIA, e não é detalhe de arrumação.
+                    A validade é escrita pelo próprio motorista: ele fotografa
+                    o cartão e escreve a data que quiser, e a app não sabe ler
+                    o cartão. Quem verifica é quem está aqui — mas só consegue
+                    verificar se vir as duas coisas ao mesmo tempo. */}
+                <Text style={[styles.docValidade, doc.caducado && styles.mauTexto]}>
+                  {doc.validade || t('docSemValidade')}
                 </Text>
               </View>
             ))}
@@ -369,6 +386,7 @@ const criarEstilos = () =>
     docCaixa: { marginRight: spacing.sm, alignItems: 'center' },
     doc: { width: 92, height: 92, borderRadius: radius.md, backgroundColor: colors.tintaTeal },
     docNome: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
+    docValidade: { ...tipo.legenda, color: colors.textMuted, textAlign: 'center' },
 
     registado: {
       ...tipo.legenda,

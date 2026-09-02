@@ -116,6 +116,10 @@ export const api = {
 
   // Motorista: estado da conta e documentos
   driverStatus: (token) => request('/driver/status', { token }),
+  // Pôr a data de validade sem voltar a fotografar. Os documentos enviados
+  // antes de existir o campo ficaram sem data, e agora isso bloqueia.
+  definirValidadeDoc: (token, kind, expiresOn) =>
+    request('/driver/documents/validade', { method: 'POST', body: { kind, expiresOn }, token }),
   uploadDocument: (token, { kind, mime, base64, expiresOn }) =>
     request('/driver/documents', {
       method: 'POST',

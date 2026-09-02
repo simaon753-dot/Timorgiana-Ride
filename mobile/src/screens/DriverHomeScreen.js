@@ -31,6 +31,17 @@ import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js'
 import { tipo } from '../design/tipografia.js';
 import BarraEstado from '../design/BarraEstado.js';
 
+// O nome de cada documento, para o aviso poder dizer "Cartão de inspeção"
+// em vez de "inspection". Num mapa e não construído letra a letra: uma chave
+// montada em tempo de execução escapa ao verificador de traduções, e foi
+// assim que os tipos de lugar quase saíram sem tétum.
+const NOME_DO_DOC = {
+  licence: 'docLicence',
+  vehicle: 'docVehicle',
+  inspection: 'docInspection',
+  photo: 'docPhoto',
+};
+
 export default function DriverHomeScreen({ navigation }) {
   const { t } = useI18n();
   const { logout, token, user } = useAuth();
@@ -38,6 +49,10 @@ export default function DriverHomeScreen({ navigation }) {
   // piscar o cartão de fotografia a quem já a tirou.
   const [fotoDeHoje, setFotoDeHoje] = useState(null);
   const [avisoDocs, setAvisoDocs] = useState(null);
+  // Documentos que acabam nos próximos quinze dias. Separado do bloqueio: um
+  // é "não pode trabalhar", o outro é "trate disto esta semana", e mostrá-los
+  // com a mesma cara ensinaria a ignorar os dois.
+  const [docsACaducar, setDocsACaducar] = useState([]);
   const [assinatura, setAssinatura] = useState(null);
   const [centroMapa, setCentroMapa] = useState(null);
 
@@ -49,6 +64,7 @@ export default function DriverHomeScreen({ navigation }) {
       const r = await api.driverStatus(token);
       setFotoDeHoje(!!r.fotoDeHoje);
       setAvisoDocs(r.apto?.pode === false ? r.apto : null);
+      setDocsACaducar(r.apto?.pode ? r.apto.aCaducar || [] : []);
       setAssinatura(r.assinatura || null);
     } catch {
       /* sem rede: não bloqueamos nada com base em desconhecimento */
@@ -103,12 +119,49 @@ export default function DriverHomeScreen({ navigation }) {
           <FaixaAssinatura a={assinatura} bloqueio={bloqueio} navigation={navigation} />
         ) : null}
 
+        {/* A conta está suspensa. Não é uma decisão de ninguém — é o que
+            acontece enquanto um documento estiver fora de prazo, e desfaz-se
+            sozinha quando o documento novo chegar. Dizer isso importa: sem
+            essa frase, quem lê "suspensa" telefona. */}
         {!activeRide && avisoDocs ? (
-          <Text style={styles.avisoDocs}>
-            {avisoDocs.motivo === 'documento_caducado'
-              ? t('cannotGoOnlineExpired')
-              : t('docsIncomplete')}
-          </Text>
+          <Pressable style={styles.avisoDocs} onPress={() => navigation.navigate('DriverPending')}>
+            <Text style={styles.avisoDocsTitulo}>{t('docSuspensoTitulo')}</Text>
+            <Text style={styles.avisoDocsTexto}>
+              {avisoDocs.motivo === 'documento_caducado'
+                ? t('cannotGoOnlineExpired')
+                : avisoDocs.motivo === 'documento_sem_validade'
+                  ? t('cannotGoOnlineNoDate')
+                  : t('docsIncomplete')}
+              {avisoDocs.qual && NOME_DO_DOC[avisoDocs.qual]
+                ? `  ·  ${t(NOME_DO_DOC[avisoDocs.qual])}`
+                : ''}
+            </Text>
+            {avisoDocs.qual === 'inspection' ? (
+              <Text style={styles.avisoDocsTexto}>{t('docMultaAviso')}</Text>
+            ) : null}
+            <Text style={styles.avisoDocsTexto}>{t('docSuspensoExplica')}</Text>
+          </Pressable>
+        ) : null}
+
+        {/* Quinze dias antes. Chega para tratar de um papel em Díli sem
+            perder um dia de trabalho, e não é tão cedo que se esqueça.
+            Diz quantos dias faltam e não "está quase": quatro dias mandam
+            fazer alguma coisa hoje, "está quase" não manda fazer nada. */}
+        {!activeRide && docsACaducar.length ? (
+          <Pressable
+            style={styles.avisoValidade}
+            onPress={() => navigation.navigate('DriverPending')}
+          >
+            <Text style={styles.avisoValidadeTitulo}>{t('docAvisoTitulo')}</Text>
+            {docsACaducar.map((d) => (
+              <Text key={d.qual} style={styles.avisoValidadeTexto}>
+                {t(NOME_DO_DOC[d.qual] || 'docLicence')}:{' '}
+                {(d.dias <= 0 ? t('docPorAcabarHoje') : t('docPorAcabar'))
+                  .replace('{ate}', d.ate)
+                  .replace('{dias}', String(d.dias))}
+              </Text>
+            ))}
+          </Pressable>
         ) : null}
 
         {/* Ligar e desligar o trabalho. Um motorista a almoçar não deve
@@ -361,13 +414,25 @@ const criarEstilos = () =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.paper },
     avisoDocs: {
-      ...tipo.corpoForte,
       backgroundColor: colors.tintaPerigo,
       borderRadius: radius.md,
       padding: spacing.md,
-      color: colors.danger,
       marginBottom: spacing.md,
+      gap: 4,
     },
+    avisoDocsTitulo: { ...tipo.corpoForte, color: colors.danger },
+    avisoDocsTexto: { ...tipo.pequeno, color: colors.danger },
+    // Coral e não vermelho: isto não impede ninguém de trabalhar hoje. Dar
+    // ao aviso a mesma cara do bloqueio ensinava a ignorar os dois.
+    avisoValidade: {
+      backgroundColor: colors.tintaCoral,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.md,
+      gap: 4,
+    },
+    avisoValidadeTitulo: { ...tipo.corpoForte, color: colors.coralDark },
+    avisoValidadeTexto: { ...tipo.pequeno, color: colors.coralDark },
     scroll: { flexGrow: 1, padding: spacing.lg },
     topBar: {
       flexDirection: 'row',

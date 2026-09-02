@@ -16,9 +16,19 @@ import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js'
 import { tipo } from '../design/tipografia.js';
 import BarraEstado from '../design/BarraEstado.js';
 
+// OS TRÊS DOCUMENTOS OBRIGATÓRIOS, e os três valem para carro E motorizada.
+// Nenhum deles depende do tipo de veículo: quem conduz uma motorizada precisa
+// de registo e de inspecção exactamente como quem conduz um carro.
+//
+// A fotografia não é um documento — é o retrato da pessoa, e serve para saber
+// quem está ao volante. Por isso está na lista mas não caduca.
 const TIPOS = [
   { kind: 'licence', label: 'docLicence' },
   { kind: 'vehicle', label: 'docVehicle' },
+  // Kartaun Inspesaun. Obrigatório em Timor-Leste, válido um ano, e conduzir
+  // com ele caducado dá multa a dobrar se a polícia de trânsito mandar
+  // parar. Entrou em 02/09/2026.
+  { kind: 'inspection', label: 'docInspection' },
   { kind: 'photo', label: 'docPhoto' },
 ];
 
@@ -59,10 +69,30 @@ export default function DriverPendingScreen({ navigation }) {
     return () => clearInterval(id);
   }, [refreshUser, rejected]);
 
-  // Só a carta e os papéis do veículo caducam. A fotografia não, por isso
-  // não se pergunta uma data que não existe.
+  // A fotografia do motorista não caduca; tudo o resto sim. Não se pergunta
+  // uma data que não existe.
   function precisaValidade(kind) {
-    return kind === 'licence' || kind === 'vehicle';
+    return kind !== 'photo';
+  }
+
+  // Guardar só a data, sem mexer na fotografia.
+  //
+  // O caminho existe para os documentos que já estão na conta e ficaram sem
+  // validade — obrigar a refotografar uma carta de condução só para
+  // escrever uma data seria trabalho que não serve para nada.
+  async function guardarData(kind) {
+    setError(null);
+    const d = (validades[kind] || '').trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return setError(t('docExpiryRequired'));
+    setBusy(kind);
+    try {
+      await api.definirValidadeDoc(token, kind, d);
+      await carregar();
+    } catch (e) {
+      setError(e?.message === 'NETWORK' ? t('errNetwork') : e?.message || t('errGeneric'));
+    } finally {
+      setBusy(null);
+    }
   }
 
   async function enviar(kind) {
@@ -148,6 +178,15 @@ export default function DriverPendingScreen({ navigation }) {
                             <Text style={[styles.docState, enviado && styles.docStateOk]}>
                               {enviado ? `✓ ${t('docSent')}` : t('docMissing')}
                             </Text>
+                            {/* Um documento enviado e sem data conta como
+                          fora de ordem — é o que impede a regra de ser
+                          decorativa. Dizê-lo aqui evita que alguém veja
+                          "✓ enviado" e conclua que está tratado. */}
+                            {enviado && precisaValidade(tp.kind) && !doc?.expiresOn ? (
+                              <Text style={[styles.docValidade, styles.docValidadeMa]}>
+                                {t('docSemValidade')}
+                              </Text>
+                            ) : null}
                             {doc?.expiresOn ? (
                               <Text
                                 style={[
@@ -200,6 +239,15 @@ export default function DriverPendingScreen({ navigation }) {
                               keyboardType="numbers-and-punctuation"
                             />
                             <Text style={styles.validadeAjuda}>{t('docExpiryHelp')}</Text>
+                            {enviado && !doc?.expiresOn ? (
+                              <Pressable
+                                style={styles.docBtn}
+                                onPress={() => guardarData(tp.kind)}
+                                disabled={busy === tp.kind}
+                              >
+                                <Text style={styles.docBtnText}>{t('docGuardarData')}</Text>
+                              </Pressable>
+                            ) : null}
                           </View>
                         ) : null}
                       </View>

@@ -327,6 +327,20 @@ export async function initSchema() {
   // porque passou por uma verificação.
   await query(`ALTER TABLE driver_documents ADD COLUMN IF NOT EXISTS expires_on DATE`);
 
+  // O cartão de inspecção do veículo — Kartaun Inspesaun.
+  //
+  // Obrigatório em Timor-Leste e válido um ano. Conduzir com ele caducado e
+  // ser mandado parar pela polícia de trânsito custa multa a DOBRAR. É por
+  // isso que entra: não é papelada nossa, é dinheiro do motorista.
+  //
+  // A restrição antiga não o conhecia. Substituí-la em vez de a apagar: uma
+  // coluna sem restrição aceita erros de escrita para sempre.
+  await query(`ALTER TABLE driver_documents DROP CONSTRAINT IF EXISTS driver_documents_kind_check`);
+  await query(`
+    ALTER TABLE driver_documents ADD CONSTRAINT driver_documents_kind_check
+    CHECK (kind IN ('licence', 'vehicle', 'photo', 'inspection'))
+  `);
+
   // Foto do turno: quem está ao volante HOJE. Os documentos verificam a
   // conta; isto verifica a pessoa. Um motorista aprovado que empresta o
   // telemóvel ao primo é o problema mais comum deste negócio.

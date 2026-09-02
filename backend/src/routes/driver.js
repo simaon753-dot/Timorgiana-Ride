@@ -1,7 +1,13 @@
 import { Router } from 'express';
 import { one, query } from '../db.js';
 import { requireAuth } from '../auth.js';
-import { saveDocument, listDocuments, podeTrabalhar, getOwnDocument } from '../documents.js';
+import {
+  saveDocument,
+  listDocuments,
+  podeTrabalhar,
+  getOwnDocument,
+  definirValidade,
+} from '../documents.js';
 import { temFotoDeHoje, guardarFotoDeTurno, ultimaFotoDeTurno } from '../turnos.js';
 import { setOnline, savePushToken } from '../drivers.js';
 import { toPublicUser } from '../users.js';
@@ -38,6 +44,10 @@ driverRouter.get(
         expiresOn: d.expires_on || null,
         expirado: !!d.caducado,
         aExpirar: !!d.a_caducar && !d.caducado,
+        // Quantos dias faltam. Deixa o aviso dizer "faltam 4 dias" em vez de
+        // "está quase" — quatro dias mandam tratar disso hoje, "está quase"
+        // não manda fazer nada.
+        dias: d.dias == null ? null : Number(d.dias),
       })),
       apto,
       fotoDeHoje: fotoHoje,
@@ -47,6 +57,26 @@ driverRouter.get(
       retratoDe: ultimaFoto ? ultimaFoto.dia : null,
       assinatura,
     });
+  })
+);
+
+// POST /api/driver/documents/validade — pôr a data sem refotografar
+//
+// Os documentos enviados antes de existir campo de data ficaram todos sem
+// validade, e um documento com validade e sem data conta agora como fora de
+// ordem. Sem este caminho, a única saída era voltar a fotografar a carta de
+// condução só para escrever uma data — trabalho que não serve para nada.
+driverRouter.post(
+  '/documents/validade',
+  wrap(async (req, res) => {
+    const { kind, expiresOn } = req.body || {};
+    try {
+      const d = await definirValidade(req.user.id, kind, expiresOn);
+      if (!d) return res.status(404).json({ error: 'Esse documento não existe na tua conta.' });
+      res.json({ ok: true, documento: d });
+    } catch (e) {
+      res.status(400).json({ error: e.message });
+    }
   })
 );
 
@@ -73,13 +103,18 @@ driverRouter.post(
           error:
             apto.motivo === 'documento_caducado'
               ? `O teu documento (${apto.qual}) caducou em ${apto.ate}.`
-              : 'Faltam documentos na tua conta.',
+              : apto.motivo === 'documento_sem_validade'
+                ? `Falta a data de validade do teu documento (${apto.qual}).`
+                : 'Faltam documentos na tua conta.',
           motivo: apto.motivo,
           qual: apto.qual,
+          ate: apto.ate ?? null,
         });
       }
       if (!(await temFotoDeHoje(req.user.id))) {
-        return res.status(428).json({ error: 'Tira uma fotografia para começar o dia.', motivo: 'foto_de_turno' });
+        return res
+          .status(428)
+          .json({ error: 'Tira uma fotografia para começar o dia.', motivo: 'foto_de_turno' });
       }
 
       // O saldo é a última condição, e de propósito: quem não tem dias deve
@@ -316,8 +351,9 @@ driverRouter.post(
       // alguém que enviou documentos sem sequer declarar um veículo.
       if (completo && req.user.driver_status === 'pending') {
         req.app.get('io').to('admins').emit('driver:pronto', { id: req.user.id });
-        notificarAdminsMotoristaPronto({ nome: req.user.name, telefone: req.user.phone })
-          .catch(() => {});
+        notificarAdminsMotoristaPronto({ nome: req.user.name, telefone: req.user.phone }).catch(
+          () => {}
+        );
       }
 
       return res.status(201).json({
