@@ -231,7 +231,7 @@ driverRouter.post(
            -- defeito silencioso: a conta ficava aprovada e o sistema de
            -- motoristas continuava a não a ver.
            --
-           -- Todas as consultas de despacho filtram por `role = 'driver'`
+           -- Todas as consultas de despacho filtram por role = 'driver'
            -- — quem fica online, quem recebe pedidos, quem entra nas salas
            -- do socket. Uma conta aprovada com role 'passenger' nunca
            -- receberia um pedido, e nada no ecrã explicava porquê.
