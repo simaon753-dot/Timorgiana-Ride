@@ -65,6 +65,8 @@
     border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer; }
   .confirmar { padding: 10px; background: var(--teal-claro); color: var(--teal);
     border: 1px solid var(--teal); border-radius: 9px; font-size: 13px; cursor: pointer; }
+  .feito { padding: 11px; text-align: center; border-radius: 9px;
+    background: var(--teal-claro); color: var(--teal); font-weight: 600; font-size: 14px; }
   .recusar { padding: 11px; background: var(--branco); color: var(--mau);
     border: 1px solid var(--mau); border-radius: 9px; font-size: 14px; cursor: pointer; }
   .vazio { text-align: center; padding: 60px 20px; color: var(--suave); }
@@ -171,6 +173,15 @@ const TIPOS = [
 //
 // Não recusa nada. Levanta o dedo, para quem decide olhar com atenção para
 // AQUELA fotografia em vez de olhar para as cinco com a mesma atenção.
+// O estado da conta, em palavras e não no código cru da base de dados.
+// Aparecia "estado: approved" no ecrã de quem não escreveu a base.
+const ESTADOS = {
+  pending: 'à espera de decisão',
+  approved: 'aprovado',
+  rejected: 'recusado',
+  suspended: 'suspenso',
+};
+
 const MAX_DIAS = { inspection: 400, licence: 5500, vehicle: 5500 };
 
 let token = localStorage.getItem('tr_token') || '';
@@ -309,7 +320,7 @@ async function desenhar() {
         <div class="meta">${escapar(d.phone || '')}</div>
         <div class="meta">${d.vehicle?.type === 'motorbike' ? 'Motorizada' : 'Carro'}
           ${escapar(d.vehicle?.model || '')} ${escapar(d.vehicle?.plate || '')}</div>
-        <div class="meta">${d.viagens || 0} viagens · estado: ${escapar(d.driverStatus || '')}</div>
+        <div class="meta">${d.viagens || 0} viagens · ${escapar(ESTADOS[d.driverStatus] || d.driverStatus || '')}</div>
       </div>
       <div class="docs">
         ${TIPOS.map(([k, nome]) => {
@@ -329,10 +340,7 @@ async function desenhar() {
           ${linhas.map((l) => `<li class="${l.c}">${escapar(l.t)}</li>`).join('')}
         </ul>
         <div class="accoes">
-          <button class="aprovar" data-aprovar="${d.id}">
-            ${impede ? 'Aprovar mesmo assim' : 'Aprovar'}
-          </button>
-          <button class="recusar" data-recusar="${d.id}">Recusar</button>
+          ${botoesPara(d, impede)}
           ${(d.documents || [])
             .filter((x) => x.porRever)
             .map(
@@ -369,6 +377,37 @@ async function desenhar() {
   }
 }
 
+// OS BOTÕES DEPENDEM DO ESTADO EM QUE A CONTA ESTÁ.
+//
+// A primeira versão mostrava sempre "Aprovar" e "Recusar", em qualquer
+// estado. O Simão aprovou um motorista, viu a mensagem de sucesso — e o
+// botão Aprovar continuou lá, a convidar a aprovar outra vez uma conta já
+// aprovada. Um botão que oferece uma acção já feita faz duvidar de que
+// tenha sido feita.
+//
+// Cada estado mostra só o que dali faz sentido:
+//
+//   à espera  → Aprovar · Recusar
+//   aprovado  → ✓ Aprovado · Suspender
+//   recusado  → Recusado · Aprovar
+//   suspenso  → Suspenso · Reactivar
+//
+// Suspender não existia no painel e o servidor já o aceitava. Faz falta: um
+// motorista aprovado de quem se recebe uma queixa tem de poder parar sem ser
+// "recusado", que é uma palavra para quem nunca chegou a entrar.
+function botoesPara(d, impede) {
+  const est = d.driverStatus;
+  const aprovar = (rotulo) => `<button class="aprovar" data-aprovar="${d.id}">${rotulo}</button>`;
+  const recusar = (rotulo) => `<button class="recusar" data-recusar="${d.id}">${rotulo}</button>`;
+  const suspender = `<button class="recusar" data-suspender="${d.id}">Suspender</button>`;
+  const feito = (t) => `<div class="feito">${t}</div>`;
+
+  if (est === 'approved') return feito('✓ Aprovado') + suspender;
+  if (est === 'rejected') return feito('Recusado') + aprovar('Aprovar afinal');
+  if (est === 'suspended') return feito('Suspenso') + aprovar('Reactivar');
+  return aprovar(impede ? 'Aprovar mesmo assim' : 'Aprovar') + recusar('Recusar');
+}
+
 function escapar(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
@@ -392,7 +431,11 @@ async function decidir(id, decision, botao) {
     // O motivo é obrigatório do lado do servidor, e ainda bem: uma recusa
     // sem explicação deixa o motorista sem saber o que corrigir, e a
     // corrigir por telefone.
-    motivo = prompt('Porque está a recusar? O motorista vai ler isto.');
+    motivo = prompt(
+      decision === 'suspended'
+        ? 'Porque está a suspender? O motorista vai ler isto.'
+        : 'Porque está a recusar? O motorista vai ler isto.'
+    );
     if (!motivo || !motivo.trim()) return;
   }
 
@@ -411,17 +454,25 @@ async function decidir(id, decision, botao) {
   const textoOriginal = botao ? botao.textContent : '';
   if (botao) {
     botao.disabled = true;
-    botao.textContent = decision === 'approved' ? 'A aprovar…' : 'A recusar…';
+    botao.textContent =
+      decision === 'approved'
+        ? 'A aprovar…'
+        : decision === 'suspended'
+          ? 'A suspender…'
+          : 'A recusar…';
   }
   try {
     const r = await api(`/admin/drivers/${id}/decision`, {
       method: 'POST',
       body: JSON.stringify({ decision, motivo }),
     });
+    const nome = r.driver?.name || 'Motorista';
     avisar(
       decision === 'approved'
-        ? `${r.driver?.name || 'Motorista'} aprovado. Já pode conduzir.`
-        : `${r.driver?.name || 'Motorista'} recusado.`
+        ? `${nome} aprovado. Já pode conduzir.`
+        : decision === 'suspended'
+          ? `${nome} suspenso. Deixou de receber pedidos.`
+          : `${nome} recusado.`
     );
     await desenhar();
   } finally {
@@ -435,10 +486,12 @@ async function decidir(id, decision, botao) {
 document.addEventListener('click', async (e) => {
   const ap = e.target.closest('[data-aprovar]');
   const re = e.target.closest('[data-recusar]');
+  const su = e.target.closest('[data-suspender]');
   const rv = e.target.closest('[data-revisto]');
   try {
     if (ap) await decidir(ap.dataset.aprovar, 'approved', ap);
     if (re) await decidir(re.dataset.recusar, 'rejected', re);
+    if (su) await decidir(su.dataset.suspender, 'suspended', su);
     if (rv) {
       rv.disabled = true;
       await api(`/admin/documents/${rv.dataset.revisto}/revisto`, { method: 'POST' });
