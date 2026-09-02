@@ -5,7 +5,9 @@ import { query, one } from './db.js';
 // Em Timor-Leste o indicativo é +670. Guardamos o que o utilizador
 // escreve, mas de forma consistente para evitar duplicados.
 export function normalizePhone(phone) {
-  return String(phone || '').replace(/[\s()-]/g, '').trim();
+  return String(phone || '')
+    .replace(/[\s()-]/g, '')
+    .trim();
 }
 
 // Converte uma linha da BD no formato público (sem o hash da palavra-passe)
@@ -43,6 +45,7 @@ export function toPublicUser(row) {
   if (row.is_admin) base.isAdmin = true;
   base.termsVersion = row.terms_version || null;
   base.driverTermsVersion = row.driver_terms_version || null;
+  base.privacyVersion = row.privacy_version || null;
   return base;
 }
 
@@ -56,7 +59,16 @@ export function findUserByPhone(phone) {
 
 // Cria um utilizador. A restrição UNIQUE do telemóvel protege contra
 // dois registos simultâneos com o mesmo número.
-export async function createUser({ name, phone, email, password, role, vehicle, termsVersion }) {
+export async function createUser({
+  name,
+  phone,
+  email,
+  password,
+  role,
+  vehicle,
+  termsVersion,
+  privacyVersion,
+}) {
   const passwordHash = await bcrypt.hash(password, 10);
   const vehicleType =
     role === 'driver' ? (vehicle?.type === 'motorbike' ? 'motorbike' : 'car') : null;
@@ -65,8 +77,10 @@ export async function createUser({ name, phone, email, password, role, vehicle, 
   return one(
     `INSERT INTO users
        (name, phone, email, password_hash, role, vehicle_type, vehicle_model, vehicle_plate,
-        vehicle_color, vehicle_seats, driver_status, terms_version, terms_accepted_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NOW())
+        vehicle_color, vehicle_seats, driver_status, terms_version, terms_accepted_at,
+        privacy_version, privacy_accepted_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NOW(),$13,
+             CASE WHEN $13::text IS NULL THEN NULL ELSE NOW() END)
      RETURNING *`,
     [
       name.trim(),
@@ -83,6 +97,7 @@ export async function createUser({ name, phone, email, password, role, vehicle, 
         : null,
       role === 'driver' ? 'pending' : null,
       termsVersion || null,
+      privacyVersion || null,
     ]
   );
 }

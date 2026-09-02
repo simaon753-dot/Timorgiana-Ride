@@ -40,6 +40,7 @@ const NOME_DO_DOC = {
   licence: 'docLicence',
   vehicle: 'docVehicle',
   inspection: 'docInspection',
+  identity: 'docIdentity',
   photo: 'docPhoto',
 };
 

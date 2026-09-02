@@ -1,7 +1,7 @@
 import { query, one } from './db.js';
 
 const MAX_BYTES = 4 * 1024 * 1024; // 4 MB por documento
-const TIPOS = ['licence', 'vehicle', 'photo', 'inspection'];
+const TIPOS = ['licence', 'vehicle', 'photo', 'inspection', 'identity'];
 
 // O dia em Díli, e não o dia do servidor.
 //
@@ -96,9 +96,16 @@ export function getOwnDocument(userId, kind) {
 // justamente os que dão legitimidade para conduzir.
 export const COM_VALIDADE = ['licence', 'vehicle', 'inspection'];
 
+// O documento de identificação NÃO está na lista de cima, e é de propósito.
+//
+// O bilhete de identidade timorense e o passaporte têm validade, mas o que
+// nos interessa neles é saber QUEM é a pessoa — e isso não caduca. Exigir
+// uma data aqui suspenderia a conta de alguém cujo BI acabou, por um motivo
+// que não tem nada a ver com conduzir.
+
 // Todos são obrigatórios. O cartão de inspecção entrou nesta lista em
 // 02/09/2026, a pedido do Simão.
-export const OBRIGATORIOS = ['licence', 'vehicle', 'photo', 'inspection'];
+export const OBRIGATORIOS = ['photo', 'identity', 'licence', 'vehicle', 'inspection'];
 
 // Avisar quinze dias antes. Chega para tratar de um papel em Díli sem
 // perder um dia de trabalho, e não é tão cedo que se esqueça.

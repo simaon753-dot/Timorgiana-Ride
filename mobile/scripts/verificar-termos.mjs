@@ -38,6 +38,15 @@ for (const lang of LINGUAS) {
   const priv = textoPrivacidade(lang);
   if (!priv?.seccoes?.length) faltas.push(`privacidade ${lang}: sem secções`);
   if (!priv?.titulo) faltas.push(`privacidade ${lang}: falta "titulo"`);
+  // A privacidade passou a ter caixa de aceitação própria no registo, e por
+  // isso passa a precisar do mesmo campo que os termos. Verificado aqui pela
+  // razão exacta que fez nascer este ficheiro: um campo em falta não dá erro
+  // nenhum, só parte o ecrã de registo — e ninguém repara durante semanas.
+  if (!priv?.aceitarCurto) faltas.push(`privacidade ${lang}: falta "aceitarCurto"`);
+  const marcasPriv = (priv?.aceitarCurto ?? '').split('**').length - 1;
+  if (marcasPriv !== 2) {
+    faltas.push(`privacidade ${lang}: "aceitarCurto" devia ter um par de ** (tem ${marcasPriv})`);
+  }
 }
 
 if (faltas.length) {

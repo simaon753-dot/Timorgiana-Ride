@@ -35,6 +35,7 @@
 
 const pt = {
   titulo: 'Aviso de Privacidade',
+  aceitarCurto: 'Li e aceito o **aviso de privacidade**',
   subtitulo: 'Passageiro e motorista · versão de 29 de Agosto de 2026',
   seccoes: [
     {
@@ -92,6 +93,7 @@ const pt = {
 
 const tet = {
   titulo: 'Avizu Privasidade',
+  aceitarCurto: 'Ha’u lee no simu **avizu privasidade**',
   subtitulo: 'Pasajeiru no motorista · versaun 29 Agostu 2026',
   seccoes: [
     {
@@ -149,6 +151,7 @@ const tet = {
 
 const en = {
   titulo: 'Privacy Notice',
+  aceitarCurto: 'I have read and accept the **privacy notice**',
   subtitulo: 'Passenger and driver · version of 29 August 2026',
   seccoes: [
     {

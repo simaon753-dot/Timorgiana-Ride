@@ -90,7 +90,8 @@ export const termosPassageiro = {
 
 export const termosMotorista = {
   titulo: 'Terms for drivers',
-  subtitulo: 'Conditions applicable to the provision of transport services connected through TimorgianaRide.',
+  subtitulo:
+    'Conditions applicable to the provision of transport services connected through TimorgianaRide.',
   atualizado: 'Version of 29 August 2026',
   // Texto da caixa de aceitação. O que está entre ** fica clicável
   // e abre o documento. Sem este campo o ecrã de registo não abre.

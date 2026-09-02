@@ -62,6 +62,14 @@ export default function PerfilScreen({ navigation }) {
           <Retrato tamanho={86} />
           <Text style={styles.nome}>{user?.name}</Text>
           <Text style={styles.telefone}>{user?.phone}</Text>
+          {/* O selo de verificação.
+              Diz que alguém olhou para os documentos desta pessoa e os
+              aceitou. Fica ao lado do nome e do número porque é isso que
+              qualifica: não é decoração, é o que distingue uma conta
+              verificada de uma que ainda não passou por ninguém. */}
+          {user?.driverStatus === 'approved' ? (
+            <Text style={styles.verificado}>{t('perfilVerificado')}</Text>
+          ) : null}
           {user?.ratingAvg ? (
             <Text style={styles.estrelas}>
               ⭐ {Number(user.ratingAvg).toFixed(1)}
@@ -182,6 +190,11 @@ const criarEstilos = () =>
     // sobre o teal escuro perdia-se.
     nome: { ...tipo.titulo, color: colors.text, marginTop: spacing.md },
     telefone: { ...tipo.pequeno, color: colors.textMuted, marginTop: 2 },
+    verificado: {
+      ...tipo.legenda,
+      color: colors.teal,
+      marginTop: 4,
+    },
     estrelas: { ...tipo.corpoForte, color: colors.teal, marginTop: spacing.sm },
 
     seccao: { marginBottom: spacing.lg },

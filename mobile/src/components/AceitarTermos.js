@@ -4,15 +4,26 @@ import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js'
 import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 import { textoTermos } from '../termos/index.js';
+import { textoPrivacidade } from '../termos/privacidade.js';
 
-// Caixa de aceitação com o texto clicável a abrir os termos.
+// Caixa de aceitação com o texto clicável a abrir o documento.
 //
-// A caixa e o link são alvos SEPARADOS: tocar no texto abre os termos,
+// A caixa e o link são alvos SEPARADOS: tocar no texto abre o documento,
 // tocar na caixa aceita. Se fossem o mesmo alvo, quem quisesse ler acabava
 // a aceitar sem querer, ou o contrário.
-export default function AceitarTermos({ aceite, onMudar, onAbrir, quem }) {
+//
+// SERVE OS DOIS DOCUMENTOS, e passou a servir por uma razão jurídica e não
+// de arrumação: os termos e a privacidade são consentimentos DISTINTOS.
+// Antes havia uma caixa para os termos e a privacidade era só uma ligação ao
+// lado — quem se registava aceitava os termos e nunca dizia nada sobre o
+// tratamento dos seus dados. Agora são duas caixas, e cada uma guarda a sua
+// própria versão.
+export default function AceitarTermos({ aceite, onMudar, onAbrir, quem, documento }) {
   const { t, lang } = useI18n();
-  const doc = textoTermos(lang, quem === 'driver' ? 'driver' : 'passenger');
+  const doc =
+    documento === 'privacidade'
+      ? textoPrivacidade(lang)
+      : textoTermos(lang, quem === 'driver' ? 'driver' : 'passenger');
   // Se a frase faltar, o título do documento serve de rótulo: a ligação
   // continua a abrir os termos e o registo continua a funcionar.
   const [antes, destaque, depois] = partir(doc.aceitarCurto, doc.titulo);

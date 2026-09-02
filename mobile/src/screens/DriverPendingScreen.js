@@ -1,5 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  ActivityIndicator,
+  Modal,
+  Image,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import Logo from '../components/Logo.js';
@@ -24,13 +33,21 @@ import BarraEstado from '../design/BarraEstado.js';
 // A fotografia não é um documento — é o retrato da pessoa, e serve para saber
 // quem está ao volante. Por isso está na lista mas não caduca.
 const TIPOS = [
+  { kind: 'photo', label: 'docPhoto' },
+  // Quem é a pessoa. A fotografia mostra a cara; isto liga a cara a um nome
+  // que o Estado reconhece.
+  //
+  // NÃO PEDE DATA, ao contrário dos outros três. O bilhete de identidade tem
+  // validade, mas o que nos interessa nele é a identidade — e essa não
+  // caduca. Suspender a conta de quem tem o BI por renovar seria bloquear
+  // alguém por um motivo que não tem que ver com conduzir.
+  { kind: 'identity', label: 'docIdentity' },
   { kind: 'licence', label: 'docLicence' },
   { kind: 'vehicle', label: 'docVehicle' },
   // Kartaun Inspesaun. Obrigatório em Timor-Leste, válido um ano, e conduzir
   // com ele caducado dá multa a dobrar se a polícia de trânsito mandar
   // parar. Entrou em 02/09/2026.
   { kind: 'inspection', label: 'docInspection' },
-  { kind: 'photo', label: 'docPhoto' },
 ];
 
 // Ecrã que o motorista vê enquanto a conta não está aprovada. Sem isto,
@@ -43,6 +60,9 @@ export default function DriverPendingScreen({ navigation }) {
   const [busy, setBusy] = useState(null);
   const [validades, setValidades] = useState({}); // que documento está a enviar
   const [error, setError] = useState(null);
+  // O que está à espera de confirmação: a fotografia escolhida e a data
+  // escrita, antes de irem para o servidor.
+  const [porConfirmar, setPorConfirmar] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const rejected = user?.driverStatus === 'rejected';
@@ -51,6 +71,34 @@ export default function DriverPendingScreen({ navigation }) {
   // aprovado no painel voltava aqui e lia que continuava à espera — e não há
   // maneira de distinguir isso de a aprovação não ter funcionado.
   const aprovado = user?.driverStatus === 'approved';
+
+  // QUEM PODE MEXER NUM DOCUMENTO, e é aqui que está a decisão toda.
+  //
+  // O Simão pediu que, depois de aprovado, o motorista deixasse de poder
+  // substituir documentos — para ninguém trocar o que foi verificado. Está
+  // certo, mas cumprido à letra deixava-o preso: o cartão de inspeção caduca
+  // todos os anos, e sem poder substituí-lo a conta ficava suspensa PARA
+  // SEMPRE. O aviso de quinze dias passaria a avisar sobre uma coisa que
+  // ninguém pode resolver, e a regra que escrevemos — "a conta volta sozinha
+  // assim que enviar o documento renovado" — deixava de ter caminho.
+  //
+  // Por isso: fechado depois de aprovado, com DUAS aberturas.
+  //
+  // 1. O documento caducou ou está a caducar → botão de renovar. É a
+  //    renovação legítima, e é a única altura em que faz sentido.
+  //
+  // 2. A conta foi recusada → tudo aberto. É a saída para o engano honesto:
+  //    fotografia tremida, documento errado, data mal escrita. O Simão
+  //    recusa, o motorista corrige, ele aprova. Sem telefonema.
+  //
+  //    Antes, um motorista recusado nem sequer via a lista de documentos —
+  //    lia que não foi aprovado e não tinha o que fazer a seguir. Isso era
+  //    um beco sem saída, e passa a não ser.
+  function podeMexer(doc) {
+    if (!aprovado) return true;
+    if (!doc) return true;
+    return !!doc.expirado || !!doc.aExpirar;
+  }
 
   const carregar = useCallback(async () => {
     try {
@@ -78,7 +126,7 @@ export default function DriverPendingScreen({ navigation }) {
   // A fotografia do motorista não caduca; tudo o resto sim. Não se pergunta
   // uma data que não existe.
   function precisaValidade(kind) {
-    return kind !== 'photo';
+    return kind !== 'photo' && kind !== 'identity';
   }
 
   // Guardar só a data, sem mexer na fotografia.
@@ -117,13 +165,34 @@ export default function DriverPendingScreen({ navigation }) {
     });
     if (res.canceled || !res.assets?.[0]?.base64) return;
 
-    setBusy(kind);
+    // MOSTRA ANTES DE ENVIAR, e não envia já.
+    //
+    // Um documento fotografado com pressa dentro de um carro sai tremido,
+    // cortado ou de cabeça para baixo, e quem o tirou não vê a miniatura —
+    // vê a lista a dizer "✓ Enviado" e fica descansado. Só descobre quando
+    // alguém o recusa, dias depois.
+    //
+    // A data vai junto na mesma janela porque é a outra coisa que se engana:
+    // o cartão tem três datas, e a que interessa é a da validade.
+    setPorConfirmar({
+      kind,
+      mime: res.assets[0].mimeType || 'image/jpeg',
+      base64: res.assets[0].base64,
+      expiresOn: validade,
+    });
+  }
+
+  async function confirmarEnvio() {
+    const c = porConfirmar;
+    if (!c) return;
+    setPorConfirmar(null);
+    setBusy(c.kind);
     try {
       await api.uploadDocument(token, {
-        kind,
-        mime: res.assets[0].mimeType || 'image/jpeg',
-        base64: res.assets[0].base64,
-        ...(validade ? { expiresOn: validade } : {}),
+        kind: c.kind,
+        mime: c.mime,
+        base64: c.base64,
+        ...(c.expiresOn ? { expiresOn: c.expiresOn } : {}),
       });
       await carregar();
     } catch (e) {
@@ -179,49 +248,57 @@ export default function DriverPendingScreen({ navigation }) {
               </Text>
             </View>
 
-            {!rejected ? (
-              <>
-                <Text style={styles.hint}>{t('docHint')}</Text>
+            {/* A LISTA APARECE SEMPRE, incluindo a quem foi recusado.
+                Antes, um motorista recusado lia que não foi aprovado e não
+                via documento nenhum — sem nada que pudesse corrigir. Era um
+                beco sem saída que só se resolvia por telefone. */}
+            <>
+              <Text style={styles.hint}>{aprovado ? t('docHintAprovado') : t('docHint')}</Text>
 
-                {loading ? (
-                  <ActivityIndicator color={colors.teal} style={{ marginTop: spacing.lg }} />
-                ) : (
-                  TIPOS.map((tp) => {
-                    const enviado = enviados.includes(tp.kind);
-                    const doc = docs.find((d) => d.kind === tp.kind);
-                    return (
-                      <View key={tp.kind}>
-                        <View style={styles.docRow}>
-                          <View style={{ flex: 1 }}>
-                            <Text style={styles.docName}>{t(tp.label)}</Text>
-                            <Text style={[styles.docState, enviado && styles.docStateOk]}>
-                              {enviado ? `✓ ${t('docSent')}` : t('docMissing')}
-                            </Text>
-                            {/* Um documento enviado e sem data conta como
+              {loading ? (
+                <ActivityIndicator color={colors.teal} style={{ marginTop: spacing.lg }} />
+              ) : (
+                TIPOS.map((tp) => {
+                  const enviado = enviados.includes(tp.kind);
+                  const doc = docs.find((d) => d.kind === tp.kind);
+                  return (
+                    <View key={tp.kind}>
+                      <View style={styles.docRow}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.docName}>{t(tp.label)}</Text>
+                          <Text style={[styles.docState, enviado && styles.docStateOk]}>
+                            {enviado ? `✓ ${t('docSent')}` : t('docMissing')}
+                          </Text>
+                          {/* Um documento enviado e sem data conta como
                           fora de ordem — é o que impede a regra de ser
                           decorativa. Dizê-lo aqui evita que alguém veja
                           "✓ enviado" e conclua que está tratado. */}
-                            {enviado && precisaValidade(tp.kind) && !doc?.expiresOn ? (
-                              <Text style={[styles.docValidade, styles.docValidadeMa]}>
-                                {t('docSemValidade')}
-                              </Text>
-                            ) : null}
-                            {doc?.expiresOn ? (
-                              <Text
-                                style={[
-                                  styles.docValidade,
-                                  doc.expirado && styles.docValidadeMa,
-                                  doc.aExpirar && styles.docValidadeAviso,
-                                ]}
-                              >
-                                {doc.expirado
-                                  ? t('docExpired')
-                                  : doc.aExpirar
-                                    ? t('docExpiringSoon')
-                                    : `${t('docExpiry')} ${paraMostrar(doc.expiresOn)}`}
-                              </Text>
-                            ) : null}
-                          </View>
+                          {enviado && precisaValidade(tp.kind) && !doc?.expiresOn ? (
+                            <Text style={[styles.docValidade, styles.docValidadeMa]}>
+                              {t('docSemValidade')}
+                            </Text>
+                          ) : null}
+                          {doc?.expiresOn ? (
+                            <Text
+                              style={[
+                                styles.docValidade,
+                                doc.expirado && styles.docValidadeMa,
+                                doc.aExpirar && styles.docValidadeAviso,
+                              ]}
+                            >
+                              {doc.expirado
+                                ? t('docExpired')
+                                : doc.aExpirar
+                                  ? t('docExpiringSoon')
+                                  : `${t('docExpiry')} ${paraMostrar(doc.expiresOn)}`}
+                            </Text>
+                          ) : null}
+                        </View>
+                        {/* Sem botão quando o documento está fechado. Não
+                              apagado nem cinzento: ausente. Um botão que não
+                              faz nada convida a carregar, e obriga a
+                              explicar porque é que não fez nada. */}
+                        {podeMexer(doc) ? (
                           <Pressable
                             style={[styles.docBtn, enviado && styles.docBtnSecondary]}
                             onPress={() => enviar(tp.kind)}
@@ -232,58 +309,62 @@ export default function DriverPendingScreen({ navigation }) {
                             >
                               {busy === tp.kind
                                 ? t('docSending')
-                                : enviado
-                                  ? t('docReplace')
-                                  : t('docSend')}
+                                : !enviado
+                                  ? t('docSend')
+                                  : aprovado
+                                    ? t('docRenovar')
+                                    : t('docReplace')}
                             </Text>
                           </Pressable>
-                        </View>
+                        ) : (
+                          <Text style={styles.docFechado}>{t('docVerificado')}</Text>
+                        )}
+                      </View>
 
-                        {/* A data pede-se ANTES de escolher a fotografia: com o
+                      {/* A data pede-se ANTES de escolher a fotografia: com o
                       selector de imagens aberto o teclado não cabe, e
                       pedi-la depois obrigaria a repetir tudo se estivesse
                       errada. */}
-                        {precisaValidade(tp.kind) ? (
-                          <View style={styles.validadeCaixa}>
-                            <TextField
-                              label={t('docExpiry')}
-                              value={validades[tp.kind] || ''}
-                              onChangeText={(v) =>
-                                setValidades((a) => ({
-                                  ...a,
-                                  // Barras, traços e pontos: quem tem o
-                                  // cartão na mão copia o que lá está, e o
-                                  // que lá está tem barras.
-                                  [tp.kind]: v.replace(/[^\d/\-.]/g, '').slice(0, 10),
-                                }))
-                              }
-                              placeholder="22/12/2026"
-                              keyboardType="numbers-and-punctuation"
-                            />
-                            <Text style={styles.validadeAjuda}>{t('docExpiryHelp')}</Text>
-                            {enviado && !doc?.expiresOn ? (
-                              <Pressable
-                                style={styles.docBtn}
-                                onPress={() => guardarData(tp.kind)}
-                                disabled={busy === tp.kind}
-                              >
-                                <Text style={styles.docBtnText}>{t('docGuardarData')}</Text>
-                              </Pressable>
-                            ) : null}
-                          </View>
-                        ) : null}
-                      </View>
-                    );
-                  })
-                )}
+                      {precisaValidade(tp.kind) && podeMexer(doc) ? (
+                        <View style={styles.validadeCaixa}>
+                          <TextField
+                            label={t('docExpiry')}
+                            value={validades[tp.kind] || ''}
+                            onChangeText={(v) =>
+                              setValidades((a) => ({
+                                ...a,
+                                // Barras, traços e pontos: quem tem o
+                                // cartão na mão copia o que lá está, e o
+                                // que lá está tem barras.
+                                [tp.kind]: v.replace(/[^\d/\-.]/g, '').slice(0, 10),
+                              }))
+                            }
+                            placeholder="22/12/2026"
+                            keyboardType="numbers-and-punctuation"
+                          />
+                          <Text style={styles.validadeAjuda}>{t('docExpiryHelp')}</Text>
+                          {enviado && !doc?.expiresOn ? (
+                            <Pressable
+                              style={styles.docBtn}
+                              onPress={() => guardarData(tp.kind)}
+                              disabled={busy === tp.kind}
+                            >
+                              <Text style={styles.docBtnText}>{t('docGuardarData')}</Text>
+                            </Pressable>
+                          ) : null}
+                        </View>
+                      ) : null}
+                    </View>
+                  );
+                })
+              )}
 
-                {error ? <Text style={styles.error}>{error}</Text> : null}
+              {error ? <Text style={styles.error}>{error}</Text> : null}
 
-                <Text style={[styles.status, completo && styles.statusOk]}>
-                  {completo ? t('docsComplete') : t('docsIncomplete')}
-                </Text>
-              </>
-            ) : null}
+              <Text style={[styles.status, completo && styles.statusOk]}>
+                {completo ? t('docsComplete') : t('docsIncomplete')}
+              </Text>
+            </>
 
             <View style={{ flex: 1, minHeight: spacing.xl }} />
             {/* Os termos de motorista vêm DEPOIS dos documentos, de propósito:
@@ -306,6 +387,46 @@ export default function DriverPendingScreen({ navigation }) {
           </>
         )}
       </ScrollView>
+
+      {/* Ver antes de enviar. */}
+      <Modal
+        visible={!!porConfirmar}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPorConfirmar(null)}
+      >
+        <View style={styles.confFundo}>
+          <View style={styles.confCaixa}>
+            <Text style={styles.confTitulo}>{t('docConfirmarTitulo')}</Text>
+            <Text style={styles.confNome}>
+              {porConfirmar
+                ? t(TIPOS.find((x) => x.kind === porConfirmar.kind)?.label || 'docPhoto')
+                : ''}
+            </Text>
+            {porConfirmar ? (
+              <Image
+                source={{ uri: `data:${porConfirmar.mime};base64,${porConfirmar.base64}` }}
+                style={styles.confImagem}
+                resizeMode="contain"
+              />
+            ) : null}
+            {porConfirmar?.expiresOn ? (
+              <Text style={styles.confData}>
+                {t('docExpiry')} {paraMostrar(porConfirmar.expiresOn)}
+              </Text>
+            ) : null}
+            <Text style={styles.confAviso}>{t('docConfirmarAviso')}</Text>
+            <View style={styles.confBotoes}>
+              <Pressable style={styles.confRefazer} onPress={() => setPorConfirmar(null)}>
+                <Text style={styles.confRefazerTexto}>{t('docConfirmarRefazer')}</Text>
+              </Pressable>
+              <Pressable style={styles.confEnviar} onPress={confirmarEnvio}>
+                <Text style={styles.confEnviarTexto}>{t('docConfirmarEnviar')}</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -397,6 +518,47 @@ const criarEstilos = () =>
     docBtnSecondary: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: colors.teal },
     docBtnText: { ...tipo.corpoForte, color: colors.white },
     docBtnTextSecondary: { color: colors.teal },
+    docFechado: { ...tipo.pequeno, color: colors.teal, paddingHorizontal: spacing.sm },
+    confFundo: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.55)',
+      justifyContent: 'center',
+      padding: spacing.lg,
+    },
+    confCaixa: {
+      backgroundColor: colors.paper,
+      borderRadius: radius.xl,
+      padding: spacing.lg,
+      gap: spacing.sm,
+    },
+    confTitulo: { ...tipo.subtitulo, color: colors.text },
+    confNome: { ...tipo.corpoForte, color: colors.teal },
+    confImagem: {
+      width: '100%',
+      height: 260,
+      borderRadius: radius.md,
+      backgroundColor: colors.border,
+    },
+    confData: { ...tipo.corpoForte, color: colors.text },
+    confAviso: { ...tipo.pequeno, color: colors.textMuted },
+    confBotoes: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+    confRefazer: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingVertical: spacing.md,
+      alignItems: 'center',
+    },
+    confRefazerTexto: { ...tipo.corpoForte, color: colors.textMuted },
+    confEnviar: {
+      flex: 1,
+      backgroundColor: colors.coral,
+      borderRadius: radius.md,
+      paddingVertical: spacing.md,
+      alignItems: 'center',
+    },
+    confEnviarTexto: { ...tipo.corpoForte, color: '#22100A' },
     error: { ...tipo.pequeno, color: colors.danger, marginTop: spacing.sm },
     status: {
       ...tipo.pequeno,

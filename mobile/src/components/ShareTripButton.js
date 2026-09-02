@@ -47,7 +47,10 @@ export default function ShareTripButton({ ride, driverLocation, driverPlace }) {
 
   return (
     <TouchableOpacity style={styles.botao} onPress={partilhar} accessibilityRole="button">
-      <Text style={styles.texto}>{'📍  '}{t('shareTrip')}</Text>
+      <Text style={styles.texto}>
+        {'📍  '}
+        {t('shareTrip')}
+      </Text>
     </TouchableOpacity>
   );
 }

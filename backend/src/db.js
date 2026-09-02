@@ -358,7 +358,7 @@ export async function initSchema() {
   await query(`ALTER TABLE driver_documents DROP CONSTRAINT IF EXISTS driver_documents_kind_check`);
   await query(`
     ALTER TABLE driver_documents ADD CONSTRAINT driver_documents_kind_check
-    CHECK (kind IN ('licence', 'vehicle', 'photo', 'inspection'))
+    CHECK (kind IN ('licence', 'vehicle', 'photo', 'inspection', 'identity'))
   `);
 
   // Foto do turno: quem está ao volante HOJE. Os documentos verificam a
@@ -385,6 +385,18 @@ export async function initSchema() {
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMPTZ`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS driver_terms_version TEXT`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS driver_terms_accepted_at TIMESTAMPTZ`);
+  // O consentimento da privacidade, guardado à parte do dos termos.
+  //
+  // São actos jurídicos distintos e mudam em alturas distintas: corrigir uma
+  // cláusula dos termos não devia invalidar o que alguém aceitou sobre o
+  // tratamento dos seus dados, nem o contrário. Guardados juntos, não havia
+  // forma de saber quem tinha aceitado o quê.
+  //
+  // Fica a NULL para quem se registou antes disto existir, e isso é a
+  // resposta honesta: essas pessoas nunca deram este consentimento, porque
+  // nunca lho perguntámos.
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS privacy_version TEXT`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS privacy_accepted_at TIMESTAMPTZ`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS duration_min INTEGER`);
 
   await query('CREATE INDEX IF NOT EXISTS idx_docs_user ON driver_documents(user_id)');

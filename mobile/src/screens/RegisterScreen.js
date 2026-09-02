@@ -25,6 +25,7 @@ import EscolherCor from '../components/EscolherCor.js';
 import EscolherLugares from '../components/EscolherLugares.js';
 import { LUGARES } from '../dados/veiculos.js';
 import { VERSAO_TERMOS } from '../termos/index.js';
+import { VERSAO_PRIVACIDADE } from '../termos/versao.js';
 import { useAuth } from '../context/AuthContext.js';
 import { colors, spacing, radius, registarEstilos } from '../theme.js';
 
@@ -41,6 +42,7 @@ export default function RegisterScreen({ navigation, route }) {
   // erro nenhum — a conta é criada e a pessoa só descobre no dia em que
   // tenta entrar, sem forma de saber o que escreveu da primeira vez.
   const [password2, setPassword2] = useState('');
+  const [aceitouPrivacidade, setAceitouPrivacidade] = useState(false);
   const [vType, setVType] = useState('car'); // 'car' | 'motorbike'
   const [vModel, setVModel] = useState('');
   const [vPlate, setVPlate] = useState('');
@@ -60,6 +62,7 @@ export default function RegisterScreen({ navigation, route }) {
     if (role === 'driver' && !vPlate.trim()) return setError(t('errPlateRequired'));
     if (role === 'driver' && vType === 'car' && !vSeats) return setError(t('errSeatsRequired'));
     if (!aceitou) return setError(t('errTermsRequired'));
+    if (!aceitouPrivacidade) return setError(t('errPrivacyRequired'));
 
     const payload = {
       name,
@@ -68,6 +71,7 @@ export default function RegisterScreen({ navigation, route }) {
       password,
       role,
       termsVersion: VERSAO_TERMOS,
+      privacyVersion: VERSAO_PRIVACIDADE,
       ...(role === 'driver'
         ? {
             vehicle: {
@@ -231,16 +235,19 @@ export default function RegisterScreen({ navigation, route }) {
                 quem={role}
                 onAbrir={() => navigation.navigate('Termos', { quem: role })}
               />
-              {/* O aviso de privacidade fica ao lado dos termos e não
-                  escondido nas opções: quem está a criar conta é quem
-                  precisa de saber que dados vão ser recolhidos, e é agora
-                  que o pode ler antes de decidir. */}
-              <Pressable
-                onPress={() => navigation.navigate('Termos', { documento: 'privacidade' })}
-                hitSlop={8}
-              >
-                <Text style={styles.linkPrivacidade}>{t('privacyTitle')}</Text>
-              </Pressable>
+              {/* DUAS CAIXAS E NÃO UMA, e a razão é jurídica.
+                  Antes havia uma caixa para os termos e a privacidade era
+                  uma ligação ao lado — quem se registava aceitava os termos
+                  e nunca dizia nada sobre o tratamento dos seus dados.
+                  Consentir o contrato e consentir o tratamento de dados são
+                  actos distintos, e cada um guarda a sua própria versão. */}
+              <View style={{ height: spacing.sm }} />
+              <AceitarTermos
+                aceite={aceitouPrivacidade}
+                onMudar={setAceitouPrivacidade}
+                documento="privacidade"
+                onAbrir={() => navigation.navigate('Termos', { documento: 'privacidade' })}
+              />
             </View>
 
             <Button

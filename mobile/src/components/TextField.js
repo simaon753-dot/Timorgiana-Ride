@@ -30,7 +30,12 @@ export default function TextField({
       {label ? (
         <Text style={styles.label}>
           {label}
-          {optionalLabel ? <Text style={styles.optional}>{'  ·  '}{optionalLabel}</Text> : null}
+          {optionalLabel ? (
+            <Text style={styles.optional}>
+              {'  ·  '}
+              {optionalLabel}
+            </Text>
+          ) : null}
         </Text>
       ) : null}
 

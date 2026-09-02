@@ -16,7 +16,8 @@ const ROLES = ['passenger', 'driver'];
 // POST /api/auth/register
 authRouter.post('/register', async (req, res) => {
   try {
-    const { name, phone, email, password, role, vehicle, termsVersion } = req.body || {};
+    const { name, phone, email, password, role, vehicle, termsVersion, privacyVersion } =
+      req.body || {};
 
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Nome é obrigatório.' });
@@ -43,7 +44,16 @@ authRouter.post('/register', async (req, res) => {
       return res.status(409).json({ error: 'Já existe uma conta com este número de telemóvel.' });
     }
 
-    const created = await createUser({ name, phone, email, password, role, vehicle, termsVersion });
+    const created = await createUser({
+      name,
+      phone,
+      email,
+      password,
+      role,
+      vehicle,
+      termsVersion,
+      privacyVersion,
+    });
     return res.status(201).json({ user: toPublicUser(created), token: signToken(created) });
   } catch (err) {
     console.error('[auth/register]', err);
