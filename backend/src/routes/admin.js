@@ -8,6 +8,7 @@ import { fotosDeHoje, getFotoDeTurno } from '../turnos.js';
 import { carregar, FORMAS_PAGAMENTO, PACOTES } from '../assinatura.js';
 import { etiquetaOsm } from '../tiposDeLugar.js';
 import { linhasOsm } from '../etiquetasOsm.js';
+import { emitirCodigo } from '../recuperacao.js';
 
 export const adminRouter = Router();
 adminRouter.use(requireAuth);
@@ -838,6 +839,27 @@ adminRouter.get(
 );
 
 // POST /api/admin/lugares/:id/estado — marcar como acrescentado ou recusado
+// POST /api/admin/utilizadores/:id/recuperacao — emitir um código de acesso
+//
+// Devolve o código EM CLARO, uma única vez. É a única altura em que ele
+// existe fora da cabeça de quem o vai dizer ao telefone — não fica em lado
+// nenhum onde se possa ir buscar outra vez.
+//
+// Fica no registo de acessos, e isso importa mais aqui do que em ver um
+// documento: emitir um código é a acção com mais poder que este painel tem.
+// Quem a faz tem de ficar escrito.
+adminRouter.post(
+  '/utilizadores/:id/recuperacao',
+  wrap(async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) return res.status(400).json({ error: 'Conta inválida.' });
+    const r = await emitirCodigo(id);
+    if (!r) return res.status(404).json({ error: 'Conta não encontrada.' });
+    registarAcesso(req.user.id, 'código de recuperação', id);
+    res.json({ codigo: r.codigo, minutos: r.minutos, nome: r.pessoa.name });
+  })
+);
+
 // POST /api/admin/documents/:id/revisto — confirmar um documento substituído
 //
 // Depois de aprovado, o motorista só substitui um documento dizendo porquê —

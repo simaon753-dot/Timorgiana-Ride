@@ -39,6 +39,17 @@ export default {
   loginTitle: 'Tama',
   loginSubtitle: 'Tama ho ita-nia númeru telefone.',
   loginButton: 'Tama',
+  recEsqueci: 'Ha’u haluha liafuan-xave',
+  recTitulo: 'Hetan fila fali asesu',
+  recComo:
+    'Telefone ba TimorgianaRide no husu kódigu asesu. Sira fó liuhusi telefone no serve dala ida deit.',
+  recCodigo: 'Kódigu asesu',
+  recCodigoInvalido: 'Kódigu iha dígitu neen.',
+  recNovaSenha: 'Liafuan-xave foun',
+  recConfirmar: 'Hakerek fali liafuan-xave foun',
+  recGuardar: 'Rai liafuan-xave',
+  recFeitoTitulo: 'Liafuan-xave troka ona',
+  recFeitoTexto: 'Ita bele tama ho liafuan-xave foun.',
   noAccountQuestion: 'Seidauk iha konta?',
   registerLink: 'Halo konta',
 

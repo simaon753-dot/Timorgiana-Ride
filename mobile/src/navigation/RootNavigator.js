@@ -8,6 +8,7 @@ import { ModoProvider } from '../context/ModoContext.js';
 import WelcomeScreen from '../screens/WelcomeScreen.js';
 import LoginScreen from '../screens/LoginScreen.js';
 import RegisterScreen from '../screens/RegisterScreen.js';
+import RecuperarScreen from '../screens/RecuperarScreen.js';
 import RequestRideScreen from '../screens/RequestRideScreen.js';
 import DriverPendingScreen from '../screens/DriverPendingScreen.js';
 import ChatScreen from '../screens/ChatScreen.js';
@@ -94,6 +95,7 @@ export default function RootNavigator() {
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
+          <Stack.Screen name="Recuperar" component={RecuperarScreen} />
           {/* Tem de existir na área pública: se o endereço do servidor
               estiver errado, não é possível chegar ao login */}
           <Stack.Screen name="Server" component={ServerScreen} />

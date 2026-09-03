@@ -41,6 +41,17 @@ export default {
   loginTitle: 'Sign in',
   loginSubtitle: 'Sign in with your phone number.',
   loginButton: 'Sign in',
+  recEsqueci: 'I forgot my password',
+  recTitulo: 'Recover access',
+  recComo:
+    'Call TimorgianaRide and ask for an access code. It is given over the phone and works only once.',
+  recCodigo: 'Access code',
+  recCodigoInvalido: 'The code has six digits.',
+  recNovaSenha: 'New password',
+  recConfirmar: 'Repeat the new password',
+  recGuardar: 'Save password',
+  recFeitoTitulo: 'Password changed',
+  recFeitoTexto: 'You can now sign in with the new password.',
   noAccountQuestion: "Don't have an account yet?",
   registerLink: 'Create account',
 

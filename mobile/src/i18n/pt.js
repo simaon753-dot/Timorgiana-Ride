@@ -39,6 +39,17 @@ export default {
   loginTitle: 'Iniciar sessão',
   loginSubtitle: 'Entre com o seu número de telemóvel.',
   loginButton: 'Entrar',
+  recEsqueci: 'Esqueci a palavra-passe',
+  recTitulo: 'Recuperar o acesso',
+  recComo:
+    'Telefone para a TimorgianaRide e peça um código de acesso. É dito ao telefone e serve uma vez só.',
+  recCodigo: 'Código de acesso',
+  recCodigoInvalido: 'O código tem seis dígitos.',
+  recNovaSenha: 'Palavra-passe nova',
+  recConfirmar: 'Repita a palavra-passe nova',
+  recGuardar: 'Guardar palavra-passe',
+  recFeitoTitulo: 'Palavra-passe alterada',
+  recFeitoTexto: 'Já pode entrar com a palavra-passe nova.',
   noAccountQuestion: 'Ainda não tem conta?',
   registerLink: 'Criar conta',
 

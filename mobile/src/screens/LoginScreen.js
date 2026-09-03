@@ -95,6 +95,17 @@ export default function LoginScreen({ navigation }) {
               style={{ marginTop: spacing.sm }}
             />
 
+            {/* Esqueceu-se da palavra-passe.
+                Antes não havia saída nenhuma: a conta perdia-se com os dias
+                comprados e os documentos aprovados lá dentro. */}
+            <Pressable
+              onPress={() => navigation.navigate('Recuperar')}
+              hitSlop={8}
+              style={{ alignSelf: 'center', marginTop: spacing.md }}
+            >
+              <Text style={styles.footerLink}>{t('recEsqueci')}</Text>
+            </Pressable>
+
             <View style={styles.footer}>
               <Text style={styles.footerText}>{t('noAccountQuestion')} </Text>
               <Pressable

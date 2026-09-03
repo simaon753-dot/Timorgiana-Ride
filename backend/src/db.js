@@ -410,6 +410,20 @@ export async function initSchema() {
   // Fica a NULL para quem se registou antes disto existir, e isso é a
   // resposta honesta: essas pessoas nunca deram este consentimento, porque
   // nunca lho perguntámos.
+  // Recuperação de acesso, para quem esquece a palavra-passe.
+  //
+  // Não havia saída nenhuma: a conta ficava perdida com os dias comprados, os
+  // documentos aprovados e o histórico dentro. Em Timor-Leste isso é pior do
+  // que parece — criar outra conta gasta um dos três números que a pessoa
+  // pode ter.
+  //
+  // O código fica em bcrypt, como uma palavra-passe: se a base sair de casa,
+  // os códigos que lá estiverem não abrem conta nenhuma.
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS recuperacao_hash TEXT`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS recuperacao_expira TIMESTAMPTZ`);
+  await query(
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS recuperacao_tentativas INTEGER NOT NULL DEFAULT 0`
+  );
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS privacy_version TEXT`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS privacy_accepted_at TIMESTAMPTZ`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS duration_min INTEGER`);

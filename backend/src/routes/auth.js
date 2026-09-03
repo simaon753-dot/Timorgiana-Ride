@@ -8,6 +8,7 @@ import {
 } from '../users.js';
 import { signToken, requireAuth } from '../auth.js';
 import { savePushToken } from '../drivers.js';
+import { usarCodigo } from '../recuperacao.js';
 
 export const authRouter = Router();
 
@@ -82,6 +83,19 @@ authRouter.post('/login', async (req, res) => {
 });
 
 // POST /api/auth/push-token — guardar o destino das notificações
+// POST /api/auth/recuperar — definir palavra-passe nova com o código
+//
+// Sem autenticação, por definição: quem chega aqui é precisamente quem não
+// consegue entrar. O que a protege é o código — seis dígitos, trinta minutos,
+// cinco tentativas e uso único — e o facto de ele ter sido dito por alguém que
+// falou com a pessoa.
+authRouter.post('/recuperar', async (req, res) => {
+  const { phone, codigo, password } = req.body || {};
+  const r = await usarCodigo({ phone, codigo, password });
+  if (!r.ok) return res.status(400).json({ error: r.error });
+  res.json({ ok: true });
+});
+
 authRouter.post('/push-token', requireAuth, async (req, res) => {
   try {
     await savePushToken(req.user.id, req.body?.token || null);

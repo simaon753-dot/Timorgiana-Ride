@@ -76,6 +76,8 @@ async function request(path, { method = 'GET', body, token } = {}) {
 }
 
 export const api = {
+  // Definir palavra-passe nova com o código dado pelo administrador.
+  recuperar: (body) => request('/auth/recuperar', { method: 'POST', body }),
   register: (payload) => request('/auth/register', { method: 'POST', body: payload }),
   login: (payload) => request('/auth/login', { method: 'POST', body: payload }),
   me: (token) => request('/auth/me', { token }),
