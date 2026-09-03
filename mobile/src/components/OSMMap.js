@@ -102,21 +102,28 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
   text-align:center;
 }
 .rotulo.destino{ background:#E85531; }
-/* Pinos desenhados em CSS.
+/* Pinos desenhados à mão, sem ficheiro nenhum.
    O marcador por omissão do Leaflet é um <img> que aponta para
    marker-icon.png. Quando o Leaflet vinha do unpkg, ele deduzia esse
    caminho a partir do URL do próprio script; embutido na aplicação não há
    URL nenhum de onde deduzir, e o que aparecia era a imagem partida com o
-   texto alternativo "Marker" por baixo.
-   Uma gota feita com bordas arredondadas e uma rotação não precisa de
-   ficheiro nenhum — funciona sem rede, que é o objectivo. */
-.pino{
-  width:20px; height:20px; border-radius:50% 50% 50% 0;
-  transform:rotate(-45deg); border:2.5px solid #FFF;
-  box-shadow:0 2px 5px rgba(0,0,0,.35);
-}
-.pino.origem{ background:#0E5C54; }
-.pino.destino{ background:#E85531; }
+   texto alternativo "Marker" por baixo. Desenhar aqui resolve isso e
+   funciona sem rede, que é o objectivo.
+
+   A PRIMEIRA VERSÃO era um quadrado com três cantos redondos, rodado 45°.
+   Dava uma gota, e de longe passava. Mas a ponta saía afiada como um
+   alfinete e o corpo era pequeno de mais para se ver por cima dos
+   mosaicos, sobretudo em ruas claras.
+
+   Passa a ser o desenho que toda a gente reconhece de um mapa: corpo cheio,
+   contorno branco e um FURO branco no meio. O furo é o que faz o pino ler-se
+   contra qualquer fundo — é ele que dá a forma, mesmo quando a cor se
+   confunde com o que está por baixo.
+
+   Em SVG e não em CSS porque uma gota a sério não se faz com bordas
+   arredondadas: o encontro entre a cabeça redonda e a ponta é uma curva, e
+   com `border-radius` sai um bico colado a um círculo. */
+.pino svg{ display:block; filter:drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
 /* Atribuição.
    Os dados do mapa são do OpenStreetMap sob a licença ODbL, que EXIGE
    atribuição visível — não é uma cortesia. O controlo do Leaflet está
@@ -162,15 +169,28 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
     crossOrigin:true
   }).addTo(map);
   var pts = ${JSON.stringify(pts)};
+  var COR = { origem: '#0E5C54', destino: '#E85531' };
   function pino(tipo){
+    var cor = COR[tipo] || COR.origem;
     return L.divIcon({
-      html: '<div class="pino ' + tipo + '"></div>',
-      className: '', iconSize: [20,20],
-      // A ponta tem de assentar na coordenada, não o centro do desenho.
-      // Depois de rodar 45°, o canto agudo desce para 10 + 10·√2 ≈ 24 px
-      // — quatro pixéis abaixo da caixa de 20. Ancorar em 20 punha o pino
-      // quatro pixéis acima do sítio real, que em zoom alto é meia rua.
-      iconAnchor: [10,24]
+      html:
+        '<div class="pino"><svg width="26" height="36" viewBox="0 0 26 36">' +
+        // A gota. A cabeça é um arco, a ponta desce em duas curvas que se
+        // encontram no fundo — é esse encontro que dá a forma de gota em
+        // vez de um bico colado a um círculo.
+        '<path d="M13 1.6C7 1.6 2.2 6.4 2.2 12.4c0 8 10.8 21.5 10.8 21.5' +
+        's10.8-13.5 10.8-21.5C23.8 6.4 19 1.6 13 1.6z" fill="' + cor +
+        '" stroke="#FFF" stroke-width="2"/>' +
+        // O furo. Sem ele o pino é uma mancha de cor; com ele lê-se mesmo
+        // sobre um telhado da mesma cor.
+        '<circle cx="13" cy="12.4" r="4.3" fill="#FFF"/>' +
+        '</svg></div>',
+      className: '', iconSize: [26,36],
+      // A PONTA assenta na coordenada, não o centro do desenho. A ponta do
+      // caminho está em y≈34; com o contorno de 2px o extremo visível fica
+      // em 35. Ancorar no meio punha o pino meia rua acima do sítio real
+      // quando o mapa está ampliado.
+      iconAnchor: [13,35]
     });
   }
   pts.forEach(function(p){
@@ -186,7 +206,7 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
       // permanent: o nome fica sempre à vista, na cabeça do pino. Antes
       // era um popup e só aparecia a quem soubesse tocar no marcador.
       m.bindTooltip(curto, {
-        permanent: true, direction: 'top', offset: [0,-22],
+        permanent: true, direction: 'top', offset: [0,-34],
         className: 'rotulo ' + (p.tipo === 'destino' ? 'destino' : 'origem'), opacity: 1
       });
     }
