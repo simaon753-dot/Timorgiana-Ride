@@ -95,13 +95,52 @@ function buildHtml({ center, markers, pickable }) {
 <style>${LEAFLET_CSS}</style>
 <style>
 html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
+/* O nome AO LADO do pino, num cartão branco.
+   Estava por cima, numa etiqueta da cor do pino com o texto branco. Três
+   problemas com isso, e nenhum se vê num só marcador:
+
+   TAPAVA O QUE INTERESSA. A etiqueta ficava sobre o mapa acima do ponto —
+   justamente onde está a rua por onde se chega. Ao lado, o caminho continua
+   à vista.
+
+   DOIS PONTOS PRÓXIMOS COLIDIAM. Numa viagem curta dentro de Díli, recolha e
+   destino ficam a poucos quarteirões; duas etiquetas empilhadas por cima uma
+   da outra deixavam de se ler as duas.
+
+   E O TEXTO ERA COLORIDO SOBRE COR. Branco sobre teal lê-se; mas o cartão
+   branco com texto escuro lê-se sempre, e é o que separa o nome do mapa em
+   vez de o pintar por cima.
+
+   Duas linhas: o nome em cima, e por baixo o que vem depois da vírgula —
+   normalmente a rua ou a zona. É a informação que distingue duas "Kios Mana"
+   na mesma cidade. */
 .rotulo.leaflet-tooltip{
-  background:#0E5C54; color:#F2F8F6; border:none; border-radius:6px;
-  padding:4px 9px; font:600 11.5px/1.25 -apple-system,Roboto,sans-serif;
-  box-shadow:0 2px 6px rgba(0,0,0,.3); max-width:150px; white-space:normal;
-  text-align:center;
+  background:#FFF; color:#14201D; border:none; border-radius:10px;
+  padding:7px 12px; font:400 11px/1.3 -apple-system,Roboto,sans-serif;
+  box-shadow:0 3px 10px rgba(0,0,0,.28); max-width:190px; text-align:left;
 }
-.rotulo.destino{ background:#E85531; }
+/* O nome NÃO PARTE, e cortou-se com reticências se for comprido.
+   Sem isto o cartão encolhia até à palavra mais estreita e "Kios Mana Rita"
+   saía em três linhas, uma palavra por linha — uma coluna de texto ao lado
+   do pino, que é pior do que não ter rótulo. Acontece porque um elemento
+   posicionado em absoluto, sem largura fixa, encolhe até ao mínimo do
+   conteúdo; dizer que o título não parte faz desse mínimo a linha inteira. */
+.rotulo b{
+  display:block; font-weight:700; font-size:12.5px; letter-spacing:-.1px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.rotulo i{
+  display:block; font-style:normal; color:#6A7671; margin-top:1px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+/* A seta que o Leaflet desenha a apontar do rótulo para o marcador.
+   No modelo não existe: o cartão encosta-se ao pino e isso chega. Uma seta
+   a apontar para um pino que está mesmo ao lado é ruído. */
+.rotulo.leaflet-tooltip:before{ display:none; }
+/* Um risco da cor à esquerda, para se saber qual é a recolha e qual é o
+   destino sem ter de olhar para o pino. */
+.rotulo.origem{ border-left:3px solid #0E5C54; }
+.rotulo.destino{ border-left:3px solid #E85531; }
 /* Pinos desenhados à mão, sem ficheiro nenhum.
    O marcador por omissão do Leaflet é um <img> que aponta para
    marker-icon.png. Quando o Leaflet vinha do unpkg, ele deduzia esse
@@ -137,10 +176,11 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
   padding:1px 5px; border-radius:4px 0 0 0;
   pointer-events:none;
 }
-.rotulo.agora{ background:#1C2421; }
-.rotulo.leaflet-tooltip-bottom.agora:before{ border-bottom-color:#1C2421; }
-.rotulo.leaflet-tooltip-top.origem:before{ border-top-color:#0E5C54; }
-.rotulo.leaflet-tooltip-top.destino:before{ border-top-color:#E85531; }
+/* O rótulo do motorista continua escuro e não branco.
+   É o único que se MEXE durante a viagem, e distingui-lo dos dois que estão
+   parados evita a confusão de o ver a passar por cima deles. */
+.rotulo.agora{ background:#14201D; color:#EAF2EF; border-left:3px solid #FF6B4A; }
+.rotulo.agora i{ color:#9DB0AA; }
 </style>
 </head><body>
 <div id="map"></div>
@@ -169,6 +209,20 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
     maxZoom:18, keepBuffer:0, updateWhenIdle:true, updateWhenZooming:false,
     crossOrigin:true
   }).addTo(map);
+  // Escapa o que vai para dentro do rótulo.
+  //
+  // OBRIGATÓRIO desde que o rótulo passou a receber HTML em vez de texto. Os
+  // nomes dos sítios vêm do OpenStreetMap e, cada vez mais, do que os
+  // próprios passageiros escrevem ao baptizar um lugar — um "<" bastava para
+  // partir o cartão, e um nome com uma etiqueta lá dentro executaria dentro
+  // do mapa. Enquanto era texto simples o Leaflet tratava disto; a partir do
+  // momento em que se passa HTML, passa a ser connosco.
+  function escapar(t){
+    return String(t == null ? '' : t).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
   var pts = ${JSON.stringify(pts)};
   var COR = { origem: '#0E5C54', destino: '#E85531' };
   function pino(tipo){
@@ -202,14 +256,29 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
     // está no painel de baixo, e dois rótulos longos em pontos próximos
     // sobrepõem-se e deixam de se ler — num ecrã de telemóvel isso
     // acontece em qualquer viagem curta dentro de Díli.
-    var curto = (p.label || '').split(',')[0].trim();
+    var partes = (p.label || '').split(',');
+    var curto = (partes[0] || '').trim();
+    var detalhe = (partes[1] || '').trim();
     if (curto) {
-      // permanent: o nome fica sempre à vista, na cabeça do pino. Antes
-      // era um popup e só aparecia a quem soubesse tocar no marcador.
-      m.bindTooltip(curto, {
-        permanent: true, direction: 'top', offset: [0,-34],
-        className: 'rotulo ' + (p.tipo === 'destino' ? 'destino' : 'origem'), opacity: 1
-      });
+      // permanent: o nome fica sempre à vista. Antes era um popup e só
+      // aparecia a quem soubesse tocar no marcador.
+      //
+      // direction 'auto': o Leaflet põe o cartão do lado do pino que fica
+      // virado para dentro do mapa. Fixá-lo à esquerda ou à direita deixava
+      // o nome a sair do ecrã sempre que o ponto ficasse junto a essa borda
+      // — e o ponto junto à borda é o caso normal quando se arrasta o mapa.
+      m.bindTooltip(
+        '<b>' + escapar(curto) + '</b>' + (detalhe ? '<i>' + escapar(detalhe) + '</i>' : ''),
+        {
+          permanent: true, direction: 'auto',
+          // 16 no x afasta o cartão do pino, que tem 13 de meia largura.
+          // -22 no y sobe-o até à altura da CABEÇA do pino: a âncora está na
+          // ponta, e a cabeça fica 22 pixéis acima dela.
+          offset: [16,-22],
+          className: 'rotulo ' + (p.tipo === 'destino' ? 'destino' : 'origem'),
+          opacity: 1
+        }
+      );
     }
   });
   if (pts.length > 1) { map.fitBounds(pts.map(function(p){return [p.lat,p.lng];}),{padding:[40,40]}); }
@@ -276,10 +345,16 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
     // contrário da recolha e do destino, este muda durante a viagem — é
     // essa mudança que responde a "onde estamos neste momento".
     if (rua) {
-      if (motorista.getTooltip()) { motorista.setTooltipContent(rua); }
+      // Escapado como os outros. O Leaflet põe o conteúdo do rótulo em
+      // innerHTML mesmo quando se lhe passa uma string simples, e esta rua
+      // vem do Nominatim — dados de fora, que não se injectam sem lavar.
+      var conteudo = '<b>' + escapar(rua) + '</b>';
+      if (motorista.getTooltip()) { motorista.setTooltipContent(conteudo); }
       else {
-        motorista.bindTooltip(rua, {
-          permanent: true, direction: 'bottom', offset: [0,16],
+        motorista.bindTooltip(conteudo, {
+          // Ao lado do carro, como os outros, e não por baixo: por baixo
+          // ficava sobre a estrada que o carro está prestes a percorrer.
+          permanent: true, direction: 'auto', offset: [16,0],
           className: 'rotulo agora', opacity: 1
         });
       }
