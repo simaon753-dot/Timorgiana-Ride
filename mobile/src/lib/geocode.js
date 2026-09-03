@@ -44,10 +44,17 @@ const PRAZO_MS = 9000;
 const memoria = new Map();
 const MAX_MEMORIA = 200;
 
-// Três casas decimais são cerca de 110 metros — a mesma ordem de grandeza
-// do salto mínimo que já se exige para voltar a perguntar.
-function chave(lat, lng) {
-  return `${lat.toFixed(3)},${lng.toFixed(3)}`;
+// A precisão da memória, em casas decimais.
+//
+// Três casas são ~110 metros. Serve para acompanhar um carro em movimento:
+// um carro que andou 50 metros continua na mesma rua, e não vale a pena
+// perguntar outra vez.
+//
+// NÃO SERVE para nomear um ponto de recolha. A 110 metros de distância cabem
+// dois edifícios diferentes, e a memória dava-lhes o mesmo nome. Para isso
+// usam-se quatro casas — cerca de 11 metros, que é a largura de um prédio.
+function chave(lat, lng, casas = 3) {
+  return `${lat.toFixed(casas)},${lng.toFixed(casas)}`;
 }
 
 function lembrar(k, valor) {
@@ -130,12 +137,66 @@ async function pesquisarNoNominatim(q, sinal) {
   }
 }
 
-export async function nomeDoLugar(lat, lng) {
-  const k = `l:${chave(lat, lng)}`;
+// Até que distância se aceita dar a um ponto o nome de um edifício.
+//
+// Trinta e cinco metros é a fundo de um quintal em Díli. Mais do que isso e o
+// edifício é o VIZINHO, não aquele onde se está.
+const PERTO_M = 35;
+
+// Com que erro de GPS já não se pode nomear um edifício.
+//
+// Se o telemóvel diz "estou aqui, mais ou menos 80 metros", escolher um
+// edifício dentro desse círculo é escolher à sorte entre vários. Nesse caso
+// diz-se a rua, que é verdade em qualquer ponto do círculo.
+const ERRO_TOLERAVEL_M = 45;
+
+// Como se chama o sítio onde está este ponto.
+//
+// ── O QUE CORREU MAL, E QUE MOTIVOU ISTO ──
+//
+// O Simão estava no Centro de Formação Jurídica e a app disse que estava no
+// Tribunal da Primeira Instância, a 93 metros. Três causas somadas, e nenhuma
+// delas era o OpenStreetMap estar errado — ele SABE onde é o Centro:
+//
+//   1. Perguntávamos com zoom=16, que devolve ruas e bairros. No mesmo ponto,
+//      zoom=16 dá "Rua Palácio das Cinzas" (a 44 m) e zoom=18 dá "Centro de
+//      Formação Jurídica" (a 10 m) — o nome certo, que estava lá o tempo todo.
+//
+//   2. Aceitávamos o que viesse sem olhar a QUE DISTÂNCIA estava. O Nominatim
+//      devolve sempre o mais próximo; se não houver nada perto, o mais próximo
+//      pode ser o outro lado do quarteirão.
+//
+//   3. A memória guardava por células de 110 metros, e nessa distância cabem
+//      dois edifícios.
+//
+// `precisaoM` é o erro que o próprio GPS declara. Sem ele, nomear um edifício
+// é adivinhar qual dos que estão dentro do círculo de incerteza.
+export async function nomeDoLugar(lat, lng, precisaoM) {
+  const k = `l:${chave(lat, lng, 4)}`;
   if (memoria.has(k)) return memoria.get(k);
-  const j = await buscar(`${BASE}/reverse?format=json&zoom=16&lat=${lat}&lon=${lng}`);
+
+  const j = await buscar(
+    `${BASE}/reverse?format=json&zoom=18&addressdetails=1&lat=${lat}&lon=${lng}`
+  );
   if (!j) return null; // falha não se guarda: da próxima pode correr bem
-  return lembrar(k, j?.display_name ? nomeCurto(j.display_name) : null);
+
+  const a = j.address || {};
+  const rua = a.road || a.pedestrian || a.residential || a.neighbourhood || a.suburb;
+
+  // A que distância está o que o Nominatim encontrou.
+  //
+  // Para uma RUA isto não se pode usar: o ponto que ele devolve é o centro da
+  // rua inteira, que pode ficar a meio quilómetro de quem está numa ponta
+  // dela. Só se mede quando o que veio é um sítio — um edifício, uma loja,
+  // um escritório.
+  const eSitio = j.addresstype && !['road', 'suburb', 'neighbourhood'].includes(j.addresstype);
+  const longe =
+    eSitio && metrosEntre({ lat, lng }, { lat: Number(j.lat), lng: Number(j.lon) }) > PERTO_M;
+  const gpsVago = typeof precisaoM === 'number' && precisaoM > ERRO_TOLERAVEL_M;
+
+  if (eSitio && !longe && !gpsVago && j.name) return lembrar(k, j.name);
+  if (rua) return lembrar(k, rua);
+  return lembrar(k, j.display_name ? nomeCurto(j.display_name) : null);
 }
 
 export const rotuloCoordenadas = (lat, lng) => `${lat.toFixed(5)}, ${lng.toFixed(5)}`;

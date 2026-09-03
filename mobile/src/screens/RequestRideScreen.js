@@ -90,13 +90,28 @@ export default function RequestRideScreen({ navigation, route }) {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') return;
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      // ALTA PRECISÃO, e não a equilibrada.
+      //
+      // `Balanced` está documentada como "com erro de cerca de cem metros" —
+      // usa antenas e wi-fi antes do satélite, para poupar bateria. Cem
+      // metros numa cidade é o edifício ao lado.
+      //
+      // Foi o que aconteceu ao Simão: estava no Centro de Formação Jurídica e
+      // a app pôs o ponto no Tribunal da Primeira Instância, que fica a 93
+      // metros. Dentro do erro declarado.
+      //
+      // Esta é A coordenada mais importante da aplicação — é onde o motorista
+      // vai buscar alguém. Uns segundos a mais e um pouco de bateria valem
+      // menos do que um carro parado na porta errada.
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
       // Mesma ordem: o ponto primeiro, o nome quando vier. Ter o mapa
       // centrado onde estamos vale mais do que saber como se chama a rua.
       setOrigem({ lat, lng, label: rotuloCoordenadas(lat, lng), provisorio: true });
-      const nome = await nomeDoLugar(lat, lng);
+      // O erro que o próprio GPS declara vai junto: com um erro grande, dar
+      // um nome de edifício é escolher à sorte entre os que cabem no círculo.
+      const nome = await nomeDoLugar(lat, lng, pos.coords.accuracy);
       if (nome) {
         setOrigem((p) =>
           p && p.lat === lat && p.lng === lng ? { ...p, label: nome, provisorio: false } : p
