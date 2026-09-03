@@ -122,7 +122,8 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
 
    Em SVG e não em CSS porque uma gota a sério não se faz com bordas
    arredondadas: o encontro entre a cabeça redonda e a ponta é uma curva, e
-   com `border-radius` sai um bico colado a um círculo. */
+   com bordas arredondadas sai um bico colado a um círculo — que é
+   exactamente o que se via ao ampliar. */
 .pino svg{ display:block; filter:drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
 /* Atribuição.
    Os dados do mapa são do OpenStreetMap sob a licença ODbL, que EXIGE
