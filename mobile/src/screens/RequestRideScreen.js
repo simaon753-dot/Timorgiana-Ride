@@ -173,8 +173,20 @@ export default function RequestRideScreen({ navigation, route }) {
       setPesquisa(null);
     } else if (!origem) {
       setOrigem(ponto);
-    } else {
+    } else if (!destino) {
       setDestino(ponto);
+    } else {
+      // VIAGEM DEFINIDA: o toque no mapa deixa de mudar seja o que for.
+      //
+      // Fixar só o arrasto não chegava, e este caminho era o pior dos dois.
+      // Com recolha e destino postos, um toque solto no mapa caía aqui e
+      // SUBSTITUÍA O DESTINO — a distância mudava, a tarifa mudava, e nada
+      // no ecrã perguntava se era mesmo aquilo que se queria.
+      //
+      // Quem quiser mudar toca na recolha ou no destino e procura outra vez.
+      // A linha por baixo dos dois campos di-lo, e está à vista no momento
+      // exacto em que a dúvida aparece.
+      return;
     }
 
     // O nome chega depois e substitui o rótulo — mas só se o ponto ainda
@@ -245,14 +257,21 @@ export default function RequestRideScreen({ navigation, route }) {
           além de manter o contexto visual durante a pesquisa, remontá-lo
           obrigaria o WebView a recarregar o Leaflet e a perder o zoom. */}
       <View style={styles.mapa}>
+        {/* OS PINOS SÓ SE ARRASTAM ENQUANTO A VIAGEM NÃO ESTIVER DEFINIDA.
+            Com recolha e destino postos, um arrasto sem querer — um dedo a
+            passar no mapa para o mover — mudava o ponto e, com ele, a
+            distância e a tarifa. Sem aviso nenhum, porque arrastar não
+            pergunta nada.
+            Para mudar, toca-se na recolha ou no destino e procura-se outra
+            vez. É um gesto deliberado, e é essa a diferença. */}
         <OSMMap
           pickable
           fill
           markers={marcadores}
           onPick={escolherNoMapa}
-          arrastavel
+          arrastavel={!(origem && destino)}
           onArrastar={arrastouPino}
-          precisaoM={precisao}
+          precisaoM={origem && destino ? null : precisao}
         />
         {!pesquisa ? (
           <Pressable style={styles.voltar} onPress={() => navigation.goBack()} hitSlop={10}>
@@ -315,7 +334,11 @@ export default function RequestRideScreen({ navigation, route }) {
               Diz também de quanto é o erro: "mais ou menos 40 m" explica
               porque é que o pino não está exactamente na porta, e transforma
               um defeito aparente numa informação. */}
-          {origem && !origem.provisorio && precisao > 15 ? (
+          {origem && destino ? (
+            // Fixados. Dizê-lo evita o pior caso: alguém tentar arrastar,
+            // não conseguir, e concluir que a app está avariada.
+            <Text style={styles.dicaArrastar}>{t('pontosFixados')}</Text>
+          ) : origem && !origem.provisorio && precisao > 15 ? (
             <Text style={styles.dicaArrastar}>
               {t('arrastarPino')} · ±{Math.round(precisao)} m
             </Text>
