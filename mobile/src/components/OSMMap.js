@@ -16,6 +16,11 @@ const DILI = { lat: -8.5569, lng: 125.5603 };
 // markers: [{ lat, lng, label }] para mostrar pontos (só leitura).
 export default function OSMMap({
   pickable = false,
+  // Raio de incerteza do GPS, em metros. Desenha o círculo.
+  precisaoM = null,
+  // Deixa arrastar os pinos para corrigir o ponto.
+  arrastavel = false,
+  onArrastar,
   markers = [],
   center,
   height = 240,
@@ -34,8 +39,8 @@ export default function OSMMap({
   // perder o zoom que o utilizador tivesse feito. Em vez disso, injectamos
   // uma instrução no mapa já carregado, que apenas move o ícone.
   const html = useMemo(
-    () => buildHtml({ center: c, markers, pickable }),
-    [c.lat, c.lng, pickable, markersKey]
+    () => buildHtml({ center: c, markers, pickable, precisaoM, arrastavel }),
+    [c.lat, c.lng, pickable, markersKey, precisaoM, arrastavel]
   );
 
   useEffect(() => {
@@ -72,6 +77,7 @@ export default function OSMMap({
           try {
             const d = JSON.parse(e.nativeEvent.data);
             if (d?.type === 'route' && onRoute) onRoute({ km: d.km });
+            else if (d?.type === 'arrastou' && onArrastar) onArrastar(d);
             else if (typeof d?.lat === 'number' && onPick) onPick(d);
           } catch {
             /* ignora mensagens que não sejam do nosso formato */
@@ -83,7 +89,7 @@ export default function OSMMap({
   );
 }
 
-function buildHtml({ center, markers, pickable }) {
+function buildHtml({ center, markers, pickable, precisaoM, arrastavel }) {
   const pts = markers.map((m) => ({
     lat: m.lat,
     lng: m.lng,
@@ -248,10 +254,29 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
       iconAnchor: [13,35]
     });
   }
+  var ARRASTAVEL = ${arrastavel ? 'true' : 'false'};
   pts.forEach(function(p){
     var m = L.marker([p.lat,p.lng], {
-      icon: pino(p.tipo === 'destino' ? 'destino' : 'origem')
+      icon: pino(p.tipo === 'destino' ? 'destino' : 'origem'),
+      // ARRASTAR PARA CORRIGIR.
+      //
+      // O GPS de um telemóvel entre prédios erra 20 a 40 metros, e nenhum
+      // código corrige uma leitura de satélite. O que se pode fazer é deixar
+      // quem está lá — e sabe onde está — pôr o ponto no sítio.
+      //
+      // Antes só havia o toque no mapa, e com a recolha já preenchida esse
+      // toque definia o DESTINO. Ou seja: não havia forma nenhuma de corrigir
+      // o ponto de partida sem abrir a pesquisa e escolher outra coisa.
+      draggable: ARRASTAVEL,
+      autoPan: true
     }).addTo(map);
+    if (ARRASTAVEL) {
+      m.on('dragend', function(){
+        var q = m.getLatLng();
+        send({ type:'arrastou', tipo: p.tipo === 'destino' ? 'destino' : 'origem',
+               lat: q.lat, lng: q.lng });
+      });
+    }
     // No mapa mostra-se só a primeira parte do nome. O nome completo já
     // está no painel de baixo, e dois rótulos longos em pontos próximos
     // sobrepõem-se e deixam de se ler — num ecrã de telemóvel isso
@@ -281,6 +306,23 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
       );
     }
   });
+  // O CÍRCULO DE INCERTEZA do GPS.
+  //
+  // Mostra o que o telemóvel realmente sabe: "estou algures aqui dentro". Sem
+  // ele, um pino desenhado com traço fino parece uma certeza — e o Simão viu
+  // exactamente isso, um ponto seguro de si a 35 metros de onde estava.
+  //
+  // Só se desenha acima de 15 metros: abaixo disso o círculo é mais pequeno
+  // do que o pino e só faria sujidade.
+  var PRECISAO = ${precisaoM == null ? 'null' : Number(precisaoM)};
+  if (PRECISAO && PRECISAO > 15 && pts.length) {
+    var o = pts.filter(function(p){ return p.tipo !== 'destino'; })[0] || pts[0];
+    L.circle([o.lat,o.lng], {
+      radius: PRECISAO, color:'#0E5C54', weight:1, opacity:.35,
+      fillColor:'#0E5C54', fillOpacity:.10, interactive:false
+    }).addTo(map);
+  }
+
   if (pts.length > 1) { map.fitBounds(pts.map(function(p){return [p.lat,p.lng];}),{padding:[40,40]}); }
   else if (pts.length === 1) { map.setView([pts[0].lat,pts[0].lng], 15); }
 

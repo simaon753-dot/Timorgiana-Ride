@@ -100,6 +100,7 @@ export default {
   // Mapa
   mapHint: 'Toque no mapa para escolher o destino',
   useMyLocation: '📍 Usar a minha localização',
+  arrastarPino: 'Não é aqui? Arraste o pino no mapa',
   gettingLocation: 'A obter localização…',
   destinationOnMap: 'Ponto escolhido no mapa',
 

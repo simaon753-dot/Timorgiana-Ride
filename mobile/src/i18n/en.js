@@ -99,6 +99,7 @@ export default {
 
   mapHint: 'Tap the map to choose the destination',
   useMyLocation: '📍 Use my location',
+  arrastarPino: 'Not here? Drag the pin on the map',
   gettingLocation: 'Getting your location…',
   destinationOnMap: 'Point chosen on the map',
 

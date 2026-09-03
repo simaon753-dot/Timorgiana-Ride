@@ -100,6 +100,7 @@ export default {
   // Mapa
   mapHint: 'Toka iha mapa atu hili destinu',
   useMyLocation: '📍 Uza haʼu-nia lokalizasaun',
+  arrastarPino: 'La’ós iha ne’e? Dada pinu iha mapa',
   gettingLocation: 'Buka fatin…',
   destinationOnMap: 'Pontu hili iha mapa',
 

@@ -59,6 +59,9 @@ export default function RequestRideScreen({ navigation, route }) {
   const [veiculo, setVeiculo] = useState('car');
   const [pessoas, setPessoas] = useState(1);
   const [gps, setGps] = useState(false);
+  // O erro que o GPS declarou na última leitura. Desenha o círculo no mapa
+  // e impede a app de nomear um edifício quando não tem como saber qual é.
+  const [precisao, setPrecisao] = useState(null);
   const [erro, setErro] = useState(null);
   const [aPedir, setAPedir] = useState(false);
   const [pesquisa, setPesquisa] = useState(null); // 'origem' | 'destino' | null
@@ -111,6 +114,7 @@ export default function RequestRideScreen({ navigation, route }) {
       setOrigem({ lat, lng, label: rotuloCoordenadas(lat, lng), provisorio: true });
       // O erro que o próprio GPS declara vai junto: com um erro grande, dar
       // um nome de edifício é escolher à sorte entre os que cabem no círculo.
+      setPrecisao(pos.coords.accuracy ?? null);
       const nome = await nomeDoLugar(lat, lng, pos.coords.accuracy);
       if (nome) {
         setOrigem((p) =>
@@ -129,6 +133,26 @@ export default function RequestRideScreen({ navigation, route }) {
   useEffect(() => {
     usarLocalizacao();
   }, [usarLocalizacao]);
+
+  // Alguém arrastou um pino para o sítio certo.
+  //
+  // Um ponto posto à mão é EXACTO por definição — quem o arrastou está lá e
+  // sabe onde está. Por isso o círculo de incerteza desaparece e o nome é
+  // pedido sem margem de erro: aqui já se pode dizer o nome do edifício.
+  async function arrastouPino({ tipo, lat, lng }) {
+    const ponto = { lat, lng, label: rotuloCoordenadas(lat, lng), provisorio: true };
+    if (tipo === 'destino') setDestino(ponto);
+    else {
+      setOrigem(ponto);
+      setPrecisao(null);
+    }
+    const nome = await nomeDoLugar(lat, lng, 0);
+    if (!nome) return;
+    const mesmo = (p) => p && p.lat === lat && p.lng === lng;
+    if (tipo === 'destino')
+      setDestino((p) => (mesmo(p) ? { ...p, label: nome, provisorio: false } : p));
+    else setOrigem((p) => (mesmo(p) ? { ...p, label: nome, provisorio: false } : p));
+  }
 
   async function escolherNoMapa({ lat, lng }) {
     // A coordenada já se sabe no instante do toque; o NOME é que demora.
@@ -221,7 +245,15 @@ export default function RequestRideScreen({ navigation, route }) {
           além de manter o contexto visual durante a pesquisa, remontá-lo
           obrigaria o WebView a recarregar o Leaflet e a perder o zoom. */}
       <View style={styles.mapa}>
-        <OSMMap pickable fill markers={marcadores} onPick={escolherNoMapa} />
+        <OSMMap
+          pickable
+          fill
+          markers={marcadores}
+          onPick={escolherNoMapa}
+          arrastavel
+          onArrastar={arrastouPino}
+          precisaoM={precisao}
+        />
         {!pesquisa ? (
           <Pressable style={styles.voltar} onPress={() => navigation.goBack()} hitSlop={10}>
             <Text style={styles.voltarTexto}>‹</Text>
@@ -276,6 +308,18 @@ export default function RequestRideScreen({ navigation, route }) {
                 : undefined
             }
           />
+          {/* A dica de arrastar, e SÓ enquanto o ponto vier do GPS.
+              Depois de o arrastar, o ponto está onde a pessoa o pôs e a dica
+              deixa de fazer sentido — repeti-la seria pedir para corrigir uma
+              coisa que já está certa.
+              Diz também de quanto é o erro: "mais ou menos 40 m" explica
+              porque é que o pino não está exactamente na porta, e transforma
+              um defeito aparente numa informação. */}
+          {origem && !origem.provisorio && precisao > 15 ? (
+            <Text style={styles.dicaArrastar}>
+              {t('arrastarPino')} · ±{Math.round(precisao)} m
+            </Text>
+          ) : null}
           <View style={styles.linha} />
           <Ponto
             cor={colors.coral}
@@ -517,6 +561,7 @@ const criarEstilos = () =>
     pontoValor: { ...tipo.subtitulo, color: colors.text },
     pontoVazio: { color: colors.textMuted, fontWeight: '400' },
     linha: { height: 1, backgroundColor: colors.border, marginLeft: 26 },
+    dicaArrastar: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
 
     seccao: {
       ...tipo.etiqueta,
