@@ -351,12 +351,12 @@ export default function RequestRideScreen({ navigation, route }) {
           modoEscolha={aEscolherNoMapa}
           onCentro={centroMudou}
         />
-        {!pesquisa ? (
+        {!pesquisa && !aEscolherNoMapa ? (
           <Pressable style={styles.voltar} onPress={() => navigation.goBack()} hitSlop={10}>
             <Text style={styles.voltarTexto}>‹</Text>
           </Pressable>
         ) : null}
-        {orcamento && !pesquisa ? (
+        {orcamento && !pesquisa && !aEscolherNoMapa ? (
           <View style={styles.rotaBadge}>
             <Text style={styles.rotaTexto}>
               {t('tripInfo', { km: orcamento.distanceKm, min: orcamento.durationMin })}
@@ -450,7 +450,17 @@ export default function RequestRideScreen({ navigation, route }) {
       ) : null}
 
       {/* Painel inferior */}
-      <View style={[styles.painel, pesquisa && styles.escondido]}>
+      {/* A folha esconde-se TAMBÉM enquanto se aponta no mapa.
+          Escondia-se só com a pesquisa aberta. Ao apontar, ficavam as duas
+          coisas no ecrã ao mesmo tempo — a barra de escolha e a folha
+          inteira com os dois campos, o veículo, os lugares e o botão de
+          pedir. O mapa era espremido entre elas.
+          Notava-se sobretudo no destino, porque nessa altura a folha já tem
+          tudo preenchido e é muito mais alta do que quando se marca a
+          recolha: a barra ficava fora de alcance.
+          O comentário lá em cima já dizia que a barra "substitui a folha".
+          Dizia-o e não era verdade. */}
+      <View style={[styles.painel, (pesquisa || aEscolherNoMapa) && styles.escondido]}>
         <View style={styles.puxador} />
         {/* O indicador de deslize é mostrado de propósito. Escondido, o
             painel cortava a meio — a pergunta "quantas pessoas?" ficava
