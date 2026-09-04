@@ -131,7 +131,26 @@ io.use(async (socket, next) => {
       driverStatus: user.driver_status || null,
       isOnline: !!user.is_online,
       isAdmin: !!user.is_admin,
-      municipio: user.municipio || null,
+      // O MUNICÍPIO, CALCULADO DA ÚLTIMA POSIÇÃO CONHECIDA.
+      //
+      // Estava `user.municipio || null`, e a coluna `municipio` não existe em
+      // `users` — nem o auth.js nem o users.js alguma vez a calcularam.
+      // Chegava aqui sempre a null.
+      //
+      // O comentário logo abaixo dizia que devia começar no último município
+      // conhecido "para não haver um vazio entre ligar-se e mexer-se". Esse
+      // vazio existia: ao ligar o serviço, o motorista entrava em `drivers` e
+      // `drivers:car`, mas NÃO na sala do seu município — e é para a sala do
+      // município que os pedidos vão.
+      //
+      // Só entrava lá na primeira posição comunicada, que depende de um sinal
+      // de GPS. Em Díli, entre prédios, isso são segundos ou dezenas de
+      // segundos em que o motorista está online e não recebe pedido nenhum.
+      //
+      // Descoberto a testar com um motorista de teste: o primeiro pedido do
+      // Simão não chegou e o segundo chegou — a diferença foi ter havido uma
+      // posição comunicada entre os dois.
+      municipio: municipioDe(Number(user.last_lat), Number(user.last_lng)),
     };
     next();
   } catch (e) {
