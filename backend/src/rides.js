@@ -8,7 +8,12 @@ import { municipioDe } from './municipios.js';
 // instante em que o passageiro entrava no carro, os dois perdiam o mapa,
 // a conversa, o botão de emergência e o botão de concluir.
 const ACTIVE_PASSENGER = ['requested', 'accepted', 'arriving', 'in_progress'];
-const ACTIVE_DRIVER = ['accepted', 'arriving', 'in_progress'];
+// Exportada de propósito. Havia uma segunda cópia desta lista escrita à mão
+// dentro do socket, e essa cópia ficou sem 'in_progress' — o que fez a
+// posição do motorista deixar de chegar ao passageiro assim que a viagem
+// começava. Uma lista de estados escrita em dois sítios diverge; escrita num
+// só, não pode.
+export const ACTIVE_DRIVER = ['accepted', 'arriving', 'in_progress'];
 
 function num(v) {
   return v != null && v !== '' && !Number.isNaN(Number(v)) ? Number(v) : null;

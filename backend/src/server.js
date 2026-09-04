@@ -18,6 +18,7 @@ import { one } from './db.js';
 import { lugaresRouter } from './routes/lugares.js';
 import { estadoDaBusca } from './lugares.js';
 import { municipioDe } from './municipios.js';
+import { ACTIVE_DRIVER } from './rides.js';
 import { fileURLToPath } from 'node:url';
 
 const app = express();
@@ -245,11 +246,26 @@ io.on('connection', (socket) => {
       await updateLocation(user.id, lat, lng);
       // Mudou de município? Muda de sala, e passa a ver os pedidos de lá.
       ajustarMunicipio(municipioDe(lat, lng));
+      // 'in_progress' TAMBÉM, e faltava.
+      //
+      // A posição do motorista só era enviada ao passageiro enquanto a
+      // viagem estivesse 'accepted' ou 'arriving'. No instante em que a
+      // viagem COMEÇA, o envio parava — e o mapa do passageiro congelava no
+      // último ponto antes de entrar no carro.
+      //
+      // Ou seja: durante a viagem inteira, que é justamente quando alguém
+      // quer ver por onde vai, o mapa não mostrava nada. Descoberto a
+      // percorrer 6,6 km de teste até Cristo Rei sem que o Simão visse o
+      // carro sair do sítio.
+      //
+      // É também o que alimenta o "estou na Avenida X" e o que a pessoa com
+      // quem a viagem foi partilhada vê — os dois estavam mortos pela mesma
+      // razão.
       const viagem = await one(
         `SELECT id, passenger_id FROM rides
-         WHERE driver_id = $1 AND status IN ('accepted','arriving')
+         WHERE driver_id = $1 AND status = ANY($2)
          ORDER BY id DESC LIMIT 1`,
-        [user.id]
+        [user.id, ACTIVE_DRIVER]
       );
       if (viagem) {
         io.to(`user:${viagem.passenger_id}`).emit('ride:driverLocation', {
