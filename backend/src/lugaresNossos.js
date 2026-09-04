@@ -72,6 +72,65 @@ export async function procurarNossos(termo, userId) {
   return saida;
 }
 
+// Os sítios com nome que estão PERTO deste ponto.
+//
+// É o que alimenta a lista por baixo do mapa enquanto se aponta. Sem ela, o
+// modo de escolha devolve um endereço — "Rua de Caicoli" — e não um sítio.
+// Com ela, quem aponta para o hospital escolhe entre a entrada principal e a
+// das urgências, que é a diferença entre chegar lá e chegar ao portão certo.
+//
+// Duzentos e cinquenta metros é o raio. Mais do que isso deixa de ser "aqui"
+// e passa a ser "ali ao lado" — e uma lista com sítios que não são o que se
+// está a apontar é pior do que uma lista vazia.
+//
+// A CAIXA PRIMEIRO, a distância depois. Comparar 250 metros em graus e só
+// medir a sério o que couber na caixa deixa o índice trabalhar; medir tudo
+// obrigaria a percorrer a tabela inteira a cada arrasto do mapa.
+const RAIO_M = 250;
+
+export async function lugaresPerto(lat, lng, userId) {
+  if (typeof lat !== 'number' || typeof lng !== 'number') return [];
+  const grauLat = RAIO_M / 111320;
+  const grauLng = RAIO_M / (111320 * Math.cos((lat * Math.PI) / 180));
+
+  const rows = await query(
+    `SELECT id, nome, lat, lng, aldeia, bairro, suco, posto, municipio, estado
+       FROM lugares_propostos
+      WHERE (estado = 'aceite' OR (estado = 'novo' AND user_id = $5))
+        AND lat BETWEEN $1 - $3 AND $1 + $3
+        AND lng BETWEEN $2 - $4 AND $2 + $4
+      ORDER BY id DESC
+      LIMIT 60`,
+    [lat, lng, grauLat, grauLng, userId ?? -1]
+  );
+
+  const saida = [];
+  for (const r of rows) {
+    const p = { lat: Number(r.lat), lng: Number(r.lng) };
+    const d = metrosEntre({ lat, lng }, p);
+    if (d > RAIO_M) continue;
+    // O mesmo sítio baptizado por três pessoas aparece uma vez só.
+    if (saida.some((x) => perto(x, p) && normalizar(x.label) === normalizar(r.nome))) continue;
+    saida.push({
+      id: `nosso:${r.id}`,
+      label: r.nome,
+      detalhe: [r.aldeia, r.bairro, r.suco].filter(Boolean).join(', '),
+      lat: p.lat,
+      lng: p.lng,
+      metros: Math.round(d),
+      fonte: 'nosso',
+      porRever: r.estado !== 'aceite',
+    });
+  }
+  return saida.sort((a, b) => a.metros - b.metros).slice(0, 6);
+}
+
+function metrosEntre(a, b) {
+  const dLat = (b.lat - a.lat) * 111320;
+  const dLng = (b.lng - a.lng) * 111320 * Math.cos((a.lat * Math.PI) / 180);
+  return Math.hypot(dLat, dLng);
+}
+
 function perto(a, b) {
   const dLat = (a.lat - b.lat) * 111.32;
   const dLng = (a.lng - b.lng) * 111.32 * Math.cos((a.lat * Math.PI) / 180);

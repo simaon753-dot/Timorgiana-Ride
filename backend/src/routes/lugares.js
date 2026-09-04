@@ -5,6 +5,7 @@ import { query } from '../db.js';
 import { tipoValido } from '../tiposDeLugar.js';
 import { normalizar } from '../texto.js';
 import { MUNICIPIOS, ondeFica } from '../administrativo.js';
+import { lugaresPerto } from '../lugaresNossos.js';
 
 export const lugaresRouter = Router();
 
@@ -26,6 +27,25 @@ lugaresRouter.get(
   wrap(async (req, res) => {
     const r = await procurar(req.query.q, req.user.id);
     res.json(r);
+  })
+);
+
+// GET /api/lugares/perto?lat=&lng= — o que tem nome à volta deste ponto
+//
+// Chamado enquanto o dedo arrasta o mapa no modo de escolha. Por isso devolve
+// pouco e depressa: seis sítios no máximo, dentro de 250 metros, ordenados do
+// mais perto para o mais longe.
+lugaresRouter.get(
+  '/perto',
+  wrap(async (req, res) => {
+    const lat = Number(req.query.lat);
+    const lng = Number(req.query.lng);
+    const lugares = await lugaresPerto(
+      Number.isFinite(lat) ? lat : null,
+      Number.isFinite(lng) ? lng : null,
+      req.user.id
+    );
+    res.json({ lugares });
   })
 );
 
