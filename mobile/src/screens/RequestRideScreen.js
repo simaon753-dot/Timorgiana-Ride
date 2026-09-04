@@ -318,7 +318,7 @@ export default function RequestRideScreen({ navigation, route }) {
           arrastavel={!aEscolherNoMapa && !(origem && destino)}
           onArrastar={arrastouPino}
           precisaoM={aEscolherNoMapa || (origem && destino) ? null : precisao}
-          modoEscolha={!!aEscolherNoMapa}
+          modoEscolha={aEscolherNoMapa}
           onCentro={centroMudou}
         />
         {!pesquisa ? (

@@ -23,7 +23,11 @@ export default function OSMMap({
   onArrastar,
   // Modo de escolha: o pino fica FIXO no centro do ecrã e o mapa é que se
   // move por baixo. Devolve o centro sempre que o mapa pára.
-  modoEscolha = false,
+  //
+  // Recebe 'origem' ou 'destino' e não um sim/não: a mira toma a cor do
+  // campo que se está a marcar. Ver uma mira teal enquanto se escolhe o
+  // destino era dizer uma coisa e marcar outra.
+  modoEscolha = null,
   onCentro,
   markers = [],
   center,
@@ -130,19 +134,18 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
    Sobe-se o pino inteiro pela sua altura para que a ponta caia no meio. */
 #mira{
   position:absolute; left:50%; top:50%; z-index:800;
-  transform:translate(-50%,-100%); pointer-events:none;
+  /* Desce 3 px: o ponto está a 42 dos 45 pixéis de altura, e é o PONTO que
+     tem de cair no meio do ecrã — não a base da caixa. */
+  transform:translate(-50%,-100%) translateY(3px); pointer-events:none;
   filter:drop-shadow(0 3px 4px rgba(0,0,0,.4));
 }
 /* Uma sombra elíptica no chão, no ponto exacto. Sem ela é difícil perceber
    onde a ponta assenta quando o mapa está a mexer. */
-#miraSombra{
-  position:absolute; left:50%; bottom:-4px; width:12px; height:5px;
-  transform:translateX(-50%); border-radius:50%;
-  background:rgba(0,0,0,.35);
-}
+/* O ponto do próprio desenho faz de sombra: marca o sítio exacto sem
+   precisar de uma elipse à parte. */
 /* A mexer, o pino levanta-se um pouco — é o que dá a sensação de que o mapa
    está a passar por baixo dele e não o contrário. */
-#mira.aMexer{ transform:translate(-50%,-100%) translateY(-6px); transition:transform .12s; }
+#mira.aMexer{ transform:translate(-50%,-100%) translateY(-3px); transition:transform .12s; }
 .rotulo.leaflet-tooltip{
   background:#FFF; color:#14201D; border:none; border-radius:10px;
   padding:7px 12px; font:400 11px/1.3 -apple-system,Roboto,sans-serif;
@@ -219,14 +222,7 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
      não se move, o mapa é que anda por baixo dele.
      Sem apanhar o dedo (pointer-events), porque quem toca aqui quer
      arrastar o mapa, não o pino. -->
-<div id="mira" hidden>
-  <svg width="30" height="42" viewBox="0 0 26 36">
-    <path d="M13 1.6C7 1.6 2.2 6.4 2.2 12.4c0 8 10.8 21.5 10.8 21.5s10.8-13.5 10.8-21.5C23.8 6.4 19 1.6 13 1.6z"
-          fill="#0E5C54" stroke="#FFF" stroke-width="2"/>
-    <circle cx="13" cy="12.4" r="4.3" fill="#FFF"/>
-  </svg>
-  <div id="miraSombra"></div>
-</div>
+<div id="mira" hidden></div>
 <div class="credito">© OpenStreetMap</div>
 <script>${LEAFLET_JS}</script>
 <script>
@@ -267,28 +263,49 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
   }
 
   var pts = ${JSON.stringify(pts)};
-  var COR = { origem: '#0E5C54', destino: '#E85531' };
+  // O desenho do pino, num sítio só — usado pelo marcador e pela mira.
+  //
+  // A FORMA. Cabeça redonda e cheia, e duas curvas que saem para fora antes
+  // de convergirem na ponta. É o que distingue uma gota de um bico colado a
+  // um círculo, e foi o modelo que o Simão pediu.
+  //
+  // O PONTO POR BAIXO marca o sítio exacto; o pino flutua sobre ele. Separa
+  // duas coisas que antes se confundiam: onde o desenho está e onde o sítio
+  // está.
+  //
+  // O CONTORNO É ESCURO, como no modelo — MAS COM UM HALO BRANCO POR FORA.
+  //
+  // O modelo é um azul vivo, e sobre ele um contorno escuro lê-se bem. O
+  // nosso teal é escuro: com contorno escuro, sobre um telhado escuro do
+  // mapa, o pino desaparecia e sobrava o furo branco a flutuar. Desenhado e
+  // comparado sobre quatro fundos antes de decidir.
+  //
+  // O halo custa dois pixéis e devolve o que o contorno branco antigo dava —
+  // sem perder o aspecto do modelo.
+  var GOTA = 'M2 18 A16 16 0 1 1 34 18 C34 26 26 32 18 41 C10 32 2 26 2 18 Z';
+  var COR = {
+    origem:  { fill: '#0E5C54', risco: '#08403A' },
+    destino: { fill: '#E85531', risco: '#8C2E14' }
+  };
+  function desenho(tipo, largura, altura){
+    var c = COR[tipo] || COR.origem;
+    return '<svg width="' + largura + '" height="' + altura + '" viewBox="0 0 36 54">' +
+      '<path d="' + GOTA + '" fill="none" stroke="#FFF" stroke-width="5.6" stroke-linejoin="round"/>' +
+      '<path d="' + GOTA + '" fill="' + c.fill + '" stroke="' + c.risco +
+        '" stroke-width="2.6" stroke-linejoin="round"/>' +
+      '<circle cx="18" cy="18" r="6" fill="#FFF"/>' +
+      '<circle cx="18" cy="50" r="2.4" fill="#FFF"/>' +
+      '<circle cx="18" cy="50" r="1.7" fill="' + c.risco + '"/>' +
+      '</svg>';
+  }
   function pino(tipo){
-    var cor = COR[tipo] || COR.origem;
     return L.divIcon({
-      html:
-        '<div class="pino"><svg width="26" height="36" viewBox="0 0 26 36">' +
-        // A gota. A cabeça é um arco, a ponta desce em duas curvas que se
-        // encontram no fundo — é esse encontro que dá a forma de gota em
-        // vez de um bico colado a um círculo.
-        '<path d="M13 1.6C7 1.6 2.2 6.4 2.2 12.4c0 8 10.8 21.5 10.8 21.5' +
-        's10.8-13.5 10.8-21.5C23.8 6.4 19 1.6 13 1.6z" fill="' + cor +
-        '" stroke="#FFF" stroke-width="2"/>' +
-        // O furo. Sem ele o pino é uma mancha de cor; com ele lê-se mesmo
-        // sobre um telhado da mesma cor.
-        '<circle cx="13" cy="12.4" r="4.3" fill="#FFF"/>' +
-        '</svg></div>',
-      className: '', iconSize: [26,36],
-      // A PONTA assenta na coordenada, não o centro do desenho. A ponta do
-      // caminho está em y≈34; com o contorno de 2px o extremo visível fica
-      // em 35. Ancorar no meio punha o pino meia rua acima do sítio real
-      // quando o mapa está ampliado.
-      iconAnchor: [13,35]
+      html: '<div class="pino">' + desenho(tipo, 30, 45) + '</div>',
+      className: '', iconSize: [30,45],
+      // O PONTO assenta na coordenada — não a ponta da gota, e muito menos o
+      // centro do desenho. O ponto está em y=50 de 54; à escala de 45 pixéis
+      // isso são 42 a contar do topo.
+      iconAnchor: [15,42]
     });
   }
   var ARRASTAVEL = ${arrastavel ? 'true' : 'false'};
@@ -336,7 +353,7 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
           // 16 no x afasta o cartão do pino, que tem 13 de meia largura.
           // -22 no y sobe-o até à altura da CABEÇA do pino: a âncora está na
           // ponta, e a cabeça fica 22 pixéis acima dela.
-          offset: [16,-22],
+          offset: [18,-27],
           className: 'rotulo ' + (p.tipo === 'destino' ? 'destino' : 'origem'),
           opacity: 1
         }
@@ -361,9 +378,12 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
   }
 
   // ── Modo de escolha ────────────────────────────────────────────────
-  var MODO_ESCOLHA = ${modoEscolha ? 'true' : 'false'};
+  var MODO_ESCOLHA = ${JSON.stringify(modoEscolha || null)};
   if (MODO_ESCOLHA) {
     var mira = document.getElementById('mira');
+    // O MESMO desenho do marcador. Se fossem dois, divergiam — e o que se
+    // vê ao apontar deixava de ser o que fica marcado.
+    mira.innerHTML = desenho(MODO_ESCOLHA === 'destino' ? 'destino' : 'origem', 30, 45);
     mira.hidden = false;
     map.on('movestart', function(){ mira.classList.add('aMexer'); });
     map.on('moveend', function(){
