@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Alert,
   View,
@@ -65,6 +65,15 @@ export default function RequestRideScreen({ navigation, route }) {
   const [erro, setErro] = useState(null);
   const [aPedir, setAPedir] = useState(false);
   const [pesquisa, setPesquisa] = useState(null); // 'origem' | 'destino' | null
+  // Escolher no mapa: o pino fica fixo no centro e o mapa move-se por baixo.
+  //
+  // Substitui o arrastar. Num telemóvel, arrastar um pino é pôr o dedo em
+  // cima do sítio exacto que se está a tentar ver — e o polegar tapa
+  // precisamente aquilo que se quer acertar. Com o pino no centro, o dedo
+  // trabalha longe do alvo e a vista fica livre.
+  const [aEscolherNoMapa, setAEscolherNoMapa] = useState(null); // 'origem' | 'destino'
+  const [centro, setCentro] = useState(null); // { lat, lng } do meio do mapa
+  const [nomeCentro, setNomeCentro] = useState(null);
 
   // Assim que houver os dois pontos, o servidor devolve rota, preços e
   // tempo de chegada num só pedido — é ele que fixa o preço.
@@ -152,6 +161,43 @@ export default function RequestRideScreen({ navigation, route }) {
     if (tipo === 'destino')
       setDestino((p) => (mesmo(p) ? { ...p, label: nome, provisorio: false } : p));
     else setOrigem((p) => (mesmo(p) ? { ...p, label: nome, provisorio: false } : p));
+  }
+
+  // O centro do mapa mudou. Guarda a coordenada já e pergunta o nome depois.
+  //
+  // O nome é pedido só quando o mapa PARA há 500 ms. Sem essa espera, um
+  // arrasto de dois segundos dispararia uma dúzia de perguntas ao Nominatim
+  // — que é gratuito, partilhado, e aceita cerca de um pedido por segundo.
+  const relogioNome = useRef(null);
+  function centroMudou({ lat, lng }) {
+    setCentro({ lat, lng });
+    setNomeCentro(null);
+    clearTimeout(relogioNome.current);
+    relogioNome.current = setTimeout(async () => {
+      // Precisão zero: um ponto posto à mão é exacto por definição — quem o
+      // apontou está a olhar para o mapa e viu onde o pôs.
+      const nome = await nomeDoLugar(lat, lng, 0);
+      setNomeCentro(nome || rotuloCoordenadas(lat, lng));
+    }, 500);
+  }
+
+  function confirmarEscolha() {
+    if (!centro) return;
+    const ponto = {
+      lat: centro.lat,
+      lng: centro.lng,
+      label: nomeCentro || rotuloCoordenadas(centro.lat, centro.lng),
+      provisorio: !nomeCentro,
+    };
+    if (aEscolherNoMapa === 'origem') {
+      setOrigem(ponto);
+      setPrecisao(null); // posto à mão: a incerteza do GPS deixa de valer
+    } else {
+      setDestino(ponto);
+    }
+    setAEscolherNoMapa(null);
+    setCentro(null);
+    setNomeCentro(null);
   }
 
   async function escolherNoMapa({ lat, lng }) {
@@ -269,9 +315,11 @@ export default function RequestRideScreen({ navigation, route }) {
           fill
           markers={marcadores}
           onPick={escolherNoMapa}
-          arrastavel={!(origem && destino)}
+          arrastavel={!aEscolherNoMapa && !(origem && destino)}
           onArrastar={arrastouPino}
-          precisaoM={origem && destino ? null : precisao}
+          precisaoM={aEscolherNoMapa || (origem && destino) ? null : precisao}
+          modoEscolha={!!aEscolherNoMapa}
+          onCentro={centroMudou}
         />
         {!pesquisa ? (
           <Pressable style={styles.voltar} onPress={() => navigation.goBack()} hitSlop={10}>
@@ -288,11 +336,51 @@ export default function RequestRideScreen({ navigation, route }) {
         ) : null}
       </View>
 
-      {pesquisa ? (
+      {/* A BARRA DE ESCOLHA substitui a folha de baixo enquanto se aponta.
+          Ocupa o mesmo sítio de propósito: o que está em causa naquele
+          momento é uma coisa só, e ter a folha por baixo com os dois campos
+          convidava a tocar noutra coisa a meio do gesto. */}
+      {aEscolherNoMapa ? (
+        <View style={styles.barraEscolha}>
+          <Text style={styles.barraRotulo}>
+            {aEscolherNoMapa === 'origem' ? t('pickupPoint') : t('dropoffPoint')}
+          </Text>
+          <Text style={styles.barraNome} numberOfLines={2}>
+            {nomeCentro || (centro ? t('aVerNome') : t('gettingLocation'))}
+          </Text>
+          <Pressable
+            style={[styles.botao, { marginTop: spacing.sm }]}
+            onPress={confirmarEscolha}
+            disabled={!centro}
+          >
+            <Text style={styles.botaoTexto}>
+              {aEscolherNoMapa === 'origem' ? t('escolherEstaRecolha') : t('escolherEsteDestino')}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              setAEscolherNoMapa(null);
+              setCentro(null);
+              setNomeCentro(null);
+            }}
+            hitSlop={8}
+            style={{ alignSelf: 'center', marginTop: spacing.sm }}
+          >
+            <Text style={styles.barraCancelar}>{t('cancel')}</Text>
+          </Pressable>
+        </View>
+      ) : pesquisa ? (
         <PlaceSearch
           placeholder={t('searchPlaceholder')}
           onEscolher={aoEscolherDaPesquisa}
           onFechar={() => setPesquisa(null)}
+          onEscolherNoMapa={() => {
+            // Quem abriu a pesquisa já disse QUAL dos dois campos quer. Passa
+            // essa escolha ao mapa em vez de a voltar a perguntar.
+            setAEscolherNoMapa(pesquisa);
+            setPesquisa(null);
+          }}
+          rotuloMapa={t('escolherNoMapa')}
           onUsarLocalizacao={
             pesquisa === 'origem'
               ? () => {
@@ -560,6 +648,26 @@ const criarEstilos = () =>
       borderRadius: radius.pill,
     },
     rotaTexto: { ...tipo.corpoForte, color: colors.onTeal },
+
+    barraEscolha: {
+      backgroundColor: colors.paper,
+
+      borderTopLeftRadius: radius.xl,
+
+      borderTopRightRadius: radius.xl,
+
+      paddingHorizontal: spacing.lg,
+
+      paddingTop: spacing.md,
+
+      paddingBottom: spacing.lg,
+    },
+
+    barraRotulo: { ...tipo.etiqueta, color: colors.textMuted },
+
+    barraNome: { ...tipo.subtitulo, color: colors.text, marginTop: 2, minHeight: 46 },
+
+    barraCancelar: { ...tipo.corpo, color: colors.textMuted },
 
     painel: {
       backgroundColor: colors.white,

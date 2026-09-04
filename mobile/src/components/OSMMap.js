@@ -21,6 +21,10 @@ export default function OSMMap({
   // Deixa arrastar os pinos para corrigir o ponto.
   arrastavel = false,
   onArrastar,
+  // Modo de escolha: o pino fica FIXO no centro do ecrã e o mapa é que se
+  // move por baixo. Devolve o centro sempre que o mapa pára.
+  modoEscolha = false,
+  onCentro,
   markers = [],
   center,
   height = 240,
@@ -39,8 +43,8 @@ export default function OSMMap({
   // perder o zoom que o utilizador tivesse feito. Em vez disso, injectamos
   // uma instrução no mapa já carregado, que apenas move o ícone.
   const html = useMemo(
-    () => buildHtml({ center: c, markers, pickable, precisaoM, arrastavel }),
-    [c.lat, c.lng, pickable, markersKey, precisaoM, arrastavel]
+    () => buildHtml({ center: c, markers, pickable, precisaoM, arrastavel, modoEscolha }),
+    [c.lat, c.lng, pickable, markersKey, precisaoM, arrastavel, modoEscolha]
   );
 
   useEffect(() => {
@@ -78,6 +82,7 @@ export default function OSMMap({
             const d = JSON.parse(e.nativeEvent.data);
             if (d?.type === 'route' && onRoute) onRoute({ km: d.km });
             else if (d?.type === 'arrastou' && onArrastar) onArrastar(d);
+            else if (d?.type === 'centro' && onCentro) onCentro(d);
             else if (typeof d?.lat === 'number' && onPick) onPick(d);
           } catch {
             /* ignora mensagens que não sejam do nosso formato */
@@ -89,7 +94,7 @@ export default function OSMMap({
   );
 }
 
-function buildHtml({ center, markers, pickable, precisaoM, arrastavel }) {
+function buildHtml({ center, markers, pickable, precisaoM, arrastavel, modoEscolha }) {
   const pts = markers.map((m) => ({
     lat: m.lat,
     lng: m.lng,
@@ -120,6 +125,24 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
    Duas linhas: o nome em cima, e por baixo o que vem depois da vírgula —
    normalmente a rua ou a zona. É a informação que distingue duas "Kios Mana"
    na mesma cidade. */
+/* A mira do modo de escolha. Fica a meio da largura e com a PONTA na
+   metade da altura — é a ponta que marca o sítio, não o centro do desenho.
+   Sobe-se o pino inteiro pela sua altura para que a ponta caia no meio. */
+#mira{
+  position:absolute; left:50%; top:50%; z-index:800;
+  transform:translate(-50%,-100%); pointer-events:none;
+  filter:drop-shadow(0 3px 4px rgba(0,0,0,.4));
+}
+/* Uma sombra elíptica no chão, no ponto exacto. Sem ela é difícil perceber
+   onde a ponta assenta quando o mapa está a mexer. */
+#miraSombra{
+  position:absolute; left:50%; bottom:-4px; width:12px; height:5px;
+  transform:translateX(-50%); border-radius:50%;
+  background:rgba(0,0,0,.35);
+}
+/* A mexer, o pino levanta-se um pouco — é o que dá a sensação de que o mapa
+   está a passar por baixo dele e não o contrário. */
+#mira.aMexer{ transform:translate(-50%,-100%) translateY(-6px); transition:transform .12s; }
 .rotulo.leaflet-tooltip{
   background:#FFF; color:#14201D; border:none; border-radius:10px;
   padding:7px 12px; font:400 11px/1.3 -apple-system,Roboto,sans-serif;
@@ -190,6 +213,20 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
 </style>
 </head><body>
 <div id="map"></div>
+<!-- O PINO FIXO DO MODO DE ESCOLHA.
+     Não é um marcador do Leaflet: é um desenho por cima do mapa, preso ao
+     centro do ecrã. É essa a diferença que faz o modo funcionar — o pino
+     não se move, o mapa é que anda por baixo dele.
+     Sem apanhar o dedo (pointer-events), porque quem toca aqui quer
+     arrastar o mapa, não o pino. -->
+<div id="mira" hidden>
+  <svg width="30" height="42" viewBox="0 0 26 36">
+    <path d="M13 1.6C7 1.6 2.2 6.4 2.2 12.4c0 8 10.8 21.5 10.8 21.5s10.8-13.5 10.8-21.5C23.8 6.4 19 1.6 13 1.6z"
+          fill="#0E5C54" stroke="#FFF" stroke-width="2"/>
+    <circle cx="13" cy="12.4" r="4.3" fill="#FFF"/>
+  </svg>
+  <div id="miraSombra"></div>
+</div>
 <div class="credito">© OpenStreetMap</div>
 <script>${LEAFLET_JS}</script>
 <script>
@@ -321,6 +358,24 @@ html,body,#map{height:100%;margin:0;padding:0;background:#e9e4db}
       radius: PRECISAO, color:'#0E5C54', weight:1, opacity:.35,
       fillColor:'#0E5C54', fillOpacity:.10, interactive:false
     }).addTo(map);
+  }
+
+  // ── Modo de escolha ────────────────────────────────────────────────
+  var MODO_ESCOLHA = ${modoEscolha ? 'true' : 'false'};
+  if (MODO_ESCOLHA) {
+    var mira = document.getElementById('mira');
+    mira.hidden = false;
+    map.on('movestart', function(){ mira.classList.add('aMexer'); });
+    map.on('moveend', function(){
+      mira.classList.remove('aMexer');
+      var c = map.getCenter();
+      send({ type:'centro', lat:c.lat, lng:c.lng });
+    });
+    // O primeiro envio é imediato: quem abre o modo já está a apontar para
+    // algum sítio, e esperar pelo primeiro arrasto deixaria o botão de
+    // confirmar sem nome nenhum por baixo.
+    var c0 = map.getCenter();
+    send({ type:'centro', lat:c0.lat, lng:c0.lng });
   }
 
   if (pts.length > 1) { map.fitBounds(pts.map(function(p){return [p.lat,p.lng];}),{padding:[40,40]}); }

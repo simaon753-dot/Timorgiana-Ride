@@ -30,7 +30,14 @@ import { tipo } from '../design/tipografia.js';
 // A consulta só parte quando a pessoa pára de escrever: o Nominatim pede
 // no máximo cerca de um pedido por segundo, e disparar a cada tecla seria
 // abusivo e mais lento.
-export default function PlaceSearch({ placeholder, onEscolher, onFechar, onUsarLocalizacao }) {
+export default function PlaceSearch({
+  placeholder,
+  onEscolher,
+  onFechar,
+  onUsarLocalizacao,
+  onEscolherNoMapa,
+  rotuloMapa,
+}) {
   const { t } = useI18n();
   const { token } = useAuth();
   const [termo, setTermo] = useState('');
@@ -94,6 +101,16 @@ export default function PlaceSearch({ placeholder, onEscolher, onFechar, onUsarL
         >
           {/* Primeira opção, sempre visível: a maioria das recolhas é onde a
             pessoa está, e escondê-la atrás de um gesto seria escondê-la. */}
+          {/* Escolher no mapa, em vez de escrever.
+              Metade dos sítios de Díli não têm nome que se procure — um
+              portão, uma esquina, a casa de alguém. Escrever não os encontra;
+              apontar, sim. */}
+          {onEscolherNoMapa && termo.trim().length < 3 ? (
+            <Pressable style={[styles.item, styles.itemMapa]} onPress={onEscolherNoMapa}>
+              <Text style={styles.itemIcone}>🗺</Text>
+              <Text style={styles.itemNome}>{rotuloMapa}</Text>
+            </Pressable>
+          ) : null}
           {onUsarLocalizacao && termo.trim().length < 3 ? (
             <Pressable style={[styles.item, styles.itemGps]} onPress={onUsarLocalizacao}>
               <Text style={styles.itemIcone}>🎯</Text>
@@ -181,6 +198,7 @@ const criarEstilos = () =>
       borderColor: colors.border,
     },
     itemGps: { borderColor: colors.teal, backgroundColor: colors.tintaTeal },
+    itemMapa: { backgroundColor: colors.tintaCoral },
     itemIcone: { fontSize: 18, marginRight: spacing.md },
     itemNome: { ...tipo.subtitulo, color: colors.text },
     itemDetalhe: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },

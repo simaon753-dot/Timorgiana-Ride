@@ -99,6 +99,10 @@ export default {
 
   mapHint: 'Tap the map to choose the destination',
   useMyLocation: '📍 Use my location',
+  escolherEsteDestino: 'Choose this destination',
+  escolherEstaRecolha: 'Choose this pickup',
+  escolherNoMapa: 'Choose on the map',
+  aVerNome: 'Finding out what this place is…',
   arrastarPino: 'Not here? Drag the pin on the map',
   pontosFixados: 'Pickup and destination are set. Tap either one to change it.',
   gettingLocation: 'Getting your location…',
