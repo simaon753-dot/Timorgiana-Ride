@@ -148,6 +148,9 @@ export const api = {
   proporLugar: (token, body) => request('/lugares/propor', { method: 'POST', body, token }),
   // Onde fica este ponto, na divisão administrativa. Devolve também os
   // sucos do posto e as aldeias que já foram escritas neles.
+  // Os sítios com nome à volta de um ponto. Alimenta a lista que aparece
+  // por baixo do mapa enquanto se aponta.
+  lugaresPerto: (token, lat, lng) => request(`/lugares/perto?lat=${lat}&lng=${lng}`, { token }),
   lugarAdministrativo: (token, lat, lng) =>
     request(`/lugares/administrativo?lat=${lat}&lng=${lng}`, { token }),
   // A árvore toda, para escolher à mão quando as coordenadas não chegam.

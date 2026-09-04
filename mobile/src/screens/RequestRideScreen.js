@@ -74,6 +74,8 @@ export default function RequestRideScreen({ navigation, route }) {
   const [aEscolherNoMapa, setAEscolherNoMapa] = useState(null); // 'origem' | 'destino'
   const [centro, setCentro] = useState(null); // { lat, lng } do meio do mapa
   const [nomeCentro, setNomeCentro] = useState(null);
+  // Os sítios com nome à volta do ponto para onde se está a apontar.
+  const [pertoDoCentro, setPertoDoCentro] = useState([]);
 
   // Assim que houver os dois pontos, o servidor devolve rota, preços e
   // tempo de chegada num só pedido — é ele que fixa o preço.
@@ -176,8 +178,16 @@ export default function RequestRideScreen({ navigation, route }) {
     relogioNome.current = setTimeout(async () => {
       // Precisão zero: um ponto posto à mão é exacto por definição — quem o
       // apontou está a olhar para o mapa e viu onde o pôs.
-      const nome = await nomeDoLugar(lat, lng, 0);
+      //
+      // Os dois pedidos ao mesmo tempo e não um a seguir ao outro: são
+      // independentes, e numa rede de Díli esperar por um para começar o
+      // outro duplica o tempo até a lista aparecer.
+      const [nome, perto] = await Promise.all([
+        nomeDoLugar(lat, lng, 0),
+        api.lugaresPerto(token, lat, lng).catch(() => ({ lugares: [] })),
+      ]);
       setNomeCentro(nome || rotuloCoordenadas(lat, lng));
+      setPertoDoCentro(perto?.lugares || []);
     }, 500);
   }
 
@@ -198,6 +208,26 @@ export default function RequestRideScreen({ navigation, route }) {
     setAEscolherNoMapa(null);
     setCentro(null);
     setNomeCentro(null);
+    setPertoDoCentro([]);
+  }
+
+  // Escolheu um dos sítios com nome da lista.
+  //
+  // Fica com o NOME e as COORDENADAS desse sítio, e não com o ponto para onde
+  // o mapa estava a apontar. É essa a diferença: quem toca em "Hotel Timor"
+  // quer o Hotel Timor, e não um ponto a doze metros da porta dele.
+  function escolherDaLista(l) {
+    const ponto = { lat: l.lat, lng: l.lng, label: l.label, provisorio: false };
+    if (aEscolherNoMapa === 'origem') {
+      setOrigem(ponto);
+      setPrecisao(null);
+    } else {
+      setDestino(ponto);
+    }
+    setAEscolherNoMapa(null);
+    setCentro(null);
+    setNomeCentro(null);
+    setPertoDoCentro([]);
   }
 
   async function escolherNoMapa({ lat, lng }) {
@@ -348,6 +378,32 @@ export default function RequestRideScreen({ navigation, route }) {
           <Text style={styles.barraNome} numberOfLines={2}>
             {nomeCentro || (centro ? t('aVerNome') : t('gettingLocation'))}
           </Text>
+          {/* OS SÍTIOS COM NOME À VOLTA.
+              Apontar devolve uma rua; esta lista devolve um sítio. É a
+              diferença entre "Rua de Caicoli" e "Hotel Timor — entrada
+              lateral", e é o que faz o motorista parar à porta certa.
+              Vem da camada que os passageiros vão baptizando: cada nome que
+              alguém escreve aparece aqui à pessoa seguinte. */}
+          {pertoDoCentro.length ? (
+            <View style={styles.pertoLista}>
+              {pertoDoCentro.slice(0, 4).map((l) => (
+                <Pressable key={l.id} style={styles.pertoItem} onPress={() => escolherDaLista(l)}>
+                  <Text style={styles.pertoIcone}>📍</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.pertoNome} numberOfLines={1}>
+                      {l.label}
+                    </Text>
+                    {l.detalhe ? (
+                      <Text style={styles.pertoDetalhe} numberOfLines={1}>
+                        {l.detalhe}
+                      </Text>
+                    ) : null}
+                  </View>
+                  <Text style={styles.pertoMetros}>{l.metros} m</Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
           <Pressable
             style={[styles.botao, { marginTop: spacing.sm }]}
             onPress={confirmarEscolha}
@@ -362,6 +418,7 @@ export default function RequestRideScreen({ navigation, route }) {
               setAEscolherNoMapa(null);
               setCentro(null);
               setNomeCentro(null);
+              setPertoDoCentro([]);
             }}
             hitSlop={8}
             style={{ alignSelf: 'center', marginTop: spacing.sm }}
@@ -668,6 +725,26 @@ const criarEstilos = () =>
     barraNome: { ...tipo.subtitulo, color: colors.text, marginTop: 2, minHeight: 46 },
 
     barraCancelar: { ...tipo.corpo, color: colors.textMuted },
+
+    pertoLista: { marginTop: spacing.sm, gap: 2 },
+
+    pertoItem: {
+      flexDirection: 'row',
+
+      alignItems: 'center',
+
+      paddingVertical: spacing.sm,
+
+      gap: spacing.sm,
+    },
+
+    pertoIcone: { fontSize: 15 },
+
+    pertoNome: { ...tipo.corpoForte, color: colors.text },
+
+    pertoDetalhe: { ...tipo.legenda, color: colors.textMuted },
+
+    pertoMetros: { ...tipo.legenda, color: colors.textMuted },
 
     painel: {
       backgroundColor: colors.white,
