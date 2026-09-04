@@ -66,11 +66,24 @@ export default function PlaceSearch({
     return () => clearTimeout(temporizador);
   }, [termo]);
 
+  // O que faz a lista valer a pena ser desenhada.
+  //
+  // Faltava aqui o "escolher no mapa", e isso explicava uma assimetria que
+  // parecia não ter explicação: na RECOLHA funcionava, no DESTINO não.
+  //
+  // A razão é que "usar a minha localização" só é passado na recolha. Com o
+  // campo vazio, era a única coisa que fazia a lista aparecer — e o botão do
+  // mapa, que eu tinha posto lá dentro, ia com ela. No destino a lista nunca
+  // chegava a ser desenhada.
+  //
+  // Acrescentei uma linha dentro de uma caixa sem confirmar o que faz a caixa
+  // aparecer.
   const temAlgoParaMostrar =
     aProcurar ||
     resultados.length > 0 ||
     procurou ||
-    (onUsarLocalizacao && termo.trim().length < 3);
+    (onUsarLocalizacao && termo.trim().length < 3) ||
+    (onEscolherNoMapa && termo.trim().length < 3);
 
   return (
     // box-none: esta camada não intercepta toques; só os filhos o fazem.
