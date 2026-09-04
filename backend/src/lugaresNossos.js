@@ -93,15 +93,28 @@ export async function lugaresPerto(lat, lng, userId) {
   const grauLat = RAIO_M / 111320;
   const grauLng = RAIO_M / (111320 * Math.cos((lat * Math.PI) / 180));
 
+  // Os LIMITES calculados aqui, e não dentro da consulta.
+  //
+  // Estava `lat BETWEEN $1 - $3 AND $1 + $3`. O Postgres não consegue inferir
+  // o tipo de uma subtracção entre dois parâmetros sem tipo, e a consulta
+  // rebentava com erro 500 — que o meu primeiro teste escondeu, porque lia
+  // `lugares` de um objecto de erro e mostrava "nada por aqui".
+  //
+  // Quatro números já calculados não deixam nada por inferir.
+  const latMin = lat - grauLat;
+  const latMax = lat + grauLat;
+  const lngMin = lng - grauLng;
+  const lngMax = lng + grauLng;
+
   const rows = await query(
     `SELECT id, nome, lat, lng, aldeia, bairro, suco, posto, municipio, estado
        FROM lugares_propostos
       WHERE (estado = 'aceite' OR (estado = 'novo' AND user_id = $5))
-        AND lat BETWEEN $1 - $3 AND $1 + $3
-        AND lng BETWEEN $2 - $4 AND $2 + $4
+        AND lat BETWEEN $1 AND $2
+        AND lng BETWEEN $3 AND $4
       ORDER BY id DESC
       LIMIT 60`,
-    [lat, lng, grauLat, grauLng, userId ?? -1]
+    [latMin, latMax, lngMin, lngMax, userId ?? -1]
   );
 
   const saida = [];
