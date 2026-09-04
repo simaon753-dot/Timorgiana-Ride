@@ -118,9 +118,10 @@ export const termosMotorista = {
         'Before accepting rides, it is your sole responsibility to hold and keep valid:\n\n' +
         '• A driving licence valid and appropriate for the vehicle you drive;\n' +
         '• Duly updated vehicle documents and registration;\n' +
-        '• Valid vehicle insurance appropriate to the activity carried out, including the transport of passengers;\n' +
+        '• Motor third-party liability insurance, which is COMPULSORY in Timor-Leste for every motor vehicle — Public Instruction no. 07/2010, article 3(1);\n' +
         '• The vehicle in proper safety and mechanical condition.\n\n' +
-        'Insurance cover is the driver’s exclusive responsibility: TimorgianaRide neither provides nor replaces any passenger transport or accident insurance, and the driver assumes in full the risks and potential damage arising from their driving activity. If any document expires, you must stop accepting rides immediately.',
+        'Insurance is the driver’s exclusive responsibility and must be taken out with an insurer licensed by the Central Bank of Timor-Leste. TimorgianaRide is not an insurer, neither provides nor replaces any cover, and does not verify that a policy exists.\n\n' +
+        'IF THE VEHICLE IS NOT INSURED, the driver answers personally and without any limit for damage caused to passengers or third parties, with their entire estate. The legal cap of USD 20,000 protects those who hold a policy; those who do not have no cap at all. If any document expires, you must stop accepting rides immediately.',
     },
     {
       titulo: 'Document validation and protection',
