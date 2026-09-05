@@ -21,9 +21,32 @@
 // escreve meia palavra — esperar pelo zero é esperar por um caso que quase
 // nunca acontece a meio de uma palavra.
 //
-// O Google dá 10.000 chamadas por mês sem custo. Chamando-o sempre, e com a
-// memória de 24 horas a apanhar as repetições, continua muito acima do que
-// Díli faz.
+// Quanto custa. Em Março de 2025 o Google acabou com o crédito de 200 USD
+// por mês e passou a dar chamadas grátis POR ESCALÃO: 10.000 Essentials,
+// 5.000 Pro, 1.000 Enterprise. A máscara de campos aqui em baixo pede
+// displayName, formattedAddress e location, e os três são Pro — logo são
+// 5.000 buscas grátis por mês, e não 10.000 como esta linha dizia até
+// 2026-09-05. O número estava certo quando foi escrito e deixou de estar.
+//
+// Descer a Essentials não serve: esse escalão devolve o identificador do
+// lugar e mais nada — sem nome, sem morada, sem coordenadas — e para saber
+// onde fica era precisa uma segunda chamada, também ela paga.
+//
+// Chamando o Google em todas as buscas, e com a memória de 24 horas a
+// apanhar as repetições, 5.000 continua muito acima do que Díli faz.
+//
+// O tecto rígido não está aqui: está na quota diária definida na consola do
+// Google, na linha `SearchTextRequest per day`. Se um dia for atingida, as
+// chamadas passam a ser recusadas e o erro aparece em /api/health, no campo
+// `ultimoErroGoogle`. Quem vier a depurar uma busca que deixou de dar
+// resultados deve olhar aí primeiro.
+//
+// ARMADILHA para quem vier a seguir: as restantes quotas da Places API
+// estão postas a ZERO de propósito, por não usarmos nenhuma. Quem juntar
+// uma funcionalidade que chame outro método — fotografias, detalhes de um
+// lugar, busca por proximidade — vai recebê-la recusada e não vai perceber
+// porquê, porque o código está certo. É preciso subir a quota desse método
+// na consola. Está registado no DEPLOY.md, passo 4.
 //
 // POR QUE RAZÃO ISTO VIVE NO SERVIDOR e não no telemóvel: a chave do Google
 // é uma senha de facturação. Dentro da app, qualquer pessoa que descarregue
@@ -250,8 +273,9 @@ export async function procurar(termo, userId) {
   // palavra.
   //
   // Custa mais? Chama o Google em todas as buscas em vez de 12% delas. Mas
-  // a memória de 24 horas apanha as repetições, e são precisas 10.000
+  // a memória de 24 horas apanha as repetições, e são precisas 5.000
   // chamadas por mês para sair do gratuito — muito acima do que Díli faz.
+  // (Cinco mil, não dez: o escalão é Pro. Ver o cabeçalho do ficheiro.)
   const [osm, google] = await Promise.all([noNominatim(q), noGoogle(q)]);
 
   // O Google primeiro: em Timor-Leste conhece os negócios e os edifícios
