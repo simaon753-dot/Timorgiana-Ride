@@ -61,6 +61,15 @@ export const config = {
   // Segunda vez hoje que um argumento meu, bom no papel, cede a um número
   // de quem já opera aqui.
   //
+  // AS ÂNCORAS. Toda a tabela sai de dois preços que o Simão fixou para a
+  // viagem dele ao Cristo Rei (9,8 km, 27 minutos): $8,50 de carro e $3,65
+  // de mota.
+  //
+  // O primeiro número que ele deu para a mota foi $3,75 — e isso punha-nos
+  // um cêntimo ACIMA da recta deles, que aos 9,8 km dá $3,73. Ele tinha
+  // pedido para ficarmos abaixo e o número dele não o conseguia. Disse-lho,
+  // e ele baixou para $3,65.
+  //
   // FALTA UMA COISA QUE ELES TÊM: cobram mais por seis lugares do que por
   // quatro ($1,00 contra $0,85 por km). Nós temos o número de pessoas no
   // pedido e não o usamos no preço. Fica assinalado; não o faço sem o Simão
@@ -68,7 +77,7 @@ export const config = {
   tarifas: {
     motorbike: {
       base: Number(process.env.FARE_MOTO_BASE) || 0.35,
-      porKm: Number(process.env.FARE_MOTO_POR_KM) || 0.295,
+      porKm: Number(process.env.FARE_MOTO_POR_KM) || 0.287,
       porMinuto: Number(process.env.FARE_MOTO_POR_MINUTO) || 0.02,
       minimo: Number(process.env.FARE_MOTO_MINIMO) || 0.5,
     },
