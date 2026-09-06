@@ -158,6 +158,7 @@ export default {
   pedidoPor: 'Pedido por {nome}',
   voltarAoNorte: 'Voltar ao norte',
   seguirBussola: 'Seguir a bússola',
+  recentesTitulo: 'Pesquisas recentes',
   irParaMim: 'Voltar à minha localização',
   outraPessoaTitulo: 'Pedir para outra pessoa',
   outraPessoaNome: 'Nome de quem vai viajar',

@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { pesquisarLugares } from '../lib/geocode.js';
+import { lerRecentes, guardarRecente } from '../lib/recentes.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useI18n } from '../i18n/index.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
@@ -39,12 +40,29 @@ export default function PlaceSearch({
   rotuloMapa,
 }) {
   const { t } = useI18n();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [termo, setTermo] = useState('');
+  const [recentes, setRecentes] = useState([]);
   const [resultados, setResultados] = useState([]);
   const [aProcurar, setAProcurar] = useState(false);
   const [procurou, setProcurou] = useState(false);
   const abortRef = useRef(null);
+
+  useEffect(() => {
+    let vivo = true;
+    lerRecentes(user?.id).then((r) => vivo && setRecentes(r));
+    return () => {
+      vivo = false;
+    };
+  }, [user?.id]);
+
+  // Guarda o sítio e devolve-o a quem nos chamou. Guarda-se ANTES de sair
+  // porque este componente desaparece a seguir — a seguir já não há quem
+  // guarde nada.
+  function escolher(lugar) {
+    guardarRecente(user?.id, lugar);
+    onEscolher(lugar);
+  }
 
   useEffect(() => {
     if (termo.trim().length < 3) {
@@ -78,12 +96,14 @@ export default function PlaceSearch({
   //
   // Acrescentei uma linha dentro de uma caixa sem confirmar o que faz a caixa
   // aparecer.
+  const aMostrarRecentes = termo.trim().length < 3 && recentes.length > 0;
   const temAlgoParaMostrar =
     aProcurar ||
     resultados.length > 0 ||
     procurou ||
     (onUsarLocalizacao && termo.trim().length < 3) ||
-    (onEscolherNoMapa && termo.trim().length < 3);
+    (onEscolherNoMapa && termo.trim().length < 3) ||
+    aMostrarRecentes;
 
   return (
     // box-none: esta camada não intercepta toques; só os filhos o fazem.
@@ -130,11 +150,41 @@ export default function PlaceSearch({
               <Text style={styles.itemNome}>{t('useMyLocation')}</Text>
             </Pressable>
           ) : null}
+          {/* OS RECENTES, e só enquanto não se está a escrever.
+              Assim que a pessoa escreve três letras, quer resultados da
+              busca — deixar os recentes por cima seria pôr respostas velhas
+              à frente da pergunta nova.
+              Guarda-se o lugar inteiro, por isso tocar aqui é imediato: já
+              tem as coordenadas e não vai perguntar nada a ninguém. */}
+          {aMostrarRecentes ? (
+            <>
+              <Text style={styles.seccao}>{t('recentesTitulo')}</Text>
+              {recentes.map((r, i) => (
+                <Pressable
+                  key={`${r.lat},${r.lng},${i}`}
+                  style={styles.item}
+                  onPress={() => escolher(r)}
+                >
+                  <Text style={styles.itemIcone}>🕘</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.itemNome} numberOfLines={1}>
+                      {r.label}
+                    </Text>
+                    {r.detalhe ? (
+                      <Text style={styles.itemDetalhe} numberOfLines={1}>
+                        {r.detalhe}
+                      </Text>
+                    ) : null}
+                  </View>
+                </Pressable>
+              ))}
+            </>
+          ) : null}
           {aProcurar ? (
             <ActivityIndicator color={colors.teal} style={{ marginTop: spacing.lg }} />
           ) : resultados.length > 0 ? (
             resultados.map((r) => (
-              <Pressable key={r.id} style={styles.item} onPress={() => onEscolher(r)}>
+              <Pressable key={r.id} style={styles.item} onPress={() => escolher(r)}>
                 <Text style={styles.itemIcone}>📍</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.itemNome} numberOfLines={1}>
@@ -156,7 +206,7 @@ export default function PlaceSearch({
             ))
           ) : procurou ? (
             <Text style={styles.vazio}>{t('searchNothing')}</Text>
-          ) : (
+          ) : aMostrarRecentes ? null : (
             <Text style={styles.vazio}>{t('searchHint')}</Text>
           )}
         </ScrollView>
@@ -212,6 +262,13 @@ const criarEstilos = () =>
     },
     itemGps: { borderColor: colors.teal, backgroundColor: colors.tintaTeal },
     itemMapa: { backgroundColor: colors.tintaCoral },
+    seccao: {
+      ...tipo.etiqueta,
+      color: colors.textMuted,
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.xs,
+    },
     itemIcone: { fontSize: 18, marginRight: spacing.md },
     itemNome: { ...tipo.subtitulo, color: colors.text },
     itemDetalhe: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },

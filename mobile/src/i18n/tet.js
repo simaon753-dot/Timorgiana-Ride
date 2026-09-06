@@ -157,6 +157,7 @@ export default {
   pedidoPor: 'Husu husi {nome}',
   voltarAoNorte: 'Fila ba norte',
   seguirBussola: 'Tuir bússola',
+  recentesTitulo: "Buka ne'ebé foin lalais",
   irParaMim: "Fila ba ha'u-nia fatin",
   outraPessoaTitulo: 'Husu ba ema seluk',
   outraPessoaNome: "Naran ema ne'ebé sei viaja",
