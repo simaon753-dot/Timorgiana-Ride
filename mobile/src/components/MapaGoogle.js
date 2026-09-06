@@ -41,18 +41,31 @@ const COR = {
 // onde assentar o marcador.
 const PINO_L = 30;
 const PINO_A = 45;
+const CARTAO_L = 150;
 const ANCORA_Y = 42 / PINO_A;
 
+// O TAMANHO VAI DECLARADO NUMA VISTA À VOLTA, e não só nas propriedades do
+// SVG.
+//
+// O mapa nativo do Android mede a vista do marcador antes de o React lhe
+// ter dado forma. Sem largura e altura escritas, mede zero e desenha uma
+// fotografia do tamanho que adivinhou — foi assim que os pinos saíram
+// esmagados na primeira versão.
+//
+// No Leaflet isto não podia acontecer: o `iconSize` era obrigatório. Aqui é
+// opcional, e o que é opcional foi o que faltou.
 function Pino({ tipo: qual }) {
   const c = COR[qual] || COR.origem;
   return (
-    <Svg width={PINO_L} height={PINO_A} viewBox="0 0 36 54">
-      <Path d={GOTA} fill="none" stroke="#FFF" strokeWidth={5.6} strokeLinejoin="round" />
-      <Path d={GOTA} fill={c.fill} stroke={c.risco} strokeWidth={2.6} strokeLinejoin="round" />
-      <Bola cx={18} cy={18} r={6} fill="#FFF" />
-      <Bola cx={18} cy={50} r={2.4} fill="#FFF" />
-      <Bola cx={18} cy={50} r={1.7} fill={c.risco} />
-    </Svg>
+    <View style={{ width: PINO_L, height: PINO_A }}>
+      <Svg width={PINO_L} height={PINO_A} viewBox="0 0 36 54">
+        <Path d={GOTA} fill="none" stroke="#FFF" strokeWidth={5.6} strokeLinejoin="round" />
+        <Path d={GOTA} fill={c.fill} stroke={c.risco} strokeWidth={2.6} strokeLinejoin="round" />
+        <Bola cx={18} cy={18} r={6} fill="#FFF" />
+        <Bola cx={18} cy={50} r={2.4} fill="#FFF" />
+        <Bola cx={18} cy={50} r={1.7} fill={c.risco} />
+      </Svg>
+    </View>
   );
 }
 
@@ -462,13 +475,23 @@ const criarEstilos = () =>
 
     // O cartão do nome. Afastado do pino e subido até à cabeça — ver o
     // comentário na âncora do marcador.
-    folgaCartao: { paddingLeft: 22, paddingBottom: 20 },
+    // LARGURA FIXA, e não `maxWidth`.
+    //
+    // `maxWidth` diz até onde o cartão PODE crescer; não diz de que tamanho
+    // ele É. Numa lista ou num ecrã há sempre um pai que o estica até ao
+    // limite — dentro de um marcador não há nada, e ele encolhe até ao
+    // mínimo do conteúdo. Com texto que não parte, esse mínimo deu ZERO, e
+    // o que se via era só o risco de 3 pixéis da borda esquerda.
+    //
+    // 150 é o que cabe ao lado do pino num ecrã de telemóvel estreito sem
+    // sair pela direita quando o ponto está encostado a essa borda.
+    folgaCartao: { width: CARTAO_L + 22, paddingLeft: 22, paddingBottom: 20 },
     cartao: {
       backgroundColor: '#FFF',
       borderRadius: 10,
       paddingVertical: 7,
       paddingHorizontal: 12,
-      maxWidth: 190,
+      width: CARTAO_L,
       borderLeftWidth: 3,
       shadowColor: '#000',
       shadowOpacity: 0.28,
@@ -486,7 +509,7 @@ const criarEstilos = () =>
     cartaoDetalhe: { fontSize: 11, color: '#6A7671', marginTop: 1 },
     cartaoDetalheAgora: { color: '#9DB0AA' },
 
-    veiculo: { flexDirection: 'row', alignItems: 'center' },
+    veiculo: { flexDirection: 'row', alignItems: 'center', width: CARTAO_L + 34 },
     veiculoIcone: { fontSize: 26, lineHeight: 30 },
 
     miraCaixa: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
