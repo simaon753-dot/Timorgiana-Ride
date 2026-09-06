@@ -63,7 +63,34 @@ export function RideProvider({ children }) {
     const socket = createSocket(token);
     socketRef.current = socket;
 
-    socket.on('connect', () => setConnected(true));
+    // AO RELIGAR, VOLTAR A PERGUNTAR O QUE HÁ.
+    //
+    // O `ride:new` é anunciado UMA vez, a quem estiver ligado naquele
+    // instante. Um motorista que perca a rede durante cinco segundos — e em
+    // Díli perde — não ouve o anúncio, e um anúncio não se repete.
+    //
+    // Até 06/09/2026 a lista só era pedida em dois momentos: ao abrir a app,
+    // e ao dispensar uma viagem. Entre os dois, o motorista via "ligado" e
+    // uma lista que podia estar desactualizada há meia hora, sem nada que
+    // lho dissesse. Perdia trabalho, o passageiro esperava, e nenhum dos
+    // dois ficava a saber porquê.
+    //
+    // Descobriu-se no guião de teste, que sofria exactamente do mesmo mal:
+    // ficou preso a ignorar pedidos porque só ouvia o anúncio.
+    //
+    // Isto também corre na PRIMEIRA ligação, o que repete o pedido feito
+    // acima. É de propósito: uma chamada a mais ao abrir custa menos do que
+    // um caminho que só funciona da segunda vez em diante.
+    socket.on('connect', async () => {
+      setConnected(true);
+      if (!isDriver) return;
+      try {
+        const { rides } = await api.availableRides(token);
+        if (!cancelled) setRequests(rides || []);
+      } catch {
+        /* sem rede; a próxima ligação tenta outra vez */
+      }
+    });
     socket.on('disconnect', () => setConnected(false));
 
     socket.on('ride:new', (ride) => {
