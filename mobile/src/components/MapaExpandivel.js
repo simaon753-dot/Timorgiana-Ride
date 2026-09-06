@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import OSMMap from './OSMMap.js';
+// Ver a nota em RequestRideScreen.js: o OSMMap.js continua a servir de
+// saída de emergência e tem esta mesma interface.
+import Mapa from './MapaGoogle.js';
 import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
@@ -43,7 +45,7 @@ export default function MapaExpandivel({
   return (
     <View>
       <View style={styles.caixa}>
-        <OSMMap
+        <Mapa
           markers={markers}
           center={center}
           liveMarker={liveMarker}
@@ -61,7 +63,7 @@ export default function MapaExpandivel({
           {/* O mapa é remontado aqui — é um mapa novo, com espaço para
               mostrar o trajeto inteiro em vez da faixa do cartão. */}
           <View style={{ flex: 1 }}>
-            <OSMMap
+            <Mapa
               markers={markers}
               center={center}
               liveMarker={liveMarker}

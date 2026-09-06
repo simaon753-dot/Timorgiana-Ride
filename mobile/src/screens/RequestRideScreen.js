@@ -10,7 +10,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
-import OSMMap from '../components/OSMMap.js';
+// O mapa. Para voltar ao OpenStreetMap — se a chave do Google morrer —
+// troca-se esta linha por `import Mapa from '../components/OSMMap.js';`
+// e corre-se `npm run publicar`. A interface é a mesma nos dois.
+import Mapa from '../components/MapaGoogle.js';
 import PlaceSearch from '../components/PlaceSearch.js';
 import EscolherLugares from '../components/EscolherLugares.js';
 import NomearLugar from '../components/NomearLugar.js';
@@ -340,7 +343,7 @@ export default function RequestRideScreen({ navigation, route }) {
             pergunta nada.
             Para mudar, toca-se na recolha ou no destino e procura-se outra
             vez. É um gesto deliberado, e é essa a diferença. */}
-        <OSMMap
+        <Mapa
           pickable
           fill
           markers={marcadores}

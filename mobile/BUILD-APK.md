@@ -60,6 +60,72 @@ perfil `preview`:
 dentada ⚙️ no ecrã de boas-vindas e escreve lá o endereço — há um botão
 "Testar ligação" que confirma se o servidor responde.
 
+## Passo 3b — A chave do mapa (obrigatório desde a versão 1.2.0)
+
+O mapa passou de OpenStreetMap para **Google Maps nativo**. A chave tem de
+ir para dentro do APK — é assim que o mapa nativo funciona.
+
+Como este repositório é **público**, a chave NÃO está no `app.json`. O
+`app.config.js` lê-a do ambiente, e no EAS guarda-se como segredo:
+
+```bash
+npx eas-cli secret:create --scope project --name GOOGLE_MAPS_ANDROID_KEY --value COLAR-A-CHAVE
+```
+
+Uma só vez. A partir daí todas as compilações a recebem.
+
+Para correr localmente com mapa:
+
+```bash
+GOOGLE_MAPS_ANDROID_KEY=... npx expo start --clear
+```
+
+Sem a chave, o `app.config.js` avisa em voz alta e o APK sai com o **mapa
+cinzento** — funciona tudo o resto, mas o mapa não aparece.
+
+### A chave na consola do Google
+
+- **Projecto:** TimorgianaRide
+- **API activada:** Maps SDK for Android (só essa)
+- **Restrição de aplicação:** Apps Android
+- **Pacote:** `tl.timorgiana.ride`
+- **SHA-1:** o do certificado com que o EAS assina o APK
+
+Para descobrir o SHA-1 sem instalar Java: está no [expo.dev](https://expo.dev),
+em Credentials do projecto. (Também se tira do APK, mas o `keytool` deste Mac
+está sem Java — a assinatura é v2 e vive no bloco de assinatura, não no
+`META-INF`.)
+
+O SHA-1 actual, do certificado em uso:
+
+```
+80:9A:F9:78:B2:72:3A:37:D7:20:28:1B:5B:69:CF:D6:94:67:75:4C
+```
+
+### ⚠️ Armadilha: a Google Play assina outra vez
+
+Se um dia publicares na **Google Play**, a Google volta a assinar a app com
+um certificado **dela**. O SHA-1 acima deixa de servir e o mapa fica cinzento
+em todos os telemóveis que instalarem por lá — e vai parecer um erro do
+código, porque o APK que compilaste à mão continua a funcionar.
+
+A correcção é acrescentar o **segundo** SHA-1 (o que a Play Console mostra em
+*App Integrity → App signing*) à mesma restrição, sem tirar o primeiro.
+
+### Se o mapa aparecer cinzento
+
+Por esta ordem:
+
+1. Esperar **cinco minutos** — a consola avisa que as alterações demoram
+2. Confirmar que o segredo existe: `npx eas-cli secret:list`
+3. Confirmar o SHA-1 do APK que está mesmo instalado (pode não ser o do
+   certificado actual, se foi compilado antes de uma mudança de credenciais)
+4. Confirmar que a Maps SDK for Android está activada no projecto certo
+
+A saída de emergência: trocar o import de `MapaGoogle.js` para `OSMMap.js`
+em `RequestRideScreen.js` e `MapaExpandivel.js` e correr `npm run publicar`.
+Volta ao OpenStreetMap em minutos, sem APK novo.
+
 ## Passo 4 — Gerar o APK
 
 ```bash

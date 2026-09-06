@@ -2,7 +2,7 @@
   "expo": {
     "name": "TimorgianaRide",
     "slug": "timorgianaride",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -30,8 +30,6 @@
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
-        "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"
       ],
