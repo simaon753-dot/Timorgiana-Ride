@@ -105,6 +105,14 @@ export default function RequestRideScreen({ navigation, route }) {
   // Se dá para ir ao sítio que a mira aponta. `null` = ainda não se sabe, e
   // nesse caso não se diz nada.
   const [coberturaCentro, setCoberturaCentro] = useState(null);
+  // O MESMO PARA O DESTINO JÁ ESCOLHIDO, e não só para a mira.
+  //
+  // O aviso do modo de apontar só existe enquanto se aponta. Um destino
+  // escolhido pela pesquisa ou por um toque no mapa não passava por ele: a
+  // pessoa via o preço, carregava em Pedir, e só aí o servidor recusava.
+  //
+  // Descobrir que não há serviço depois de decidir é descobrir tarde de mais.
+  const [coberturaDestino, setCoberturaDestino] = useState(null);
 
   // Assim que houver os dois pontos, o servidor devolve rota, preços e
   // tempo de chegada num só pedido — é ele que fixa o preço.
@@ -470,6 +478,23 @@ export default function RequestRideScreen({ navigation, route }) {
   //
   // Quem responde é o servidor, que pergunta ao Google uma vez quando o
   // lugar é aprovado e guarda a resposta.
+  // Perguntado sempre que o destino muda, venha ele de onde vier.
+  useEffect(() => {
+    if (!destino || !token) {
+      setCoberturaDestino(null);
+      return undefined;
+    }
+    let vivo = true;
+    setCoberturaDestino(null);
+    api
+      .cobertura(token, destino.lat, destino.lng)
+      .then((r) => vivo && setCoberturaDestino(r ? !!r.ok : null))
+      .catch(() => vivo && setCoberturaDestino(null));
+    return () => {
+      vivo = false;
+    };
+  }, [destino?.lat, destino?.lng, token]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const trocoAPe =
     troco && origem && origem.lat === troco.para.lat && origem.lng === troco.para.lng
       ? troco
@@ -512,7 +537,7 @@ export default function RequestRideScreen({ navigation, route }) {
   const outroCompleto =
     !paraOutra ||
     (!!outroNome.trim() && !!outroTelefone.trim() && (!outroMenor || outroConsentimento));
-  const podePedir = !!origem && !!destino && !aPedir && outroCompleto;
+  const podePedir = !!origem && !!destino && !aPedir && outroCompleto && coberturaDestino !== false;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -792,6 +817,16 @@ export default function RequestRideScreen({ navigation, route }) {
               consentimento={outroConsentimento}
               onConsentimento={setOutroConsentimento}
             />
+          ) : null}
+
+          {/* O aviso do destino, onde quer que ele tenha sido escolhido.
+              Fica aqui em cima e não junto ao botão: quem lê isto ainda pode
+              tocar no destino e escolher outro, que é a acção que resolve. */}
+          {coberturaDestino === false ? (
+            <View style={styles.semServico}>
+              <Text style={styles.semServicoTexto}>{t('semServico')}</Text>
+              <Text style={styles.semServicoNota}>{t('semServicoNota')}</Text>
+            </View>
           ) : null}
 
           {erro ? <Text style={styles.erro}>{erro}</Text> : null}
