@@ -88,6 +88,47 @@ def desenhar(fill, risco):
     return img
 
 
+# ── O carro ────────────────────────────────────────────────────────────
+#
+# Era um emoji dentro de um marcador, e por isso desenhado POR CIMA do mapa
+# quando os marcadores com filhos se revelaram inúteis. Mas por cima do mapa
+# a posição só se recalcula quando o mapa pára: ao arrastar, o carro ficava
+# colado ao ecrã e parecia andar sozinho. O Simão viu-o de imediato.
+#
+# Como imagem volta a ser um marcador de verdade, e um marcador anda com o
+# mapa sem ninguém ter de calcular nada.
+#
+# Um distintivo escuro com a silhueta branca: escuro para se distinguir dos
+# dois pinos, que são os pontos parados, e redondo porque não marca um sítio
+# — marca quem está a mexer-se.
+CARRO = 40
+FUNDO = '#14201D'
+REALCE = '#FF6B4A'
+
+
+def desenhar_carro():
+    img = Image.new('RGBA', (CARRO * S, CARRO * S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    m = 2 * S  # margem para a sombra branca não encostar ao bordo
+    # O anel branco por fora, pela mesma razão do halo dos pinos: sobre um
+    # telhado escuro, um distintivo escuro desaparece.
+    d.ellipse([m - 1.6 * S, m - 1.6 * S, CARRO * S - m + 1.6 * S, CARRO * S - m + 1.6 * S],
+              fill='#FFFFFF')
+    d.ellipse([m, m, CARRO * S - m, CARRO * S - m], fill=FUNDO, outline=REALCE, width=int(1.2 * S))
+
+    # A silhueta, de lado, como o emoji que substitui.
+    def r(x0, y0, x1, y1, raio, cor):
+        d.rounded_rectangle([x0 * S, y0 * S, x1 * S, y1 * S], radius=raio * S, fill=cor)
+
+    r(10.5, 20.5, 29.5, 26, 1.6, '#FFFFFF')   # corpo
+    r(14, 14.5, 26, 21, 2.2, '#FFFFFF')       # tejadilho
+    r(15.4, 16, 24.6, 20.4, 1.2, FUNDO)       # vidros
+    for cx in (15.5, 24.5):                    # rodas
+        d.ellipse([(cx - 2.6) * S, (26 - 2.6) * S, (cx + 2.6) * S, (26 + 2.6) * S], fill='#FFFFFF')
+        d.ellipse([(cx - 1.2) * S, (26 - 1.2) * S, (cx + 1.2) * S, (26 + 1.2) * S], fill=FUNDO)
+    return img
+
+
 def main():
     aqui = os.path.dirname(os.path.abspath(__file__))
     pasta = os.path.join(aqui, '..', 'assets', 'mapa')
@@ -100,6 +141,13 @@ def main():
             caminho_ficheiro = os.path.join(pasta, f'pino-{nome}{sufixo}.png')
             alvo.save(caminho_ficheiro)
             print('escrito', os.path.relpath(caminho_ficheiro, aqui))
+
+    carro = desenhar_carro()
+    for sufixo, escala in (('', 1), ('@2x', 2), ('@3x', 3)):
+        alvo = carro.resize((CARRO * escala, CARRO * escala), Image.LANCZOS)
+        caminho_ficheiro = os.path.join(pasta, f'carro{sufixo}.png')
+        alvo.save(caminho_ficheiro)
+        print('escrito', os.path.relpath(caminho_ficheiro, aqui))
 
 
 if __name__ == '__main__':

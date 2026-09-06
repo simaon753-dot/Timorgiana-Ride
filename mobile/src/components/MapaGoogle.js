@@ -66,6 +66,16 @@ const IMAGEM = {
   origem: require('../../assets/mapa/pino-origem.png'),
   destino: require('../../assets/mapa/pino-destino.png'),
 };
+
+// O VEÍCULO TAMBÉM É IMAGEM, e voltou a ser marcador por causa disso.
+//
+// Foi por cima do mapa durante meia hora, e o Simão apanhou-o: ao arrastar,
+// a posição em pixéis não se recalcula, o carro fica colado ao ecrã e o mapa
+// desliza por baixo. Parecia que o carro andava sozinho.
+//
+// Um marcador anda com o mapa sem ninguém calcular nada. O que faltava era
+// uma forma de o desenhar que funcionasse — e é a mesma dos pinos.
+const CARRO = require('../../assets/mapa/carro.png');
 const ANCORA_Y = 42 / PINO_A;
 
 // O TAMANHO VAI DECLARADO NUMA VISTA À VOLTA, e não só nas propriedades do
@@ -491,6 +501,15 @@ export default function MapaGoogle({
             image={IMAGEM[p.qual]}
           />
         ))}
+
+        {liveMarker ? (
+          <Marker
+            coordinate={{ latitude: liveMarker.lat, longitude: liveMarker.lng }}
+            anchor={{ x: 0.5, y: 0.5 }}
+            zIndex={1000}
+            image={CARRO}
+          />
+        ) : null}
       </MapView>
 
       {/* Os cartões dos lugares nossos, desenhados sobre o mapa.
@@ -520,13 +539,17 @@ export default function MapaGoogle({
           );
         })}
 
-      {veiculo ? (
+      {/* Só o RÓTULO do veículo fica por cima — o carro é marcador.
+          O rótulo tem de continuar aqui porque o texto muda a cada rua, e
+          não há imagem que sirva. Esconde-se enquanto o dedo arrasta, como
+          os outros cartões: um nome atrasado a flutuar diz que aquela rua é
+          a de agora, e não é. O carro, esse, nunca desaparece. */}
+      {veiculo && liveLabel && !aMexer ? (
         <View
           pointerEvents="none"
-          style={[styles.veiculo, { left: veiculo.x - 13, top: veiculo.y - 15 }]}
+          style={[styles.veiculo, { left: veiculo.x + 24, top: veiculo.y - 17 }]}
         >
-          <Text style={styles.veiculoIcone}>🚗</Text>
-          {liveLabel ? <Cartao nome={liveLabel} qual="origem" agora /> : null}
+          <Cartao nome={liveLabel} qual="origem" agora />
         </View>
       ) : null}
 
@@ -604,13 +627,7 @@ const criarEstilos = () =>
     cartaoDetalhe: { fontSize: 11, color: '#6A7671', marginTop: 1 },
     cartaoDetalheAgora: { color: '#9DB0AA' },
 
-    veiculo: {
-      position: 'absolute',
-      flexDirection: 'row',
-      alignItems: 'center',
-      width: CARTAO_L + 34,
-    },
-    veiculoIcone: { fontSize: 26, lineHeight: 30 },
+    veiculo: { position: 'absolute', width: CARTAO_L },
 
     cartaoSolto: { position: 'absolute' },
     miraCaixa: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
