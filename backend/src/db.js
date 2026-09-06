@@ -260,6 +260,24 @@ export async function initSchema() {
   // NULL quer dizer "ainda não se perguntou", e é diferente de FALSE. Um
   // lugar por perguntar não se desenha — é melhor não mostrar do que mostrar
   // o que talvez seja repetido.
+  // A CONFIRMAÇÃO DO EMAIL.
+  //
+  // O email passou a ser obrigatório no registo, e serve para recuperar a
+  // conta quando a senha se perde. Um endereço mal escrito nesse dia não vale
+  // nada — e a altura de descobrir que está errado é no registo, não seis
+  // meses depois com a pessoa sem forma de entrar.
+  //
+  // `email_confirmado` começa FALSO e não impede nada: quem se regista entra
+  // e usa a app. É uma faixa no perfil que não desaparece, e não uma porta.
+  await query(
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS email_confirmado BOOLEAN NOT NULL DEFAULT FALSE`
+  );
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_codigo_hash TEXT`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_codigo_expira TIMESTAMPTZ`);
+  await query(
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS email_codigo_tentativas INTEGER NOT NULL DEFAULT 0`
+  );
+
   await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS google_conhece BOOLEAN`);
 
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS viajante_nome TEXT`);

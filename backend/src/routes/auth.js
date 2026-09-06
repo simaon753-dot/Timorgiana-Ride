@@ -5,7 +5,11 @@ import {
   verifyPassword,
   toPublicUser,
   normalizePhone,
+  findUserById,
 } from '../users.js';
+import { emailBemFormado } from '../email.js';
+import { emitirConfirmacao, confirmarComCodigo } from '../confirmacaoEmail.js';
+import { query } from '../db.js';
 import { signToken, requireAuth } from '../auth.js';
 import { savePushToken } from '../drivers.js';
 import { usarCodigo } from '../recuperacao.js';
@@ -28,6 +32,19 @@ authRouter.post('/register', async (req, res) => {
     }
     if (!password || password.length < 6) {
       return res.status(400).json({ error: 'A palavra-passe deve ter pelo menos 6 caracteres.' });
+    }
+    // O EMAIL PASSA A SER OBRIGATÓRIO.
+    //
+    // Não para entrar — entra-se com o telemóvel e a senha, que é o que a
+    // pessoa sabe de cor. É para o dia em que a senha se perde: sem um
+    // endereço, a única recuperação é telefonar ao administrador.
+    //
+    // Só se verifica o FORMATO. Um endereço errado mas bem escrito
+    // (`simao@gmial.com`) é válido e não se apanha aqui nem em lado nenhum —
+    // é para isso que existe o código de confirmação, que simplesmente não
+    // chega.
+    if (!emailBemFormado(email)) {
+      return res.status(400).json({ error: 'Escreve um email válido — serve para recuperares a conta.' });
     }
     if (!ROLES.includes(role)) {
       return res.status(400).json({ error: 'Tipo de conta inválido.' });
@@ -55,6 +72,18 @@ authRouter.post('/register', async (req, res) => {
       termsVersion,
       privacyVersion,
     });
+    // O CÓDIGO PARTE, MAS NINGUÉM ESPERA POR ELE.
+    //
+    // Sem `await`: quem se está a inscrever entra já. Se o serviço de correio
+    // estiver lento ou em baixo, o registo conclui-se na mesma e a pessoa vê
+    // a faixa a pedir confirmação — que é o que a leva a tentar outra vez.
+    //
+    // Um serviço de fora no caminho de quem se inscreve são utilizadores
+    // perdidos à porta, pela funcionalidade que só serve num dia mau.
+    emitirConfirmacao(created.id).catch((e) =>
+      console.error('[auth] confirmação de email:', e.message)
+    );
+
     return res.status(201).json({ user: toPublicUser(created), token: signToken(created) });
   } catch (err) {
     console.error('[auth/register]', err);
@@ -109,4 +138,62 @@ authRouter.post('/push-token', requireAuth, async (req, res) => {
 // GET /api/auth/me — valida o token e devolve o utilizador atual
 authRouter.get('/me', requireAuth, (req, res) => {
   return res.json({ user: toPublicUser(req.user) });
+});
+
+// POST /api/auth/email/confirmar  — { codigo }
+authRouter.post('/email/confirmar', requireAuth, async (req, res) => {
+  try {
+    const r = await confirmarComCodigo(req.user.id, req.body?.codigo);
+    if (!r.ok) {
+      return res.status(400).json({ error: 'Código inválido ou expirado. Peça outro.' });
+    }
+    const u = await findUserById(req.user.id);
+    return res.json({ ok: true, user: toPublicUser(u) });
+  } catch (e) {
+    console.error('[auth/email/confirmar]', e);
+    return res.status(500).json({ error: 'Não foi possível confirmar.' });
+  }
+});
+
+// POST /api/auth/email/reenviar
+authRouter.post('/email/reenviar', requireAuth, async (req, res) => {
+  try {
+    const r = await emitirConfirmacao(req.user.id);
+    // Não se diz se o envio correu bem nem se o email existe. Só que se
+    // tentou: quem tem o endereço certo recebe, quem o tem errado não — e é
+    // isso que lhe diz que o escreveu mal.
+    return res.json({ ok: true, minutos: r?.minutos ?? null });
+  } catch (e) {
+    console.error('[auth/email/reenviar]', e);
+    return res.status(500).json({ error: 'Não foi possível enviar.' });
+  }
+});
+
+// POST /api/auth/email  — { email }  corrigir o endereço
+//
+// TEM DE EXISTIR, e não é um extra: um endereço bem formado mas errado só se
+// descobre quando o código não chega, e nessa altura a pessoa precisa de o
+// poder trocar. Sem isto, um engano de uma letra tornava a conta
+// irrecuperável para sempre.
+authRouter.post('/email', requireAuth, async (req, res) => {
+  try {
+    const novo = String(req.body?.email || '').trim();
+    if (!emailBemFormado(novo)) {
+      return res.status(400).json({ error: 'Escreve um email válido.' });
+    }
+    // Muda o endereço e volta a pôr por confirmar: o que estava confirmado
+    // era o antigo, e confirmar um não confirma o outro.
+    await query(
+      `UPDATE users SET email = $2, email_confirmado = FALSE, email_codigo_hash = NULL,
+              email_codigo_expira = NULL, email_codigo_tentativas = 0
+        WHERE id = $1`,
+      [req.user.id, novo]
+    );
+    await emitirConfirmacao(req.user.id);
+    const u = await findUserById(req.user.id);
+    return res.json({ ok: true, user: toPublicUser(u) });
+  } catch (e) {
+    console.error('[auth/email]', e);
+    return res.status(500).json({ error: 'Não foi possível guardar.' });
+  }
 });

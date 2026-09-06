@@ -67,7 +67,7 @@ export default function RegisterScreen({ navigation, route }) {
     const payload = {
       name,
       phone,
-      email: email.trim() || undefined,
+      email: email.trim(),
       password,
       role,
       termsVersion: VERSAO_TERMOS,
@@ -140,11 +140,17 @@ export default function RegisterScreen({ navigation, route }) {
               keyboardType="phone-pad"
               autoCapitalize="none"
             />
+            {/* O EMAIL DEIXOU DE SER OPCIONAL.
+                Não serve para entrar — entra-se com o telemóvel e a senha,
+                que é o que se sabe de cor. Serve para o dia em que a senha se
+                perde: sem endereço, a única recuperação é telefonar a alguém.
+                A dica diz para que é. Um campo obrigatório sem razão à vista
+                parece um capricho, e as pessoas escrevem qualquer coisa. */}
             <TextField
               label={t('email')}
-              optionalLabel={t('optional')}
               value={email}
               onChangeText={setEmail}
+              hint={t('emailPorque')}
               keyboardType="email-address"
               autoCapitalize="none"
             />

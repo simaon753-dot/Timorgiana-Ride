@@ -150,6 +150,11 @@ export const api = {
   // sucos do posto e as aldeias que já foram escritas neles.
   // Os sítios com nome à volta de um ponto. Alimenta a lista que aparece
   // por baixo do mapa enquanto se aponta.
+  confirmarEmail: (token, codigo) =>
+    request('/auth/email/confirmar', { method: 'POST', token, body: { codigo } }),
+  reenviarEmail: (token) => request('/auth/email/reenviar', { method: 'POST', token, body: {} }),
+  mudarEmail: (token, email) => request('/auth/email', { method: 'POST', token, body: { email } }),
+
   lugaresPerto: (token, lat, lng, raio) =>
     request(`/lugares/perto?lat=${lat}&lng=${lng}${raio ? `&raio=${Math.round(raio)}` : ''}`, {
       token,

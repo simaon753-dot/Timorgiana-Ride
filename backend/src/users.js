@@ -18,6 +18,7 @@ export function toPublicUser(row) {
     name: row.name,
     phone: row.phone,
     email: row.email || null,
+    emailConfirmado: !!row.email_confirmado,
     role: row.role,
     ratingAvg: row.rating_avg,
     ratingCount: row.rating_count,

@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext.js';
 import { useModo } from '../context/ModoContext.js';
 import { nomeDaCor, hexDaCor } from '../lib/corVeiculo.js';
 import Voltar from '../components/Voltar.js';
+import ConfirmarEmail from '../components/ConfirmarEmail.js';
 import Retrato from '../design/Retrato.js';
 import BarraEstado from '../design/BarraEstado.js';
 
@@ -37,6 +38,11 @@ export default function PerfilScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <BarraEstado />
       <ScrollView contentContainerStyle={styles.conteudo}>
+        {/* Em cima de tudo, e não numa secção lá em baixo. Quem abre o perfil
+            tem de a ver sem procurar — é a única coisa neste ecrã que fica
+            por resolver, e a única que custa a conta no dia em que a senha se
+            perder. Desaparece sozinha quando confirmar. */}
+        <ConfirmarEmail />
         {/* A roda dentada fica ao lado do perfil, como pediste: as
             definições pertencem-lhe, mas não lhe ocupam o espaço. */}
         {/* Voltou a ser um ecrã empilhado quando saiu da barra de baixo,
