@@ -263,6 +263,20 @@ function RequestCard({ ride, onAccept }) {
           {t('originField')}: {ride.originLabel}
         </Text>
       ) : null}
+      {/* PARA OUTRA PESSOA, dito antes de aceitar.
+          É aqui que o consentimento do motorista acontece de facto: se ele
+          só soubesse depois de aceitar, já não estaria a escolher — estaria
+          a ser informado de uma escolha feita por outro.
+          O nome de quem viaja não vem nesta fase, de propósito: não é
+          preciso para decidir, e a lista de pedidos vai para todos os
+          motoristas disponíveis do município. */}
+      {ride.viajante ? (
+        <View style={[styles.paraOutra, ride.viajante.menor && styles.paraOutraMenor]}>
+          <Text style={styles.paraOutraTexto}>
+            {ride.viajante.menor ? `👦 ${t('pedidoMenor')}` : `👤 ${t('pedidoOutraPessoa')}`}
+          </Text>
+        </View>
+      ) : null}
       <View style={styles.metaRow}>
         <Text style={styles.passenger}>🧍 {ride.passenger?.name}</Text>
         <Text style={styles.wants}>
@@ -326,7 +340,17 @@ function ActiveRideCard({
 
       <View style={styles.passengerBox}>
         <Text style={styles.boxTitle}>{t('yourPassenger')}</Text>
-        <Text style={styles.passengerName}>{ride.passenger?.name}</Text>
+        {/* QUEM VIAJA À FRENTE, quem pediu por baixo.
+            O motorista vai buscar uma pessoa, não uma conta. Pôr o nome do
+            titular em cima seria mandá-lo perguntar pela pessoa errada à
+            porta de casa. */}
+        <Text style={styles.passengerName}>{ride.viajante?.nome || ride.passenger?.name}</Text>
+        {ride.viajante ? (
+          <Text style={styles.quemPediu}>
+            {ride.viajante.menor ? `👦 ${t('pedidoMenor')} · ` : ''}
+            {t('pedidoPor', { nome: ride.passenger?.name || '—' })}
+          </Text>
+        ) : null}
         {/* O motorista precisa de saber em que se está a meter antes de
             arrancar: quanto tempo e quantos quilómetros. */}
         {ride.durationMin != null ? (
@@ -343,13 +367,18 @@ function ActiveRideCard({
             {ride.fareUsd != null ? `$${ride.fareUsd}` : t('fareToAgree')}
           </Text>
         </View>
-        {ride.passenger?.phone ? (
+        {/* O NÚMERO DE QUEM ESTÁ À ESPERA, não o da conta.
+            Quem pediu pode estar em casa; quem atende tem de ser quem está
+            no passeio. Sem viajante, é o mesmo número de sempre. */}
+        {ride.viajante?.telefone || ride.passenger?.phone ? (
           <Pressable
             style={styles.callBtn}
-            onPress={() => Linking.openURL(`tel:${ride.passenger.phone}`)}
+            onPress={() =>
+              Linking.openURL(`tel:${ride.viajante?.telefone || ride.passenger.phone}`)
+            }
           >
             <Text style={styles.callBtnText}>
-              📞 {t('callLabel')} · {ride.passenger.phone}
+              📞 {t('callLabel')} · {ride.viajante?.telefone || ride.passenger.phone}
             </Text>
           </Pressable>
         ) : null}
@@ -492,7 +521,20 @@ const criarEstilos = () =>
       padding: spacing.md,
     },
     boxTitle: { ...tipo.corpoForte, color: colors.teal, marginBottom: spacing.xs },
-    passengerName: { ...tipo.titulo, color: colors.text, marginBottom: spacing.sm },
+    passengerName: { ...tipo.titulo, color: colors.text, marginBottom: spacing.xs },
+    quemPediu: { ...tipo.legenda, color: colors.textMuted, marginBottom: spacing.sm },
+    // O distintivo de "para outra pessoa". Coral quando é um menor: não é
+    // um erro, é uma coisa que o motorista tem de ver antes de decidir.
+    paraOutra: {
+      alignSelf: 'flex-start',
+      paddingVertical: 3,
+      paddingHorizontal: spacing.sm,
+      borderRadius: radius.sm,
+      backgroundColor: colors.tintaTeal,
+      marginBottom: spacing.xs,
+    },
+    paraOutraMenor: { backgroundColor: colors.tintaCoral },
+    paraOutraTexto: { ...tipo.legenda, color: colors.text, fontWeight: '700' },
     row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
     rowLabel: { ...tipo.pequeno, color: colors.textMuted },
     rowValue: { ...tipo.corpoForte, color: colors.text },

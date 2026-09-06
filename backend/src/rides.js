@@ -87,7 +87,7 @@ export function toPublicRide(row, opcoes = {}) {
     passenger: {
       id: row.passenger_id,
       name: row.p_name,
-      ...(row.driver_id ? { phone: row.p_phone } : {}),
+      ...(paraPassageiro || row.driver_id ? { phone: row.p_phone } : {}),
     },
     // ── Quem viaja, quando não é quem pede ──────────────────────────
     //
@@ -103,7 +103,18 @@ export function toPublicRide(row, opcoes = {}) {
       ? {
           viajante: {
             menor: !!row.viajante_menor,
-            ...(row.driver_id
+            // A QUEM DIZ RESPEITO, e não "depois de aceitar".
+            //
+            // A primeira versão escondia o nome e o telefone até haver
+            // motorista. Protegia bem contra o motorista errado e apanhava
+            // também QUEM PEDIU — que os acabou de escrever e precisa de os
+            // reler no ecrã da viagem para confirmar que não trocou um
+            // algarismo do número.
+            //
+            // Quem pediu vê sempre. O motorista vê depois de aceitar. Antes
+            // disso recebe só o que precisa para decidir, que é saber que a
+            // viagem é para outra pessoa e se essa pessoa é menor.
+            ...(paraPassageiro || row.driver_id
               ? { nome: row.viajante_nome, telefone: row.viajante_telefone || null }
               : {}),
           },

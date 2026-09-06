@@ -16,6 +16,7 @@ import * as Location from 'expo-location';
 import Mapa from '../components/MapaGoogle.js';
 import PlaceSearch from '../components/PlaceSearch.js';
 import EscolherLugares from '../components/EscolherLugares.js';
+import ParaOutraPessoa from '../components/ParaOutraPessoa.js';
 import NomearLugar from '../components/NomearLugar.js';
 import SegmentedPicker from '../components/SegmentedPicker.js';
 import { LUGARES } from '../dados/veiculos.js';
@@ -61,6 +62,12 @@ export default function RequestRideScreen({ navigation, route }) {
   const [aCalcular, setACalcular] = useState(false);
   const [veiculo, setVeiculo] = useState('car');
   const [pessoas, setPessoas] = useState(1);
+  // Pedir para outra pessoa. Tudo vazio no caso normal, que é a maioria.
+  const [paraOutra, setParaOutra] = useState(false);
+  const [outroNome, setOutroNome] = useState('');
+  const [outroTelefone, setOutroTelefone] = useState('');
+  const [outroMenor, setOutroMenor] = useState(false);
+  const [outroConsentimento, setOutroConsentimento] = useState(false);
   const [gps, setGps] = useState(false);
   // O erro que o GPS declarou na última leitura. Desenha o círculo no mapa
   // e impede a app de nomear um edifício quando não tem como saber qual é.
@@ -307,6 +314,14 @@ export default function RequestRideScreen({ navigation, route }) {
         originLng: origem.lng,
         vehicleType: veiculo,
         ...(veiculo === 'car' ? { passengers: pessoas } : {}),
+        ...(paraOutra
+          ? {
+              viajanteNome: outroNome.trim(),
+              viajanteTelefone: outroTelefone.trim(),
+              viajanteMenor: outroMenor,
+              consentimentoMenor: outroMenor ? outroConsentimento : undefined,
+            }
+          : {}),
       });
       navigation.goBack();
     } catch (e) {
@@ -353,7 +368,16 @@ export default function RequestRideScreen({ navigation, route }) {
   // cotação que não chegava bloqueava por completo a funcionalidade
   // principal da aplicação, por causa de um número que é apenas
   // informativo.
-  const podePedir = !!origem && !!destino && !aPedir;
+  // O BOTÃO SÓ ACENDE COM O PEDIDO COMPLETO.
+  //
+  // O servidor recusa na mesma — é ele quem manda, e um telemóvel
+  // modificado manda o que quiser. Mas deixar o botão aceso para depois
+  // devolver um erro é fazer a pessoa carregar para descobrir o que lhe
+  // falta. O ecrã já sabe.
+  const outroCompleto =
+    !paraOutra ||
+    (!!outroNome.trim() && !!outroTelefone.trim() && (!outroMenor || outroConsentimento));
+  const podePedir = !!origem && !!destino && !aPedir && outroCompleto;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -601,6 +625,24 @@ export default function RequestRideScreen({ navigation, route }) {
                 <Text style={styles.pagamentoTexto}>💵 {t('payCash')}</Text>
               </View>
             </>
+          ) : null}
+
+          {/* Aqui e não dentro dos dois ramos acima: a pergunta é a mesma
+              haja cotação ou não, e repetida nos dois divergiria ao primeiro
+              descuido. */}
+          {origem && destino ? (
+            <ParaOutraPessoa
+              activo={paraOutra}
+              onActivo={setParaOutra}
+              nome={outroNome}
+              onNome={setOutroNome}
+              telefone={outroTelefone}
+              onTelefone={setOutroTelefone}
+              menor={outroMenor}
+              onMenor={setOutroMenor}
+              consentimento={outroConsentimento}
+              onConsentimento={setOutroConsentimento}
+            />
           ) : null}
 
           {erro ? <Text style={styles.erro}>{erro}</Text> : null}
