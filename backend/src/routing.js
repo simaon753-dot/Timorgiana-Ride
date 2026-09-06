@@ -66,11 +66,18 @@ export function duracaoRealista(km, minutosOsrm) {
 export function preco(vehicleType, km, min = null) {
   const t = config.tarifas[vehicleType] || config.tarifas.car;
   const minutos = Number.isFinite(Number(min)) && Number(min) > 0 ? Number(min) : estimarMin(km);
-  const bruto = t.base + t.perKm * km + (t.perMin || 0) * minutos;
+  const distancia = Math.max(0, Number(km) || 0);
+  // Os primeiros quilómetros a um preço, os seguintes a outro. Ver a nota da
+  // tarifa no config: o que encarece uma viagem longa não é o comprimento, é
+  // o regresso vazio que ela obriga.
+  const perto = Math.min(distancia, config.kmLongeAPartirDe);
+  const longe = Math.max(0, distancia - config.kmLongeAPartirDe);
+  const bruto =
+    t.base + t.porKm * perto + t.porKmLonge * longe + (t.porMinuto || 0) * minutos;
   // Arredondado a $0,25 — que é a moeda de 25 centavos que circula em
   // Timor-Leste, e o preço de um microlet. Num sistema a dinheiro, ninguém
   // quer trocar $2,73.
-  return Math.max(t.min, Math.round(bruto * 4) / 4);
+  return Math.max(t.minimo, Math.round(bruto * 4) / 4);
 }
 
 function estimarMin(km) {

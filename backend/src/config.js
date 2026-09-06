@@ -19,48 +19,58 @@ export const config = {
   // fórmula 0,25 + 0,25/km dá exactamente esse valor aos 2 km, por isso a
   // tabela cresce sem saltos em vez de ter um caso especial.
   // Carro: o dobro, proporção habitual entre mota-táxi e táxi.
-  // TRÊS PARCELAS: sair, andar, e demorar.
+  // A TARIFA, e o que cada parcela paga.
   //
-  // Até 06/09/2026 eram duas — base e por quilómetro — e o carro custava
-  // EXACTAMENTE o dobro da moto em ambas. Isso era simetria, não era custo.
+  // Quatro parcelas: sair, andar perto, andar longe, e demorar.
   //
-  // O QUE MUDOU, e porquê:
+  // O REGRESSO VAZIO é a razão de haver duas parcelas de quilómetro, e foi o
+  // Simão que a deu com um caso concreto: "nenhum motorista faz Terminal
+  // Becora até Uma Adat João Paulo II por $7,25". São 13,5 km e 37 minutos.
   //
-  // O TEMPO custa o mesmo nos dois. Meia hora é meia hora, de carro ou de
-  // mota, e é meia hora da vida de uma pessoa. Por isso `perMin` é IGUAL
-  // para os dois — é a parcela que paga o motorista, não o veículo.
+  // Quem faz essa viagem conduz 13,5 km com passageiro e depois 13,5 km SEM
+  // NINGUÉM, porque o João Paulo II não tem procura para o trazer de volta.
+  // Faz 27 km de trabalho e a fórmula linear pagava-lhe 13,5. Numa viagem de
+  // 2 km no centro isso não acontece: acaba perto de mais procura.
   //
-  // O QUILÓMETRO não custa o mesmo. Um carro gasta em combustível e desgaste
-  // à volta de três vezes o que gasta uma mota, e não duas. É aí que a
-  // diferença entre os dois veículos deve viver, e agora vive: $0,37 contra
-  // $0,12, que é 3,1 vezes.
+  // A distância longa não é cara por ser longa — é cara por DEIXAR O
+  // MOTORISTA LONGE. Por isso os quilómetros além dos primeiros cinco custam
+  // quase o dobro: é aí que o regresso vazio começa a pesar.
   //
-  // Sem a parcela de tempo, uma viagem de 9,8 km pagava o mesmo fizesse ela
-  // 27 minutos ou 45. Os motoristas notam isso em três dias, e a
-  // consequência é previsível: começam a recusar viagens para onde há
-  // engarrafamento — que são exactamente as que alguém precisa mais.
+  // O TEMPO custa o mesmo nos dois veículos. Meia hora é meia hora, de carro
+  // ou de mota, e é meia hora da vida de uma pessoa. Essa parcela paga o
+  // motorista, não o veículo.
   //
-  // Os valores foram escolhidos para que uma viagem típica de Díli (9,8 km,
-  // 27 min) continue a custar o mesmo de antes: $2,75 de mota e $5,50 de
-  // carro. Assim o Simão pode julgar a MUDANÇA DE FORMA sem a confundir com
-  // uma mudança de preço. O nível é decisão dele, e muda-se sem publicar
-  // nada — são variáveis de ambiente no Render.
+  // O QUILÓMETRO não custa o mesmo: combustível e desgaste de um carro andam
+  // à volta de três vezes os de uma mota.
+  //
+  // TUDO ISTO É UM PONTO DE PARTIDA, calibrado num único caso que o Simão
+  // conhece e nas referências do mercado de Díli (microlet $0,25 a viagem;
+  // táxi negociado à volta de $10; aeroporto $15+). Com comissão zero, o
+  // preço É o rendimento do motorista — o que se decide aqui é quanto ganha
+  // quem conduz, e isso lê-se na rua. Muda-se em variáveis de ambiente no
+  // Render, sem publicar nada.
+  //
+  // NOMES NOVOS: os antigos eram FARE_CAR_MIN para o mínimo e
+  // FARE_CAR_MIN_MIN para o por-minuto, que ninguém acertava à primeira.
+  // Os antigos DEIXARAM DE SER LIDOS.
+  kmLongeAPartirDe: Number(process.env.FARE_KM_LONGE_A_PARTIR_DE) || 5,
   tarifas: {
     motorbike: {
       base: Number(process.env.FARE_MOTO_BASE) || 0.25,
-      perKm: Number(process.env.FARE_MOTO_KM) || 0.12,
-      perMin: Number(process.env.FARE_MOTO_MIN_MIN) || 0.05,
-      min: Number(process.env.FARE_MOTO_MIN) || 0.75,
+      porKm: Number(process.env.FARE_MOTO_POR_KM) || 0.2,
+      porKmLonge: Number(process.env.FARE_MOTO_POR_KM_LONGE) || 0.35,
+      porMinuto: Number(process.env.FARE_MOTO_POR_MINUTO) || 0.05,
+      minimo: Number(process.env.FARE_MOTO_MINIMO) || 1.0,
     },
     car: {
       base: Number(process.env.FARE_CAR_BASE) || 0.5,
-      perKm: Number(process.env.FARE_CAR_KM) || 0.37,
-      perMin: Number(process.env.FARE_CAR_MIN_MIN) || 0.05,
-      min: Number(process.env.FARE_CAR_MIN) || 1.5,
+      porKm: Number(process.env.FARE_CAR_POR_KM) || 0.5,
+      porKmLonge: Number(process.env.FARE_CAR_POR_KM_LONGE) || 0.9,
+      porMinuto: Number(process.env.FARE_CAR_POR_MINUTO) || 0.05,
+      minimo: Number(process.env.FARE_CAR_MINIMO) || 2.0,
     },
   },
 
-  // Só os motoristas a esta distância do passageiro são avisados
   // Emergência em Timor-Leste. Três serviços diferentes, porque marcar o
   // número errado numa emergência custa minutos que ninguém tem.
   //
