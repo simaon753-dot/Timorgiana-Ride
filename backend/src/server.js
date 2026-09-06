@@ -17,6 +17,8 @@ import { setOnline, updateLocation, marcarAusentesOffline } from './drivers.js';
 import { one } from './db.js';
 import { lugaresRouter } from './routes/lugares.js';
 import { estadoDaBusca, marcarPorPerguntar } from './lugares.js';
+import { mosaico } from './mosaicos.js';
+import { gzipSync } from 'node:zlib';
 import { municipioDe } from './municipios.js';
 import { ACTIVE_DRIVER } from './rides.js';
 import { fileURLToPath } from 'node:url';
@@ -109,6 +111,43 @@ app.get('/mapa/timor-leste.pmtiles', (req, res) => {
   // conduzir em Díli.
   res.setHeader('Cache-Control', 'public, max-age=2592000');
   res.sendFile(fileURLToPath(new URL('../publico/timor-leste.pmtiles', import.meta.url)));
+});
+
+// OS MOSAICOS, um a um, num endereço que qualquer motor de mapas entende.
+//
+// A rota do ficheiro inteiro aqui em cima serve o browser, onde o MapLibre de
+// JavaScript sabe ler `pmtiles://`. O MAPLIBRE NATIVO DO TELEMÓVEL NÃO SABE —
+// vê esse endereço, não o entende, e não desenha nada.
+//
+// Foi erro meu: testei o mapa no browser, onde funciona, e não na app, onde
+// não podia funcionar. O Simão instalou um APK para descobrir isso.
+app.get('/mapa/:z/:x/:y.mvt', async (req, res) => {
+  const z = Number(req.params.z);
+  const x = Number(req.params.x);
+  const y = Number(req.params.y);
+  if (![z, x, y].every(Number.isInteger) || z < 0 || z > 15) return res.status(400).end();
+  try {
+    const bruto = await mosaico(z, x, y);
+    // Sem conteúdo e não erro: um mosaico vazio é o mar, ou um sítio onde não
+    // há nada desenhado. O motor de mapas espera 204 e não estranha.
+    if (!bruto) return res.status(204).end();
+
+    res.setHeader('Content-Type', 'application/vnd.mapbox-vector-tile');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+
+    // O leitor devolve o mosaico já descomprimido. Volta a comprimir-se antes
+    // de sair: são cerca de metade dos bytes, e num plano gratuito a largura
+    // de banda é a conta que se paga a sério.
+    if (/\bgzip\b/.test(String(req.headers['accept-encoding'] || ''))) {
+      res.setHeader('Content-Encoding', 'gzip');
+      return res.end(gzipSync(bruto));
+    }
+    return res.end(bruto);
+  } catch (e) {
+    console.error('[mapa] mosaico', z, x, y, e.message);
+    return res.status(500).end();
+  }
 });
 
 // O estilo, ao lado do mapa.

@@ -5,7 +5,11 @@
   "sources": {
     "tl": {
       "type": "vector",
-      "url": "pmtiles://https://timorgiana-ride.onrender.com/mapa/timor-leste.pmtiles",
+      "tiles": [
+        "https://timorgiana-ride.onrender.com/mapa/{z}/{x}/{y}.mvt"
+      ],
+      "minzoom": 0,
+      "maxzoom": 15,
       "attribution": "© OpenStreetMap contributors · Protomaps"
     }
   },
