@@ -159,10 +159,16 @@ export default function PlaceSearch({
           {aMostrarRecentes ? (
             <>
               <Text style={styles.seccao}>{t('recentesTitulo')}</Text>
-              {recentes.map((r, i) => (
+              {/* QUATRO, e a memória guarda seis.
+                  O que limita esta lista não é o que sabemos — é o mapa que
+                  está por baixo. O Simão pediu para o painel não o tapar, e
+                  cada linha a menos são mais ruas à vista. Os dois sítios
+                  mais antigos ficam guardados na mesma; se um dia houver um
+                  "ver todos", estão lá. */}
+              {recentes.slice(0, 4).map((r, i) => (
                 <Pressable
                   key={`${r.lat},${r.lng},${i}`}
-                  style={styles.item}
+                  style={[styles.item, styles.itemRecente]}
                   onPress={() => escolher(r)}
                 >
                   <Text style={styles.itemIcone}>🕘</Text>
@@ -262,11 +268,21 @@ const criarEstilos = () =>
     },
     itemGps: { borderColor: colors.teal, backgroundColor: colors.tintaTeal },
     itemMapa: { backgroundColor: colors.tintaCoral },
+    // AS LINHAS DOS RECENTES SÃO MAIS BAIXAS que as dos resultados.
+    //
+    // Podem ser: um resultado de busca pode trazer uma segunda linha de
+    // detalhe e o aviso de "por rever", e precisa do espaço. Um recente é um
+    // sítio onde a pessoa já esteve — reconhece-o pelo nome, sem precisar de
+    // o ler todo.
+    //
+    // Quatro linhas mais baixas dão quase um terço de mapa a mais do que
+    // seis linhas altas, e é isso que o Simão pediu.
+    itemRecente: { paddingVertical: spacing.sm, marginBottom: spacing.xs },
     seccao: {
       ...tipo.etiqueta,
       color: colors.textMuted,
-      paddingHorizontal: spacing.md,
-      paddingTop: spacing.sm,
+      paddingHorizontal: spacing.sm,
+      paddingTop: spacing.xs,
       paddingBottom: spacing.xs,
     },
     itemIcone: { fontSize: 18, marginRight: spacing.md },
