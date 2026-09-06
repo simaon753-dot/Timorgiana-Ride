@@ -1,0 +1,26 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>Mapa TimorgianaRide</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css">
+<style>
+ html,body{margin:0;height:100%;font-family:-apple-system,Roboto,sans-serif}
+ #map{position:absolute;inset:0}
+ .marca{position:absolute;left:12px;top:12px;z-index:5;background:#0E5C54;color:#fff;
+   padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px}
+ .cred{position:absolute;right:0;bottom:0;z-index:5;background:rgba(255,255,255,.8);
+   color:#3A4441;font-size:10px;padding:2px 6px}
+</style></head><body>
+<div id="map"></div>
+<div class="marca">TimorgianaRide — mapa próprio</div>
+<div class="cred">© OpenStreetMap contributors · Protomaps</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.js"></script>
+<script>
+ const m = new maplibregl.Map({
+   container: 'map', style: 'estilo.json', preserveDrawingBuffer: true,
+   center: [125.5680, -8.5560], zoom: 14
+ });
+ m.addControl(new maplibregl.NavigationControl());
+ window.irPara = (lng, lat, z) => m.jumpTo({ center: [lng, lat], zoom: z });
+ window.imagem = () => m.getCanvas().toDataURL('image/png').split(',')[1];
+ window.pronto = () => m.loaded() && m.areTilesLoaded();
+</script>
+</body></html>
