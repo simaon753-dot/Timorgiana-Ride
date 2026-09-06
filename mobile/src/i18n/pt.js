@@ -102,6 +102,7 @@ export default {
   useMyLocation: '📍 Usar a minha localização',
   escolherEsteDestino: 'Escolher este destino',
   escolherEstaRecolha: 'Escolher esta recolha',
+  escolherEsteSitio: 'Escolher este sítio',
   escolherNoMapa: 'Escolher no mapa',
   aVerNome: 'A ver que sítio é…',
   arrastarPino: 'Não é aqui? Arraste o pino no mapa',
@@ -519,7 +520,7 @@ export default {
   admTarifas24h: 'Tarifas cobradas (24h)',
   admTarifasNota: 'Cobradas pelos motoristas. A plataforma não recebe comissão.',
   assinTitulo: 'Assinatura',
-  assinGratuitaAte: 'Gratuita até {ate}',
+  assinGratuitaAte: 'Sem taxa de acesso até {ate} ou até novo aviso oficial.',
   assinGratuitaExplica:
     'Até lá não pagas nada e não és bloqueado. Os dias vão sendo registados para veres como funciona.',
   assinSaldo: 'Dias no teu saldo',

@@ -101,6 +101,7 @@ export default {
   useMyLocation: '📍 Use my location',
   escolherEsteDestino: 'Choose this destination',
   escolherEstaRecolha: 'Choose this pickup',
+  escolherEsteSitio: 'Choose this place',
   escolherNoMapa: 'Choose on the map',
   aVerNome: 'Finding out what this place is…',
   arrastarPino: 'Not here? Drag the pin on the map',
@@ -505,7 +506,7 @@ export default {
   admTarifas24h: 'Fares charged (24h)',
   admTarifasNota: 'Charged by the drivers. The platform takes no commission.',
   assinTitulo: 'Subscription',
-  assinGratuitaAte: 'Free until {ate}',
+  assinGratuitaAte: 'No access fee until {ate} or until further official notice.',
   assinGratuitaExplica:
     'Until then you pay nothing and are never blocked. Days are still recorded so you can see how it works.',
   assinSaldo: 'Days in your balance',

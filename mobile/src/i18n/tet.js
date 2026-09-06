@@ -102,6 +102,7 @@ export default {
   useMyLocation: '📍 Uza haʼu-nia lokalizasaun',
   escolherEsteDestino: 'Hili destinu ne’e',
   escolherEstaRecolha: 'Hili fatin foti ne’e',
+  escolherEsteSitio: 'Hili fatin ida ne’e',
   escolherNoMapa: 'Hili iha mapa',
   aVerNome: 'Buka hela naran fatin ne’e…',
   arrastarPino: 'La’ós iha ne’e? Dada pinu iha mapa',
@@ -519,7 +520,7 @@ export default {
   admTarifas24h: 'Tarifa ne’ebé simu (24h)',
   admTarifasNota: 'Motorista sira mak simu. Plataforma la simu komisaun.',
   assinTitulo: 'Asinatura',
-  assinGratuitaAte: 'Gratuita to’o {ate}',
+  assinGratuitaAte: 'La iha taxa asesu to’o {ate} ka to’o avizu ofisiál foun.',
   assinGratuitaExplica:
     'To’o data ne’e ita la selu buat ida no la bloqueia. Loron sira rejistu hela atu ita bele haree oinsá mak funsiona.',
   assinSaldo: 'Loron iha ita-nia saldu',

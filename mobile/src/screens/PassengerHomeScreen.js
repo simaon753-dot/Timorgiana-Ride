@@ -14,6 +14,7 @@ import BarraEstado from '../design/BarraEstado.js';
 import { tipo } from '../design/tipografia.js';
 import { FIXOS, lerFixos, guardarFixo, destinosRecentes } from '../lib/lugares.js';
 import PlaceSearch from '../components/PlaceSearch.js';
+import EscolherPonto from '../components/EscolherPonto.js';
 import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
 import BarraTopo from '../components/BarraTopo.js';
@@ -101,12 +102,27 @@ export default function PassengerHomeScreen({ navigation }) {
   // de pedido com um segundo propósito obrigava a mudar-lhe o botão e a
   // explicar ao utilizador em que modo está.
   const [aDefinir, setADefinir] = useState(null);
+  // A definir apontando no mapa, e não escrevendo.
+  //
+  // A casa de alguém em Díli é justamente o que não se escreve: não tem nome
+  // que se procure, tem um portão que se aponta. Pedir para escrever era
+  // pedir o que não existe.
+  const [aApontar, setAApontar] = useState(null);
+
+  // Guardar em separado de quem o pediu: há dois caminhos até aqui — a
+  // pesquisa escrita e o apontar no mapa — e cada um sabe qual dos fixos
+  // estava a definir. Fazer a função ler esse estado obrigava os dois a
+  // guardá-lo no mesmo sítio, e o segundo teria de o pôr lá só para o
+  // primeiro o ler.
+  async function guardarLugarEm(id, lugar) {
+    if (!id) return;
+    setFixos(await guardarFixo(id, lugar));
+  }
 
   async function guardarLugar(lugar) {
     const id = aDefinir;
     setADefinir(null);
-    if (!id) return;
-    setFixos(await guardarFixo(id, lugar));
+    await guardarLugarEm(id, lugar);
   }
 
   async function cancelarComMotivo(motivo) {
@@ -381,12 +397,31 @@ export default function PassengerHomeScreen({ navigation }) {
         <View style={{ flex: 1, minHeight: spacing.xl }} />
       </ScrollView>
 
+      <EscolherPonto
+        visivel={!!aApontar}
+        titulo={t(FIXOS.find((f) => f.id === aApontar)?.chave || 'lugarDefinir')}
+        onFechar={() => setAApontar(null)}
+        onEscolher={(lugar) => {
+          const qual = aApontar;
+          setAApontar(null);
+          if (qual) guardarLugarEm(qual, lugar);
+        }}
+      />
+
       {aDefinir ? (
         <View style={styles.pesquisaSobreposta}>
           <PlaceSearch
             placeholder={t(FIXOS.find((f) => f.id === aDefinir)?.chave)}
             onEscolher={guardarLugar}
             onFechar={() => setADefinir(null)}
+            rotuloMapa={t('escolherNoMapa')}
+            onEscolherNoMapa={() => {
+              // Guarda-se QUAL se estava a definir antes de fechar a
+              // pesquisa: fechá-la limpa o `aDefinir`, e sem isto o mapa
+              // abria sem saber se era a casa ou o trabalho.
+              setAApontar(aDefinir);
+              setADefinir(null);
+            }}
           />
         </View>
       ) : null}
