@@ -234,6 +234,32 @@ export async function initSchema() {
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS municipio TEXT`);
   await query('CREATE INDEX IF NOT EXISTS idx_rides_municipio ON rides(municipio, status)');
 
+  // ── Pedir para outra pessoa ────────────────────────────────────────
+  //
+  // Até aqui a app assumia, em todo o lado, que quem pede é quem viaja. Essa
+  // suposição segurava quatro coisas ao mesmo tempo: o código de recolha, o
+  // telefone que o motorista marca, o botão de emergência e quem paga.
+  //
+  // Separar as duas pessoas não é acrescentar um nome — é dizer, em cada uma
+  // dessas quatro, de quem se está a falar.
+  //
+  // O nome e o telefone ficam na VIAGEM e não numa conta, de propósito: quem
+  // viaja não tem conta nenhuma, e não deve precisar de ter. Um pai que manda
+  // o filho à escola não vai instalar a app no telemóvel do filho.
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS viajante_nome TEXT`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS viajante_telefone TEXT`);
+  await query(
+    `ALTER TABLE rides ADD COLUMN IF NOT EXISTS viajante_menor BOOLEAN NOT NULL DEFAULT FALSE`
+  );
+  // QUANDO o consentimento foi declarado, e não apenas QUE foi.
+  //
+  // É um registo jurídico: quem pediu declarou, naquele instante, ser
+  // responsável pelo menor ou ter autorização de quem o é. Guardar só um
+  // "sim" diz que alguém concordou alguma vez; guardar o instante diz que
+  // concordou ANTES daquela viagem, que é o que se pergunta quando se
+  // pergunta.
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS consentimento_em TIMESTAMPTZ`);
+
   // Sítios que os passageiros nomearam e o mapa não conhece.
   //
   // É a mesma ideia que a Grab usou para construir o GrabMaps: quem anda na

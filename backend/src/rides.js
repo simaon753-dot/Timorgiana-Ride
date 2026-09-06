@@ -70,7 +70,45 @@ export function toPublicRide(row, opcoes = {}) {
     durationMin: row.duration_min ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    passenger: { id: row.passenger_id, name: row.p_name, phone: row.p_phone },
+    // O TELEFONE SÓ SAI DEPOIS DE HAVER MOTORISTA.
+    //
+    // A lista de pedidos por aceitar vai para TODOS os motoristas
+    // disponíveis do município, e levava o número do passageiro com ela.
+    // Bastava um motorista ficar ao serviço e não aceitar nada o dia
+    // inteiro para recolher os números de toda a gente que pediu viagem
+    // nesse dia — sem nunca ter conduzido ninguém.
+    //
+    // O número serve para o motorista ligar a quem vai buscar. Antes de
+    // aceitar não há a quem ligar, logo não há razão para o ver. Depois de
+    // aceitar há uma viagem combinada entre os dois, e aí faz sentido.
+    //
+    // `driver_id` é a linha que separa as duas situações, e é a mesma
+    // condição do lado do motorista lá em baixo.
+    passenger: {
+      id: row.passenger_id,
+      name: row.p_name,
+      ...(row.driver_id ? { phone: row.p_phone } : {}),
+    },
+    // ── Quem viaja, quando não é quem pede ──────────────────────────
+    //
+    // Antes de aceitar, o motorista recebe só o que precisa para DECIDIR:
+    // que a viagem é para outra pessoa, e se essa pessoa é menor. É o que
+    // torna o consentimento dele um consentimento — se soubesse depois de
+    // aceitar, já não estaria a escolher.
+    //
+    // O nome e o telefone entram com a aceitação, pela mesma razão do
+    // telefone do passageiro aqui em cima: antes disso não há a quem ligar
+    // nem por quem perguntar.
+    ...(row.viajante_nome
+      ? {
+          viajante: {
+            menor: !!row.viajante_menor,
+            ...(row.driver_id
+              ? { nome: row.viajante_nome, telefone: row.viajante_telefone || null }
+              : {}),
+          },
+        }
+      : {}),
     driver: row.driver_id
       ? {
           id: row.driver_id,
@@ -108,16 +146,34 @@ export async function createRide({
   distanceKm = null,
   durationMin = null,
   passengers = null,
+  // Quem viaja, quando não é quem pede. Tudo nulo no caso normal.
+  viajanteNome = null,
+  viajanteTelefone = null,
+  viajanteMenor = false,
 }) {
   // Quatro dígitos, com zeros à frente. Não é um segredo criptográfico —
   // é uma senha dita em voz alta à porta do carro, e vive uns minutos.
   const codigo = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+
+  // O NOME MANDA. Sem nome não há viajante — o telefone e a marca de menor
+  // ficam de fora também, mesmo que venham preenchidos.
+  //
+  // Sem isto, um pedido com telefone mas sem nome criava uma viagem que diz
+  // "é para outra pessoa" e não sabe dizer para quem: o motorista chegava
+  // sem saber por quem perguntar, e o registo do consentimento apontava a
+  // ninguém.
+  const nomeViajante = String(viajanteNome || '').trim().slice(0, 80) || null;
+  const telefoneViajante = nomeViajante
+    ? String(viajanteTelefone || '').trim().slice(0, 20) || null
+    : null;
+  const ehMenor = nomeViajante ? !!viajanteMenor : false;
   const inserted = await one(
     `INSERT INTO rides
        (passenger_id, dest_label, dest_lat, dest_lng, origin_label, origin_lat, origin_lng,
         vehicle_type, fare_usd, distance_km, duration_min, passengers,
-        pickup_code, municipio, status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'requested')
+        pickup_code, municipio,
+        viajante_nome, viajante_telefone, viajante_menor, consentimento_em, status)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,'requested')
      RETURNING id`,
     [
       passengerId,
@@ -137,6 +193,16 @@ export async function createRide({
       // está à espera que interessa a quem o vai buscar: uma viagem de Díli
       // para Baucau é um pedido de Díli, e é em Díli que tem de aparecer.
       municipioDe(num(originLat), num(originLng)),
+      nomeViajante,
+      telefoneViajante,
+      ehMenor,
+      // O CONSENTIMENTO SÓ EXISTE SE HOUVER MENOR.
+      //
+      // Guardar a hora numa viagem de adulto seria guardar a declaração de
+      // uma coisa que ninguém declarou. Um registo que diz mais do que
+      // aconteceu não vale mais: vale menos, porque deixa de se poder
+      // confiar nele.
+      ehMenor ? new Date() : null,
     ]
   );
   return getRideById(inserted.id);

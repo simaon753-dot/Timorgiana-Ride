@@ -76,9 +76,47 @@ ridesRouter.post(
       vehicleType,
       fareUsd,
       passengers,
+      viajanteNome,
+      viajanteTelefone,
+      viajanteMenor,
+      consentimentoMenor,
     } = req.body || {};
     if (!destLabel || !destLabel.trim()) {
       return res.status(400).json({ error: 'Indica o destino.' });
+    }
+
+    // ── Pedir para outra pessoa ────────────────────────────────────
+    //
+    // Validado AQUI e não só na app. A app é conveniência; um telemóvel
+    // modificado manda o que quiser, e estas três regras são as que dão
+    // sentido ao resto.
+    const nomeOutro = String(viajanteNome || '').trim();
+    if (nomeOutro) {
+      // O TELEFONE É OBRIGATÓRIO quando quem viaja não é quem pede.
+      //
+      // Sem ele o motorista chega ao ponto de recolha e não tem a quem
+      // ligar: quem atende o telefone da conta está em casa, e quem está
+      // no passeio não tem forma de dizer "estou aqui". É a diferença
+      // entre uma viagem e uma pessoa à espera de um carro que não a vê.
+      if (!String(viajanteTelefone || '').trim()) {
+        return res.status(400).json({
+          error: 'Indica o telemóvel de quem vai viajar — o motorista precisa de lhe ligar.',
+        });
+      }
+      // O CONSENTIMENTO É EXIGIDO PARA MENORES, e é uma declaração de quem
+      // pede: que é responsável pelo menor, ou tem autorização de quem o é.
+      // Sem ela não se cria a viagem — não é uma caixa de aviso que se pode
+      // fechar, é a condição de existir o pedido.
+      if (viajanteMenor && !consentimentoMenor) {
+        return res.status(400).json({
+          error: 'Para uma pessoa menor de idade, é preciso declarar a autorização dos pais.',
+        });
+      }
+    } else if (viajanteTelefone || viajanteMenor) {
+      // Telefone ou marca de menor sem nome é um pedido mal formado, e
+      // deixá-lo passar criava uma viagem que diz ser para outra pessoa e
+      // não sabe dizer para quem.
+      return res.status(400).json({ error: 'Indica o nome de quem vai viajar.' });
     }
 
     const existing = await getActiveRideForUser(req.user);
@@ -123,6 +161,9 @@ ridesRouter.post(
       durationMin: minViagem,
       // Só em carro: numa motorizada vai sempre uma pessoa.
       passengers: vehicleType === 'car' ? passengers : null,
+      viajanteNome: nomeOutro || null,
+      viajanteTelefone,
+      viajanteMenor: !!viajanteMenor,
     });
     // Quem criou a viagem é o passageiro: leva o código.
     const ride = toPublicRide(row, { paraPassageiro: true });
