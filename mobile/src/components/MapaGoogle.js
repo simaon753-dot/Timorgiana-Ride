@@ -159,19 +159,10 @@ export default function MapaGoogle({
   const [rota, setRota] = useState(null);
   const [aMexer, setAMexer] = useState(false);
   const [mapaPronto, setMapaPronto] = useState(false);
-  // OS MARCADORES PERSONALIZADOS PRECISAM DE SER SEGUIDOS ENQUANTO SE
-  // DESENHAM.
-  //
-  // O mapa nativo não mostra o componente React: tira-lhe uma FOTOGRAFIA e
-  // desenha a fotografia. Com `tracksViewChanges` a falso desde o início,
-  // tira-a antes de o React ter desenhado seja o que for — e fica com uma
-  // fotografia vazia. Foi exactamente isso que aconteceu na primeira versão:
-  // a rota aparecia e os pinos não.
-  //
-  // Segue-se durante um segundo e meio e desliga-se. Deixá-lo ligado para
-  // sempre faria o mapa refotografar cada pino a cada quadro, numa viagem
-  // inteira — que é o problema que este parâmetro existe para resolver.
-  const [aSeguir, setASeguir] = useState(true);
+  // Onde o cartão do nome tem de ser desenhado, em pixéis do ecrã.
+  const [cartoes, setCartoes] = useState([]);
+  const [largura, setLargura] = useState(0);
+  const [veiculo, setVeiculo] = useState(null);
   // O centro actual, para decidir de que lado do pino fica o cartão.
   const centroRef = useRef({ lat: c.lat, lng: c.lng });
 
@@ -188,28 +179,11 @@ export default function MapaGoogle({
           nome: (partes[0] || '').trim(),
           detalhe: (partes[1] || '').trim(),
           qual: m.tipo === 'destino' ? 'destino' : 'origem',
+          cartao: !!m.cartao,
         };
       }),
     [markersKey] // eslint-disable-line react-hooks/exhaustive-deps
   );
-
-  // A CONTAGEM SÓ COMEÇA QUANDO O MAPA EXISTE.
-  //
-  // Antes começava quando os pontos mudavam. Num telemóvel lento o mapa
-  // nativo demora mais do que isso a ficar pronto: quando o marcador
-  // finalmente nascia, o seguimento já tinha sido desligado, e a fotografia
-  // era tirada de uma vista que ainda não existia. Daí os pinos esmagados e
-  // o cartão a zero.
-  //
-  // A prova de que o desenho estava bom foi a mira: é o MESMO componente,
-  // mas desenhado por cima do mapa como uma vista normal — nunca passa por
-  // fotografia nenhuma — e sempre apareceu perfeita.
-  useEffect(() => {
-    if (!mapaPronto) return;
-    setASeguir(true);
-    const relogio = setTimeout(() => setASeguir(false), 2000);
-    return () => clearTimeout(relogio);
-  }, [markersKey, liveLabel, mapaPronto]);
 
   const regiaoInicial = useMemo(
     () => ({
@@ -319,15 +293,78 @@ export default function MapaGoogle({
     };
   }, [markersKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // O CARTÃO É DESENHADO POR CIMA DO MAPA, não dentro dele.
+  //
+  // Dentro de um marcador não funciona: o mapa fotografa a vista e a
+  // fotografia sai a zero de largura — via-se só o risco de 3 pixéis da
+  // borda. O pino resolveu-se com uma imagem; o cartão não pode, porque o
+  // texto muda a cada sítio.
+  //
+  // A mira sempre funcionou porque é exactamente isto: uma vista normal por
+  // cima do mapa. `pointForCoordinate` converte a coordenada em pixéis e
+  // nós pomos o cartão lá.
+  //
+  // O preço é este: as posições só se sabem depois de o mapa parar. Por
+  // isso os cartões escondem-se enquanto o dedo arrasta e voltam quando ele
+  // levanta — melhor do que os ver a flutuar atrasados sobre o mapa.
+  const recalcularCartoes = useCallback(async () => {
+    const comNome = pts.filter((p) => p.cartao && p.nome);
+    if (!mapaRef.current || !comNome.length) {
+      setCartoes([]);
+      return;
+    }
+    try {
+      const pontos = await Promise.all(
+        comNome.map((p) =>
+          mapaRef.current.pointForCoordinate({ latitude: p.lat, longitude: p.lng })
+        )
+      );
+      setCartoes(comNome.map((p, i) => ({ ...p, x: pontos[i].x, y: pontos[i].y })));
+    } catch {
+      // Sem posições não se desenha nada. Um cartão no sítio errado é pior
+      // do que nenhum: diz que aquele nome é daquele ponto, e não é.
+      setCartoes([]);
+    }
+  }, [pts]);
+
+  useEffect(() => {
+    if (mapaPronto) recalcularCartoes();
+  }, [mapaPronto, markersKey, recalcularCartoes]);
+
+  // O VEÍCULO segue o mesmo caminho dos cartões: desenhado POR CIMA do mapa.
+  //
+  // Era um marcador com o carro e o rótulo lá dentro — o mesmo caminho que
+  // fazia o cartão sair a zero de largura. Nunca o vimos partido porque só
+  // aparece com um motorista a caminho; era um defeito à espera da primeira
+  // viagem a sério.
+  //
+  // Ao contrário dos cartões, recalcula-se também quando o carro se mexe, e
+  // não só quando o mapa pára.
+  useEffect(() => {
+    let vivo = true;
+    if (!mapaPronto || !mapaRef.current || !liveMarker) {
+      setVeiculo(null);
+      return undefined;
+    }
+    mapaRef.current
+      .pointForCoordinate({ latitude: liveMarker.lat, longitude: liveMarker.lng })
+      .then((q) => vivo && setVeiculo(q))
+      .catch(() => vivo && setVeiculo(null));
+    return () => {
+      vivo = false;
+    };
+  }, [mapaPronto, liveMarker?.lat, liveMarker?.lng, aMexer]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const centroMudou = useCallback(
     (regiao) => {
       setAMexer(false);
       centroRef.current = { lat: regiao.latitude, lng: regiao.longitude };
+      recalcularCartoes();
       if (modoEscolha && onCentro) {
         onCentro({ type: 'centro', lat: regiao.latitude, lng: regiao.longitude });
       }
     },
-    [modoEscolha, onCentro]
+    [modoEscolha, onCentro, recalcularCartoes]
   );
 
   // O PRIMEIRO ENVIO É IMEDIATO. Quem abre o modo de escolha já está a
@@ -348,7 +385,10 @@ export default function MapaGoogle({
   }
 
   return (
-    <View style={[styles.wrap, fill ? styles.fill : { height }]}>
+    <View
+      style={[styles.wrap, fill ? styles.fill : { height }]}
+      onLayout={(e) => setLargura(e.nativeEvent.layout.width)}
+    >
       <MapView
         ref={mapaRef}
         provider={PROVIDER_GOOGLE}
@@ -357,8 +397,10 @@ export default function MapaGoogle({
         // Antes o primeiro enquadramento corria no `useEffect` de montagem,
         // quando o mapa nativo ainda não existia — e não fazia nada.
         onMapReady={() => setMapaPronto(true)}
+        // O `aMexer` vale para os dois: levanta a mira, e esconde os
+        // cartões enquanto as posições deles estão desactualizadas.
         onRegionChange={() => {
-          if (modoEscolha && !aMexer) setAMexer(true);
+          if (!aMexer) setAMexer(true);
         }}
         onRegionChangeComplete={centroMudou}
         // O TOQUE SÓ AVISA, NÃO DESENHA.
@@ -424,89 +466,79 @@ export default function MapaGoogle({
         ) : null}
 
         {pts.map((p, i) => (
-          <React.Fragment key={`${p.lat},${p.lng},${p.qual},${i}`}>
-            <Marker
-              coordinate={{ latitude: p.lat, longitude: p.lng }}
-              anchor={{ x: 0.5, y: ANCORA_Y }}
-              // ARRASTAR PARA CORRIGIR. O GPS de um telemóvel entre prédios
-              // erra 20 a 40 metros, e nenhum código corrige uma leitura de
-              // satélite. O que se pode fazer é deixar quem está lá — e sabe
-              // onde está — pôr o ponto no sítio.
-              draggable={arrastavel}
-              onDragEnd={
-                arrastavel && onArrastar
-                  ? (e) => {
-                      const { latitude, longitude } = e.nativeEvent.coordinate;
-                      onArrastar({
-                        type: 'arrastou',
-                        tipo: p.qual,
-                        lat: latitude,
-                        lng: longitude,
-                      });
-                    }
-                  : undefined
-              }
-              image={IMAGEM[p.qual]}
-            />
-            {/* O CARTÃO DO NOME ESTÁ DESLIGADO, e é uma perda que o Simão
-                vai notar — foi ele que pediu o nome ao lado do pino.
-
-                Sofre do mesmo mal do pino: é uma vista React dentro de um
-                marcador, e neste telemóvel o mapa fotografa-a mal. O que se
-                via era uma barra fina da cor — o `borderLeftWidth` de 3
-                pixéis com o cartão a zero de largura ao lado.
-
-                O pino resolveu-se com uma imagem. O cartão não pode: o texto
-                muda a cada sítio, não há imagem que sirva.
-
-                A saída, quando lá chegarmos, é desenhá-lo POR CIMA do mapa e
-                não dentro dele — como a mira, que é o mesmo componente e
-                sempre funcionou. Custa acompanhar o arrasto com
-                `pointForCoordinate`, e é por isso que não vai já: primeiro
-                confirmar que o pino ficou bom.
-
-                Entretanto os nomes continuam à vista na folha de baixo, com
-                o mesmo ponto de cor a dizer qual é qual. */}
-            {false && p.nome ? (
-              <Marker
-                coordinate={{ latitude: p.lat, longitude: p.lng }}
-                // O cartão encosta-se ao lado do pino: canto inferior
-                // esquerdo à direita da coordenada, subido até à altura da
-                // CABEÇA. Não se põe por cima porque tapava a rua por onde
-                // se chega — que é justamente o que interessa ver.
-                anchor={{ x: 0, y: 1 }}
-                tracksViewChanges={aSeguir}
-                // Não intercepta toques: quem toca aqui quer o mapa.
-                tappable={false}
-              >
-                <View style={styles.folgaCartao} collapsable={false}>
-                  <Cartao nome={p.nome} detalhe={p.detalhe} qual={p.qual} />
-                </View>
-              </Marker>
-            ) : null}
-          </React.Fragment>
-        ))}
-
-        {/* O VEÍCULO A APROXIMAR-SE. `tracksViewChanges` fica ligado porque
-            este é o único que muda de facto — de posição e de rótulo. */}
-        {liveMarker ? (
           <Marker
-            coordinate={{ latitude: liveMarker.lat, longitude: liveMarker.lng }}
-            anchor={{ x: 0.5, y: 0.5 }}
-            zIndex={1000}
-          >
-            <View style={styles.veiculo} collapsable={false}>
-              <Text style={styles.veiculoIcone}>🚗</Text>
-              {liveLabel ? <Cartao nome={liveLabel} qual="origem" agora /> : null}
-            </View>
-          </Marker>
-        ) : null}
+            key={`${p.lat},${p.lng},${p.qual},${i}`}
+            coordinate={{ latitude: p.lat, longitude: p.lng }}
+            anchor={{ x: 0.5, y: ANCORA_Y }}
+            // ARRASTAR PARA CORRIGIR. O GPS de um telemóvel entre prédios
+            // erra 20 a 40 metros, e nenhum código corrige uma leitura de
+            // satélite. O que se pode fazer é deixar quem está lá — e sabe
+            // onde está — pôr o ponto no sítio.
+            draggable={arrastavel}
+            onDragEnd={
+              arrastavel && onArrastar
+                ? (e) => {
+                    const { latitude, longitude } = e.nativeEvent.coordinate;
+                    onArrastar({
+                      type: 'arrastou',
+                      tipo: p.qual,
+                      lat: latitude,
+                      lng: longitude,
+                    });
+                  }
+                : undefined
+            }
+            image={IMAGEM[p.qual]}
+          />
+        ))}
       </MapView>
+
+      {/* Os cartões dos lugares nossos, desenhados sobre o mapa.
+          `pointForCoordinate` devolve o pixel da COORDENADA, que é onde
+          assenta a ponta do pino. A cabeça fica 27 pixéis acima, e é a essa
+          altura que o cartão se encosta — nunca por cima, que taparia a rua
+          por onde se chega.
+          Junto à borda direita o cartão passa para a esquerda do pino: fixá-lo
+          de um lado deixava-o a sair do ecrã sempre que o ponto ficasse
+          encostado a essa borda, e um ponto encostado à borda é o caso normal
+          de quem acabou de arrastar o mapa. */}
+      {!aMexer &&
+        cartoes.map((c) => {
+          const aDireita = largura > 0 && c.x > largura * 0.55;
+          return (
+            <View
+              key={`${c.lat},${c.lng}`}
+              pointerEvents="none"
+              style={[
+                styles.cartaoSolto,
+                aDireita ? { left: c.x - 16 - CARTAO_L } : { left: c.x + 16 },
+                { top: c.y - 46 },
+              ]}
+            >
+              <Cartao nome={c.nome} detalhe={c.detalhe} qual={c.qual} />
+            </View>
+          );
+        })}
+
+      {veiculo ? (
+        <View
+          pointerEvents="none"
+          style={[styles.veiculo, { left: veiculo.x - 13, top: veiculo.y - 15 }]}
+        >
+          <Text style={styles.veiculoIcone}>🚗</Text>
+          {liveLabel ? <Cartao nome={liveLabel} qual="origem" agora /> : null}
+        </View>
+      ) : null}
 
       {/* ── A MIRA ────────────────────────────────────────────────────
           O pino fica FIXO no centro do ecrã e o mapa é que se move por
-          baixo. É o MESMO desenho do marcador: se fossem dois, divergiam, e
-          o que se vê ao apontar deixava de ser o que fica marcado.
+          baixo.
+
+          A mira usa o componente <Pino>; o marcador usa uma IMAGEM. São
+          duas peças diferentes com o mesmo caminho SVG, e é preciso saber
+          disso: se a forma mudar num sítio e não no outro, o que se vê ao
+          apontar deixa de ser o que fica marcado. As imagens geram-se com
+          scripts/desenhar-pinos.py, do mesmo caminho.
 
           A mira sobe três pixéis enquanto o mapa mexe. É o que dá a sensação
           de que o mapa está a passar por baixo dela, e não o contrário. */}
@@ -572,9 +604,15 @@ const criarEstilos = () =>
     cartaoDetalhe: { fontSize: 11, color: '#6A7671', marginTop: 1 },
     cartaoDetalheAgora: { color: '#9DB0AA' },
 
-    veiculo: { flexDirection: 'row', alignItems: 'center', width: CARTAO_L + 34 },
+    veiculo: {
+      position: 'absolute',
+      flexDirection: 'row',
+      alignItems: 'center',
+      width: CARTAO_L + 34,
+    },
     veiculoIcone: { fontSize: 26, lineHeight: 30 },
 
+    cartaoSolto: { position: 'absolute' },
     miraCaixa: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
     // A PONTA do pino tem de cair no meio do ecrã, não a base da caixa: o
     // desenho tem 45 de altura e a ponta está a 42, portanto sobe-se metade

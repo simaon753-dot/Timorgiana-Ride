@@ -220,7 +220,9 @@ export default function RequestRideScreen({ navigation, route }) {
   // o mapa estava a apontar. É essa a diferença: quem toca em "Hotel Timor"
   // quer o Hotel Timor, e não um ponto a doze metros da porta dele.
   function escolherDaLista(l) {
-    const ponto = { lat: l.lat, lng: l.lng, label: l.label, provisorio: false };
+    // Esta lista vem toda da tabela `lugares_propostos` — é por definição
+    // gente nossa. Ver a nota em `aoEscolherDaPesquisa`.
+    const ponto = { lat: l.lat, lng: l.lng, label: l.label, provisorio: false, fonte: 'nosso' };
     if (aEscolherNoMapa === 'origem') {
       setOrigem(ponto);
       setPrecisao(null);
@@ -281,7 +283,11 @@ export default function RequestRideScreen({ navigation, route }) {
   // A pesquisa flutua por cima do mapa, que nunca é desmontado. O campo
   // que a abriu decide o que a escolha define — recolha ou destino.
   function aoEscolherDaPesquisa(lugar) {
-    const ponto = { lat: lugar.lat, lng: lugar.lng, label: lugar.label };
+    // A FONTE VIAJA COM O PONTO. Serve para o mapa saber se deve escrever o
+    // nome ao lado do pino: os lugares que os passageiros baptizaram não
+    // estão desenhados no Google, e sem o cartão o pino fica anónimo. Os
+    // outros já têm o nome escrito no próprio mapa.
+    const ponto = { lat: lugar.lat, lng: lugar.lng, label: lugar.label, fonte: lugar.fonte };
     if (pesquisa === 'origem') setOrigem(ponto);
     else setDestino(ponto);
     setPesquisa(null);
@@ -310,11 +316,32 @@ export default function RequestRideScreen({ navigation, route }) {
     }
   }
 
+  // O CARTÃO COM O NOME SÓ APARECE NOS LUGARES NOSSOS.
+  //
+  // No OpenStreetMap quase nada estava escrito e o cartão era a única forma
+  // de saber o que era cada pino. O Google escreve os nomes no próprio mapa,
+  // e repeti-los num cartão branco por cima seria dizer duas vezes a mesma
+  // coisa — num ecrã onde o espaço é o que é.
+  //
+  // O que o Google NÃO tem são os sítios que os passageiros baptizaram. A
+  // "Kios Mana Rita" não está lá nem estará: é aí que o cartão acrescenta.
   const marcadores = [];
   if (origem)
-    marcadores.push({ lat: origem.lat, lng: origem.lng, label: origem.label, tipo: 'origem' });
+    marcadores.push({
+      lat: origem.lat,
+      lng: origem.lng,
+      label: origem.label,
+      tipo: 'origem',
+      cartao: origem.fonte === 'nosso',
+    });
   if (destino)
-    marcadores.push({ lat: destino.lat, lng: destino.lng, label: destino.label, tipo: 'destino' });
+    marcadores.push({
+      lat: destino.lat,
+      lng: destino.lng,
+      label: destino.label,
+      tipo: 'destino',
+      cartao: destino.fonte === 'nosso',
+    });
 
   const opcao = orcamento?.options?.find((o) => o.type === veiculo);
 
