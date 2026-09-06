@@ -1,9 +1,11 @@
 import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Marker, Circle, Polyline } from 'react-native-maps';
-import Svg, { Path, Circle as Bola } from 'react-native-svg';
+import * as Location from 'expo-location';
+import Svg, { Path, Circle as Bola, Line } from 'react-native-svg';
 import { colors, radius, spacing, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
+import { useI18n } from '../i18n/index.js';
 
 // O mapa, desenhado pelo Google Maps nativo.
 //
@@ -146,6 +148,59 @@ function metrosEntre(a, b) {
   return 2 * R * Math.asin(Math.sqrt(s));
 }
 
+// O BOTÃO DE VOLTAR À MINHA LOCALIZAÇÃO.
+//
+// Existe em todos os mapas que as pessoas usam, e quem arrasta o mapa para
+// ver uma rua fica sem forma de voltar. Antes só se voltava fechando e
+// reabrindo o ecrã, o que apagava o que já estivesse escolhido.
+//
+// A mira é desenhada e não é um emoji: os emojis mudam de forma conforme o
+// telemóvel, e um alvo tem de se ler como um alvo em todos.
+function Mira() {
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24">
+      <Bola cx={12} cy={12} r={6.5} fill="none" stroke="#0E5C54" strokeWidth={2} />
+      <Bola cx={12} cy={12} r={2} fill="#0E5C54" />
+      <Line
+        x1={12}
+        y1={1.5}
+        x2={12}
+        y2={5}
+        stroke="#0E5C54"
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+      <Line
+        x1={12}
+        y1={19}
+        x2={12}
+        y2={22.5}
+        stroke="#0E5C54"
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+      <Line
+        x1={1.5}
+        y1={12}
+        x2={5}
+        y2={12}
+        stroke="#0E5C54"
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+      <Line
+        x1={19}
+        y1={12}
+        x2={22.5}
+        y2={12}
+        stroke="#0E5C54"
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
 export default function MapaGoogle({
   pickable = false,
   precisaoM = null,
@@ -162,6 +217,7 @@ export default function MapaGoogle({
   liveLabel,
   fill = false,
 }) {
+  const { t } = useI18n();
   const mapaRef = useRef(null);
   const c = center || markers[0] || DILI;
   const markersKey = JSON.stringify(markers);
@@ -273,12 +329,23 @@ export default function MapaGoogle({
 
     const ctrl = new AbortController();
     const cortar = setTimeout(() => ctrl.abort(), 12000);
-    // "overview=simplified" e não "full": o full traz centenas de pontos
-    // para uma viagem em Díli, que num ecrã de telemóvel não se distinguem
-    // de vinte e são dez vezes mais para descarregar.
+    // "overview=full" e não "simplified".
+    //
+    // Herdei o `simplified` do mapa do OpenStreetMap com o comentário "para
+    // desenhar bastam vinte pontos". Era verdade nos mosaicos do
+    // OpenStreetMap, onde as ruas são traços finos e cinzentos.
+    //
+    // No Google não é. As ruas são largas e bem desenhadas, e uma linha com
+    // vinte pontos CORTA AS CURVAS — passa por dentro dos quarteirões em vez
+    // de acompanhar a estrada. O Simão viu-o à primeira, com o mapa ampliado
+    // sobre a Avenida Marginal.
+    //
+    // A lição não é sobre rotas: um número afinado para um contexto deixa de
+    // valer quando o contexto muda, e o comentário que o justificava passa a
+    // defender a escolha errada.
     const url =
       'https://router.project-osrm.org/route/v1/driving/' +
-      `${a.lng},${a.lat};${b.lng},${b.lat}?overview=simplified&geometries=geojson`;
+      `${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson`;
 
     fetch(url, { signal: ctrl.signal })
       .then((r) => r.json())
@@ -364,6 +431,35 @@ export default function MapaGoogle({
       vivo = false;
     };
   }, [mapaPronto, liveMarker?.lat, liveMarker?.lng, aMexer]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Pede a posição AO TOQUE e não guardada de antes: quem carrega neste
+  // botão quer saber onde está agora, não onde estava quando abriu o ecrã.
+  const [aLocalizar, setALocalizar] = useState(false);
+  const irParaMim = useCallback(async () => {
+    if (aLocalizar || !mapaRef.current) return;
+    setALocalizar(true);
+    try {
+      const { status } = await Location.getForegroundPermissionsAsync();
+      if (status !== 'granted') return;
+      const pos = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      mapaRef.current?.animateToRegion(
+        {
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          latitudeDelta: 0.006,
+          longitudeDelta: 0.006,
+        },
+        500
+      );
+    } catch {
+      // Sem GPS agora. Não se diz nada: o botão não prometeu nada, e um
+      // aviso vermelho por não haver satélite seria assustar sem motivo.
+    } finally {
+      setALocalizar(false);
+    }
+  }, [aLocalizar]);
 
   const centroMudou = useCallback(
     (regiao) => {
@@ -553,6 +649,19 @@ export default function MapaGoogle({
         </View>
       ) : null}
 
+      {/* Em cima à direita, porque o canto de baixo é do botão de expandir
+          no MapaExpandivel — e um mapa não pode ter dois botões no mesmo
+          sítio conforme o ecrã onde está. */}
+      <Pressable
+        style={[styles.botaoMim, aLocalizar && styles.botaoMimOcupado]}
+        onPress={irParaMim}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={t('irParaMim')}
+      >
+        <Mira />
+      </Pressable>
+
       {/* ── A MIRA ────────────────────────────────────────────────────
           O pino fica FIXO no centro do ecrã e o mapa é que se move por
           baixo.
@@ -630,6 +739,23 @@ const criarEstilos = () =>
     veiculo: { position: 'absolute', width: CARTAO_L },
 
     cartaoSolto: { position: 'absolute' },
+    botaoMim: {
+      position: 'absolute',
+      right: spacing.sm,
+      top: spacing.sm,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.white,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 3,
+    },
+    botaoMimOcupado: { opacity: 0.5 },
     miraCaixa: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
     // A PONTA do pino tem de cair no meio do ecrã, não a base da caixa: o
     // desenho tem 45 de altura e a ponta está a 42, portanto sobe-se metade

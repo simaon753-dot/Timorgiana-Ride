@@ -156,6 +156,7 @@ export default {
   pedidoOutraPessoa: 'Para outra pessoa',
   pedidoMenor: 'Passageiro menor de idade',
   pedidoPor: 'Pedido por {nome}',
+  irParaMim: 'Voltar à minha localização',
   outraPessoaTitulo: 'Pedir para outra pessoa',
   outraPessoaNome: 'Nome de quem vai viajar',
   outraPessoaTelefone: 'Telemóvel de quem vai viajar',

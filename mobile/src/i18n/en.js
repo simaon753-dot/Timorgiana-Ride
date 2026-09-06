@@ -150,6 +150,7 @@ export default {
   pedidoOutraPessoa: 'For someone else',
   pedidoMenor: 'Passenger under 18',
   pedidoPor: 'Booked by {nome}',
+  irParaMim: 'Back to my location',
   outraPessoaTitulo: 'Book for someone else',
   outraPessoaNome: "Traveller's name",
   outraPessoaTelefone: "Traveller's phone",
