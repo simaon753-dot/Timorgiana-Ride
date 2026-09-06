@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../components/Button.js';
 import TextField from '../components/TextField.js';
 import Logo from '../components/Logo.js';
+import * as Updates from 'expo-updates';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import {
@@ -92,6 +93,27 @@ export default function ServerScreen({ navigation }) {
             <Text style={styles.currentValue}>{getBaseUrl()}</Text>
             <Text style={styles.currentSource}>
               ({isUsingSavedUrl() ? t('serverCustom') : t('serverDefault')})
+            </Text>
+          </View>
+
+          {/* QUE VERSÃO ESTÁ A CORRER.
+              Existe pela mesma razão que o campo `versao` do /api/health:
+              sem isto, "a correcção já chegou?" é um palpite. Foi a olhar
+              para dois ecrãs iguais que percebemos que uma actualização
+              podia ter chegado sem mudar nada de visível — e não havia como
+              distinguir isso de não ter chegado de todo.
+              `isEmbeddedLaunch` diz o que interessa: se o JavaScript é o
+              que veio dentro do APK, ou se já é uma actualização
+              descarregada por cima. */}
+          <View style={styles.currentBox}>
+            <Text style={styles.currentLabel}>{t('versaoTitulo')}</Text>
+            <Text style={styles.currentValue}>
+              {Updates.runtimeVersion || '—'}
+              {Updates.updateId ? ` · ${String(Updates.updateId).slice(0, 8)}` : ''}
+            </Text>
+            <Text style={styles.currentSource}>
+              ({Updates.isEmbeddedLaunch ? t('versaoEmbutida') : t('versaoAtualizada')}
+              {Updates.createdAt ? ` · ${new Date(Updates.createdAt).toLocaleString()}` : ''})
             </Text>
           </View>
 

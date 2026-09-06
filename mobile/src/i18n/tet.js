@@ -152,6 +152,9 @@ export default {
   serverCurrent: 'Uza hela',
   serverDefault: 'valór orijinál',
   serverCustom: 'ita konfigura',
+  versaoTitulo: "Versaun ne'ebé la'o",
+  versaoEmbutida: 'mai husi APK',
+  versaoAtualizada: 'atualizasaun simu ona',
   serverFirstSlow: 'Ligasaun primeiru loron nian bele demora to’o minutu ida.',
   waking: 'Fanun servidór… bele demora minutu ida',
 

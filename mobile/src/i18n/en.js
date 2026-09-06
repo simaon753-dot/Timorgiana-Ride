@@ -147,6 +147,9 @@ export default {
   serverCurrent: 'Currently using',
   serverDefault: 'default',
   serverCustom: 'set by you',
+  versaoTitulo: 'Running version',
+  versaoEmbutida: 'shipped in the APK',
+  versaoAtualizada: 'update received',
   serverFirstSlow: 'The first connection of the day can take up to a minute.',
   waking: 'Waking the server… this can take a minute',
 

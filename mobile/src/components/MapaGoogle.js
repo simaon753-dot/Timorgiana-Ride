@@ -57,7 +57,18 @@ const ANCORA_Y = 42 / PINO_A;
 function Pino({ tipo: qual }) {
   const c = COR[qual] || COR.origem;
   return (
-    <View style={{ width: PINO_L, height: PINO_A }}>
+    // `collapsable={false}` NÃO É DECORAÇÃO.
+    //
+    // O React Native ACHATA vistas: uma <View> que só tem propriedades de
+    // disposição e mais nada é considerada supérflua e removida da árvore
+    // nativa antes de chegar ao Android. É uma optimização normal e quase
+    // sempre invisível.
+    //
+    // Aqui não é. Sem isto, a vista de 30x45 desaparecia no caminho, o mapa
+    // voltava a medir o SVG directamente e o pino saía esmagado — com a
+    // agravante de o resultado ser IDÊNTICO ao de antes da correcção, o que
+    // faz parecer que a actualização não chegou.
+    <View style={{ width: PINO_L, height: PINO_A }} collapsable={false}>
       <Svg width={PINO_L} height={PINO_A} viewBox="0 0 36 54">
         <Path d={GOTA} fill="none" stroke="#FFF" strokeWidth={5.6} strokeLinejoin="round" />
         <Path d={GOTA} fill={c.fill} stroke={c.risco} strokeWidth={2.6} strokeLinejoin="round" />
@@ -75,7 +86,10 @@ function Pino({ tipo: qual }) {
 // com os dois que estão parados quando lhes passa por cima.
 function Cartao({ nome, detalhe, qual, agora = false }) {
   return (
-    <View style={[styles.cartao, agora ? styles.cartaoAgora : styles['risco_' + qual]]}>
+    <View
+      style={[styles.cartao, agora ? styles.cartaoAgora : styles['risco_' + qual]]}
+      collapsable={false}
+    >
       <Text style={[styles.cartaoNome, agora && styles.cartaoNomeAgora]} numberOfLines={1}>
         {nome}
       </Text>
@@ -416,7 +430,7 @@ export default function MapaGoogle({
                 // Não intercepta toques: quem toca aqui quer o mapa.
                 tappable={false}
               >
-                <View style={styles.folgaCartao}>
+                <View style={styles.folgaCartao} collapsable={false}>
                   <Cartao nome={p.nome} detalhe={p.detalhe} qual={p.qual} />
                 </View>
               </Marker>
@@ -432,7 +446,7 @@ export default function MapaGoogle({
             anchor={{ x: 0.5, y: 0.5 }}
             zIndex={1000}
           >
-            <View style={styles.veiculo}>
+            <View style={styles.veiculo} collapsable={false}>
               <Text style={styles.veiculoIcone}>🚗</Text>
               {liveLabel ? <Cartao nome={liveLabel} qual="origem" agora /> : null}
             </View>

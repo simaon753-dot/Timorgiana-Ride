@@ -153,6 +153,9 @@ export default {
   serverCurrent: 'A usar agora',
   serverDefault: 'valor de origem',
   serverCustom: 'configurado por ti',
+  versaoTitulo: 'Versão a correr',
+  versaoEmbutida: 'a que veio no APK',
+  versaoAtualizada: 'actualização recebida',
   serverFirstSlow: 'Na primeira ligação do dia pode demorar até 1 minuto.',
   waking: 'A acordar o servidor… pode demorar 1 minuto',
 
