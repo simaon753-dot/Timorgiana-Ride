@@ -21,6 +21,7 @@ import NomearLugar from '../components/NomearLugar.js';
 import SegmentedPicker from '../components/SegmentedPicker.js';
 import { LUGARES } from '../dados/veiculos.js';
 import { nomeDoLugar, rotuloCoordenadas } from '../lib/geocode.js';
+import { seguirPosicao } from '../lib/posicao.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
@@ -72,6 +73,9 @@ export default function RequestRideScreen({ navigation, route }) {
   // O erro que o GPS declarou na última leitura. Desenha o círculo no mapa
   // e impede a app de nomear um edifício quando não tem como saber qual é.
   const [precisao, setPrecisao] = useState(null);
+  // Espelho da recolha, para o afinar do GPS poder perguntar "isto ainda é
+  // o ponto que eu pus?" sem ler estado de dentro de um actualizador.
+  const origemRef = useRef(null);
   const [erro, setErro] = useState(null);
   const [aPedir, setAPedir] = useState(false);
   const [pesquisa, setPesquisa] = useState(null); // 'origem' | 'destino' | null
@@ -108,6 +112,10 @@ export default function RequestRideScreen({ navigation, route }) {
     };
   }, [token, origem?.lat, origem?.lng, destino?.lat, destino?.lng]);
 
+  useEffect(() => {
+    origemRef.current = origem;
+  }, [origem]);
+
   const usarLocalizacao = useCallback(async () => {
     setGps(true);
     setErro(null);
@@ -127,21 +135,59 @@ export default function RequestRideScreen({ navigation, route }) {
       // Esta é A coordenada mais importante da aplicação — é onde o motorista
       // vai buscar alguém. Uns segundos a mais e um pouco de bateria valem
       // menos do que um carro parado na porta errada.
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-      // Mesma ordem: o ponto primeiro, o nome quando vier. Ter o mapa
-      // centrado onde estamos vale mais do que saber como se chama a rua.
-      setOrigem({ lat, lng, label: rotuloCoordenadas(lat, lng), provisorio: true });
-      // O erro que o próprio GPS declara vai junto: com um erro grande, dar
-      // um nome de edifício é escolher à sorte entre os que cabem no círculo.
-      setPrecisao(pos.coords.accuracy ?? null);
-      const nome = await nomeDoLugar(lat, lng, pos.coords.accuracy);
-      if (nome) {
-        setOrigem((p) =>
-          p && p.lat === lat && p.lng === lng ? { ...p, label: nome, provisorio: false } : p
-        );
-      }
+      // E VÁRIAS LEITURAS, e não uma.
+      //
+      // A primeira leitura de um GPS é quase sempre a pior — o receptor
+      // ainda está a apanhar satélites — e pode declarar-se boa estando a
+      // trinta metros. Era isso que punha o pino da app num edifício e o
+      // ponto azul do Google Maps noutro, no mesmo instante.
+      //
+      // A primeira aparece já, para o mapa não ficar parado. As seguintes
+      // corrigem-na enquanto o utilizador não lhe tiver tocado.
+      const meu = { lat: null, lng: null };
+
+      const marcar = async (pos, primeira) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        // SÓ SE MELHORA O QUE FOMOS NÓS A PÔR.
+        //
+        // Entre a primeira leitura e a seguinte, o utilizador pode ter
+        // arrastado o pino ou escolhido outro sítio. Nesse caso ele sabe
+        // melhor do que o satélite: quem está lá viu onde está.
+        if (!primeira) {
+          // Lido de um ref e não de dentro do actualizador de estado.
+          //
+          // A primeira versão decidia "isto ainda é nosso?" DENTRO do
+          // `setOrigem`, escrevendo numa variável de fora. Um actualizador
+          // pode ser chamado mais do que uma vez pelo React, e um que
+          // escreve fora de si deixa de ser previsível — que é o género de
+          // coisa que só aparece meses depois e ninguém liga à causa.
+          const atual = origemRef.current;
+          if (!atual || atual.lat !== meu.lat || atual.lng !== meu.lng) return;
+          setOrigem({ lat, lng, label: rotuloCoordenadas(lat, lng), provisorio: true });
+        } else {
+          // Mesma ordem de sempre: o ponto primeiro, o nome quando vier. Ter
+          // o mapa centrado onde estamos vale mais do que saber a rua.
+          setOrigem({ lat, lng, label: rotuloCoordenadas(lat, lng), provisorio: true });
+        }
+        meu.lat = lat;
+        meu.lng = lng;
+        // O erro que o próprio GPS declara vai junto: com um erro grande,
+        // dar um nome de edifício é escolher à sorte entre os que cabem no
+        // círculo.
+        setPrecisao(pos.coords.accuracy ?? null);
+        const nome = await nomeDoLugar(lat, lng, pos.coords.accuracy);
+        if (nome) {
+          setOrigem((p) =>
+            p && p.lat === lat && p.lng === lng ? { ...p, label: nome, provisorio: false } : p
+          );
+        }
+      };
+
+      await seguirPosicao({
+        onPrimeira: (pos) => marcar(pos, true),
+        onMelhor: (pos) => marcar(pos, false),
+      });
     } catch {
       /* sem GPS — o utilizador pode escolher no mapa */
     } finally {

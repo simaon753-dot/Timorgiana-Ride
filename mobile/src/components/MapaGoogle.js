@@ -524,7 +524,15 @@ export default function MapaGoogle({
               }
             : undefined
         }
-        showsUserLocation={false}
+        // O PONTO AZUL DO GOOGLE, o mesmo que o Google Maps desenha.
+        //
+        // Estava desligado, e isso deixava o utilizador sem forma de comparar
+        // o PINO (onde o motorista vai) com ONDE ELE ESTÁ AGORA. O Simão só
+        // deu pela diferença abrindo o Google Maps ao lado.
+        //
+        // Agora vê os dois no mesmo ecrã: se não coincidirem, arrasta o pino.
+        // Não corrige o satélite — dá a quem está lá a forma de mandar nele.
+        showsUserLocation
         showsMyLocationButton={false}
         toolbarEnabled={false}
         rotateEnabled={false}
