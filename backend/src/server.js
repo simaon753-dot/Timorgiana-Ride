@@ -13,7 +13,7 @@ import { driverRouter } from './routes/driver.js';
 import { adminRouter } from './routes/admin.js';
 import { quoteRouter } from './routes/quote.js';
 import { verifyToken } from './auth.js';
-import { setOnline, updateLocation } from './drivers.js';
+import { setOnline, updateLocation, marcarAusentesOffline } from './drivers.js';
 import { one } from './db.js';
 import { lugaresRouter } from './routes/lugares.js';
 import { estadoDaBusca } from './lugares.js';
@@ -300,6 +300,36 @@ async function start() {
     console.error('[arranque] não foi possível preparar a base de dados:', e.message);
     process.exit(1);
   }
+
+  // OS FANTASMAS DO REINÍCIO ANTERIOR.
+  //
+  // Nenhum socket sobrevive a um reinício, mas a base de dados sobrevive.
+  // Quem estava ao serviço quando o servidor caiu continua marcado como
+  // disponível, sem ligação nenhuma — e o `disconnect` que trataria disso
+  // morreu com o servidor.
+  //
+  // No plano gratuito do Render isto acontece a cada publicação e sempre
+  // que o serviço acorda de dormir, portanto não é um caso raro: é o caso
+  // normal.
+  //
+  // Varre-se uma vez ao arrancar e depois de minuto a minuto, para os que
+  // desaparecem em marcha. Ver `marcarAusentesOffline` para saber porque
+  // não se limpa toda a gente de uma vez.
+  async function varrerAusentes(quando) {
+    try {
+      const idos = await marcarAusentesOffline();
+      if (idos.length) {
+        console.log(
+          `[presença] ${quando}: ${idos.length} motorista(s) sem sinal, marcados indisponíveis` +
+            ` — ${idos.map((d) => `#${d.id} ${d.name}`).join(', ')}`
+        );
+      }
+    } catch (e) {
+      console.error('[presença] não foi possível varrer:', e.message);
+    }
+  }
+  await varrerAusentes('ao arrancar');
+  setInterval(() => varrerAusentes('em marcha'), 60000).unref();
 
   server.listen(config.port, () => {
     console.log(`[server] TimorgianaRide a escutar na porta ${config.port}`);

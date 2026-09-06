@@ -39,6 +39,7 @@ export function RideProvider({ children }) {
 
   const socketRef = useRef(null);
   const rideIdRef = useRef(null); // id da viagem atual (para os handlers do socket)
+  const onlineRef = useRef(false); // o mesmo, para o estado de disponível
 
   // Carregamento inicial + ligação ao socket
   useEffect(() => {
@@ -84,6 +85,20 @@ export function RideProvider({ children }) {
     socket.on('connect', async () => {
       setConnected(true);
       if (!isDriver) return;
+
+      // VOLTAR A DIZER QUE ESTAMOS AO SERVIÇO.
+      //
+      // O servidor deixou de acreditar em quem não dá sinal: varre os
+      // motoristas sem batida há dez minutos e marca-os indisponíveis. Isso
+      // resolve os fantasmas de um reinício, mas cria um desencontro — a
+      // app continuaria a mostrar "ao serviço" e o motorista ficaria a
+      // olhar para um ecrã que diz uma coisa enquanto o servidor faz outra,
+      // sem receber pedidos e sem perceber porquê.
+      //
+      // Ao religar, a app reafirma. O servidor é quem manda no registo, mas
+      // a app é quem sabe o que o motorista escolheu.
+      if (onlineRef.current) socket.emit('driver:setOnline', true);
+
       try {
         const { rides } = await api.availableRides(token);
         if (!cancelled) setRequests(rides || []);
@@ -169,6 +184,10 @@ export function RideProvider({ children }) {
   // Quando a viagem ativa muda: repor chat/avaliação e carregar histórico
   const activeId = activeRide?.id ?? null;
   const hasDriver = !!activeRide?.driver;
+  useEffect(() => {
+    onlineRef.current = online;
+  }, [online]);
+
   useEffect(() => {
     rideIdRef.current = activeId;
     setMessages([]);
