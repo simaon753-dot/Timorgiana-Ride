@@ -213,6 +213,38 @@ function Agulha() {
   );
 }
 
+// O ícone das camadas: três folhas empilhadas, como em qualquer mapa.
+function Camadas({ activo }) {
+  const cor = activo ? '#E85531' : '#0E5C54';
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24">
+      <Path
+        d="M12 2 L22 7.5 L12 13 L2 7.5 Z"
+        fill="none"
+        stroke={cor}
+        strokeWidth={1.9}
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M4.2 12 L12 16.3 L19.8 12"
+        fill="none"
+        stroke={cor}
+        strokeWidth={1.9}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M4.2 16.4 L12 20.7 L19.8 16.4"
+        fill="none"
+        stroke={cor}
+        strokeWidth={1.9}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 export default function MapaGoogle({
   pickable = false,
   arrastavel = false,
@@ -452,6 +484,12 @@ export default function MapaGoogle({
   // Lido com `getCamera` quando o mapa pára, porque a região não o traz — o
   // que a região diz é onde está e quanto se vê, não para onde está virado.
   const [rumo, setRumo] = useState(0);
+  // O tipo de mapa. 'hybrid' e não 'satellite' para o que se chama Satélite:
+  // o `satellite` puro vem SEM NOMES, e um mapa de Díli sem nomes de ruas é
+  // bonito e inútil para quem está a escolher onde ser recolhido. O que o
+  // Google chama "Satélite" é isto — a fotografia com os nomes por cima.
+  const [tipoMapa, setTipoMapa] = useState('standard');
+  const [camadasAbertas, setCamadasAbertas] = useState(false);
   const irParaMim = useCallback(async () => {
     if (aLocalizar || !mapaRef.current) return;
     setALocalizar(true);
@@ -530,6 +568,7 @@ export default function MapaGoogle({
       <MapView
         ref={mapaRef}
         provider={PROVIDER_GOOGLE}
+        mapType={tipoMapa}
         style={styles.mapa}
         initialRegion={regiaoInicial}
         // Antes o primeiro enquadramento corria no `useEffect` de montagem,
@@ -713,6 +752,46 @@ export default function MapaGoogle({
         <Mira />
       </Pressable>
 
+      {/* AS CAMADAS. Fechado é um botão; aberto são três escolhas.
+          Podia ser um botão que roda entre os três a cada toque, e seria
+          menos código — mas quem toca uma vez não sabe quantos há nem em
+          qual está, e para voltar ao inicial tem de dar a volta toda. */}
+      <View style={styles.camadas}>
+        <Pressable
+          style={styles.botaoCamadas}
+          onPress={() => setCamadasAbertas((v) => !v)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('camadasTitulo')}
+        >
+          <Camadas activo={tipoMapa !== 'standard'} />
+        </Pressable>
+        {camadasAbertas ? (
+          <View style={styles.camadasLista}>
+            {[
+              ['standard', t('camadaNormal')],
+              ['hybrid', t('camadaSatelite')],
+              ['terrain', t('camadaTerreno')],
+            ].map(([valor, rotulo]) => (
+              <Pressable
+                key={valor}
+                style={[styles.camadaOpcao, tipoMapa === valor && styles.camadaEscolhida]}
+                onPress={() => {
+                  setTipoMapa(valor);
+                  setCamadasAbertas(false);
+                }}
+              >
+                <Text
+                  style={[styles.camadaTexto, tipoMapa === valor && styles.camadaTextoEscolhido]}
+                >
+                  {rotulo}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
+      </View>
+
       {/* A BÚSSOLA ESTÁ SEMPRE VISÍVEL.
           A primeira versão só a mostrava com o mapa torto, e eu justifiquei
           isso com uma regra que soa bem: um botão permanente para desfazer
@@ -829,6 +908,42 @@ const criarEstilos = () =>
       elevation: 3,
     },
     botaoMimOcupado: { opacity: 0.5 },
+    // As camadas ficam por baixo da bússola: 40 de altura, duas vezes, mais
+    // os respiros. É a terceira e última coisa nesta coluna.
+    camadas: {
+      position: 'absolute',
+      right: spacing.sm,
+      top: spacing.sm + 96,
+      alignItems: 'flex-end',
+    },
+    botaoCamadas: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.white,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 3,
+    },
+    camadasLista: {
+      marginTop: spacing.xs,
+      backgroundColor: colors.white,
+      borderRadius: radius.md,
+      overflow: 'hidden',
+      shadowColor: '#000',
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 4,
+    },
+    camadaOpcao: { paddingVertical: 9, paddingHorizontal: spacing.md },
+    camadaEscolhida: { backgroundColor: colors.tintaTeal },
+    camadaTexto: { ...tipo.pequeno, color: colors.text },
+    camadaTextoEscolhido: { color: colors.teal, fontWeight: '800' },
     botaoBussola: {
       position: 'absolute',
       right: spacing.sm,
