@@ -68,17 +68,38 @@ export function preco(vehicleType, km, min = null) {
   const minutos = Number.isFinite(Number(min)) && Number(min) > 0 ? Number(min) : estimarMin(km);
   const distancia = Math.max(0, Number(km) || 0);
   const bruto = t.base + t.porKm * distancia + (t.porMinuto || 0) * minutos;
-  // ARREDONDA PARA BAIXO, a meio dólar.
-  //
-  // Para baixo e não ao mais próximo, e isso é de propósito: arredondar ao
-  // mais próximo pode subir o preço, e o objectivo declarado é estar abaixo
-  // da concorrência. Um arredondamento que às vezes trabalha contra a
-  // decisão não é um arredondamento, é uma fuga.
-  //
-  // A meio dólar porque foi o que o Simão pediu: valores pares, e ímpares só
-  // com o cinco. Assim os cêntimos são sempre 00 ou 50 — e num sistema a
-  // dinheiro isso é uma nota ou uma moeda, não um troco a contar.
-  return Math.max(t.minimo, Math.floor(bruto * 2) / 2);
+  return Math.max(t.minimo, aoCentimoPermitido(bruto));
+}
+
+// OS CÊNTIMOS QUE O SIMÃO ACEITA, e mais nenhum.
+//
+// Ele deu a lista: 00, 25, 35, 45, 55, 65, 75, 85, 95. O 50 não vinha lá,
+// mas o preço que pediu a seguir foi $8,50 — e meio dólar é uma moeda que
+// existe, por isso incluí-o. Se estiver errado, tira-se daqui e mais nada
+// muda.
+//
+// É uma lista e não uma regra aritmética porque nenhuma regra simples a
+// descreve: não são múltiplos de cinco (falta o 05 e o 15), nem quartos de
+// dólar. É o que se paga sem contar troco em Díli, e isso sabe-se andando
+// na rua, não deduzindo.
+const CENTIMOS_PERMITIDOS = [0, 25, 35, 45, 50, 55, 65, 75, 85, 95];
+
+// SEMPRE PARA BAIXO, nunca ao mais próximo.
+//
+// Ao mais próximo, o arredondamento podia SUBIR o preço — e o objectivo
+// declarado é estar abaixo da concorrência. Um arredondamento que às vezes
+// trabalha contra a decisão não é um arredondamento, é uma fuga.
+//
+// Contas em cêntimos inteiros, e não em dólares com vírgula: 8.51 - 8 dá
+// 0.5099999999999998 em vírgula flutuante, e uma comparação com 51 falharia
+// de vez em quando sem ninguém perceber porquê.
+function aoCentimoPermitido(valor) {
+  const total = Math.round(Math.max(0, valor) * 100);
+  const dolares = Math.floor(total / 100);
+  const centimos = total % 100;
+  let escolhido = 0;
+  for (const c of CENTIMOS_PERMITIDOS) if (c <= centimos) escolhido = c;
+  return dolares + escolhido / 100;
 }
 
 function estimarMin(km) {

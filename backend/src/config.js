@@ -67,14 +67,14 @@ export const config = {
   // decidir.
   tarifas: {
     motorbike: {
-      base: Number(process.env.FARE_MOTO_BASE) || 0.3,
-      porKm: Number(process.env.FARE_MOTO_POR_KM) || 0.28,
+      base: Number(process.env.FARE_MOTO_BASE) || 0.35,
+      porKm: Number(process.env.FARE_MOTO_POR_KM) || 0.295,
       porMinuto: Number(process.env.FARE_MOTO_POR_MINUTO) || 0.02,
       minimo: Number(process.env.FARE_MOTO_MINIMO) || 0.5,
     },
     car: {
-      base: Number(process.env.FARE_CAR_BASE) || 0.3,
-      porKm: Number(process.env.FARE_CAR_POR_KM) || 0.7,
+      base: Number(process.env.FARE_CAR_BASE) || 0.35,
+      porKm: Number(process.env.FARE_CAR_POR_KM) || 0.75,
       porMinuto: Number(process.env.FARE_CAR_POR_MINUTO) || 0.03,
       minimo: Number(process.env.FARE_CAR_MINIMO) || 1.0,
     },
