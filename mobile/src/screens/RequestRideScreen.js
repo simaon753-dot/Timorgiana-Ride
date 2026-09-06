@@ -76,6 +76,7 @@ export default function RequestRideScreen({ navigation, route }) {
   // Espelho da recolha, para o afinar do GPS poder perguntar "isto ainda é
   // o ponto que eu pus?" sem ler estado de dentro de um actualizador.
   const origemRef = useRef(null);
+  const destinoRef = useRef(null);
   const [erro, setErro] = useState(null);
   const [aPedir, setAPedir] = useState(false);
   const [pesquisa, setPesquisa] = useState(null); // 'origem' | 'destino' | null
@@ -114,7 +115,8 @@ export default function RequestRideScreen({ navigation, route }) {
 
   useEffect(() => {
     origemRef.current = origem;
-  }, [origem]);
+    destinoRef.current = destino;
+  }, [origem, destino]);
 
   const usarLocalizacao = useCallback(async () => {
     setGps(true);
@@ -155,6 +157,16 @@ export default function RequestRideScreen({ navigation, route }) {
         // arrastado o pino ou escolhido outro sítio. Nesse caso ele sabe
         // melhor do que o satélite: quem está lá viu onde está.
         if (!primeira) {
+          // COM DESTINO ESCOLHIDO, NÃO SE MEXE MAIS NA RECOLHA.
+          //
+          // Faltava esta guarda no que publiquei há uma hora. Uma leitura
+          // que chegasse depois de o destino estar posto movia o ponto de
+          // partida — e com ele a distância, o tempo e o PREÇO, sem
+          // ninguém carregar em nada.
+          //
+          // É a mesma regra que o Simão já tinha pedido para o arrasto:
+          // fixados os dois pontos, deixam de mudar sozinhos.
+          if (destinoRef.current) return;
           // Lido de um ref e não de dentro do actualizador de estado.
           //
           // A primeira versão decidia "isto ainda é nosso?" DENTRO do
@@ -447,7 +459,6 @@ export default function RequestRideScreen({ navigation, route }) {
           onPick={escolherNoMapa}
           arrastavel={!aEscolherNoMapa && !(origem && destino)}
           onArrastar={arrastouPino}
-          precisaoM={aEscolherNoMapa || (origem && destino) ? null : precisao}
           modoEscolha={aEscolherNoMapa}
           onCentro={centroMudou}
         />

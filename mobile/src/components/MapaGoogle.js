@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
-import MapView, { PROVIDER_GOOGLE, Marker, Circle, Polyline } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
 import Svg, { Path, Circle as Bola, Line } from 'react-native-svg';
 import { colors, radius, spacing, registarEstilos } from '../theme.js';
@@ -203,7 +203,6 @@ function Mira() {
 
 export default function MapaGoogle({
   pickable = false,
-  precisaoM = null,
   arrastavel = false,
   onArrastar,
   modoEscolha = null,
@@ -538,24 +537,15 @@ export default function MapaGoogle({
         rotateEnabled={false}
         pitchEnabled={false}
       >
-        {/* O CÍRCULO DE INCERTEZA do GPS: mostra o que o telemóvel realmente
-            sabe — "estou algures aqui dentro". Sem ele, um pino de traço
-            fino parece uma certeza, e o Simão viu exactamente isso: um ponto
-            seguro de si a 35 metros de onde estava.
-            Abaixo de 15 metros não se desenha — seria mais pequeno do que o
-            pino e só faria sujidade. */}
-        {precisaoM > 15 && pts.length ? (
-          <Circle
-            center={{
-              latitude: (pts.find((p) => p.qual !== 'destino') || pts[0]).lat,
-              longitude: (pts.find((p) => p.qual !== 'destino') || pts[0]).lng,
-            }}
-            radius={Number(precisaoM)}
-            strokeColor="rgba(14,92,84,0.35)"
-            fillColor="rgba(14,92,84,0.10)"
-            strokeWidth={1}
-          />
-        ) : null}
+        {/* A CIRCUNFERÊNCIA DE INCERTEZA SAIU DAQUI.
+            Desenhávamos uma, em teal, à volta do pino. Desde que o ponto
+            azul do Google passou a aparecer, ele traz a dele — e duas
+            circunferências translúcidas sobrepostas não dizem duas coisas,
+            dizem uma coisa turva.
+            A do Google é melhor: é do momento, e encolhe quando ele ganha
+            confiança. A nossa era do instante em que o pino foi posto e
+            ficava parada. O "±40 m" na folha de baixo continua a dizer o
+            erro daquela leitura, que é a informação que faltaria. */}
 
         {/* A CHAVE MUDA quando a rota deixa de ser a provisória, e isso é
             obrigatório.

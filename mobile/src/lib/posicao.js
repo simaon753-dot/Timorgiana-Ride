@@ -23,7 +23,16 @@ import * as Location from 'expo-location';
 // ser boa que chegue. Quem chama decide se aceita a melhoria — o utilizador
 // pode ter arrastado o pino entretanto, e nesse caso ele sabe melhor do que
 // o satélite.
-const PRAZO_MS = 8000;
+// Vinte segundos e não oito.
+//
+// Com oito, o pino ficava perto do ponto azul mas não em cima dele: o GPS
+// ainda estava a melhorar quando desistíamos. O Google continua a afinar
+// enquanto o mapa está aberto, e é com ele que a app é comparada.
+//
+// Não custa espera a ninguém: a primeira leitura aparece de imediato e o
+// resto acontece por baixo, enquanto a pessoa escolhe o destino. E pára
+// mal o erro desça abaixo de doze metros, que é o caso normal na rua.
+const PRAZO_MS = 20000;
 const BOA_QUE_CHEGUE_M = 12;
 
 export async function seguirPosicao({ onPrimeira, onMelhor, prazoMs = PRAZO_MS }) {
