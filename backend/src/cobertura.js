@@ -1,4 +1,5 @@
 import { normalizar } from './texto.js';
+import { estaNaAgua } from './mosaicos.js';
 
 // Onde é que uma viagem pode ir de facto.
 //
@@ -64,6 +65,21 @@ export async function podeIr(lat, lng) {
   if (typeof lat !== 'number' || typeof lng !== 'number') {
     return { ok: false, razao: 'sem_coordenadas' };
   }
+
+  // ÁGUA, PRIMEIRO. É a única pergunta que se responde sem sair de casa: o
+  // mapa próprio está no disco deste servidor, e tem o mar e as lagoas
+  // desenhados ao metro.
+  //
+  // Vem antes das outras porque não custa nada e porque responde ao caso que
+  // as outras não apanhavam: dez metros para dentro do mar, com a estrada a
+  // cinquenta. Eu tinha dito ao Simão que isso não fazia mal — que o encostar
+  // à estrada resolvia. Ele discordou, e tem razão: mover o pino em silêncio
+  // é decidir por quem apontou; dizer "indisponível" é responder-lhe.
+  //
+  // E há aqui uma coisa que vale a pena notar: o mapa que construímos ontem,
+  // e que nem sequer está ligado na app, passou a ser o instrumento que
+  // responde a esta pergunta melhor do que qualquer serviço de fora.
+  if (await estaNaAgua(lat, lng)) return { ok: false, razao: 'agua' };
 
   const [estrada, onde] = await Promise.all([
     comPrazo(`https://router.project-osrm.org/nearest/v1/driving/${lng},${lat}?number=1`),
