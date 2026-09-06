@@ -203,6 +203,8 @@ function andar(alvo) {
 
 function enviarPosicao() {
   socket.emit('driver:location', posicao);
+  if (viagem) largarSeAcabou();
+  else procurarAEspera();
   // A caminho da recolha: aproxima-se 60 metros de cada vez. É o que faz o
   // ponto MEXER no ecrã dele — parado, não se distingue de uma fotografia.
   if (viagem?.origin) {
@@ -216,7 +218,20 @@ function enviarPosicao() {
   }
 }
 
-socket.on('ride:new', async (r) => {
+// ACEITAR UM PEDIDO. Chamado por dois caminhos, e os dois fazem falta.
+//
+// O `ride:new` só chega a quem já está ligado. Um pedido feito enquanto o
+// guião estava parado — ou enquanto ele segurava outra viagem — nunca mais
+// é anunciado, e ficava à espera para sempre.
+//
+// Aconteceu a meio de um ensaio: o Simão pediu, o guião estava preso na
+// viagem anterior, e o pedido dele ficou no ar sem ninguém o ouvir. Do lado
+// dele parecia que a app não funcionava.
+//
+// Por isso há também a varredura: de quatro em quatro segundos, sem viagem
+// em mãos, pergunta ao servidor o que está à espera — pelo mesmo caminho
+// que a app do motorista usa.
+async function aceitar(r) {
   if (viagem) return;
   console.log(`\n  ► pedido #${r.id}  ·  ${r.originLabel || '—'}  →  ${r.destLabel || '—'}`);
   const resp = await fetch(`${SERVIDOR}/api/rides/${r.id}/accept`, {
@@ -248,7 +263,47 @@ socket.on('ride:new', async (r) => {
   } else {
     console.log('  ✓ ACEITE, mas o pedido veio sem coordenadas de recolha: fico parado no ETO.\n');
   }
-});
+}
+
+socket.on('ride:new', (r) => aceitar(r));
+
+// A varredura dos que já estão à espera.
+async function procurarAEspera() {
+  if (viagem) return;
+  try {
+    const r = await fetch(`${SERVIDOR}/api/rides/available`, {
+      headers: { Authorization: 'Bearer ' + TOKEN },
+    });
+    if (!r.ok) return;
+    const j = await r.json();
+    const lista = j?.rides || [];
+    if (lista.length) await aceitar(lista[0]);
+  } catch {
+    // Sem rede não há nada a fazer; o próximo tique tenta outra vez.
+  }
+}
+
+// Quando a viagem em mãos deixa de estar activa — concluída, cancelada, ou
+// fechada por fora — volta-se a ficar disponível. Sem isto o guião ficava
+// preso na primeira viagem até alguém o matar, que foi como descobrimos
+// que faltava a varredura.
+async function largarSeAcabou() {
+  if (!viagem) return;
+  try {
+    const r = await fetch(`${SERVIDOR}/api/rides/active`, {
+      headers: { Authorization: 'Bearer ' + TOKEN },
+    });
+    if (!r.ok) return;
+    const j = await r.json();
+    if (!j?.ride || j.ride.id !== viagem.id) {
+      console.log(`\n  · viagem #${viagem.id} terminada. À espera de outro pedido.\n`);
+      viagem = null;
+      caminho = [];
+    }
+  } catch {
+    /* o próximo tique tenta outra vez */
+  }
+}
 
 socket.on('connect_error', (e) => console.log('  ✗ ligação:', e.message));
 
