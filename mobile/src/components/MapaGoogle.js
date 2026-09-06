@@ -107,6 +107,20 @@ export default function MapaGoogle({
 
   const [rota, setRota] = useState(null);
   const [aMexer, setAMexer] = useState(false);
+  const [mapaPronto, setMapaPronto] = useState(false);
+  // OS MARCADORES PERSONALIZADOS PRECISAM DE SER SEGUIDOS ENQUANTO SE
+  // DESENHAM.
+  //
+  // O mapa nativo não mostra o componente React: tira-lhe uma FOTOGRAFIA e
+  // desenha a fotografia. Com `tracksViewChanges` a falso desde o início,
+  // tira-a antes de o React ter desenhado seja o que for — e fica com uma
+  // fotografia vazia. Foi exactamente isso que aconteceu na primeira versão:
+  // a rota aparecia e os pinos não.
+  //
+  // Segue-se durante um segundo e meio e desliga-se. Deixá-lo ligado para
+  // sempre faria o mapa refotografar cada pino a cada quadro, numa viagem
+  // inteira — que é o problema que este parâmetro existe para resolver.
+  const [aSeguir, setASeguir] = useState(true);
   // O centro actual, para decidir de que lado do pino fica o cartão.
   const centroRef = useRef({ lat: c.lat, lng: c.lng });
 
@@ -128,6 +142,12 @@ export default function MapaGoogle({
     [markersKey] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
+  useEffect(() => {
+    setASeguir(true);
+    const relogio = setTimeout(() => setASeguir(false), 1500);
+    return () => clearTimeout(relogio);
+  }, [markersKey, liveLabel]);
+
   const regiaoInicial = useMemo(
     () => ({
       latitude: c.lat,
@@ -143,13 +163,21 @@ export default function MapaGoogle({
   // Com dois pontos, mostrar os dois. Com um, aproximar. No modo de escolha
   // NÃO se mexe: quem está a apontar com o dedo não quer o mapa a saltar-lhe
   // debaixo da mira.
-  useEffect(() => {
+  //
+  // Enquadra pela ROTA quando ela já existe, e só pelos dois pontos
+  // enquanto não existe. A diferença não é cosmética: entre a Avenida
+  // Nicolau Lobato e o Cristo Rei a estrada contorna a baía toda, e um
+  // enquadramento feito só com as pontas deixa metade do caminho de fora.
+  const enquadrar = useCallback(() => {
     if (modoEscolha || !mapaRef.current || !pts.length) return;
-    if (pts.length > 1) {
-      mapaRef.current.fitToCoordinates(
-        pts.map((p) => ({ latitude: p.lat, longitude: p.lng })),
-        { edgePadding: { top: 70, right: 70, bottom: 70, left: 70 }, animated: true }
-      );
+    const pontos = rota?.linha?.length
+      ? rota.linha
+      : pts.map((p) => ({ latitude: p.lat, longitude: p.lng }));
+    if (pontos.length > 1) {
+      mapaRef.current.fitToCoordinates(pontos, {
+        edgePadding: { top: 70, right: 70, bottom: 70, left: 70 },
+        animated: true,
+      });
     } else {
       mapaRef.current.animateToRegion(
         {
@@ -161,7 +189,18 @@ export default function MapaGoogle({
         400
       );
     }
-  }, [markersKey, modoEscolha]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [modoEscolha, pts, rota]);
+
+  // TRÊS MOMENTOS, e faltava o terceiro.
+  //
+  // Os pontos mudam; o mapa fica pronto (a primeira tentativa acontecia
+  // antes de ele existir e não fazia nada); e a rota verdadeira chega, que
+  // é quando o enquadramento passa a ter mais do que duas pontas para
+  // conter. Sem este último, a recolha ficava fora do ecrã à esquerda.
+  useEffect(() => {
+    if (!mapaPronto) return;
+    enquadrar();
+  }, [markersKey, mapaPronto, rota?.tracejada]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── A rota ─────────────────────────────────────────────────────────
   //
@@ -252,6 +291,9 @@ export default function MapaGoogle({
         provider={PROVIDER_GOOGLE}
         style={styles.mapa}
         initialRegion={regiaoInicial}
+        // Antes o primeiro enquadramento corria no `useEffect` de montagem,
+        // quando o mapa nativo ainda não existia — e não fazia nada.
+        onMapReady={() => setMapaPronto(true)}
         onRegionChange={() => {
           if (modoEscolha && !aMexer) setAMexer(true);
         }}
@@ -296,11 +338,24 @@ export default function MapaGoogle({
           />
         ) : null}
 
+        {/* A CHAVE MUDA quando a rota deixa de ser a provisória, e isso é
+            obrigatório.
+
+            Passar `lineDashPattern={undefined}` NÃO apaga o tracejado: o
+            React reaproveita o mesmo objecto nativo e `undefined` significa
+            "não mexas nisto", não "tira isso". A rota verdadeira aparecia
+            correcta — a seguir as estradas — mas vestida de pontinhos, como
+            se ainda fosse a linha recta.
+
+            Com chaves diferentes, a linha verdadeira nasce num objecto novo,
+            que nunca teve tracejado nenhum. */}
         {rota ? (
           <Polyline
+            key={rota.tracejada ? 'recta' : 'estrada'}
             coordinates={rota.linha}
             strokeColor="#0E5C54"
             strokeWidth={rota.tracejada ? 4 : 5}
+            strokeOpacity={rota.tracejada ? 0.6 : 0.9}
             lineDashPattern={rota.tracejada ? [8, 8] : undefined}
           />
         ) : null}
@@ -328,10 +383,11 @@ export default function MapaGoogle({
                     }
                   : undefined
               }
-              // Sem isto, o mapa redesenha a vista do marcador a cada quadro
-              // à procura de mudanças que não existem — e come bateria numa
-              // viagem inteira. Só o do veículo precisa de acompanhar.
-              tracksViewChanges={false}
+              // Ver a nota em `aSeguir`: segue-se enquanto desenha e
+              // desliga-se a seguir. Ligado para sempre come bateria numa
+              // viagem inteira; desligado desde o início, o pino nunca chega
+              // a aparecer.
+              tracksViewChanges={aSeguir}
             >
               <Pino tipo={p.qual} />
             </Marker>
@@ -343,7 +399,7 @@ export default function MapaGoogle({
                 // CABEÇA. Não se põe por cima porque tapava a rua por onde
                 // se chega — que é justamente o que interessa ver.
                 anchor={{ x: 0, y: 1 }}
-                tracksViewChanges={false}
+                tracksViewChanges={aSeguir}
                 // Não intercepta toques: quem toca aqui quer o mapa.
                 tappable={false}
               >
