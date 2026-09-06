@@ -201,6 +201,18 @@ function Mira() {
   );
 }
 
+// A agulha da bússola. Metade coral a apontar ao norte, metade cinzenta —
+// é o desenho que toda a gente reconhece de uma bússola, e distingue-se de
+// um simples triângulo, que tanto podia ser "para cima" como "reproduzir".
+function Agulha() {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24">
+      <Path d="M12 2 L16.5 13 L12 11 Z" fill="#E85531" />
+      <Path d="M12 22 L7.5 11 L12 13 Z" fill="#7C8A85" />
+    </Svg>
+  );
+}
+
 export default function MapaGoogle({
   pickable = false,
   arrastavel = false,
@@ -208,6 +220,7 @@ export default function MapaGoogle({
   modoEscolha = null,
   onCentro,
   markers = [],
+  trocoAPe = null,
   center,
   height = 240,
   onPick,
@@ -434,6 +447,11 @@ export default function MapaGoogle({
   // Pede a posição AO TOQUE e não guardada de antes: quem carrega neste
   // botão quer saber onde está agora, não onde estava quando abriu o ecrã.
   const [aLocalizar, setALocalizar] = useState(false);
+  // O rumo do mapa, em graus. Zero é norte para cima.
+  //
+  // Lido com `getCamera` quando o mapa pára, porque a região não o traz — o
+  // que a região diz é onde está e quanto se vê, não para onde está virado.
+  const [rumo, setRumo] = useState(0);
   const irParaMim = useCallback(async () => {
     if (aLocalizar || !mapaRef.current) return;
     setALocalizar(true);
@@ -460,9 +478,18 @@ export default function MapaGoogle({
     }
   }, [aLocalizar]);
 
+  const aoNorte = useCallback(() => {
+    mapaRef.current?.animateCamera({ heading: 0 }, { duration: 300 });
+  }, []);
+
   const centroMudou = useCallback(
     (regiao) => {
       setAMexer(false);
+      // O rumo não vem na região; pergunta-se à câmara.
+      mapaRef.current
+        ?.getCamera?.()
+        .then((c) => setRumo(Number(c?.heading) || 0))
+        .catch(() => {});
       centroRef.current = { lat: regiao.latitude, lng: regiao.longitude };
       recalcularCartoes();
       if (modoEscolha && onCentro) {
@@ -534,7 +561,9 @@ export default function MapaGoogle({
         showsUserLocation
         showsMyLocationButton={false}
         toolbarEnabled={false}
-        rotateEnabled={false}
+        // A ROTAÇÃO ESTAVA DESLIGADA, e sem ela uma bússola não teria o
+        // que mostrar. Roda-se com dois dedos, como em qualquer mapa.
+        rotateEnabled
         pitchEnabled={false}
       >
         {/* A CIRCUNFERÊNCIA DE INCERTEZA SAIU DAQUI.
@@ -558,6 +587,24 @@ export default function MapaGoogle({
 
             Com chaves diferentes, a linha verdadeira nasce num objecto novo,
             que nunca teve tracejado nenhum. */}
+        {/* O TROÇO A PÉ, de onde a pessoa está até ao ponto de recolha.
+            Aos pontinhos e não a cheio: uma linha cheia é o caminho do
+            carro, e esta não é — é o caminho dela. Responde a uma pergunta
+            que a pessoa tem e a que ninguém respondia: onde é que eu espero?
+            Cinzento-escuro em vez do teal, para não competir com a rota. */}
+        {trocoAPe ? (
+          <Polyline
+            key="a-pe"
+            coordinates={[
+              { latitude: trocoAPe.de.lat, longitude: trocoAPe.de.lng },
+              { latitude: trocoAPe.para.lat, longitude: trocoAPe.para.lng },
+            ]}
+            strokeColor="#5A6B66"
+            strokeWidth={3}
+            lineDashPattern={[2, 6]}
+          />
+        ) : null}
+
         {rota ? (
           <Polyline
             key={rota.tracejada ? 'recta' : 'estrada'}
@@ -660,6 +707,25 @@ export default function MapaGoogle({
         <Mira />
       </Pressable>
 
+      {/* A BÚSSOLA SÓ APARECE COM O MAPA TORTO, como no Google Maps.
+          Um botão permanentemente visível para desfazer uma coisa que quase
+          nunca se faz é um botão que só ocupa espaço. Aparecer quando há o
+          que desfazer é ele próprio dizer que o mapa está torto — que é
+          metade da utilidade. */}
+      {Math.abs(rumo) > 1 ? (
+        <Pressable
+          style={styles.botaoBussola}
+          onPress={aoNorte}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('voltarAoNorte')}
+        >
+          <View style={{ transform: [{ rotate: `${-rumo}deg` }] }}>
+            <Agulha />
+          </View>
+        </Pressable>
+      ) : null}
+
       {/* ── A MIRA ────────────────────────────────────────────────────
           O pino fica FIXO no centro do ecrã e o mapa é que se move por
           baixo.
@@ -754,6 +820,23 @@ const criarEstilos = () =>
       elevation: 3,
     },
     botaoMimOcupado: { opacity: 0.5 },
+    botaoBussola: {
+      position: 'absolute',
+      right: spacing.sm,
+      // Por baixo do de voltar a mim: 40 de altura mais um respiro.
+      top: spacing.sm + 48,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.white,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 3,
+    },
     miraCaixa: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
     // A PONTA do pino tem de cair no meio do ecrã, não a base da caixa: o
     // desenho tem 45 de altura e a ponta está a 42, portanto sobe-se metade

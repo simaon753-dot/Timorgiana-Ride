@@ -22,6 +22,7 @@ import SegmentedPicker from '../components/SegmentedPicker.js';
 import { LUGARES } from '../dados/veiculos.js';
 import { nomeDoLugar, rotuloCoordenadas } from '../lib/geocode.js';
 import { seguirPosicao } from '../lib/posicao.js';
+import { pontoNaEstrada } from '../lib/estrada.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
@@ -75,6 +76,16 @@ export default function RequestRideScreen({ navigation, route }) {
   const [precisao, setPrecisao] = useState(null);
   // Espelho da recolha, para o afinar do GPS poder perguntar "isto ainda é
   // o ponto que eu pus?" sem ler estado de dentro de um actualizador.
+  // O troço a pé: de onde a pessoa está até ao ponto de recolha na estrada.
+  //
+  // Guarda AS DUAS PONTAS, e não só a de partida. Assim sabe dizer sozinho se
+  // ainda vale: se a recolha deixar de ser a ponta que ele conhece — por um
+  // arrasto, uma pesquisa, um toque no mapa — a linha desaparece sem ninguém
+  // ter de se lembrar de a apagar em cada um desses sítios.
+  //
+  // Uma linha que sobrevivesse a uma mudança do ponto diria "vá a pé daqui
+  // até ali" apontando para um sítio que já não é o de recolha.
+  const [troco, setTroco] = useState(null);
   const origemRef = useRef(null);
   const destinoRef = useRef(null);
   const [erro, setErro] = useState(null);
@@ -196,10 +207,46 @@ export default function RequestRideScreen({ navigation, route }) {
         }
       };
 
-      await seguirPosicao({
+      const melhor = await seguirPosicao({
         onPrimeira: (pos) => marcar(pos, true),
         onMelhor: (pos) => marcar(pos, false),
       });
+
+      // ENCOSTAR À ESTRADA, e só depois de a posição assentar.
+      //
+      // Um carro não entra num pátio nem a meio de um quarteirão. O
+      // motorista chegava à coordenada, não via ninguém, e telefonava.
+      //
+      // Feito UMA vez e no fim, e não a cada leitura: são chamadas a um
+      // serviço gratuito e partilhado, e encostar um ponto que ainda está a
+      // mexer daria um pino aos saltos.
+      if (!melhor || destinoRef.current) return;
+      const aqui = { lat: melhor.coords.latitude, lng: melhor.coords.longitude };
+      const naEstrada = await pontoNaEstrada(aqui.lat, aqui.lng);
+      if (!naEstrada || destinoRef.current) return;
+      const atual = origemRef.current;
+      // Como no afinar: só se mexe no que fomos nós a pôr.
+      if (!atual || atual.lat !== meu.lat || atual.lng !== meu.lng) return;
+
+      setTroco({ de: aqui, para: { lat: naEstrada.lat, lng: naEstrada.lng } });
+      setOrigem({
+        lat: naEstrada.lat,
+        lng: naEstrada.lng,
+        label: naEstrada.rua || rotuloCoordenadas(naEstrada.lat, naEstrada.lng),
+        provisorio: !naEstrada.rua,
+      });
+      meu.lat = naEstrada.lat;
+      meu.lng = naEstrada.lng;
+      if (!naEstrada.rua) {
+        const nome = await nomeDoLugar(naEstrada.lat, naEstrada.lng, null);
+        if (nome) {
+          setOrigem((pp) =>
+            pp && pp.lat === naEstrada.lat && pp.lng === naEstrada.lng
+              ? { ...pp, label: nome, provisorio: false }
+              : pp
+          );
+        }
+      }
     } catch {
       /* sem GPS — o utilizador pode escolher no mapa */
     } finally {
@@ -398,6 +445,11 @@ export default function RequestRideScreen({ navigation, route }) {
   //
   // O que o Google NÃO tem são os sítios que os passageiros baptizaram. A
   // "Kios Mana Rita" não está lá nem estará: é aí que o cartão acrescenta.
+  const trocoAPe =
+    troco && origem && origem.lat === troco.para.lat && origem.lng === troco.para.lng
+      ? troco
+      : null;
+
   const marcadores = [];
   if (origem)
     marcadores.push({
@@ -455,6 +507,7 @@ export default function RequestRideScreen({ navigation, route }) {
         <Mapa
           pickable
           fill
+          trocoAPe={trocoAPe}
           markers={marcadores}
           onPick={escolherNoMapa}
           arrastavel={!aEscolherNoMapa && !(origem && destino)}
