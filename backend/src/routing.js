@@ -67,17 +67,18 @@ export function preco(vehicleType, km, min = null) {
   const t = config.tarifas[vehicleType] || config.tarifas.car;
   const minutos = Number.isFinite(Number(min)) && Number(min) > 0 ? Number(min) : estimarMin(km);
   const distancia = Math.max(0, Number(km) || 0);
-  // Os primeiros quilómetros a um preço, os seguintes a outro. Ver a nota da
-  // tarifa no config: o que encarece uma viagem longa não é o comprimento, é
-  // o regresso vazio que ela obriga.
-  const perto = Math.min(distancia, config.kmLongeAPartirDe);
-  const longe = Math.max(0, distancia - config.kmLongeAPartirDe);
-  const bruto =
-    t.base + t.porKm * perto + t.porKmLonge * longe + (t.porMinuto || 0) * minutos;
-  // Arredondado a $0,25 — que é a moeda de 25 centavos que circula em
-  // Timor-Leste, e o preço de um microlet. Num sistema a dinheiro, ninguém
-  // quer trocar $2,73.
-  return Math.max(t.minimo, Math.round(bruto * 4) / 4);
+  const bruto = t.base + t.porKm * distancia + (t.porMinuto || 0) * minutos;
+  // ARREDONDA PARA BAIXO, a meio dólar.
+  //
+  // Para baixo e não ao mais próximo, e isso é de propósito: arredondar ao
+  // mais próximo pode subir o preço, e o objectivo declarado é estar abaixo
+  // da concorrência. Um arredondamento que às vezes trabalha contra a
+  // decisão não é um arredondamento, é uma fuga.
+  //
+  // A meio dólar porque foi o que o Simão pediu: valores pares, e ímpares só
+  // com o cinco. Assim os cêntimos são sempre 00 ou 50 — e num sistema a
+  // dinheiro isso é uma nota ou uma moeda, não um troco a contar.
+  return Math.max(t.minimo, Math.floor(bruto * 2) / 2);
 }
 
 function estimarMin(km) {
