@@ -84,6 +84,44 @@ app.get('/api/config/emergencia', (req, res) => {
 // mais nada aqui para uma pessoa ver. Sem isto apanhava um 404 seco.
 app.get('/', (req, res) => res.redirect('/painel'));
 
+// O MAPA PRÓPRIO, servido daqui.
+//
+// São 33 MB com Timor-Leste inteiro, do país à rua. Fica no repositório e o
+// Render serve-o — não há terceiro serviço, não há conta nova, não há chave
+// que possa ser revogada. É a única dependência do mapa que não pode fechar
+// por causa de uma facturação.
+//
+// PEDIDOS POR TROÇOS, e é o que faz isto funcionar. O formato PMTiles é um
+// ficheiro só, e quem o lê pede apenas os bytes dos mosaicos que está a
+// mostrar — uns kilobytes por ecrã, não os 33 MB. O `sendFile` do Express
+// responde a `Range` sozinho; sem isso, cada abertura do mapa descarregava o
+// país inteiro.
+//
+// CORS aberto porque quem pede é a app, de outra origem. O ficheiro é
+// público por natureza: são dados do OpenStreetMap, que qualquer um pode ir
+// buscar à fonte.
+app.get('/mapa/timor-leste.pmtiles', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Range');
+  res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Range, ETag');
+  // Um mês. O mapa só muda quando alguém correr a receita outra vez, e a
+  // diferença entre ter os dados de ontem ou os do mês passado não se vê a
+  // conduzir em Díli.
+  res.setHeader('Cache-Control', 'public, max-age=2592000');
+  res.sendFile(fileURLToPath(new URL('../publico/timor-leste.pmtiles', import.meta.url)));
+});
+
+// O estilo, ao lado do mapa.
+//
+// SEPARADO do ficheiro dos mosaicos de propósito: mudar as cores passa a ser
+// substituir um ficheiro de texto e publicar o servidor. Ninguém instala APK
+// nenhum para o mapa mudar de aspecto.
+app.get('/mapa/estilo.json', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.sendFile(fileURLToPath(new URL('../publico/estilo.json', import.meta.url)));
+});
+
 app.get('/painel', (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   res.setHeader('X-Robots-Tag', 'noindex, nofollow');

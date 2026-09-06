@@ -1,0 +1,320 @@
+{
+  "version": 8,
+  "name": "TimorgianaRide",
+  "glyphs": "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
+  "sources": {
+    "tl": {
+      "type": "vector",
+      "url": "pmtiles://https://timorgiana-ride.onrender.com/mapa/timor-leste.pmtiles",
+      "attribution": "© OpenStreetMap contributors · Protomaps"
+    }
+  },
+  "layers": [
+    {
+      "id": "fundo",
+      "type": "background",
+      "paint": {
+        "background-color": "#F7F4EF"
+      }
+    },
+    {
+      "id": "terra",
+      "type": "fill",
+      "source": "tl",
+      "source-layer": "earth",
+      "paint": {
+        "fill-color": "#F7F4EF"
+      }
+    },
+    {
+      "id": "vegetacao",
+      "type": "fill",
+      "source": "tl",
+      "source-layer": "landcover",
+      "paint": {
+        "fill-color": "#E9EDE4",
+        "fill-opacity": 0.9
+      }
+    },
+    {
+      "id": "uso",
+      "type": "fill",
+      "source": "tl",
+      "source-layer": "landuse",
+      "filter": [
+        "match",
+        [
+          "get",
+          "kind"
+        ],
+        [
+          "park",
+          "forest",
+          "cemetery",
+          "grass",
+          "pitch"
+        ],
+        true,
+        false
+      ],
+      "paint": {
+        "fill-color": "#E2E9DE"
+      }
+    },
+    {
+      "id": "agua",
+      "type": "fill",
+      "source": "tl",
+      "source-layer": "water",
+      "paint": {
+        "fill-color": "#BFD6D4"
+      }
+    },
+    {
+      "id": "edificios",
+      "type": "fill",
+      "source": "tl",
+      "source-layer": "buildings",
+      "minzoom": 14,
+      "paint": {
+        "fill-color": "#EBE5DC",
+        "fill-opacity": 0.9
+      }
+    },
+    {
+      "id": "estradas-contorno",
+      "type": "line",
+      "source": "tl",
+      "source-layer": "roads",
+      "minzoom": 8,
+      "layout": {
+        "line-cap": "round",
+        "line-join": "round"
+      },
+      "paint": {
+        "line-color": "#DDD6CB",
+        "line-width": [
+          "interpolate",
+          [
+            "exponential",
+            1.6
+          ],
+          [
+            "zoom"
+          ],
+          8,
+          [
+            "match",
+            [
+              "get",
+              "kind"
+            ],
+            "highway",
+            3,
+            "major_road",
+            2,
+            0.6
+          ],
+          16,
+          [
+            "match",
+            [
+              "get",
+              "kind"
+            ],
+            "highway",
+            18,
+            "major_road",
+            14,
+            "minor_road",
+            9,
+            5
+          ]
+        ]
+      }
+    },
+    {
+      "id": "estradas",
+      "type": "line",
+      "source": "tl",
+      "source-layer": "roads",
+      "minzoom": 8,
+      "layout": {
+        "line-cap": "round",
+        "line-join": "round"
+      },
+      "paint": {
+        "line-color": [
+          "match",
+          [
+            "get",
+            "kind"
+          ],
+          "highway",
+          "#FFF6EE",
+          "#FFFFFF"
+        ],
+        "line-width": [
+          "interpolate",
+          [
+            "exponential",
+            1.6
+          ],
+          [
+            "zoom"
+          ],
+          8,
+          [
+            "match",
+            [
+              "get",
+              "kind"
+            ],
+            "highway",
+            2,
+            "major_road",
+            1.2,
+            0.3
+          ],
+          16,
+          [
+            "match",
+            [
+              "get",
+              "kind"
+            ],
+            "highway",
+            15,
+            "major_road",
+            11,
+            "minor_road",
+            7,
+            3.5
+          ]
+        ]
+      }
+    },
+    {
+      "id": "fronteiras",
+      "type": "line",
+      "source": "tl",
+      "source-layer": "boundaries",
+      "paint": {
+        "line-color": "#B9AFA0",
+        "line-width": 1,
+        "line-dasharray": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "nomes-agua",
+      "type": "symbol",
+      "source": "tl",
+      "source-layer": "water",
+      "filter": [
+        "has",
+        "name"
+      ],
+      "layout": {
+        "text-field": [
+          "get",
+          "name"
+        ],
+        "text-font": [
+          "Noto Sans Italic"
+        ],
+        "text-size": 11
+      },
+      "paint": {
+        "text-color": "#6E8F8C",
+        "text-halo-color": "#F7F4EF",
+        "text-halo-width": 1.2
+      }
+    },
+    {
+      "id": "nomes-ruas",
+      "type": "symbol",
+      "source": "tl",
+      "source-layer": "roads",
+      "minzoom": 14,
+      "filter": [
+        "has",
+        "name"
+      ],
+      "layout": {
+        "symbol-placement": "line",
+        "text-field": [
+          "get",
+          "name"
+        ],
+        "text-font": [
+          "Noto Sans Regular"
+        ],
+        "text-size": 11
+      },
+      "paint": {
+        "text-color": "#6B756F",
+        "text-halo-color": "#FFFFFF",
+        "text-halo-width": 1.5
+      }
+    },
+    {
+      "id": "lugares",
+      "type": "symbol",
+      "source": "tl",
+      "source-layer": "places",
+      "layout": {
+        "text-field": [
+          "get",
+          "name"
+        ],
+        "text-font": [
+          "Noto Sans Medium"
+        ],
+        "text-size": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          6,
+          [
+            "match",
+            [
+              "get",
+              "kind"
+            ],
+            "country",
+            13,
+            "region",
+            11,
+            9
+          ],
+          12,
+          [
+            "match",
+            [
+              "get",
+              "kind"
+            ],
+            "city",
+            17,
+            "town",
+            14,
+            12
+          ]
+        ],
+        "text-max-width": 8
+      },
+      "paint": {
+        "text-color": "#1C2421",
+        "text-halo-color": "#F7F4EF",
+        "text-halo-width": 1.8
+      }
+    }
+  ]
+}
