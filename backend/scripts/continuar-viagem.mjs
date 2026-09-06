@@ -52,6 +52,31 @@ const socket = io(SERVIDOR, { transports: ['websocket'], auth: { token: TOKEN } 
 await new Promise((r) => socket.on('connect', r));
 socket.emit('driver:setOnline', true, () => {});
 
+// SAIR DE SERVIÇO SEJA COMO FOR QUE ISTO MORRA.
+//
+// Este guião põe um motorista ao serviço no servidor de PRODUÇÃO. Se for
+// interrompido a meio — Ctrl+C, `pkill`, o terminal fechado, o computador a
+// adormecer — fica lá um motorista fantasma, e um passageiro a sério pode
+// ver a viagem aceite por um carro que não existe.
+//
+// Aconteceu com o outro guião em 06/09/2026 e foi preciso limpar à mão.
+// Um ensaio não pode estragar a produção.
+async function sairDeServico() {
+  try {
+    socket.emit('driver:setOnline', false);
+  } catch {
+    /* o socket já pode estar morto; a base é que decide */
+  }
+  await query('UPDATE users SET is_online = FALSE WHERE id = $1', [u.id]).catch(() => {});
+  console.log('\n  offline. Fim.\n');
+  process.exit(0);
+}
+for (const sinal of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(sinal, sairDeServico);
+process.on('uncaughtException', (e) => {
+  console.error('\n  ✗ erro:', e?.message || e);
+  sairDeServico();
+});
+
 let pos = { lat: Number(v.origin_lat), lng: Number(v.origin_lng) };
 const destino = { lat: Number(v.dest_lat), lng: Number(v.dest_lng) };
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));

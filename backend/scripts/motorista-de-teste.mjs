@@ -316,4 +316,20 @@ async function terminar() {
   console.log('\n  offline. Fim.\n');
   process.exit(0);
 }
-process.on('SIGINT', terminar);
+// TODAS AS FORMAS DE MORRER, e não só o Ctrl+C.
+//
+// Estava só o SIGINT. O `pkill` manda SIGTERM, e o guião morria sem sair de
+// serviço — ficava um MOTORISTA FANTASMA ao serviço no servidor de
+// produção. Um passageiro a sério podia pedir uma viagem, vê-la aceite por
+// ele, e ficar à espera de um carro que não existe.
+//
+// Um ensaio não pode estragar a produção. Aconteceu hoje, 06/09/2026, e foi
+// preciso limpar à mão.
+//
+// O `uncaughtException` está aqui pela mesma razão: um erro por apanhar
+// derrubava o processo pelo mesmo caminho silencioso.
+for (const sinal of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(sinal, terminar);
+process.on('uncaughtException', (e) => {
+  console.error('\n  ✗ erro:', e?.message || e);
+  terminar();
+});
