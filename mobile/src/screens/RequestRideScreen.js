@@ -13,7 +13,7 @@ import * as Location from 'expo-location';
 // O mapa. Para voltar ao OpenStreetMap — se a chave do Google morrer —
 // troca-se esta linha por `import Mapa from '../components/OSMMap.js';`
 // e corre-se `npm run publicar`. A interface é a mesma nos dois.
-import Mapa from '../components/MapaProprio.js';
+import Mapa from '../components/MapaGoogle.js';
 import PlaceSearch from '../components/PlaceSearch.js';
 import EscolherLugares from '../components/EscolherLugares.js';
 import ParaOutraPessoa from '../components/ParaOutraPessoa.js';
