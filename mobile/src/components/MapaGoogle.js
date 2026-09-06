@@ -723,6 +723,17 @@ export default function MapaGoogle({
         // Não corrige o satélite — dá a quem está lá a forma de mandar nele.
         showsUserLocation
         showsMyLocationButton={false}
+        // A BÚSSOLA DO GOOGLE, DESLIGADA. Nós temos a nossa.
+        //
+        // Vem ligada de origem e só aparece com o mapa torto — por isso
+        // ficou invisível até eu ligar a rotação, e depois apareceu sozinha
+        // no canto oposto ao dos nossos três botões. O Simão viu duas
+        // bússolas e perguntou qual apagar.
+        //
+        // Fica a nossa: está na coluna com as outras duas, aparece sempre, e
+        // a agulha aponta ao norte mesmo com o mapa direito — diz para onde é
+        // o norte, e não só que o mapa está torto.
+        showsCompass={false}
         toolbarEnabled={false}
         // A ROTAÇÃO ESTAVA DESLIGADA, e sem ela uma bússola não teria o
         // que mostrar. Roda-se com dois dedos, como em qualquer mapa.
