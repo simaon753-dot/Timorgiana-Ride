@@ -6,6 +6,8 @@ import Svg, { Path, Circle as Bola, Line } from 'react-native-svg';
 import { colors, radius, spacing, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
+import { useAuth } from '../context/AuthContext.js';
+import { api } from '../api/client.js';
 
 // O mapa, desenhado pelo Google Maps nativo.
 //
@@ -252,6 +254,7 @@ export default function MapaGoogle({
   fill = false,
 }) {
   const { t } = useI18n();
+  const { token } = useAuth();
   const mapaRef = useRef(null);
   const c = center || markers[0] || DILI;
   const markersKey = JSON.stringify(markers);
@@ -263,6 +266,18 @@ export default function MapaGoogle({
   const [cartoes, setCartoes] = useState([]);
   const [largura, setLargura] = useState(0);
   const [veiculo, setVeiculo] = useState(null);
+  // OS NOSSOS LUGARES DESENHADOS NO MAPA.
+  //
+  // É a última parte da ideia que o Simão teve no princípio — "podemos
+  // construir o nosso mapa como o GrabMaps?". As outras três já viviam: um
+  // lugar aceite aparecia na pesquisa, na lista de perto e no cartão ao lado
+  // do pino. Faltava estar ESCRITO no mapa, como o Google escreve os dele.
+  //
+  // Ao fim de uns meses, os sítios que o Google não conhece passam a estar
+  // lá — e a app mostra coisas que nenhum outro mapa de Díli mostra.
+  const [nossos, setNossos] = useState([]);
+  const [nossosNoEcra, setNossosNoEcra] = useState([]);
+  const regiaoRef = useRef(null);
   // O centro actual, para decidir de que lado do pino fica o cartão.
   const centroRef = useRef({ lat: c.lat, lng: c.lng });
 
@@ -418,6 +433,31 @@ export default function MapaGoogle({
   // O preço é este: as posições só se sabem depois de o mapa parar. Por
   // isso os cartões escondem-se enquanto o dedo arrasta e voltam quando ele
   // levanta — melhor do que os ver a flutuar atrasados sobre o mapa.
+  // Buscar os nossos lugares da zona visível.
+  //
+  // SÓ COM O MAPA APROXIMADO. Acima de três quilómetros de raio são nomes
+  // demais para caberem sem se taparem, e o que se ganharia em informação
+  // perdia-se em desordem. Quem está a ver Díli inteira não quer ler nomes
+  // de portões.
+  const buscarNossos = useCallback(
+    async (regiao) => {
+      if (!token || !regiao) return;
+      const raioM = (regiao.latitudeDelta * 111320) / 2;
+      if (raioM > 3000) {
+        setNossos([]);
+        return;
+      }
+      try {
+        const r = await api.lugaresPerto(token, regiao.latitude, regiao.longitude, raioM);
+        setNossos((r?.lugares || []).slice(0, 12));
+      } catch {
+        // Sem rede não se desenha nada de novo. Os que já lá estavam ficam,
+        // que é melhor do que os ver desaparecer a meio de um arrasto.
+      }
+    },
+    [token]
+  );
+
   const recalcularCartoes = useCallback(async () => {
     const comNome = pts.filter((p) => p.cartao && p.nome);
     if (!mapaRef.current || !comNome.length) {
@@ -437,6 +477,37 @@ export default function MapaGoogle({
       setCartoes([]);
     }
   }, [pts]);
+
+  // As posições dos nossos no ecrã.
+  //
+  // `pointForCoordinate` e não uma conta de latitude para pixéis: desde que
+  // o mapa roda, uma conta linear deixa de valer — teria de saber o rumo, a
+  // projecção e o centro, e sairia errada de maneiras difíceis de ver. O
+  // mapa sabe isso tudo e responde por nós.
+  useEffect(() => {
+    let vivo = true;
+    if (!mapaPronto || !mapaRef.current || !nossos.length) {
+      setNossosNoEcra([]);
+      return undefined;
+    }
+    Promise.all(
+      nossos.map((l) =>
+        mapaRef.current.pointForCoordinate({ latitude: l.lat, longitude: l.lng }).catch(() => null)
+      )
+    )
+      .then((pontos) => {
+        if (!vivo) return;
+        setNossosNoEcra(
+          nossos
+            .map((l, i) => (pontos[i] ? { ...l, x: pontos[i].x, y: pontos[i].y } : null))
+            .filter(Boolean)
+        );
+      })
+      .catch(() => vivo && setNossosNoEcra([]));
+    return () => {
+      vivo = false;
+    };
+  }, [nossos, mapaPronto, aMexer]);
 
   useEffect(() => {
     if (mapaPronto) recalcularCartoes();
@@ -566,12 +637,14 @@ export default function MapaGoogle({
         /* sem rumo; a bússola fica a apontar ao norte, que é o caso normal */
       }
       centroRef.current = { lat: regiao.latitude, lng: regiao.longitude };
+      regiaoRef.current = regiao;
       recalcularCartoes();
+      buscarNossos(regiao);
       if (modoEscolha && onCentro) {
         onCentro({ type: 'centro', lat: regiao.latitude, lng: regiao.longitude });
       }
     },
-    [modoEscolha, onCentro, recalcularCartoes]
+    [modoEscolha, onCentro, recalcularCartoes, buscarNossos]
   );
 
   // O PRIMEIRO ENVIO É IMEDIATO. Quem abre o modo de escolha já está a
@@ -603,7 +676,12 @@ export default function MapaGoogle({
         initialRegion={regiaoInicial}
         // Antes o primeiro enquadramento corria no `useEffect` de montagem,
         // quando o mapa nativo ainda não existia — e não fazia nada.
-        onMapReady={() => setMapaPronto(true)}
+        onMapReady={() => {
+          setMapaPronto(true);
+          // Sem isto, os nossos lugares só apareciam depois de a pessoa
+          // mexer no mapa — e quem não mexesse nunca os via.
+          buscarNossos(regiaoInicial);
+        }}
         // O `aMexer` vale para os dois: levanta a mira, e esconde os
         // cartões enquanto as posições deles estão desactualizadas.
         onRegionChange={() => {
@@ -735,6 +813,34 @@ export default function MapaGoogle({
           />
         ) : null}
       </MapView>
+
+      {/* OS NOSSOS LUGARES, escritos no mapa.
+          Pequenos e discretos de propósito: são para se lerem quando se
+          procura por eles, não para competirem com os nomes do Google. Um
+          ponto teal e o nome ao lado, sem caixa branca — a caixa é do ponto
+          ESCOLHIDO, e dois desenhos iguais para coisas diferentes fariam
+          parecer que já se escolheu o que ainda se está a ver.
+
+          Não se desenha o que já está escolhido: o pino e o cartão dele já
+          o dizem, e dizê-lo duas vezes no mesmo sítio é sujidade. */}
+      {!aMexer &&
+        nossosNoEcra
+          .filter(
+            (l) =>
+              !pts.some((p) => Math.abs(p.lat - l.lat) < 0.0002 && Math.abs(p.lng - l.lng) < 0.0002)
+          )
+          .map((l) => (
+            <View
+              key={l.id}
+              pointerEvents="none"
+              style={[styles.nosso, { left: l.x + 6, top: l.y - 8 }]}
+            >
+              <View style={styles.nossoPonto} />
+              <Text style={styles.nossoNome} numberOfLines={1}>
+                {l.label}
+              </Text>
+            </View>
+          ))}
 
       {/* Os cartões dos lugares nossos, desenhados sobre o mapa.
           `pointForCoordinate` devolve o pixel da COORDENADA, que é onde
@@ -904,6 +1010,32 @@ const criarEstilos = () =>
     veiculo: { position: 'absolute', width: CARTAO_L },
 
     cartaoSolto: { position: 'absolute' },
+    nosso: {
+      position: 'absolute',
+      flexDirection: 'row',
+      alignItems: 'center',
+      maxWidth: 150,
+    },
+    nossoPonto: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      backgroundColor: colors.teal,
+      borderWidth: 1.5,
+      borderColor: '#FFFFFF',
+      marginRight: 4,
+    },
+    // Um halo branco em vez de caixa: lê-se sobre qualquer fundo do mapa e
+    // não tapa as ruas por baixo, que é o que uma caixa faria.
+    nossoNome: {
+      ...tipo.legenda,
+      color: '#0E5C54',
+      fontWeight: '700',
+      textShadowColor: '#FFFFFF',
+      textShadowOffset: { width: 0, height: 0 },
+      textShadowRadius: 3,
+      flexShrink: 1,
+    },
     botaoMim: {
       position: 'absolute',
       right: spacing.sm,

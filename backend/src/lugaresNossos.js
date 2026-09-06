@@ -88,10 +88,24 @@ export async function procurarNossos(termo, userId) {
 // obrigaria a percorrer a tabela inteira a cada arrasto do mapa.
 const RAIO_M = 250;
 
-export async function lugaresPerto(lat, lng, userId) {
+// O RAIO PASSA A VIR DE FORA, com o de sempre por omissão.
+//
+// Nasceu para a lista de sítios por perto no modo de apontar, onde 250
+// metros é o que interessa: o que está à volta do dedo.
+//
+// Passou a servir também para DESENHAR os nossos lugares no mapa, e aí o
+// raio é o que se vê no ecrã — que muda com o zoom. É a mesma pergunta
+// ("o que há por aqui?") com duas ideias diferentes de "aqui".
+//
+// Limitado a 5 km: acima disso são demasiados nomes para caberem num ecrã
+// sem se taparem uns aos outros, e a consulta deixaria de ser barata.
+const RAIO_MAXIMO_M = 5000;
+
+export async function lugaresPerto(lat, lng, userId, raioM = RAIO_M) {
   if (typeof lat !== 'number' || typeof lng !== 'number') return [];
-  const grauLat = RAIO_M / 111320;
-  const grauLng = RAIO_M / (111320 * Math.cos((lat * Math.PI) / 180));
+  const raio = Math.min(Math.max(Number(raioM) || RAIO_M, 50), RAIO_MAXIMO_M);
+  const grauLat = raio / 111320;
+  const grauLng = raio / (111320 * Math.cos((lat * Math.PI) / 180));
 
   // Os LIMITES calculados aqui, e não dentro da consulta.
   //
@@ -121,7 +135,7 @@ export async function lugaresPerto(lat, lng, userId) {
   for (const r of rows) {
     const p = { lat: Number(r.lat), lng: Number(r.lng) };
     const d = metrosEntre({ lat, lng }, p);
-    if (d > RAIO_M) continue;
+    if (d > raio) continue;
     // O mesmo sítio baptizado por três pessoas aparece uma vez só.
     if (saida.some((x) => perto(x, p) && normalizar(x.label) === normalizar(r.nome))) continue;
     saida.push({

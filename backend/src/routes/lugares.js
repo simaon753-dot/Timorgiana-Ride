@@ -40,10 +40,14 @@ lugaresRouter.get(
   wrap(async (req, res) => {
     const lat = Number(req.query.lat);
     const lng = Number(req.query.lng);
+    // O raio é opcional: sem ele, os 250 metros de sempre. Com ele, o que
+    // o mapa está a mostrar — é a mesma pergunta com duas ideias de "aqui".
+    const raio = Number(req.query.raio);
     const lugares = await lugaresPerto(
       Number.isFinite(lat) ? lat : null,
       Number.isFinite(lng) ? lng : null,
-      req.user.id
+      req.user.id,
+      Number.isFinite(raio) ? raio : undefined
     );
     res.json({ lugares });
   })

@@ -150,7 +150,10 @@ export const api = {
   // sucos do posto e as aldeias que já foram escritas neles.
   // Os sítios com nome à volta de um ponto. Alimenta a lista que aparece
   // por baixo do mapa enquanto se aponta.
-  lugaresPerto: (token, lat, lng) => request(`/lugares/perto?lat=${lat}&lng=${lng}`, { token }),
+  lugaresPerto: (token, lat, lng, raio) =>
+    request(`/lugares/perto?lat=${lat}&lng=${lng}${raio ? `&raio=${Math.round(raio)}` : ''}`, {
+      token,
+    }),
   lugarAdministrativo: (token, lat, lng) =>
     request(`/lugares/administrativo?lat=${lat}&lng=${lng}`, { token }),
   // A árvore toda, para escolher à mão quando as coordenadas não chegam.
