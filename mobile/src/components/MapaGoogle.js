@@ -42,6 +42,30 @@ const COR = {
 const PINO_L = 30;
 const PINO_A = 45;
 const CARTAO_L = 150;
+
+// O PINO DENTRO DO MAPA É UMA IMAGEM, e não o componente <Pino>.
+//
+// Três tentativas a corrigir a vista React dentro do marcador falharam, e
+// todas por boas razões — tamanho por declarar, achatamento do Android,
+// momento da fotografia. Todas eram defeitos reais e todas continuam
+// corrigidas. Nenhuma era ESTA.
+//
+// O que deu a pista foi a mira: é o MESMO <Pino>, desenhado por cima do
+// mapa como vista normal, e sempre apareceu perfeito. Dentro de um
+// marcador, o mapa nativo não mostra a vista — tira-lhe uma fotografia. É
+// essa fotografia que sai mal neste telemóvel.
+//
+// Uma imagem não passa por fotografia nenhuma: o mapa desenha-a
+// directamente. Perde-se flexibilidade — a cor deixa de ser uma variável e
+// passa a ser um ficheiro — mas para dois pinos fixos vale a troca.
+//
+// As imagens são geradas do MESMO caminho SVG, em scripts/desenhar-pinos.py.
+// Se a forma mudar, correr o script outra vez; mudar só o <Pino> deixa o
+// mapa com o desenho velho e o resto da app com o novo.
+const IMAGEM = {
+  origem: require('../../assets/mapa/pino-origem.png'),
+  destino: require('../../assets/mapa/pino-destino.png'),
+};
 const ANCORA_Y = 42 / PINO_A;
 
 // O TAMANHO VAI DECLARADO NUMA VISTA À VOLTA, e não só nas propriedades do
@@ -422,15 +446,28 @@ export default function MapaGoogle({
                     }
                   : undefined
               }
-              // Ver a nota em `aSeguir`: segue-se enquanto desenha e
-              // desliga-se a seguir. Ligado para sempre come bateria numa
-              // viagem inteira; desligado desde o início, o pino nunca chega
-              // a aparecer.
-              tracksViewChanges={aSeguir}
-            >
-              <Pino tipo={p.qual} />
-            </Marker>
-            {p.nome ? (
+              image={IMAGEM[p.qual]}
+            />
+            {/* O CARTÃO DO NOME ESTÁ DESLIGADO, e é uma perda que o Simão
+                vai notar — foi ele que pediu o nome ao lado do pino.
+
+                Sofre do mesmo mal do pino: é uma vista React dentro de um
+                marcador, e neste telemóvel o mapa fotografa-a mal. O que se
+                via era uma barra fina da cor — o `borderLeftWidth` de 3
+                pixéis com o cartão a zero de largura ao lado.
+
+                O pino resolveu-se com uma imagem. O cartão não pode: o texto
+                muda a cada sítio, não há imagem que sirva.
+
+                A saída, quando lá chegarmos, é desenhá-lo POR CIMA do mapa e
+                não dentro dele — como a mira, que é o mesmo componente e
+                sempre funcionou. Custa acompanhar o arrasto com
+                `pointForCoordinate`, e é por isso que não vai já: primeiro
+                confirmar que o pino ficou bom.
+
+                Entretanto os nomes continuam à vista na folha de baixo, com
+                o mesmo ponto de cor a dizer qual é qual. */}
+            {false && p.nome ? (
               <Marker
                 coordinate={{ latitude: p.lat, longitude: p.lng }}
                 // O cartão encosta-se ao lado do pino: canto inferior
