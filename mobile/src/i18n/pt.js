@@ -170,6 +170,7 @@ export default {
   emailMudar: 'Escrevi mal — mudar o email',
   emailConfirmado: 'Email confirmado',
   emailCodigoEnviado: 'Código enviado. Veja o seu correio.',
+  paisIndicativo: 'País e indicativo',
   irParaMim: 'Voltar à minha localização',
   outraPessoaTitulo: 'Pedir para outra pessoa',
   outraPessoaNome: 'Nome de quem vai viajar',

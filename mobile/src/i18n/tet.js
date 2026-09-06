@@ -169,6 +169,7 @@ export default {
   emailMudar: 'Ha’u hakerek sala — troka email',
   emailConfirmado: 'Email konfirmadu',
   emailCodigoEnviado: 'Kódigu haruka ona. Haree ita-nia korreiu.',
+  paisIndicativo: 'Nasaun no indikativu',
   irParaMim: "Fila ba ha'u-nia fatin",
   outraPessoaTitulo: 'Husu ba ema seluk',
   outraPessoaNome: "Naran ema ne'ebé sei viaja",

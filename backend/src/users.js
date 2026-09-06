@@ -4,10 +4,28 @@ import { query, one } from './db.js';
 // Normaliza o número de telemóvel: remove espaços e símbolos comuns.
 // Em Timor-Leste o indicativo é +670. Guardamos o que o utilizador
 // escreve, mas de forma consistente para evitar duplicados.
+// O +670 GUARDA-SE SEM INDICATIVO, e os outros com ele.
+//
+// Parece inconsistente e é deliberado. As contas que já existem estão
+// guardadas como oito dígitos — é assim que toda a gente em Díli escreve o
+// seu número, e é assim que o vai continuar a escrever. Passar tudo para o
+// formato internacional obrigava a migrar as contas existentes e a ensinar
+// toda a gente a escrever quatro dígitos que nunca escreveu.
+//
+// Um número estrangeiro leva o indicativo e nunca colide: `+61...` não se
+// confunde com `7...`.
+//
+// E aceita-se `+670 74192857` na mesma, reduzindo-o à forma local. Quem
+// escreva o número completo — porque o copiou de algum lado — encontra a
+// sua conta.
 export function normalizePhone(phone) {
-  return String(phone || '')
-    .replace(/[\s()-]/g, '')
+  let p = String(phone || '')
+    .replace(/[\s()\-.]/g, '')
     .trim();
+  if (p.startsWith('+670')) p = p.slice(4);
+  else if (p.startsWith('00670')) p = p.slice(5);
+  else if (p.startsWith('00')) p = '+' + p.slice(2);
+  return p;
 }
 
 // Converte uma linha da BD no formato público (sem o hash da palavra-passe)

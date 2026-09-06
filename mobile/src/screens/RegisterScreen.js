@@ -15,6 +15,7 @@ import { tipo } from '../design/tipografia.js';
 import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
 import TextField from '../components/TextField.js';
+import CampoTelefone from '../components/CampoTelefone.js';
 import RoleSelector from '../components/RoleSelector.js';
 import SegmentedPicker from '../components/SegmentedPicker.js';
 import LanguageToggle from '../components/LanguageToggle.js';
@@ -132,14 +133,11 @@ export default function RegisterScreen({ navigation, route }) {
               hint={t('nameHint')}
               autoCapitalize="words"
             />
-            <TextField
-              label={t('phone')}
-              value={phone}
-              onChangeText={setPhone}
-              placeholder={t('phonePlaceholder')}
-              keyboardType="phone-pad"
-              autoCapitalize="none"
-            />
+            {/* O país escolhe-se ao lado do número, e vem com o
+                Timor-Leste já escolhido. Quase ninguém lhe vai tocar — é por
+                isso que é pequeno e fica encostado, em vez de ser mais um
+                campo a preencher. */}
+            <CampoTelefone label={t('phone')} valor={phone} onChange={setPhone} />
             {/* O EMAIL DEIXOU DE SER OPCIONAL.
                 Não serve para entrar — entra-se com o telemóvel e a senha,
                 que é o que se sabe de cor. Serve para o dia em que a senha se

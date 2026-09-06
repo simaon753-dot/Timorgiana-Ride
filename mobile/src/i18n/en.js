@@ -165,6 +165,7 @@ export default {
   emailMudar: 'I typed it wrong — change email',
   emailConfirmado: 'Email confirmed',
   emailCodigoEnviado: 'Code sent. Check your inbox.',
+  paisIndicativo: 'Country and code',
   irParaMim: 'Back to my location',
   outraPessoaTitulo: 'Book for someone else',
   outraPessoaNome: "Traveller's name",
