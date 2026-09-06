@@ -486,10 +486,16 @@ export default function MapaGoogle({
     (regiao) => {
       setAMexer(false);
       // O rumo não vem na região; pergunta-se à câmara.
-      mapaRef.current
-        ?.getCamera?.()
-        .then((c) => setRumo(Number(c?.heading) || 0))
-        .catch(() => {});
+      // Envolvido, e não encadeado directamente: se `getCamera` não existir
+      // ou não devolver uma promessa, um `.then` sobre `undefined` rebentava
+      // este handler INTEIRO — e com ele o modo de escolher no mapa, os
+      // cartões dos nomes e a posição do veículo, que dependem todos dele.
+      try {
+        const camara = mapaRef.current?.getCamera?.();
+        if (camara?.then) camara.then((c) => setRumo(Number(c?.heading) || 0)).catch(() => {});
+      } catch {
+        /* sem rumo; a bússola fica a apontar ao norte, que é o caso normal */
+      }
       centroRef.current = { lat: regiao.latitude, lng: regiao.longitude };
       recalcularCartoes();
       if (modoEscolha && onCentro) {
@@ -707,24 +713,27 @@ export default function MapaGoogle({
         <Mira />
       </Pressable>
 
-      {/* A BÚSSOLA SÓ APARECE COM O MAPA TORTO, como no Google Maps.
-          Um botão permanentemente visível para desfazer uma coisa que quase
-          nunca se faz é um botão que só ocupa espaço. Aparecer quando há o
-          que desfazer é ele próprio dizer que o mapa está torto — que é
-          metade da utilidade. */}
-      {Math.abs(rumo) > 1 ? (
-        <Pressable
-          style={styles.botaoBussola}
-          onPress={aoNorte}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={t('voltarAoNorte')}
-        >
-          <View style={{ transform: [{ rotate: `${-rumo}deg` }] }}>
-            <Agulha />
-          </View>
-        </Pressable>
-      ) : null}
+      {/* A BÚSSOLA ESTÁ SEMPRE VISÍVEL.
+          A primeira versão só a mostrava com o mapa torto, e eu justifiquei
+          isso com uma regra que soa bem: um botão permanente para desfazer
+          uma coisa que quase nunca se faz só ocupa espaço.
+          Estava errado, e a referência que o Simão deu diz o contrário — no
+          Google Maps o botão está lá com o mapa direito. Um botão que só
+          aparece quando já se sabe que se precisa dele não ensina ninguém
+          que existe: quem nunca rodou o mapa nunca descobre que pode.
+          A agulha aponta sempre ao norte, e por isso diz duas coisas ao
+          mesmo tempo: para onde é o norte, e quanto o mapa está torto. */}
+      <Pressable
+        style={styles.botaoBussola}
+        onPress={aoNorte}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={t('voltarAoNorte')}
+      >
+        <View style={{ transform: [{ rotate: `${-rumo}deg` }] }}>
+          <Agulha />
+        </View>
+      </Pressable>
 
       {/* ── A MIRA ────────────────────────────────────────────────────
           O pino fica FIXO no centro do ecrã e o mapa é que se move por
