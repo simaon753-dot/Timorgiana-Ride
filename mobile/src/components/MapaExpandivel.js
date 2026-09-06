@@ -3,7 +3,7 @@ import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // Ver a nota em RequestRideScreen.js: o OSMMap.js continua a servir de
 // saída de emergência e tem esta mesma interface.
-import Mapa from './MapaGoogle.js';
+import Mapa from './MapaProprio.js';
 import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
