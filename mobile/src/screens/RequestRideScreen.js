@@ -334,7 +334,14 @@ export default function RequestRideScreen({ navigation, route }) {
   function escolherDaLista(l) {
     // Esta lista vem toda da tabela `lugares_propostos` — é por definição
     // gente nossa. Ver a nota em `aoEscolherDaPesquisa`.
-    const ponto = { lat: l.lat, lng: l.lng, label: l.label, provisorio: false, fonte: 'nosso' };
+    const ponto = {
+      lat: l.lat,
+      lng: l.lng,
+      label: l.label,
+      provisorio: false,
+      fonte: 'nosso',
+      desenhar: l.desenhar === true,
+    };
     if (aEscolherNoMapa === 'origem') {
       setOrigem(ponto);
       setPrecisao(null);
@@ -399,7 +406,13 @@ export default function RequestRideScreen({ navigation, route }) {
     // nome ao lado do pino: os lugares que os passageiros baptizaram não
     // estão desenhados no Google, e sem o cartão o pino fica anónimo. Os
     // outros já têm o nome escrito no próprio mapa.
-    const ponto = { lat: lugar.lat, lng: lugar.lng, label: lugar.label, fonte: lugar.fonte };
+    const ponto = {
+      lat: lugar.lat,
+      lng: lugar.lng,
+      label: lugar.label,
+      fonte: lugar.fonte,
+      desenhar: lugar.desenhar === true,
+    };
     if (pesquisa === 'origem') setOrigem(ponto);
     else setDestino(ponto);
     setPesquisa(null);
@@ -436,15 +449,19 @@ export default function RequestRideScreen({ navigation, route }) {
     }
   }
 
-  // O CARTÃO COM O NOME SÓ APARECE NOS LUGARES NOSSOS.
+  // O CARTÃO SÓ APARECE NO QUE O GOOGLE NÃO CONHECE.
   //
-  // No OpenStreetMap quase nada estava escrito e o cartão era a única forma
-  // de saber o que era cada pino. O Google escreve os nomes no próprio mapa,
-  // e repeti-los num cartão branco por cima seria dizer duas vezes a mesma
-  // coisa — num ecrã onde o espaço é o que é.
+  // A primeira regra era "só nos lugares nossos", e não chegava: o Hotel
+  // Timor e a CRA Timor são nossos E estão no Google. O cartão aparecia por
+  // cima do nome que o Google já escrevia, e o Simão viu o mesmo nome duas
+  // vezes no mesmo sítio.
   //
-  // O que o Google NÃO tem são os sítios que os passageiros baptizaram. A
-  // "Kios Mana Rita" não está lá nem estará: é aí que o cartão acrescenta.
+  // A pergunta certa não é de quem é o nome — é se ele acrescenta alguma
+  // coisa. A "Kios Mana Rita" acrescenta, porque não está em mais lado
+  // nenhum. O Hotel Timor não.
+  //
+  // Quem responde é o servidor, que pergunta ao Google uma vez quando o
+  // lugar é aprovado e guarda a resposta.
   const trocoAPe =
     troco && origem && origem.lat === troco.para.lat && origem.lng === troco.para.lng
       ? troco
@@ -457,7 +474,7 @@ export default function RequestRideScreen({ navigation, route }) {
       lng: origem.lng,
       label: origem.label,
       tipo: 'origem',
-      cartao: origem.fonte === 'nosso',
+      cartao: origem.desenhar === true,
     });
   if (destino)
     marcadores.push({
@@ -465,7 +482,7 @@ export default function RequestRideScreen({ navigation, route }) {
       lng: destino.lng,
       label: destino.label,
       tipo: 'destino',
-      cartao: destino.fonte === 'nosso',
+      cartao: destino.desenhar === true,
     });
 
   const opcao = orcamento?.options?.find((o) => o.type === veiculo);

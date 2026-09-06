@@ -16,7 +16,7 @@ import { verifyToken } from './auth.js';
 import { setOnline, updateLocation, marcarAusentesOffline } from './drivers.js';
 import { one } from './db.js';
 import { lugaresRouter } from './routes/lugares.js';
-import { estadoDaBusca } from './lugares.js';
+import { estadoDaBusca, marcarPorPerguntar } from './lugares.js';
 import { municipioDe } from './municipios.js';
 import { ACTIVE_DRIVER } from './rides.js';
 import { fileURLToPath } from 'node:url';
@@ -329,6 +329,16 @@ async function start() {
     }
   }
   await varrerAusentes('ao arrancar');
+
+  // Perguntar ao Google pelos lugares aprovados que ainda não foram
+  // perguntados. Não se espera por isto para abrir a porta: são chamadas a um
+  // serviço de fora, e o servidor não deve ficar em baixo porque o Google
+  // está lento.
+  marcarPorPerguntar(query)
+    .then((n) => {
+      if (n) console.log(`[lugares] ${n} lugar(es) perguntados ao Google`);
+    })
+    .catch((e) => console.error('[lugares] não foi possível perguntar:', e.message));
   setInterval(() => varrerAusentes('em marcha'), 60000).unref();
 
   server.listen(config.port, () => {

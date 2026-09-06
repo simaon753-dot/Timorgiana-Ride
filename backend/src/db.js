@@ -246,6 +246,22 @@ export async function initSchema() {
   // O nome e o telefone ficam na VIAGEM e não numa conta, de propósito: quem
   // viaja não tem conta nenhuma, e não deve precisar de ter. Um pai que manda
   // o filho à escola não vai instalar a app no telemóvel do filho.
+  // O GOOGLE JÁ CONHECE ESTE SÍTIO?
+  //
+  // Serve para decidir se vale a pena DESENHÁ-LO no mapa. Um lugar que o
+  // Google já escreve não precisa de ser escrito outra vez por nós — o
+  // Simão viu quatro nomes nossos por cima de quatro nomes iguais do Google
+  // e chamou-lhe, com razão, desarrumação.
+  //
+  // Só se sabe perguntando, e por isso guarda-se: é uma chamada paga por
+  // lugar, feita uma vez quando o lugar é aprovado, e não a cada vez que
+  // alguém abre o mapa.
+  //
+  // NULL quer dizer "ainda não se perguntou", e é diferente de FALSE. Um
+  // lugar por perguntar não se desenha — é melhor não mostrar do que mostrar
+  // o que talvez seja repetido.
+  await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS google_conhece BOOLEAN`);
+
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS viajante_nome TEXT`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS viajante_telefone TEXT`);
   await query(

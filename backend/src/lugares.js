@@ -307,6 +307,66 @@ export async function procurar(termo, userId) {
   return { lugares: lugares.slice(0, 8), fonte: de.join('+') || 'nada' };
 }
 
+// O GOOGLE CONHECE ESTE SÍTIO?
+//
+// Pergunta-se UMA vez, quando o lugar é aprovado, e guarda-se a resposta.
+// Serve para decidir se vale a pena desenhá-lo no mapa: um nome que o Google
+// já escreve não precisa de ser escrito outra vez por cima.
+//
+// COMO SE DECIDE. Procura-se o nome dentro da caixa de Timor-Leste e vê-se se
+// algum resultado cai a menos de 60 metros do nosso ponto. Sessenta porque um
+// edifício grande tem essa largura — o Hotel Timor e a loja da Timor Telecom
+// que lá dentro está são o mesmo sítio para quem vai de carro.
+//
+// SEM CHAVE, devolve `null` e não `false`. Não perguntámos, logo não sabemos;
+// e um lugar por perguntar não se desenha. É melhor não mostrar do que
+// mostrar o que talvez seja repetido.
+const PERTO_PARA_SER_O_MESMO_M = 60;
+
+export async function googleConhece(nome, lat, lng) {
+  if (!process.env.GOOGLE_MAPS_KEY) return null;
+  const achados = await noGoogle(String(nome || '').trim());
+  if (!achados.length) return false;
+  return achados.some((g) => {
+    const dLat = (g.lat - lat) * 111320;
+    const dLng = (g.lng - lng) * 111320 * Math.cos((lat * Math.PI) / 180);
+    return Math.hypot(dLat, dLng) <= PERTO_PARA_SER_O_MESMO_M;
+  });
+}
+
+// Perguntar pelos que ficaram por perguntar.
+//
+// Corre ao arrancar o servidor. Apanha dois casos: os lugares que já estavam
+// aprovados antes de esta coluna existir, e os que foram aprovados enquanto
+// o Google estava em baixo — nesses a marca ficou NULL e eles não se
+// desenham, o que é o comportamento seguro mas não o certo para sempre.
+//
+// VINTE DE CADA VEZ, e com uma pausa entre eles. São chamadas pagas, e o
+// Render reinicia a cada publicação: sem limite, uma tarde de publicações
+// como a de hoje gastaria a quota inteira a perguntar as mesmas coisas.
+// Vinte por arranque esgota qualquer atraso realista em poucos reinícios.
+const POR_ARRANQUE = 20;
+
+export async function marcarPorPerguntar(query) {
+  if (!process.env.GOOGLE_MAPS_KEY) return 0;
+  const porPerguntar = await query(
+    `SELECT id, nome, lat, lng FROM lugares_propostos
+      WHERE estado = 'aceite' AND google_conhece IS NULL
+      ORDER BY id LIMIT ${POR_ARRANQUE}`
+  );
+  let feitos = 0;
+  for (const l of porPerguntar) {
+    const sabe = await googleConhece(l.nome, Number(l.lat), Number(l.lng));
+    if (sabe === null) break; // o Google está em baixo; tenta-se no próximo arranque
+    await query('UPDATE lugares_propostos SET google_conhece = $2 WHERE id = $1', [l.id, sabe]);
+    feitos++;
+    // O Nominatim e o Google não gostam de rajadas, e isto não tem pressa
+    // nenhuma: ninguém está à espera desta resposta.
+    await new Promise((r) => setTimeout(r, 400));
+  }
+  return feitos;
+}
+
 // Para o painel: saber se a segunda camada está ligada, sem revelar a chave.
 export function estadoDaBusca() {
   return {

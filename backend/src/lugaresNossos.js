@@ -31,7 +31,7 @@ export async function procurarNossos(termo, userId) {
   // que aquilo não faz nada. Assim o nome funciona já para quem o deu, e só
   // se espalha depois de alguém o ler.
   const rows = await query(
-    `SELECT id, nome, lat, lng, aldeia, bairro, suco, posto, municipio, estado
+    `SELECT id, nome, lat, lng, aldeia, bairro, suco, posto, municipio, estado, google_conhece
        FROM lugares_propostos
       WHERE (estado = 'aceite' OR (estado = 'novo' AND user_id = $2))
         AND nome_busca LIKE $1
@@ -58,6 +58,18 @@ export async function procurarNossos(termo, userId) {
     saida.push({
       id: `nosso:${r.id}`,
       label: r.nome,
+      // SE VALE A PENA DESENHAR ESTE NOME.
+      //
+      // Só o que o Google NÃO conhece. Um nome que ele já escreve, escrito
+      // outra vez por nós, é o mesmo nome duas vezes no mesmo sítio — o
+      // Simão viu quatro assim e chamou-lhe desarrumação, com razão.
+      //
+      // Vale para o mapa e para o cartão ao lado do pino: são as duas
+      // maneiras de nós escrevermos um nome por cima do mapa dele.
+      //
+      // `null` (por perguntar) não desenha. É melhor não mostrar do que
+      // mostrar o que talvez seja repetido.
+      desenhar: r.google_conhece === false,
       // A morada serve para distinguir dois sítios com o mesmo nome, que em
       // Díli acontece — há mais do que uma "Kios Mana".
       detalhe: [r.aldeia, r.bairro, r.suco, r.posto, r.municipio].filter(Boolean).join(', '),
@@ -121,7 +133,7 @@ export async function lugaresPerto(lat, lng, userId, raioM = RAIO_M) {
   const lngMax = lng + grauLng;
 
   const rows = await query(
-    `SELECT id, nome, lat, lng, aldeia, bairro, suco, posto, municipio, estado
+    `SELECT id, nome, lat, lng, aldeia, bairro, suco, posto, municipio, estado, google_conhece
        FROM lugares_propostos
       WHERE (estado = 'aceite' OR (estado = 'novo' AND user_id = $5))
         AND lat BETWEEN $1 AND $2
@@ -141,6 +153,18 @@ export async function lugaresPerto(lat, lng, userId, raioM = RAIO_M) {
     saida.push({
       id: `nosso:${r.id}`,
       label: r.nome,
+      // SE VALE A PENA DESENHAR ESTE NOME.
+      //
+      // Só o que o Google NÃO conhece. Um nome que ele já escreve, escrito
+      // outra vez por nós, é o mesmo nome duas vezes no mesmo sítio — o
+      // Simão viu quatro assim e chamou-lhe desarrumação, com razão.
+      //
+      // Vale para o mapa e para o cartão ao lado do pino: são as duas
+      // maneiras de nós escrevermos um nome por cima do mapa dele.
+      //
+      // `null` (por perguntar) não desenha. É melhor não mostrar do que
+      // mostrar o que talvez seja repetido.
+      desenhar: r.google_conhece === false,
       detalhe: [r.aldeia, r.bairro, r.suco].filter(Boolean).join(', '),
       lat: p.lat,
       lng: p.lng,

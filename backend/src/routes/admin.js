@@ -7,6 +7,7 @@ import { alertasAbertos, resolverAlerta } from '../sos.js';
 import { fotosDeHoje, getFotoDeTurno } from '../turnos.js';
 import { carregar, FORMAS_PAGAMENTO, PACOTES } from '../assinatura.js';
 import { etiquetaOsm } from '../tiposDeLugar.js';
+import { googleConhece } from '../lugares.js';
 import { linhasOsm } from '../etiquetasOsm.js';
 import { emitirCodigo } from '../recuperacao.js';
 
@@ -888,6 +889,29 @@ adminRouter.post(
       return res.status(400).json({ error: 'Estado inválido.' });
     }
     await query('UPDATE lugares_propostos SET estado = $2 WHERE id = $1', [id, estado]);
+
+    // AO APROVAR, PERGUNTA-SE AO GOOGLE SE JÁ CONHECE O SÍTIO.
+    //
+    // A resposta decide se o nome é desenhado no mapa: um que o Google já
+    // escreve não precisa de ser escrito outra vez por cima. Guarda-se porque
+    // é uma chamada paga, e uma aprovação acontece uma vez na vida do lugar.
+    //
+    // Não se espera por ela para responder ao painel. Se falhar — sem rede,
+    // sem chave, quota esgotada — a coluna fica NULL, o lugar não é desenhado,
+    // e tudo o resto continua a funcionar: ele aparece na pesquisa e na lista
+    // de perto na mesma. Uma aprovação não pode ficar pendurada à espera de
+    // um serviço de fora.
+    if (estado === 'aceite') {
+      one('SELECT nome, lat, lng FROM lugares_propostos WHERE id = $1', [id])
+        .then(async (l) => {
+          if (!l) return;
+          const sabe = await googleConhece(l.nome, Number(l.lat), Number(l.lng));
+          if (sabe === null) return;
+          await query('UPDATE lugares_propostos SET google_conhece = $2 WHERE id = $1', [id, sabe]);
+        })
+        .catch((e) => console.error('[lugares] googleConhece:', e.message));
+    }
+
     res.json({ ok: true });
   })
 );

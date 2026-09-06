@@ -449,7 +449,9 @@ export default function MapaGoogle({
       }
       try {
         const r = await api.lugaresPerto(token, regiao.latitude, regiao.longitude, raioM);
-        setNossos((r?.lugares || []).slice(0, 12));
+        // SÓ O QUE O GOOGLE NÃO CONHECE. O servidor já respondeu a essa
+        // pergunta quando o lugar foi aprovado; aqui é só filtrar.
+        setNossos((r?.lugares || []).filter((l) => l.desenhar).slice(0, 12));
       } catch {
         // Sem rede não se desenha nada de novo. Os que já lá estavam ficam,
         // que é melhor do que os ver desaparecer a meio de um arrasto.
