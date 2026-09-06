@@ -30,6 +30,22 @@ const ficheiros = [];
   }
 })('src');
 
+// OS GUIÕES TAMBÉM. Ficaram de fora até 06/09/2026, e a falta apareceu no
+// pior momento possível: a meio de um ensaio com o Simão à espera, a mexer
+// no guião do motorista de teste. Só não rebentou porque me lembrei de
+// correr o `node --check` à mão — e lembrar-se não é um verificador.
+//
+// Um guião partido não estraga a produção, mas estraga o ensaio; e o ensaio
+// é o que nos diz se a produção está boa.
+(function andar(d) {
+  for (const n of readdirSync(d)) {
+    const p = `${d}/${n}`;
+    if (statSync(p).isDirectory()) continue;
+    if (n === 'verificar.mjs') continue; // é este
+    if (n.endsWith('.js') || n.endsWith('.mjs')) ficheiros.push(p);
+  }
+})('scripts');
+
 const problemas = [];
 
 // 1. Analisa? É o que apanha a crase perdida.
@@ -53,6 +69,10 @@ if (!problemas.length) {
     // O server.js abre porta e liga-se à base. Não é para importar aqui —
     // este verificador tem de correr sem rede e sem segredos.
     if (f.endsWith('/server.js') || f.endsWith('/db.js')) continue;
+    // Os guiões, ao serem importados, CORREM: abrem sockets, ligam-se à
+    // base, entram ao serviço. Para eles a análise chega — é o que apanha a
+    // crase perdida, que foi o defeito que criou este verificador.
+    if (f.startsWith('scripts/')) continue;
     try {
       await import(`../${f}`);
     } catch (e) {
@@ -66,4 +86,4 @@ if (problemas.length) {
   for (const p of problemas) console.error('    ' + p);
   process.exit(1);
 }
-console.log(`  ✓ ${ficheiros.length} ficheiros do servidor analisam e carregam`);
+console.log(`  ✓ ${ficheiros.length} ficheiros analisam; os de src/ também carregam`);

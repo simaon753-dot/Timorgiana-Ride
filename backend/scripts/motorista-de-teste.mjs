@@ -26,6 +26,8 @@ import bcrypt from 'bcryptjs';
 const TEL = '79999124';
 const SENHA = 'teste-motorista-2026';
 const ETO = { lat: -8.55382, lng: 125.56584 }; // posto de combustível, Farol
+// Os pontos da estrada por percorrer, preenchidos ao aceitar a viagem.
+let caminho = [];
 const SERVIDOR = process.env.SERVIDOR || 'https://timorgiana-ride.onrender.com';
 const TIPO = process.env.TIPO || 'car';
 
@@ -133,6 +135,72 @@ socket.on('connect', () => {
   });
 });
 
+// O CAMINHO PELA ESTRADA, pedido ao mesmo motor de rotas que desenha a
+// linha no mapa do passageiro.
+//
+// A primeira versão andava em LINHA RECTA até à recolha, e o Simão viu-o de
+// imediato: o carro atravessava quarteirões. Na app não era defeito nenhum
+// — ela desenha onde lhe dizem, e um motorista a sério manda posições de
+// GPS, que estão na estrada porque ele está na estrada.
+//
+// Mas um ensaio que não se parece com a realidade ensaia pouco. Se o carro
+// atravessa casas, não se consegue julgar se o acompanhamento está bom.
+async function estrada(a, b) {
+  const url =
+    'https://router.project-osrm.org/route/v1/driving/' +
+    `${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson`;
+  try {
+    const ctrl = new AbortController();
+    const relogio = setTimeout(() => ctrl.abort(), 10000);
+    const r = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(relogio);
+    const j = await r.json();
+    const pontos = j?.routes?.[0]?.geometry?.coordinates;
+    if (!Array.isArray(pontos) || pontos.length < 2) return null;
+    // "full" e não "simplified": aqui queremos TODOS os pontos. No mapa do
+    // passageiro vinte chegam para desenhar a linha; para andar por ela,
+    // quantos mais houver mais o carro se cola às curvas.
+    return pontos.map((c) => ({ lat: c[1], lng: c[0] }));
+  } catch {
+    return null;
+  }
+}
+
+// Avança PASSO metros ao longo do caminho, consumindo os pontos que já
+// ficaram para trás. Sem estrada, cai na linha recta de antes — um ensaio
+// imperfeito é melhor do que nenhum, e sem rede é o que há.
+const PASSO = 60;
+
+function andar(alvo) {
+  let restante = PASSO;
+  while (restante > 0 && caminho.length) {
+    const proximo = caminho[0];
+    const d = metros(posicao, proximo);
+    if (d <= restante) {
+      posicao = proximo;
+      caminho.shift();
+      restante -= d;
+    } else {
+      const f = restante / d;
+      posicao = {
+        lat: posicao.lat + (proximo.lat - posicao.lat) * f,
+        lng: posicao.lng + (proximo.lng - posicao.lng) * f,
+      };
+      restante = 0;
+    }
+  }
+  if (!caminho.length && alvo) {
+    const d = metros(posicao, alvo);
+    if (d > 1) {
+      const f = Math.min(1, PASSO / d);
+      posicao = {
+        lat: posicao.lat + (alvo.lat - posicao.lat) * f,
+        lng: posicao.lng + (alvo.lng - posicao.lng) * f,
+      };
+    }
+  }
+}
+
 function enviarPosicao() {
   socket.emit('driver:location', posicao);
   // A caminho da recolha: aproxima-se 60 metros de cada vez. É o que faz o
@@ -140,13 +208,9 @@ function enviarPosicao() {
   if (viagem?.origin) {
     const d = metros(posicao, viagem.origin);
     if (d > 40) {
-      const f = Math.min(1, 60 / d);
-      posicao = {
-        lat: posicao.lat + (viagem.origin.lat - posicao.lat) * f,
-        lng: posicao.lng + (viagem.origin.lng - posicao.lng) * f,
-      };
-      console.log(`  a ${Math.round(d)} m da recolha`);
-    } else if (d <= 40) {
+      andar(viagem.origin);
+      console.log(`  a ${Math.round(d)} m da recolha${caminho.length ? '' : '  (a direito)'}`);
+    } else {
       console.log('  ✓ chegou ao ponto de recolha');
     }
   }
@@ -174,9 +238,16 @@ socket.on('ride:new', async (r) => {
   const oLng = Number(r.originLng);
   viagem = { id: r.id, origin: Number.isFinite(oLat) && Number.isFinite(oLng)
     ? { lat: oLat, lng: oLng } : null };
-  console.log(viagem.origin
-    ? '  ✓ ACEITE. A caminho — veja o carro mexer no seu ecrã.\n'
-    : '  ✓ ACEITE, mas o pedido veio sem coordenadas de recolha: fico parado no ETO.\n');
+  if (viagem.origin) {
+    caminho = (await estrada(posicao, viagem.origin)) || [];
+    console.log(
+      caminho.length
+        ? `  ✓ ACEITE. A caminho pela estrada (${caminho.length} pontos) — veja o carro mexer.\n`
+        : '  ✓ ACEITE. Sem rota do servidor de estradas: vai a direito.\n'
+    );
+  } else {
+    console.log('  ✓ ACEITE, mas o pedido veio sem coordenadas de recolha: fico parado no ETO.\n');
+  }
 });
 
 socket.on('connect_error', (e) => console.log('  ✗ ligação:', e.message));

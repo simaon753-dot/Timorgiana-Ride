@@ -70,12 +70,65 @@ if (v.status !== 'in_progress') {
   await espera(2000);
 }
 
+// PELA ESTRADA, e não a direito.
+//
+// A primeira versão ia em linha recta, e numa viagem de dez quilómetros
+// isso faz o carro atravessar a baía. Na app não é defeito — ela desenha
+// onde lhe dizem, e um motorista a sério manda posições de GPS, que estão
+// na estrada porque ele está na estrada. Mas um ensaio que não se parece
+// com a realidade ensaia pouco.
+//
+// É o MESMO motor de rotas que desenha a linha no mapa do passageiro, e
+// "full" em vez de "simplified": para desenhar bastam vinte pontos, para
+// andar por eles quantos mais melhor.
+async function estrada(a, b) {
+  const url =
+    'https://router.project-osrm.org/route/v1/driving/' +
+    `${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson`;
+  try {
+    const ctrl = new AbortController();
+    const relogio = setTimeout(() => ctrl.abort(), 10000);
+    const r = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(relogio);
+    const j = await r.json();
+    const pontos = j?.routes?.[0]?.geometry?.coordinates;
+    if (!Array.isArray(pontos) || pontos.length < 2) return null;
+    return pontos.map((c) => ({ lat: c[1], lng: c[0] }));
+  } catch {
+    return null;
+  }
+}
+
 console.log(`\n  a caminho de ${v.dest_label}\n`);
+const caminho = (await estrada(pos, destino)) || [];
+console.log(caminho.length
+  ? `  pela estrada, ${caminho.length} pontos\n`
+  : '  sem rota do servidor de estradas: vai a direito\n');
+
 const total = metros(pos, destino);
 while (metros(pos, destino) > 60) {
   const d = metros(pos, destino);
-  const f = Math.min(1, PASSO_M / d);
-  pos = { lat: pos.lat + (destino.lat - pos.lat) * f, lng: pos.lng + (destino.lng - pos.lng) * f };
+  // Consome os pontos da estrada que couberem no salto; quando acabarem,
+  // aproxima-se do destino a direito. Sem rede é o que há, e um ensaio
+  // imperfeito continua a valer mais do que nenhum.
+  let restante = PASSO_M;
+  while (restante > 0 && caminho.length) {
+    const proximo = caminho[0];
+    const p = metros(pos, proximo);
+    if (p <= restante) {
+      pos = proximo;
+      caminho.shift();
+      restante -= p;
+    } else {
+      const f = restante / p;
+      pos = { lat: pos.lat + (proximo.lat - pos.lat) * f, lng: pos.lng + (proximo.lng - pos.lng) * f };
+      restante = 0;
+    }
+  }
+  if (!caminho.length) {
+    const f = Math.min(1, PASSO_M / d);
+    pos = { lat: pos.lat + (destino.lat - pos.lat) * f, lng: pos.lng + (destino.lng - pos.lng) * f };
+  }
   socket.emit('driver:location', pos);
   const feito = Math.round(((total - d) / total) * 100);
   console.log(`  ${String(feito).padStart(3)} %   faltam ${Math.round(d)} m`);
