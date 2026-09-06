@@ -43,6 +43,15 @@ export default function PlaceSearch({
   const { token, user } = useAuth();
   const [termo, setTermo] = useState('');
   const [recentes, setRecentes] = useState([]);
+  // FECHADO POR OMISSÃO, e por baixo está o mapa.
+  //
+  // A lista aberta tapava ruas que ajudam a decidir — foi o que o Simão
+  // pediu para resolver. Fechada é uma linha só; quem a quiser abre-a.
+  //
+  // Não se guarda o estado entre aberturas de propósito: o valor de a fechar
+  // é o mapa ficar à vista, e uma lista que se lembra de estar aberta
+  // desfazia isso ao fim de duas utilizações sem ninguém perceber porquê.
+  const [recentesAbertos, setRecentesAbertos] = useState(false);
   const [resultados, setResultados] = useState([]);
   const [aProcurar, setAProcurar] = useState(false);
   const [procurou, setProcurou] = useState(false);
@@ -63,6 +72,13 @@ export default function PlaceSearch({
     guardarRecente(user?.id, lugar);
     onEscolher(lugar);
   }
+
+  // Escrever fecha a lista. Sem isto, quem abrisse os recentes, escrevesse
+  // três letras e apagasse, encontrava-os abertos outra vez — e o mapa
+  // tapado sem ter pedido nada.
+  useEffect(() => {
+    if (termo.trim().length >= 3 && recentesAbertos) setRecentesAbertos(false);
+  }, [termo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (termo.trim().length < 3) {
@@ -158,14 +174,22 @@ export default function PlaceSearch({
               tem as coordenadas e não vai perguntar nada a ninguém. */}
           {aMostrarRecentes ? (
             <>
-              <Text style={styles.seccao}>{t('recentesTitulo')}</Text>
+              <Pressable
+                style={[styles.item, styles.itemRecentesTitulo]}
+                onPress={() => setRecentesAbertos((v) => !v)}
+              >
+                <Text style={styles.itemIcone}>🕘</Text>
+                <Text style={[styles.itemNome, { flex: 1 }]}>{t('recentesTitulo')}</Text>
+                <Text style={styles.contaRecentes}>{Math.min(recentes.length, 4)}</Text>
+                <Text style={styles.seta}>{recentesAbertos ? '▴' : '▾'}</Text>
+              </Pressable>
               {/* QUATRO, e a memória guarda seis.
                   O que limita esta lista não é o que sabemos — é o mapa que
                   está por baixo. O Simão pediu para o painel não o tapar, e
                   cada linha a menos são mais ruas à vista. Os dois sítios
                   mais antigos ficam guardados na mesma; se um dia houver um
                   "ver todos", estão lá. */}
-              {recentes.slice(0, 4).map((r, i) => (
+              {(recentesAbertos ? recentes.slice(0, 4) : []).map((r, i) => (
                 <Pressable
                   key={`${r.lat},${r.lng},${i}`}
                   style={[styles.item, styles.itemRecente]}
@@ -277,7 +301,20 @@ const criarEstilos = () =>
     //
     // Quatro linhas mais baixas dão quase um terço de mapa a mais do que
     // seis linhas altas, e é isso que o Simão pediu.
-    itemRecente: { paddingVertical: spacing.sm, marginBottom: spacing.xs },
+    itemRecente: {
+      paddingVertical: spacing.sm,
+      marginBottom: spacing.xs,
+      // Recuados, para se ler que pertencem à linha de cima e não são um
+      // terceiro atalho a seguir aos outros dois.
+      marginLeft: spacing.lg,
+    },
+    itemRecentesTitulo: { paddingVertical: spacing.sm },
+    contaRecentes: {
+      ...tipo.legenda,
+      color: colors.textMuted,
+      marginRight: spacing.sm,
+    },
+    seta: { ...tipo.pequeno, color: colors.teal, fontWeight: '800' },
     seccao: {
       ...tipo.etiqueta,
       color: colors.textMuted,
