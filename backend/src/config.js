@@ -61,14 +61,21 @@ export const config = {
   // Segunda vez hoje que um argumento meu, bom no papel, cede a um número
   // de quem já opera aqui.
   //
-  // AS ÂNCORAS. Toda a tabela sai de dois preços que o Simão fixou para a
-  // viagem dele ao Cristo Rei (9,8 km, 27 minutos): $8,50 de carro e $3,65
-  // de mota.
+  // A MARGEM TEM DE SE VER, e é o Simão que sabe quanto.
   //
-  // O primeiro número que ele deu para a mota foi $3,75 — e isso punha-nos
-  // um cêntimo ACIMA da recta deles, que aos 9,8 km dá $3,73. Ele tinha
-  // pedido para ficarmos abaixo e o número dele não o conseguia. Disse-lho,
-  // e ele baixou para $3,65.
+  // A primeira calibração pôs-nos 2% abaixo deles: $11,55 contra $11,78 na
+  // viagem Becora–João Paulo II. Ele respondeu que em Timor-Leste uma
+  // diferença dessas "não vale nada", e deu o número que vale: $10.
+  //
+  // Tem razão, e é uma coisa que eu não descobriria sozinho. Ninguém troca
+  // de aplicação por 23 cêntimos. E não é só o tamanho da diferença — é o
+  // NÚMERO REDONDO: "dez dólares" lê-se como uma coisa, "onze e cinquenta e
+  // cinco" lê-se como a mesma coisa que "onze e setenta e oito".
+  //
+  // Uma margem de 2% não é uma margem pequena. É margem nenhuma, com o custo
+  // de a dar.
+  //
+  // Fica em cerca de 15% abaixo em toda a tabela, ancorada nesse $10.
   //
   // FALTA UMA COISA QUE ELES TÊM: cobram mais por seis lugares do que por
   // quatro ($1,00 contra $0,85 por km). Nós temos o número de pessoas no
@@ -76,14 +83,14 @@ export const config = {
   // decidir.
   tarifas: {
     motorbike: {
-      base: Number(process.env.FARE_MOTO_BASE) || 0.35,
-      porKm: Number(process.env.FARE_MOTO_POR_KM) || 0.287,
+      base: Number(process.env.FARE_MOTO_BASE) || 0.25,
+      porKm: Number(process.env.FARE_MOTO_POR_KM) || 0.256,
       porMinuto: Number(process.env.FARE_MOTO_POR_MINUTO) || 0.02,
       minimo: Number(process.env.FARE_MOTO_MINIMO) || 0.5,
     },
     car: {
-      base: Number(process.env.FARE_CAR_BASE) || 0.35,
-      porKm: Number(process.env.FARE_CAR_POR_KM) || 0.75,
+      base: Number(process.env.FARE_CAR_BASE) || 0.25,
+      porKm: Number(process.env.FARE_CAR_POR_KM) || 0.64,
       porMinuto: Number(process.env.FARE_CAR_POR_MINUTO) || 0.03,
       minimo: Number(process.env.FARE_CAR_MINIMO) || 1.0,
     },
