@@ -19,15 +19,43 @@ export const config = {
   // fórmula 0,25 + 0,25/km dá exactamente esse valor aos 2 km, por isso a
   // tabela cresce sem saltos em vez de ter um caso especial.
   // Carro: o dobro, proporção habitual entre mota-táxi e táxi.
+  // TRÊS PARCELAS: sair, andar, e demorar.
+  //
+  // Até 06/09/2026 eram duas — base e por quilómetro — e o carro custava
+  // EXACTAMENTE o dobro da moto em ambas. Isso era simetria, não era custo.
+  //
+  // O QUE MUDOU, e porquê:
+  //
+  // O TEMPO custa o mesmo nos dois. Meia hora é meia hora, de carro ou de
+  // mota, e é meia hora da vida de uma pessoa. Por isso `perMin` é IGUAL
+  // para os dois — é a parcela que paga o motorista, não o veículo.
+  //
+  // O QUILÓMETRO não custa o mesmo. Um carro gasta em combustível e desgaste
+  // à volta de três vezes o que gasta uma mota, e não duas. É aí que a
+  // diferença entre os dois veículos deve viver, e agora vive: $0,37 contra
+  // $0,12, que é 3,1 vezes.
+  //
+  // Sem a parcela de tempo, uma viagem de 9,8 km pagava o mesmo fizesse ela
+  // 27 minutos ou 45. Os motoristas notam isso em três dias, e a
+  // consequência é previsível: começam a recusar viagens para onde há
+  // engarrafamento — que são exactamente as que alguém precisa mais.
+  //
+  // Os valores foram escolhidos para que uma viagem típica de Díli (9,8 km,
+  // 27 min) continue a custar o mesmo de antes: $2,75 de mota e $5,50 de
+  // carro. Assim o Simão pode julgar a MUDANÇA DE FORMA sem a confundir com
+  // uma mudança de preço. O nível é decisão dele, e muda-se sem publicar
+  // nada — são variáveis de ambiente no Render.
   tarifas: {
     motorbike: {
       base: Number(process.env.FARE_MOTO_BASE) || 0.25,
-      perKm: Number(process.env.FARE_MOTO_KM) || 0.25,
+      perKm: Number(process.env.FARE_MOTO_KM) || 0.12,
+      perMin: Number(process.env.FARE_MOTO_MIN_MIN) || 0.05,
       min: Number(process.env.FARE_MOTO_MIN) || 0.75,
     },
     car: {
       base: Number(process.env.FARE_CAR_BASE) || 0.5,
-      perKm: Number(process.env.FARE_CAR_KM) || 0.5,
+      perKm: Number(process.env.FARE_CAR_KM) || 0.37,
+      perMin: Number(process.env.FARE_CAR_MIN_MIN) || 0.05,
       min: Number(process.env.FARE_CAR_MIN) || 1.5,
     },
   },

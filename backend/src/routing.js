@@ -51,9 +51,31 @@ export function duracaoRealista(km, minutosOsrm) {
 }
 
 // Preço final, arredondado a 0,25 USD
-export function preco(vehicleType, km) {
+// PAGA-SE O TEMPO ESPERADO, não o cronometrado.
+//
+// O `min` vem da rota e já traz o trânsito de Díli dentro (ver
+// `duracaoRealista`). Podia-se cronometrar a viagem e acertar no fim — mas
+// isso tira a certeza do preço antes de entrar no carro, que num sistema a
+// dinheiro é o que faz as pessoas confiarem. Uma viagem que se ESPERA que
+// demore 45 minutos paga mais do que uma de 27; se depois demorar 50, o
+// preço combinado mantém-se.
+//
+// Sem tempo conhecido, estima-se dos quilómetros pela mesma velocidade que o
+// resto da app assume. É melhor do que cobrar zero pela parcela e melhor do
+// que recusar dar preço.
+export function preco(vehicleType, km, min = null) {
   const t = config.tarifas[vehicleType] || config.tarifas.car;
-  return Math.max(t.min, Math.round((t.base + t.perKm * km) * 4) / 4);
+  const minutos = Number.isFinite(Number(min)) && Number(min) > 0 ? Number(min) : estimarMin(km);
+  const bruto = t.base + t.perKm * km + (t.perMin || 0) * minutos;
+  // Arredondado a $0,25 — que é a moeda de 25 centavos que circula em
+  // Timor-Leste, e o preço de um microlet. Num sistema a dinheiro, ninguém
+  // quer trocar $2,73.
+  return Math.max(t.min, Math.round(bruto * 4) / 4);
+}
+
+function estimarMin(km) {
+  const VELOCIDADE_KMH = 20;
+  return Math.max(1, Math.round((Number(km) || 0) / VELOCIDADE_KMH * 60));
 }
 
 // Tempo até o motorista chegar ao passageiro. Velocidade média baixa de

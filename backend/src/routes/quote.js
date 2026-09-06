@@ -41,7 +41,7 @@ quoteRouter.post(
         const maisPerto = perto[0];
         return {
           type: tipo,
-          fareUsd: preco(tipo, viagem.km),
+          fareUsd: preco(tipo, viagem.km, viagem.min),
           etaMin: maisPerto ? etaMinutos(maisPerto.km) : null,
           available: !!maisPerto,
         };

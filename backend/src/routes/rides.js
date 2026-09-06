@@ -142,7 +142,7 @@ ridesRouter.post(
         { lat: Number(originLat), lng: Number(originLng) },
         { lat: Number(destLat), lng: Number(destLng) }
       );
-      precoFinal = preco(vehicleType === 'motorbike' ? 'motorbike' : 'car', viagem.km);
+      precoFinal = preco(vehicleType === 'motorbike' ? 'motorbike' : 'car', viagem.km, viagem.min);
       kmViagem = viagem.km;
       minViagem = viagem.min;
     }
