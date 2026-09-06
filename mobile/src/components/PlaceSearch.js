@@ -9,7 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { pesquisarLugares } from '../lib/geocode.js';
-import { lerRecentes, guardarRecente } from '../lib/recentes.js';
+import { lerRecentes, guardarRecente, apagarRecente } from '../lib/recentes.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useI18n } from '../i18n/index.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
@@ -206,6 +206,24 @@ export default function PlaceSearch({
                       </Text>
                     ) : null}
                   </View>
+                  {/* APAGAR UM RECENTE.
+                      Sem isto a lista era só de leitura: um sítio a que se
+                      foi uma vez por engano ficava lá para sempre, a ocupar
+                      um dos quatro lugares que cabem no ecrã.
+                      `stopPropagation` porque a linha inteira já escolhe o
+                      sítio — sem isso, tocar no ✕ pedia a viagem para o
+                      sítio que se estava a tentar apagar. */}
+                  <Pressable
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      apagarRecente(user?.id, r).then(setRecentes);
+                    }}
+                    hitSlop={12}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('apagarRecente')}
+                  >
+                    <Text style={styles.apagar}>✕</Text>
+                  </Pressable>
                 </Pressable>
               ))}
             </>
@@ -309,6 +327,7 @@ const criarEstilos = () =>
       marginLeft: spacing.lg,
     },
     itemRecentesTitulo: { paddingVertical: spacing.sm },
+    apagar: { color: colors.textMuted, fontSize: fontSize.md, paddingHorizontal: spacing.xs },
     contaRecentes: {
       ...tipo.legenda,
       color: colors.textMuted,

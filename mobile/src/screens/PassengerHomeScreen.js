@@ -364,7 +364,22 @@ export default function PassengerHomeScreen({ navigation }) {
                       </Text>
                     </View>
                     {lugar ? (
-                      <Pressable onPress={() => setADefinir(f.id)} hitSlop={12}>
+                      // `stopPropagation` porque a linha inteira já é um
+                      // botão que leva ao sítio. Sem isto, tocar no lápis
+                      // pedia a viagem em vez de abrir a edição — e a casa
+                      // ficava impossível de mudar depois de definida.
+                      //
+                      // É o mesmo defeito que o ! do ecrã de pedir viagem já
+                      // tinha corrigido, e que eu não fui ver antes de
+                      // escrever este. Um botão dentro de outro botão precisa
+                      // sempre disto; não é um caso especial, é a regra.
+                      <Pressable
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          setADefinir(f.id);
+                        }}
+                        hitSlop={12}
+                      >
                         <Text style={styles.lugarLapis}>✎</Text>
                       </Pressable>
                     ) : null}

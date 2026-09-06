@@ -33,6 +33,26 @@ export async function lerRecentes(userId) {
   }
 }
 
+// Apagar UM recente.
+//
+// Faltava, e sem isto a lista era só de leitura: um sítio a que se foi uma
+// vez por engano ficava lá para sempre, a ocupar um dos quatro lugares que
+// cabem no ecrã. Uma lista de conveniência que não se pode limpar deixa de
+// ser conveniente ao fim de umas semanas.
+export async function apagarRecente(userId, lugar) {
+  if (!lugar) return [];
+  try {
+    const antes = await lerRecentes(userId);
+    const lista = antes.filter(
+      (x) => Math.abs(x.lat - lugar.lat) > 0.0001 || Math.abs(x.lng - lugar.lng) > 0.0001
+    );
+    await AsyncStorage.setItem(chave(userId), JSON.stringify(lista));
+    return lista;
+  } catch {
+    return [];
+  }
+}
+
 export async function guardarRecente(userId, lugar) {
   if (!lugar || typeof lugar.lat !== 'number' || typeof lugar.lng !== 'number') return;
   try {

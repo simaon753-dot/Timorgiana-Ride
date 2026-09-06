@@ -153,6 +153,7 @@ export default {
   pedidoPor: 'Booked by {nome}',
   voltarAoNorte: 'Back to north',
   seguirBussola: 'Follow compass',
+  apagarRecente: 'Remove from recents',
   recentesTitulo: 'Recent searches',
   irParaMim: 'Back to my location',
   outraPessoaTitulo: 'Book for someone else',
