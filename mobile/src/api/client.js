@@ -155,6 +155,8 @@ export const api = {
   reenviarEmail: (token) => request('/auth/email/reenviar', { method: 'POST', token, body: {} }),
   mudarEmail: (token, email) => request('/auth/email', { method: 'POST', token, body: { email } }),
 
+  cobertura: (token, lat, lng) => request(`/lugares/cobertura?lat=${lat}&lng=${lng}`, { token }),
+
   lugaresPerto: (token, lat, lng, raio) =>
     request(`/lugares/perto?lat=${lat}&lng=${lng}${raio ? `&raio=${Math.round(raio)}` : ''}`, {
       token,

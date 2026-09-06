@@ -18,6 +18,7 @@ import { addRating, hasRated } from '../ratings.js';
 import { notificarPedidoNovo, notificarAceite, notificarAdminsSOS } from '../push.js';
 import { one, query } from '../db.js';
 import { rota, preco } from '../routing.js';
+import { podeIr } from '../cobertura.js';
 import { config } from '../config.js';
 import { registarDia } from '../assinatura.js';
 
@@ -117,6 +118,26 @@ ridesRouter.post(
       // deixá-lo passar criava uma viagem que diz ser para outra pessoa e
       // não sabe dizer para quem.
       return res.status(400).json({ error: 'Indica o nome de quem vai viajar.' });
+    }
+
+    // DÁ PARA LÁ IR?
+    //
+    // Verificado AQUI e não só na app. Sem isto, um pedido para o meio do mar
+    // criava uma viagem: o motorista recebia-a, não podia lá chegar, e o
+    // passageiro ficava à espera de um carro que nunca ia aparecer — nenhum
+    // dos dois a perceber porquê.
+    //
+    // Só o DESTINO. A recolha vem do GPS ou de um ponto encostado à estrada,
+    // e recusá-la a meio de uma leitura má seria impedir alguém de pedir uma
+    // viagem por o satélite ter tremido.
+    if (destLat != null && destLng != null) {
+      const cobertura = await podeIr(Number(destLat), Number(destLng));
+      if (!cobertura.ok) {
+        return res.status(400).json({
+          error: 'Não há serviço nesse sítio.',
+          razao: cobertura.razao,
+        });
+      }
     }
 
     const existing = await getActiveRideForUser(req.user);

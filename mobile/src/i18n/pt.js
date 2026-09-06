@@ -171,6 +171,9 @@ export default {
   emailConfirmado: 'Email confirmado',
   emailCodigoEnviado: 'Código enviado. Veja o seu correio.',
   paisIndicativo: 'País e indicativo',
+  semServico: '⚠️ Indisponível',
+  semServicoNota:
+    'Não há serviço neste sítio. Escolha um ponto com estrada, dentro de Timor-Leste continental.',
   irParaMim: 'Voltar à minha localização',
   outraPessoaTitulo: 'Pedir para outra pessoa',
   outraPessoaNome: 'Nome de quem vai viajar',

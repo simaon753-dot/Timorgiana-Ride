@@ -166,6 +166,9 @@ export default {
   emailConfirmado: 'Email confirmed',
   emailCodigoEnviado: 'Code sent. Check your inbox.',
   paisIndicativo: 'Country and code',
+  semServico: '⚠️ Unavailable',
+  semServicoNota:
+    'No service at this place. Choose a point with a road, within mainland Timor-Leste.',
   irParaMim: 'Back to my location',
   outraPessoaTitulo: 'Book for someone else',
   outraPessoaNome: "Traveller's name",

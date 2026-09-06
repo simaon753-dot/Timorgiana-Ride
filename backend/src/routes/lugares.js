@@ -6,6 +6,7 @@ import { tipoValido } from '../tiposDeLugar.js';
 import { normalizar } from '../texto.js';
 import { MUNICIPIOS, ondeFica } from '../administrativo.js';
 import { lugaresPerto } from '../lugaresNossos.js';
+import { podeIr } from '../cobertura.js';
 
 export const lugaresRouter = Router();
 
@@ -26,6 +27,25 @@ lugaresRouter.get(
   '/',
   wrap(async (req, res) => {
     const r = await procurar(req.query.q, req.user.id);
+    res.json(r);
+  })
+);
+
+// GET /api/lugares/cobertura?lat=&lng= — dá para ir a este sítio?
+//
+// Chamado enquanto o dedo arrasta o mapa, para o aviso aparecer antes de a
+// pessoa carregar em confirmar. A mesma verificação corre outra vez ao criar
+// a viagem: a app é conveniência, e um telemóvel modificado manda o que
+// quiser.
+lugaresRouter.get(
+  '/cobertura',
+  wrap(async (req, res) => {
+    const lat = Number(req.query.lat);
+    const lng = Number(req.query.lng);
+    const r = await podeIr(
+      Number.isFinite(lat) ? lat : null,
+      Number.isFinite(lng) ? lng : null
+    );
     res.json(r);
   })
 );

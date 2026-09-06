@@ -170,6 +170,9 @@ export default {
   emailConfirmado: 'Email konfirmadu',
   emailCodigoEnviado: 'Kódigu haruka ona. Haree ita-nia korreiu.',
   paisIndicativo: 'Nasaun no indikativu',
+  semServico: '⚠️ La disponivel',
+  semServicoNota:
+    'La iha servisu iha fatin ne’e. Hili fatin ho estrada, iha Timor-Leste kontinental.',
   irParaMim: "Fila ba ha'u-nia fatin",
   outraPessoaTitulo: 'Husu ba ema seluk',
   outraPessoaNome: "Naran ema ne'ebé sei viaja",

@@ -102,6 +102,9 @@ export default function RequestRideScreen({ navigation, route }) {
   const [nomeCentro, setNomeCentro] = useState(null);
   // Os sítios com nome à volta do ponto para onde se está a apontar.
   const [pertoDoCentro, setPertoDoCentro] = useState([]);
+  // Se dá para ir ao sítio que a mira aponta. `null` = ainda não se sabe, e
+  // nesse caso não se diz nada.
+  const [coberturaCentro, setCoberturaCentro] = useState(null);
 
   // Assim que houver os dois pontos, o servidor devolve rota, preços e
   // tempo de chegada num só pedido — é ele que fixa o preço.
@@ -297,12 +300,17 @@ export default function RequestRideScreen({ navigation, route }) {
       // Os dois pedidos ao mesmo tempo e não um a seguir ao outro: são
       // independentes, e numa rede de Díli esperar por um para começar o
       // outro duplica o tempo até a lista aparecer.
-      const [nome, perto] = await Promise.all([
+      const [nome, perto, cobertura] = await Promise.all([
         nomeDoLugar(lat, lng, 0),
         api.lugaresPerto(token, lat, lng).catch(() => ({ lugares: [] })),
+        // A mesma pergunta que o servidor volta a fazer ao criar a viagem.
+        api.cobertura(token, lat, lng).catch(() => null),
       ]);
       setNomeCentro(nome || rotuloCoordenadas(lat, lng));
       setPertoDoCentro(perto?.lugares || []);
+      // Sem resposta fica `null` e não se diz nada. Um aviso que pisca a cada
+      // arrasto por causa da rede é pior do que aviso nenhum.
+      setCoberturaCentro(cobertura ? !!cobertura.ok : null);
     }, 500);
   }
 
@@ -585,10 +593,24 @@ export default function RequestRideScreen({ navigation, route }) {
               ))}
             </View>
           ) : null}
+          {/* O AVISO APARECE ANTES DE ESCOLHER, e não depois.
+              Saber que não há serviço depois de confirmar é saber tarde de
+              mais: a pessoa já decidiu, já contou com a viagem, e a recusa
+              chega como uma avaria. Aqui é uma informação. */}
+          {coberturaCentro === false ? (
+            <View style={styles.semServico}>
+              <Text style={styles.semServicoTexto}>{t('semServico')}</Text>
+              <Text style={styles.semServicoNota}>{t('semServicoNota')}</Text>
+            </View>
+          ) : null}
           <Pressable
-            style={[styles.botao, { marginTop: spacing.sm }]}
+            style={[
+              styles.botao,
+              { marginTop: spacing.sm },
+              coberturaCentro === false && styles.botaoInativo,
+            ]}
             onPress={confirmarEscolha}
-            disabled={!centro}
+            disabled={!centro || coberturaCentro === false}
           >
             <Text style={styles.botaoTexto}>
               {aEscolherNoMapa === 'origem' ? t('escolherEstaRecolha') : t('escolherEsteDestino')}
@@ -1033,6 +1055,14 @@ const criarEstilos = () =>
       fontWeight: '800',
     },
     erro: { ...tipo.pequeno, color: colors.danger, marginTop: spacing.sm },
+    semServico: {
+      backgroundColor: colors.tintaPerigo,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginTop: spacing.sm,
+    },
+    semServicoTexto: { ...tipo.corpoForte, color: colors.danger },
+    semServicoNota: { ...tipo.pequeno, color: colors.text, marginTop: 2 },
 
     botao: {
       backgroundColor: colors.coral,
