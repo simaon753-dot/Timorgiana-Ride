@@ -169,11 +169,23 @@ export default function MapaGoogle({
     [markersKey] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
+  // A CONTAGEM SÓ COMEÇA QUANDO O MAPA EXISTE.
+  //
+  // Antes começava quando os pontos mudavam. Num telemóvel lento o mapa
+  // nativo demora mais do que isso a ficar pronto: quando o marcador
+  // finalmente nascia, o seguimento já tinha sido desligado, e a fotografia
+  // era tirada de uma vista que ainda não existia. Daí os pinos esmagados e
+  // o cartão a zero.
+  //
+  // A prova de que o desenho estava bom foi a mira: é o MESMO componente,
+  // mas desenhado por cima do mapa como uma vista normal — nunca passa por
+  // fotografia nenhuma — e sempre apareceu perfeita.
   useEffect(() => {
+    if (!mapaPronto) return;
     setASeguir(true);
-    const relogio = setTimeout(() => setASeguir(false), 1500);
+    const relogio = setTimeout(() => setASeguir(false), 2000);
     return () => clearTimeout(relogio);
-  }, [markersKey, liveLabel]);
+  }, [markersKey, liveLabel, mapaPronto]);
 
   const regiaoInicial = useMemo(
     () => ({
