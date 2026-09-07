@@ -854,39 +854,75 @@ function Registo({ acessos, t, navigation, dias, setDias }) {
         <>
           <Text style={styles.seccaoTitulo}>{t('admRegistoTitulo')}</Text>
           {acessos.map((a) => (
-            <Pressable
-              key={a.id}
-              style={styles.conta}
-              onPress={() =>
-                a.alvo
-                  ? navigation.navigate('AdminDetalhe', { tipoAlvo: 'conta', id: a.alvo })
-                  : null
-              }
-            >
-              <View style={{ flex: 1 }}>
-                <Text style={styles.contaNome}>
-                  {a.admin} · {a.que}
-                </Text>
-                <Text style={styles.contaMeta}>
-                  {a.alvoNome
-                    ? `${t('admRegistoDe')} ${a.alvoNome} · `
-                    : a.alvo
-                      ? `#${a.alvo} · `
-                      : ''}
-                  {new Date(a.quando).toLocaleString(undefined, {
-                    day: '2-digit',
-                    month: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </Text>
-              </View>
-              {a.alvo ? <Text style={styles.viagemSeta}>›</Text> : null}
-            </Pressable>
+            <GrupoDeAcesso key={a.id} a={a} t={t} navigation={navigation} />
           ))}
         </>
       )}
     </>
+  );
+}
+
+// Um grupo: uma pessoa, um tipo de consulta, quantas vezes.
+//
+// Fechado responde à pergunta que interessa — quem, a quem, quantas vezes, a
+// última quando. Aberto mostra as horas, até dez, que é o que permite ver um
+// padrão: três consultas espalhadas por três semanas não é o mesmo que três
+// na mesma tarde.
+function GrupoDeAcesso({ a, t, navigation }) {
+  const [aberto, setAberto] = useState(false);
+  const hora = (d) =>
+    new Date(d).toLocaleString(undefined, {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+  // A quem. Uma conta apagada continua a ter de aparecer: apagar a conta não
+  // apaga o facto de alguém ter visto os documentos dela.
+  const quem = a.alvoNome
+    ? a.alvoNome
+    : a.alvoApagado
+      ? `#${a.alvo} · ${t('admRegistoApagada')}`
+      : t('admRegistoSemAlvo');
+
+  return (
+    <Pressable style={styles.conta} onPress={() => setAberto((v) => !v)}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.contaNome}>{quem}</Text>
+        <Text style={styles.contaMeta}>
+          {a.que} · {a.vezes === 1 ? t('admRegistoUmaVez') : t('admRegistoVezes', { n: a.vezes })}
+          {' · '}
+          {t('admRegistoUltima')} {hora(a.quando)}
+        </Text>
+        {a.admins?.length ? <Text style={styles.contaMeta}>{a.admins.join(', ')}</Text> : null}
+
+        {aberto ? (
+          <View style={styles.horas}>
+            {(a.quandos || []).map((q) => (
+              <Text key={q} style={styles.hora}>
+                {hora(q)}
+              </Text>
+            ))}
+            {a.vezes > (a.quandos || []).length ? (
+              <Text style={styles.hora}>
+                {t('admRegistoMais', { n: a.vezes - (a.quandos || []).length })}
+              </Text>
+            ) : null}
+            {a.alvo && !a.alvoApagado ? (
+              <Pressable
+                onPress={() =>
+                  navigation.navigate('AdminDetalhe', { tipoAlvo: 'conta', id: a.alvo })
+                }
+              >
+                <Text style={styles.horaLigacao}>{t('admRegistoVerConta')} ›</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
+      <Text style={styles.viagemSeta}>{aberto ? '⌄' : '›'}</Text>
+    </Pressable>
   );
 }
 
@@ -1230,6 +1266,17 @@ const criarEstilos = () =>
       color: colors.text,
     },
     viagemSeta: { fontSize: 22, color: colors.textMuted },
+    // As horas do grupo, quando aberto. Recuadas e separadas por uma linha
+    // para se lerem como o DETALHE de cima e não como itens novos da lista.
+    horas: {
+      marginTop: spacing.sm,
+      paddingTop: spacing.sm,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      gap: 2,
+    },
+    hora: { ...tipo.legenda, color: colors.textMuted, fontVariant: ['tabular-nums'] },
+    horaLigacao: { ...tipo.legenda, color: colors.teal, marginTop: spacing.xs, fontWeight: '700' },
     mais: { alignItems: 'center', paddingVertical: spacing.md },
     maisTexto: { ...tipo.corpoForte, color: colors.teal },
     vazio: {

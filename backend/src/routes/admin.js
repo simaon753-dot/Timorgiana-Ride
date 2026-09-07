@@ -366,6 +366,17 @@ adminRouter.get(
 const JANELA_MINUTOS = 10;
 
 function registarAcesso(adminId, que, alvoId) {
+  // OLHAR PARA OS PRÓPRIOS DOCUMENTOS NÃO É UM ACESSO.
+  //
+  // Este registo existe para responder a uma pergunta: quem andou a ver os
+  // MEUS documentos? Uma pessoa a abrir os seus próprios papéis não responde
+  // a essa pergunta — não há aí acesso a dados de ninguém.
+  //
+  // E não era um caso raro: de 126 linhas, 91 eram o administrador a ver-se a
+  // si mesmo, porque quem administra também tem conta de motorista. O registo
+  // ficava com uma linha de sinal em cada cento e vinte e seis, e um registo
+  // que não se consegue ler é o mesmo que não haver registo.
+  if (alvoId != null && Number(alvoId) === Number(adminId)) return;
   query(
     `INSERT INTO admin_acessos (admin_id, que, alvo_id)
      SELECT $1, $2, $3
@@ -674,19 +685,37 @@ adminRouter.get(
     // movimento a sério, "30 dias" mostraria apenas o que coubesse nessas
     // 100 — e quem consulta uma auditoria não pode desconfiar do que vê.
     const dias = [1, 7, 30].includes(Number(req.query.dias)) ? Number(req.query.dias) : 30;
+
+    // AGRUPADO POR PESSOA, e não por ordem de hora.
+    //
+    // A pergunta a que isto serve é "quem viu os documentos do Amaral?". Uma
+    // lista de linhas iguais por ordem cronológica não responde a essa
+    // pergunta — obriga a percorrê-la toda e a contar de cabeça.
+    //
+    // Agrupando, cada linha passa a ser uma resposta: esta pessoa, tantas
+    // vezes, a última a tal hora. As horas vêm dentro, até dez, para se poder
+    // abrir sem fazer outro pedido — dez chegam para ver um padrão e não
+    // carregam a resposta com centenas de datas que ninguém vai ler.
     const rows = await query(
-      `SELECT a.id, a.que, a.alvo_id, a.created_at, u.name AS admin,
-              alvo.name AS alvo_nome
+      `SELECT a.que, a.alvo_id, alvo.name AS alvo_nome,
+              COUNT(*)::int AS n,
+              MAX(a.created_at) AS ultimo,
+              (array_agg(DISTINCT u.name))[1:3] AS admins,
+              (array_agg(a.created_at ORDER BY a.created_at DESC))[1:10] AS quandos
        FROM admin_acessos a
        JOIN users u ON u.id = a.admin_id
        LEFT JOIN users alvo ON alvo.id = a.alvo_id
        WHERE a.created_at > NOW() - ($1 || ' days')::interval
-       ORDER BY a.id DESC LIMIT 200`,
+       GROUP BY a.que, a.alvo_id, alvo.name
+       ORDER BY MAX(a.created_at) DESC
+       LIMIT 200`,
       [String(dias)]
     );
     res.json({
       acessos: rows.map((a) => ({
-        id: a.id,
+        // A chave é o par (o quê, a quem). Não há `id` de linha porque uma
+        // linha do ecrã já não é uma linha da tabela.
+        id: `${a.que}:${a.alvo_id ?? 0}`,
         que: a.que,
         alvo: a.alvo_id,
         // O NOME de quem foi consultado. O `alvo_id` é uma PESSOA — nunca foi
@@ -694,8 +723,18 @@ adminRouter.get(
         // nasceu para o chat, que era por viagem. O chat deixou de ser
         // legível pela administração há muito; o rótulo é que ficou.
         alvoNome: a.alvo_nome || null,
-        admin: a.admin,
-        quando: a.created_at,
+        // A CONTA FOI APAGADA DEPOIS, e o registo sobreviveu-lhe.
+        //
+        // É o que um registo de auditoria tem de fazer: apagar a conta não
+        // pode apagar a prova de que alguém viu os documentos dela. Sem esta
+        // marca, o ecrã dizia "sem alvo" — que soa a defeito, quando na
+        // verdade é o registo a funcionar exactamente como deve.
+        alvoApagado: a.alvo_id != null && !a.alvo_nome,
+        vezes: a.n,
+        admins: a.admins || [],
+        // Mantido no singular para quem já lia este campo: é a mais recente.
+        quando: a.ultimo,
+        quandos: a.quandos || [],
       })),
     });
   })
