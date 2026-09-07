@@ -537,6 +537,45 @@ export async function initSchema() {
     "CREATE INDEX IF NOT EXISTS idx_users_online ON users(is_online) WHERE role = 'driver'"
   );
 
+  // O QUE ACONTECEU EM CADA VIAGEM, POR ORDEM.
+  //
+  // A tabela `rides` guarda o ESTADO; esta guarda a HISTÓRIA. São coisas
+  // diferentes e faltava a segunda: até aqui, uma viagem cancelada dizia que
+  // estava cancelada e mais nada — não dizia quando foi aceite, se o motorista
+  // chegou a pôr-se a caminho, quantas vezes o código foi errado, nem a que
+  // horas cada coisa se passou.
+  //
+  // Só se escreve. Não há UPDATE nem DELETE em lado nenhum do código, e um
+  // registo que se pode alterar não serve para provar nada. Ver `eventos.js`.
+  await query(`
+    CREATE TABLE IF NOT EXISTS ride_events (
+      id         BIGSERIAL PRIMARY KEY,
+      ride_id    INTEGER NOT NULL REFERENCES rides(id) ON DELETE CASCADE,
+      que        TEXT NOT NULL,
+      por        INTEGER REFERENCES users(id),
+      de         TEXT,
+      para       TEXT,
+      lat        DOUBLE PRECISION,
+      lng        DOUBLE PRECISION,
+      fare_usd   REAL,
+      detalhe    JSONB,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await query('CREATE INDEX IF NOT EXISTS idx_eventos_ride ON ride_events(ride_id, id)');
+  await query('CREATE INDEX IF NOT EXISTS idx_eventos_data ON ride_events(created_at DESC)');
+
+  // TENTATIVAS DE ENTRADA FALHADAS, por conta.
+  //
+  // Não havia limite nenhum: `/api/auth/login` aceitava tentativas a milhares
+  // por minuto, e uma palavra-passe de seis caracteres não aguenta isso.
+  //
+  // Fica na base de dados e não em memória de propósito. O plano gratuito do
+  // Render reinicia o servidor a toda a hora, e um contador em memória
+  // apagava-se em cada reinício — ou seja, bastava esperar. Ver `limitador.js`.
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS login_falhas INTEGER NOT NULL DEFAULT 0`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS login_espera_ate TIMESTAMPTZ`);
+
   const [{ now }] = await query('SELECT NOW() AS now');
   console.log('[db] PostgreSQL pronto —', now.toISOString());
 }

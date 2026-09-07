@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { historicoDe } from '../eventos.js';
 import { requireAuth } from '../auth.js';
 import { query, one } from '../db.js';
 import { getDocument } from '../documents.js';
@@ -585,7 +586,28 @@ adminRouter.get(
       [id]
     );
 
+    // A HISTÓRIA, e não só o estado final.
+    //
+    // Sem isto, uma viagem cancelada dizia "cancelada" e mais nada: não dizia
+    // se chegou a ser aceite, se o motorista se pôs a caminho, quantas vezes o
+    // código foi errado, nem a que horas cada coisa aconteceu. Era o suficiente
+    // para o painel e insuficiente para responder a uma queixa.
+    const eventos = await historicoDe(id);
+
     res.json({
+      // Por ordem de acontecimento, com hora, quem e onde. É o que permite
+      // reconstruir uma viagem para responder a quem se queixa.
+      eventos: eventos.map((e) => ({
+        que: e.que,
+        quando: e.created_at,
+        quem: e.por_nome || null,
+        quemId: e.por,
+        de: e.de,
+        para: e.para,
+        onde: e.lat != null ? { lat: e.lat, lng: e.lng } : null,
+        preco: e.fare_usd,
+        detalhe: e.detalhe || null,
+      })),
       viagem: {
         id: r.id,
         estado: r.status,

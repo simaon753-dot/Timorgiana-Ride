@@ -48,6 +48,22 @@ const RIDE_SELECT = `
 export function toPublicRide(row, opcoes = {}) {
   if (!row) return null;
   const paraPassageiro = opcoes?.paraPassageiro === true;
+  // ACABOU A VIAGEM, ACABAM OS TELEFONES.
+  //
+  // O histórico chamava esta função sem opções, e como a viagem terminada tem
+  // `driver_id`, a regra de baixo deixava passar o número do passageiro. Ou
+  // seja: cada motorista tinha, no ecrã do histórico, a lista de todas as
+  // pessoas que levou, com telemóvel — e com as coordenadas de onde as foi
+  // buscar, que para quem é apanhado à porta de casa é a morada.
+  //
+  // O número serve para o motorista ligar a quem vai buscar. Depois de chegar
+  // ao destino não há mais nada para combinar, e o que sobra é uma lista de
+  // contactos que ninguém deu.
+  //
+  // Vale para os dois lados e para o telefone do terceiro — que no caso de um
+  // menor é o que mais importa.
+  const terminada = row.status === 'completed' || row.status === 'cancelled';
+  const podeVerTelefones = !terminada;
   return {
     ...(paraPassageiro && row.pickup_code ? { pickupCode: row.pickup_code } : {}),
     ...(row.my_stars !== undefined ? { myStars: row.my_stars } : {}),
@@ -70,6 +86,13 @@ export function toPublicRide(row, opcoes = {}) {
     durationMin: row.duration_min ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    // PORQUE É QUE A VIAGEM ACABOU.
+    //
+    // Faltava, e passou a fazer falta quando os pedidos sem resposta
+    // começaram a fechar-se sozinhos ao fim de dez minutos: sem o motivo, a
+    // viagem desaparecia do ecrã do passageiro sem explicação nenhuma — que é
+    // indistinguível de uma avaria.
+    cancelReason: row.cancel_reason || null,
     // O TELEFONE SÓ SAI DEPOIS DE HAVER MOTORISTA.
     //
     // A lista de pedidos por aceitar vai para TODOS os motoristas
@@ -87,7 +110,7 @@ export function toPublicRide(row, opcoes = {}) {
     passenger: {
       id: row.passenger_id,
       name: row.p_name,
-      ...(paraPassageiro || row.driver_id ? { phone: row.p_phone } : {}),
+      ...(podeVerTelefones && (paraPassageiro || row.driver_id) ? { phone: row.p_phone } : {}),
     },
     // ── Quem viaja, quando não é quem pede ──────────────────────────
     //
@@ -115,7 +138,10 @@ export function toPublicRide(row, opcoes = {}) {
             // disso recebe só o que precisa para decidir, que é saber que a
             // viagem é para outra pessoa e se essa pessoa é menor.
             ...(paraPassageiro || row.driver_id
-              ? { nome: row.viajante_nome, telefone: row.viajante_telefone || null }
+              ? {
+                  nome: row.viajante_nome,
+                  ...(podeVerTelefones ? { telefone: row.viajante_telefone || null } : {}),
+                }
               : {}),
           },
         }
@@ -124,7 +150,7 @@ export function toPublicRide(row, opcoes = {}) {
       ? {
           id: row.driver_id,
           name: row.d_name,
-          phone: row.d_phone,
+          ...(podeVerTelefones ? { phone: row.d_phone } : {}),
           vehicle: {
             type: row.d_vtype || 'car',
             model: row.d_vmodel || null,
@@ -173,9 +199,14 @@ export async function createRide({
   // "é para outra pessoa" e não sabe dizer para quem: o motorista chegava
   // sem saber por quem perguntar, e o registo do consentimento apontava a
   // ninguém.
-  const nomeViajante = String(viajanteNome || '').trim().slice(0, 80) || null;
+  const nomeViajante =
+    String(viajanteNome || '')
+      .trim()
+      .slice(0, 80) || null;
   const telefoneViajante = nomeViajante
-    ? String(viajanteTelefone || '').trim().slice(0, 20) || null
+    ? String(viajanteTelefone || '')
+        .trim()
+        .slice(0, 20) || null
     : null;
   const ehMenor = nomeViajante ? !!viajanteMenor : false;
   const inserted = await one(
@@ -328,15 +359,48 @@ export async function acceptRide(rideId, driverId, fareUsd, driverSeats) {
   // pé na rua.
   const updated = await one(
     `UPDATE rides
-     SET driver_id = $1, fare_usd = COALESCE($2, fare_usd),
+     SET driver_id = $1,
+         -- A TARIFA CALCULADA NÃO SE DEIXA SUBSTITUIR.
+         --
+         -- Estava aqui um COALESCE do valor enviado, que escrevia o valor
+         -- enviado pelo motorista, fosse ele qual fosse. Numa viagem com
+         -- coordenadas o preço já foi calculado no servidor a partir da rota
+         -- real — aceitar outro valor por cima era deitar fora essa garantia
+         -- e deixar um telemóvel modificado escrever $50 numa viagem de $2.
+         --
+         -- Só se aceita valor de fora quando não HÁ preço calculado, que é o
+         -- caso do destino escrito à mão: aí não há rota, não há distância, e
+         -- o preço volta a ser combinado entre as duas pessoas.
+         fare_usd = CASE WHEN distance_km IS NULL THEN COALESCE($2, fare_usd) ELSE fare_usd END,
          status = 'accepted', updated_at = NOW()
      WHERE id = $3 AND status = 'requested' AND driver_id IS NULL
        AND (passengers IS NULL OR $4::int IS NULL OR passengers <= $4::int)
+       -- UM MOTORISTA, UMA VIAGEM DE CADA VEZ.
+       --
+       -- Faltava. O UPDATE verificava que a VIAGEM estava livre e nunca que o
+       -- MOTORISTA estava — bastava uma corrida entre dois toques, ou um
+       -- cliente modificado, para a mesma pessoa ficar com duas viagens. O
+       -- segundo passageiro esperava por um carro que já ia a caminho de
+       -- outro sítio, e é o mesmo mal do motorista fantasma por outra porta.
+       AND NOT EXISTS (
+         SELECT 1 FROM rides r2
+          WHERE r2.driver_id = $1 AND r2.status = ANY($5)
+       )
      RETURNING id`,
-    [driverId, num(fareUsd), rideId, driverSeats ?? null]
+    [driverId, num(fareUsd), rideId, driverSeats ?? null, ACTIVE_DRIVER]
   );
-  if (!updated) return null; // já aceite por outro, ou inexistente
+  if (!updated) return null; // já aceite por outro, este já tem viagem, ou inexistente
   return getRideById(rideId);
+}
+
+// Este motorista já tem viagem a decorrer? Serve para distinguir as causas de
+// uma recusa: dizer "já não está disponível" a quem na verdade tem uma viagem
+// em curso manda a pessoa procurar o problema no sítio errado.
+export function motoristaOcupado(driverId) {
+  return one(`SELECT id FROM rides WHERE driver_id = $1 AND status = ANY($2) LIMIT 1`, [
+    driverId,
+    ACTIVE_DRIVER,
+  ]);
 }
 
 // Começa a viagem SE o código estiver certo. A comparação vai dentro do
@@ -366,10 +430,49 @@ export async function setRideStatus(rideId, status, porQuem = null) {
   return getRideById(rideId);
 }
 
+// Escrever a tarifa à mão. SÓ onde não há preço calculado.
+//
+// A versão anterior escrevia qualquer valor em qualquer viagem, sem olhar ao
+// preço que o servidor tinha calculado da rota real. A app não usava isto — mas
+// o endereço estava aberto, e um cliente modificado cobrava o que quisesse.
+//
+// Devolve `null` quando a viagem tem preço calculado, para quem chama poder
+// dizer porquê em vez de fingir que gravou.
 export async function setRideFare(rideId, fareUsd) {
-  await query('UPDATE rides SET fare_usd = $1, updated_at = NOW() WHERE id = $2', [
-    num(fareUsd),
-    rideId,
-  ]);
+  const linha = await one(
+    `UPDATE rides SET fare_usd = $1, updated_at = NOW()
+      WHERE id = $2 AND distance_km IS NULL
+      RETURNING id`,
+    [num(fareUsd), rideId]
+  );
+  if (!linha) return null;
   return getRideById(rideId);
+}
+
+// PEDIDOS QUE NINGUÉM ACEITOU.
+//
+// `requested` conta como viagem a decorrer, e uma viagem a decorrer impede a
+// pessoa de pedir outra. Juntas, as duas regras faziam isto: às onze da noite,
+// sem motoristas ao serviço, o passageiro pedia, não acontecia nada — e ficava
+// impedido de pedir outra vez até perceber sozinho que tinha de cancelar à mão.
+//
+// Ao fim de MINUTOS_ATE_DESISTIR o pedido morre por si. Dez minutos são
+// generosos para quem está a acabar outra viagem e pouco para quem está à
+// espera no passeio; e cancelado é melhor do que pendurado, porque cancelado
+// deixa a pessoa pedir outra vez.
+//
+// A tabela é a autoridade e a hora é a do PostgreSQL — não a do processo. Se
+// duas instâncias corressem isto ao mesmo tempo, o `status = 'requested'` na
+// condição garante que cada viagem só é fechada uma vez.
+export const MINUTOS_ATE_DESISTIR = Number(process.env.RIDE_TIMEOUT_MIN) || 10;
+
+export function expirarPedidosSemResposta() {
+  return query(
+    `UPDATE rides
+        SET status = 'cancelled', cancel_reason = 'sem_motorista', updated_at = NOW()
+      WHERE status = 'requested' AND driver_id IS NULL
+        AND created_at < NOW() - ($1 || ' minutes')::interval
+      RETURNING id, passenger_id`,
+    [String(MINUTOS_ATE_DESISTIR)]
+  );
 }

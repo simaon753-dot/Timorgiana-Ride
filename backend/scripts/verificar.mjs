@@ -18,7 +18,8 @@
 //
 // O lado da app tinha cinco verificadores e o servidor não tinha nenhum.
 // Corre antes de cada envio.
-import { readdirSync, statSync } from 'node:fs';
+import { readdirSync, statSync, readFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 const ficheiros = [];
@@ -81,9 +82,51 @@ if (!problemas.length) {
   }
 }
 
+// 3. Os nomes importados existem mesmo do outro lado?
+//
+//    Isto existe por causa dos ficheiros que o passo 2 salta. O `server.js`
+//    liga-se à base e abre porta, por isso não pode ser importado aqui — e é
+//    justamente o ficheiro que mais se mexe. Já passou por aqui um
+//    `findUserById` importado de um sítio que não o exportava: 38 ficheiros
+//    deram verde e o servidor rebentou no arranque.
+//
+//    Não substitui o carregamento a sério; lê o texto. Mas apanha o erro que o
+//    carregamento apanharia se pudesse correr, que é o que interessa.
+if (!problemas.length) {
+  const conteudo = new Map(ficheiros.map((f) => [f, readFileSync(f, 'utf8')]));
+  const IMPORT = /import\s*\{([^}]*)\}\s*from\s*['"](\.[^'"]+)['"]/g;
+
+  for (const [f, texto] of conteudo) {
+    for (const m of texto.matchAll(IMPORT)) {
+      const alvo = resolve(dirname(f), m[2]).replace(process.cwd() + '/', '');
+      const dele = conteudo.get(alvo);
+      if (!dele) continue; // fora do projecto, ou já apanhado pelo passo 2
+
+      for (const bruto of m[1].split(',')) {
+        // `x as y` — o que tem de existir do outro lado é o x.
+        const nome = bruto
+          .trim()
+          .split(/\s+as\s+/)[0]
+          .trim();
+        if (!nome) continue;
+        const exporta = new RegExp(
+          `export\\s+(async\\s+)?(function|const|let|var|class)\\s+${nome}\\b` +
+            `|export\\s*\\{[^}]*\\b${nome}\\b`
+        );
+        if (!exporta.test(dele)) {
+          problemas.push(`${f} — importa "${nome}" de ${m[2]}, que não o exporta`);
+        }
+      }
+    }
+  }
+}
+
 if (problemas.length) {
   console.error('  ✗ o servidor não está bom:\n');
   for (const p of problemas) console.error('    ' + p);
   process.exit(1);
 }
-console.log(`  ✓ ${ficheiros.length} ficheiros analisam; os de src/ também carregam`);
+console.log(
+  `  ✓ ${ficheiros.length} ficheiros analisam, os de src/ carregam,` +
+    ` e os nomes importados existem do outro lado`
+);

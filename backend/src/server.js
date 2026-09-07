@@ -20,10 +20,26 @@ import { estadoDaBusca, marcarPorPerguntar } from './lugares.js';
 import { mosaico } from './mosaicos.js';
 import { gzipSync } from 'node:zlib';
 import { municipioDe } from './municipios.js';
-import { ACTIVE_DRIVER } from './rides.js';
+import {
+  ACTIVE_DRIVER,
+  expirarPedidosSemResposta,
+  MINUTOS_ATE_DESISTIR,
+  getRideById,
+  toPublicRide,
+} from './rides.js';
+import { registarSemEsperar, EVENTOS } from './eventos.js';
 import { fileURLToPath } from 'node:url';
 
 const app = express();
+// O Render põe um encaminhador à frente da aplicação. Sem isto, `req.ip` é o
+// endereço desse encaminhador e não o de quem pediu — ou seja, o travão das
+// tentativas de entrada via TODA A GENTE como sendo a mesma pessoa.
+//
+// O `1` é o número de saltos em que confiamos, e é o certo para o Render. Pôr
+// `true` aceitaria qualquer cabeçalho `X-Forwarded-For` que chegasse, e esse
+// cabeçalho escreve-se à mão — quem quisesse contornar o travão inventava um
+// endereço novo em cada tentativa.
+app.set('trust proxy', 1);
 app.use(cors());
 // Limite maior: os documentos dos motoristas viajam em base64
 app.use(express.json({ limit: '6mb' }));
@@ -407,6 +423,43 @@ async function start() {
   }
   await varrerAusentes('ao arrancar');
 
+  // PEDIDOS QUE NINGUÉM ACEITOU.
+  //
+  // Vai à boleia do mesmo varrimento de minuto a minuto, e pela mesma razão:
+  // um temporizador próprio não corre quando o servidor adormece, mas este
+  // acorda com ele. Ver `expirarPedidosSemResposta`.
+  async function varrerPedidosMortos() {
+    try {
+      const mortos = await expirarPedidosSemResposta();
+      for (const p of mortos) {
+        // Avisar quem estava à espera. Sem isto, o ecrã do passageiro ficava a
+        // dizer "à procura de motorista" para sempre, sobre uma viagem que já
+        // não existe.
+        const linha = await getRideById(p.id);
+        if (linha)
+          io.to(`user:${p.passenger_id}`).emit(
+            'ride:update',
+            toPublicRide(linha, { paraPassageiro: true })
+          );
+        registarSemEsperar({
+          rideId: p.id,
+          que: EVENTOS.CANCELADA,
+          de: 'requested',
+          para: 'cancelled',
+          detalhe: { motivo: 'sem_motorista', minutos: MINUTOS_ATE_DESISTIR },
+        });
+      }
+      if (mortos.length) {
+        console.log(
+          `[pedidos] ${mortos.length} sem resposta há ${MINUTOS_ATE_DESISTIR} min, fechados`
+        );
+      }
+    } catch (e) {
+      console.error('[pedidos] não foi possível varrer:', e.message);
+    }
+  }
+  await varrerPedidosMortos();
+
   // Perguntar ao Google pelos lugares aprovados que ainda não foram
   // perguntados. Não se espera por isto para abrir a porta: são chamadas a um
   // serviço de fora, e o servidor não deve ficar em baixo porque o Google
@@ -416,7 +469,10 @@ async function start() {
       if (n) console.log(`[lugares] ${n} lugar(es) perguntados ao Google`);
     })
     .catch((e) => console.error('[lugares] não foi possível perguntar:', e.message));
-  setInterval(() => varrerAusentes('em marcha'), 60000).unref();
+  setInterval(() => {
+    varrerAusentes('em marcha');
+    varrerPedidosMortos();
+  }, 60000).unref();
 
   server.listen(config.port, () => {
     console.log(`[server] TimorgianaRide a escutar na porta ${config.port}`);

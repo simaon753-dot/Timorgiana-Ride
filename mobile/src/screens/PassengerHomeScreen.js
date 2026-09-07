@@ -305,6 +305,18 @@ export default function PassengerHomeScreen({ navigation }) {
               <RatingPanel ride={activeRide} role="passenger" />
             ) : null}
 
+            {/* NINGUÉM RESPONDEU.
+             *
+             * Ao fim de dez minutos o pedido fecha-se sozinho no servidor. Sem
+             * esta linha, a viagem desaparecia do ecrã sem explicação — e uma
+             * viagem que desaparece sozinha lê-se como avaria da app, não como
+             * "não havia motoristas". */}
+            {activeRide.cancelReason === 'sem_motorista' ? (
+              <View style={styles.semMotorista}>
+                <Text style={styles.semMotoristaTexto}>{t('noDriverFound')}</Text>
+              </View>
+            ) : null}
+
             <View style={{ height: spacing.lg }} />
             {isFinal ? (
               <Button title={t('newRide')} onPress={dismissRide} />
@@ -623,6 +635,16 @@ const criarEstilos = () =>
       textAlign: 'center',
       marginTop: spacing.xs,
     },
+    // A mesma linguagem do aviso de "Indisponível" no ecrã do pedido: fundo de
+    // tinta de perigo e texto na cor de perigo. É a mesma família de recado —
+    // "isto não vai acontecer, e a razão não és tu".
+    semMotorista: {
+      backgroundColor: colors.tintaPerigo,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginTop: spacing.sm,
+    },
+    semMotoristaTexto: { ...tipo.corpoForte, color: colors.danger, textAlign: 'center' },
   });
 
 let styles = criarEstilos();

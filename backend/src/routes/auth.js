@@ -13,10 +13,21 @@ import { query } from '../db.js';
 import { signToken, requireAuth } from '../auth.js';
 import { savePushToken } from '../drivers.js';
 import { usarCodigo } from '../recuperacao.js';
+import { porEndereco, segundosDeEspera, registarFalha, limparFalhas } from '../limitador.js';
 
 export const authRouter = Router();
 
 const ROLES = ['passenger', 'driver'];
+
+// Camada por endereço, à entrada de tudo o que não exige já um token. A
+// protecção a sério é por conta, dentro do `/login`; esta apanha o que aquela
+// não vê — tentativas espalhadas por muitas contas, e registos em série.
+//
+// Generosa de propósito: atrás do Render muita gente partilha o mesmo endereço
+// aparente. Ver o cabeçalho de `limitador.js`.
+authRouter.post('/login', porEndereco({ max: 40, minutos: 15 }));
+authRouter.post('/register', porEndereco({ max: 10, minutos: 60 }));
+authRouter.post('/recuperar', porEndereco({ max: 20, minutos: 60 }));
 
 // POST /api/auth/register
 authRouter.post('/register', async (req, res) => {
@@ -44,7 +55,9 @@ authRouter.post('/register', async (req, res) => {
     // é para isso que existe o código de confirmação, que simplesmente não
     // chega.
     if (!emailBemFormado(email)) {
-      return res.status(400).json({ error: 'Escreve um email válido — serve para recuperares a conta.' });
+      return res
+        .status(400)
+        .json({ error: 'Escreve um email válido — serve para recuperares a conta.' });
     }
     if (!ROLES.includes(role)) {
       return res.status(400).json({ error: 'Tipo de conta inválido.' });
@@ -100,10 +113,35 @@ authRouter.post('/login', async (req, res) => {
     }
 
     const row = await findUserByPhone(phone);
+
+    // A ESPERA VERIFICA-SE ANTES DE COMPARAR A SENHA.
+    //
+    // Se fosse depois, cada tentativa continuaria a fazer o trabalho de
+    // comparar — o `bcrypt` é lento de propósito, e mil tentativas por segundo
+    // punham o servidor de joelhos mesmo com todas a serem recusadas.
+    if (row) {
+      const faltam = await segundosDeEspera(row.id);
+      if (faltam > 0) {
+        const minutos = Math.ceil(faltam / 60);
+        return res.status(429).json({
+          error:
+            faltam < 60
+              ? `Demasiadas tentativas. Espera ${faltam} segundos.`
+              : `Demasiadas tentativas. Espera ${minutos} minuto${minutos > 1 ? 's' : ''}.`,
+          segundos: faltam,
+        });
+      }
+    }
+
     if (!row || !(await verifyPassword(row, password))) {
+      // Conta a falha, mas responde SEMPRE a mesma coisa. Dizer "esta conta
+      // existe mas a senha está errada" seria confirmar a um estranho quais
+      // dos números que ele tem é que estão registados.
+      if (row) await registarFalha(row.id);
       return res.status(401).json({ error: 'Telemóvel ou palavra-passe incorretos.' });
     }
 
+    await limparFalhas(row.id);
     return res.json({ user: toPublicUser(row), token: signToken(row) });
   } catch (err) {
     console.error('[auth/login]', err);

@@ -87,6 +87,7 @@ export default {
   callLabel: 'Telefone',
   cancelRide: 'Kansela viajen',
   newRide: 'Viajen foun',
+  noDriverFound: 'Motorista ida la responde. Koko fali.',
 
   availableRequests: 'Pedidu viajen',
   noRequests: 'Seidauk iha pedidu.',

@@ -12,12 +12,14 @@ import {
   setRideFare,
   toPublicRide,
   iniciarViagem,
+  motoristaOcupado,
 } from '../rides.js';
+import { registarSemEsperar, EVENTOS } from '../eventos.js';
 import { addMessage, addSystemMessage, listMessages } from '../messages.js';
 import { addRating, hasRated } from '../ratings.js';
 import { notificarPedidoNovo, notificarAceite, notificarAdminsSOS } from '../push.js';
 import { one, query } from '../db.js';
-import { rota, preco } from '../routing.js';
+import { rota, preco, straightKm } from '../routing.js';
 import { podeIr } from '../cobertura.js';
 import { config } from '../config.js';
 import { registarDia } from '../assinatura.js';
@@ -35,7 +37,29 @@ const MOTIVOS_VALIDOS = [
   'problema_veiculo',
   'destino_inacessivel',
   'outro',
+  // Não é de ninguém: é o pedido a morrer sozinho ao fim de dez minutos sem
+  // resposta. Fica na mesma lista para poder ser contado com os outros — se
+  // aparecer muito, o problema não é o passageiro nem o motorista, é não haver
+  // motoristas àquela hora.
+  'sem_motorista',
 ];
+
+// Número ou nulo. As posições vêm de sítios diferentes — corpo do pedido,
+// última posição conhecida do motorista — e nem todas trazem número.
+function num2(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+// Metros entre a posição do utilizador e o destino da viagem. Só para o
+// registo: serve para responder a "ele deixou-me longe do sítio" com um
+// número em vez de uma opinião.
+function metrosEntre(quem, viagem) {
+  const a = { lat: num2(quem?.last_lat), lng: num2(quem?.last_lng) };
+  const b = { lat: num2(viagem?.dest_lat), lng: num2(viagem?.dest_lng) };
+  if (a.lat == null || a.lng == null || b.lat == null || b.lng == null) return null;
+  return Math.round(straightKm(a, b) * 1000);
+}
 
 export const ridesRouter = Router();
 
@@ -191,6 +215,25 @@ ridesRouter.post(
     // O que vai para os motoristas não o leva.
     const paraMotoristas = toPublicRide(row);
 
+    // Primeira linha da história desta viagem. Ver `eventos.js`.
+    registarSemEsperar({
+      rideId: row.id,
+      que: EVENTOS.PEDIDA,
+      por: req.user.id,
+      para: 'requested',
+      lat: num2(originLat),
+      lng: num2(originLng),
+      fareUsd: row.fare_usd,
+      detalhe: {
+        destino: row.dest_label,
+        veiculo: row.vehicle_type,
+        km: kmViagem,
+        min: minViagem,
+        paraOutraPessoa: !!row.viajante_nome,
+        menor: !!row.viajante_menor,
+      },
+    });
+
     const io = req.app.get('io');
     // Só para o município da recolha. Sem município — viagem sem coordenadas
     // de origem — vai para todos: mais vale um pedido a mais na lista de
@@ -267,14 +310,31 @@ ridesRouter.post(
         req.user.vehicle_seats != null &&
         atual.passengers > req.user.vehicle_seats
       ) {
-        return res
-          .status(409)
-          .json({
-            error: `Esta viagem é para ${atual.passengers} pessoas e o teu carro leva ${req.user.vehicle_seats}.`,
-          });
+        return res.status(409).json({
+          error: `Esta viagem é para ${atual.passengers} pessoas e o teu carro leva ${req.user.vehicle_seats}.`,
+        });
+      }
+      // O motorista já tem uma viagem a decorrer. Passou a ser recusado no
+      // próprio UPDATE; sem esta mensagem, quem tem uma viagem em curso lia
+      // "já não está disponível" e ia procurar o problema no sítio errado.
+      if (await motoristaOcupado(req.user.id)) {
+        return res.status(409).json({
+          error: 'Já tens uma viagem a decorrer. Termina-a antes de aceitar outra.',
+        });
       }
       return res.status(409).json({ error: 'Esta viagem já não está disponível.' });
     }
+
+    registarSemEsperar({
+      rideId,
+      que: EVENTOS.ACEITE,
+      por: req.user.id,
+      de: 'requested',
+      para: 'accepted',
+      lat: num2(req.user.last_lat),
+      lng: num2(req.user.last_lng),
+      fareUsd: row.fare_usd,
+    });
 
     const io = req.app.get('io');
     const ride = toPublicRide(row);
@@ -327,6 +387,26 @@ ridesRouter.post(
 
     const updated = await setRideStatus(rideId, status);
 
+    // ONDE ESTAVA O CARRO QUANDO ISTO ACONTECEU.
+    //
+    // Não se recusa uma conclusão longe do destino — recusar deixaria uma
+    // viagem aberta por um GPS mau. Regista-se. Depois, se alguém se queixar
+    // de ter sido deixado a meio, há onde ver.
+    registarSemEsperar({
+      rideId,
+      que: status === 'completed' ? EVENTOS.TERMINOU : EVENTOS.A_CAMINHO,
+      por: req.user.id,
+      de: row.status,
+      para: status,
+      lat: num2(req.user.last_lat),
+      lng: num2(req.user.last_lng),
+      fareUsd: updated?.fare_usd,
+      detalhe:
+        status === 'completed' && updated?.dest_lat != null
+          ? { metrosAoDestino: metrosEntre(req.user, updated) }
+          : null,
+    });
+
     // A viagem concluída é o que faz o dia contar. Em `try` porque a
     // conclusão da viagem NUNCA pode falhar por causa da cobrança: se o
     // registo do dia rebentar, o motorista trabalhou de graça — chato,
@@ -367,8 +447,30 @@ ridesRouter.post(
       if (!['accepted', 'arriving'].includes(atual.status)) {
         return res.status(409).json({ error: 'Esta viagem já começou ou terminou.' });
       }
+      // O CÓDIGO ERRADO TAMBÉM SE REGISTA.
+      //
+      // Uma tentativa errada é distracção. Seis são outra coisa — ou o
+      // motorista está a tentar começar a viagem sem a pessoa, ou está no
+      // carro errado. Sem registo, nada disto se vê.
+      registarSemEsperar({
+        rideId,
+        que: EVENTOS.CODIGO_ERRADO,
+        por: req.user.id,
+        lat: num2(req.user.last_lat),
+        lng: num2(req.user.last_lng),
+      });
       return res.status(403).json({ error: 'Código errado. Pergunta outra vez ao passageiro.' });
     }
+
+    registarSemEsperar({
+      rideId,
+      que: EVENTOS.COMECOU,
+      por: req.user.id,
+      para: 'in_progress',
+      lat: num2(req.user.last_lat),
+      lng: num2(req.user.last_lng),
+      fareUsd: updated.fare_usd,
+    });
 
     notify(req.app.get('io'), updated, 'ride:update');
     return res.json({ ride: toPublicRide(updated) });
@@ -389,6 +491,21 @@ ridesRouter.post(
       return res.status(404).json({ error: 'Viagem não encontrada.' });
     }
     const updated = await setRideFare(rideId, fare);
+    // Devolve `null` quando a viagem tem preço calculado da rota real. Nesse
+    // caso o preço é firme e não se escreve por cima — ver `setRideFare`.
+    if (!updated) {
+      return res.status(409).json({
+        error: 'O preço desta viagem foi calculado pela distância e não se altera.',
+      });
+    }
+
+    registarSemEsperar({
+      rideId,
+      que: EVENTOS.TARIFA_ALTERADA,
+      por: req.user.id,
+      fareUsd: fare,
+      detalhe: { antes: row.fare_usd },
+    });
     notify(req.app.get('io'), updated, 'ride:update');
     return res.json({ ride: toPublicRide(updated) });
   })
@@ -476,6 +593,15 @@ ridesRouter.post(
       tipo,
     });
 
+    registarSemEsperar({
+      rideId,
+      que: EVENTOS.SOS,
+      por: req.user.id,
+      lat: num2(lat),
+      lng: num2(lng),
+      detalhe: { tipo: alerta.tipo, alertaId: alerta.id },
+    });
+
     // Toca a todos os administradores em simultâneo, por socket e por push.
     req.app.get('io').to('admins').emit('sos:novo', { id: alerta.id });
     notificarAdminsSOS({ nome: req.user.name, rideId, lat, lng }).catch(() => {});
@@ -511,6 +637,23 @@ ridesRouter.post(
     await query('UPDATE rides SET cancel_reason = $1 WHERE id = $2', [motivo, rideId]);
 
     const updated = await setRideStatus(rideId, 'cancelled', req.user.id);
+
+    registarSemEsperar({
+      rideId,
+      que: EVENTOS.CANCELADA,
+      por: req.user.id,
+      de: row.status,
+      para: 'cancelled',
+      lat: num2(req.user.last_lat),
+      lng: num2(req.user.last_lng),
+      detalhe: {
+        motivo,
+        // De que lado veio, e em que altura. "Cancelou" diz pouco; "o
+        // passageiro cancelou depois de o motorista ter aceitado" diz tudo.
+        lado: row.passenger_id === req.user.id ? 'passageiro' : 'motorista',
+      },
+    });
+
     const io = req.app.get('io');
     notify(io, updated, 'ride:update');
     if (row.status === 'requested') io.to('drivers').emit('ride:taken', { id: row.id });
