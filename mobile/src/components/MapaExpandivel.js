@@ -69,6 +69,10 @@ export default function MapaExpandivel({
               liveMarker={liveMarker}
               liveLabel={liveLabel}
               fill
+              // Desce a coluna do mapa em 48 — exactamente o intervalo entre
+              // dois botões — para o ✕ ficar no lugar vago no topo dela, e
+              // não em cima do primeiro.
+              topoDosBotoes={48}
             />
             {cracha}
             <Pressable style={styles.fechar} onPress={() => setAberto(false)} hitSlop={10}>
@@ -117,10 +121,19 @@ const criarEstilos = () =>
     },
     expandirIcone: { fontSize: 17, color: colors.teal, fontWeight: '700' },
     cheio: { flex: 1, backgroundColor: colors.paper },
+    // NA MESMA COLUNA DOS BOTÕES DO MAPA, e não por cima deles.
+    //
+    // Estava em `spacing.md` nas duas medidas, o que o punha praticamente em
+    // cima do botão de voltar à minha localização — o primeiro da coluna do
+    // mapa, que fica em `spacing.sm`. Ficava escondido e não se podia tocar.
+    //
+    // Agora partilha a mesma margem direita e o mesmo tamanho, e o mapa desce
+    // a coluna dele em 48 para lhe abrir o lugar: lêem-se os quatro como uma
+    // coluna só, em vez de um botão empoleirado sobre outro.
     fechar: {
       position: 'absolute',
-      top: spacing.md,
-      right: spacing.md,
+      top: spacing.sm,
+      right: spacing.sm,
       width: 40,
       height: 40,
       borderRadius: 20,

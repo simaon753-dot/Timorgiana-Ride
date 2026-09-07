@@ -252,6 +252,17 @@ export default function MapaGoogle({
   liveMarker,
   liveLabel,
   fill = false,
+  // QUANTO DESCER A COLUNA DE BOTÕES.
+  //
+  // Os três botões vivem no canto superior direito. Quem põe este mapa em
+  // ecrã inteiro precisa de lá pôr também um botão de fechar, e esse botão
+  // aterrava em cima do primeiro da coluna — o de voltar à minha
+  // localização, que ficava invisível e intocável.
+  //
+  // Descer a coluna resolve sem inventar um segundo sítio para os botões: o
+  // fechar passa a ser o primeiro da MESMA coluna, com o mesmo tamanho e o
+  // mesmo intervalo, e lêem-se os quatro como um conjunto.
+  topoDosBotoes = 0,
 }) {
   const { t } = useI18n();
   const { token } = useAuth();
@@ -900,7 +911,11 @@ export default function MapaGoogle({
           no MapaExpandivel — e um mapa não pode ter dois botões no mesmo
           sítio conforme o ecrã onde está. */}
       <Pressable
-        style={[styles.botaoMim, aLocalizar && styles.botaoMimOcupado]}
+        style={[
+          styles.botaoMim,
+          aLocalizar && styles.botaoMimOcupado,
+          topoDosBotoes ? { top: spacing.sm + topoDosBotoes } : null,
+        ]}
         onPress={irParaMim}
         hitSlop={8}
         accessibilityRole="button"
@@ -914,7 +929,11 @@ export default function MapaGoogle({
           correr — senão a pessoa não percebe porque é que o mapa "mexe
           sozinho" e não sabe como o parar. */}
       <Pressable
-        style={[styles.botaoSeguir, aSeguirBussola && styles.botaoSeguirActivo]}
+        style={[
+          styles.botaoSeguir,
+          aSeguirBussola && styles.botaoSeguirActivo,
+          topoDosBotoes ? { top: spacing.sm + 96 + topoDosBotoes } : null,
+        ]}
         onPress={() => setASeguirBussola((v) => !v)}
         hitSlop={8}
         accessibilityRole="button"
@@ -935,7 +954,10 @@ export default function MapaGoogle({
           A agulha aponta sempre ao norte, e por isso diz duas coisas ao
           mesmo tempo: para onde é o norte, e quanto o mapa está torto. */}
       <Pressable
-        style={styles.botaoBussola}
+        style={[
+          styles.botaoBussola,
+          topoDosBotoes ? { top: spacing.sm + 48 + topoDosBotoes } : null,
+        ]}
         onPress={aoNorte}
         hitSlop={8}
         accessibilityRole="button"
