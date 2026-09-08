@@ -747,6 +747,18 @@ export default function MapaGoogle({
     };
   }, [aSeguirBussola]);
 
+  // SAIR DO MODO APAGA O SATÉLITE.
+  //
+  // O botão só existe enquanto se escolhe um ponto. Sem esta linha, quem o
+  // ligasse e saísse do modo ficava com a fotografia acesa e sem botão nenhum
+  // para a desligar — a pagar 87 MB por hora sem forma de parar.
+  //
+  // Uma funcionalidade que se pode ligar e não se pode desligar é pior do que
+  // não a ter.
+  useEffect(() => {
+    if (!modoEscolha) setSatelite(false);
+  }, [modoEscolha]);
+
   const aoNorte = useCallback(() => {
     // Endireitar enquanto se segue a bússola era mandar duas ordens
     // contrárias ao mesmo mapa. Quem pede o norte quer o norte.
@@ -1095,29 +1107,42 @@ export default function MapaGoogle({
         <Seta activo={aSeguirBussola} />
       </Pressable>
 
-      {/* O SATÉLITE.
+      {/* O SATÉLITE, E SÓ A ESCOLHER UM PONTO.
           O selector de mapa já existiu e o Simão mandou-o tirar — eram botões
           a mais sem motivo. Este volta com um motivo só, e é forte em Díli:
           grande parte da cidade não tem morada, e as pessoas orientam-se por
-          referências. Num mapa desenhado, um bairro sem nomes de rua é um
+          referências. Num bairro sem nomes de rua, um mapa desenhado é um
           emaranhado de linhas iguais; na fotografia, a pessoa reconhece a sua
           própria casa — e é isso que faz o motorista encontrá-la.
-          Desligado por omissão, porque as fotografias custam dados a quem
-          conduz. Ver a nota no estado. */}
-      <Pressable
-        style={[
-          styles.botaoSatelite,
-          satelite && styles.botaoSateliteActivo,
-          topoDosBotoes ? { top: spacing.sm + 144 + topoDosBotoes } : null,
-        ]}
-        onPress={() => setSatelite((v) => !v)}
-        hitSlop={8}
-        accessibilityRole="button"
-        accessibilityState={{ selected: satelite }}
-        accessibilityLabel={t('verSatelite')}
-      >
-        <Camadas activo={satelite} />
-      </Pressable>
+
+          MAS SÓ AQUI, e o número é a razão. O Simão mediu no telemóvel dele:
+          8,12 MB em cinco minutos e meio de satélite. São 1,44 MB por minuto,
+          87 MB por hora — quase um terço do que a app inteira gastou em nove
+          dias, em cinco minutos.
+
+          Um botão em todos os mapas seria uma armadilha: liga-se para
+          encontrar uma casa, esquece-se de desligar, e ao fim de um dia de
+          serviço o motorista perdeu o pacote de dados sem perceber onde. Aqui
+          o modo dura o tempo de apontar, e acaba com ele.
+
+          Durante a viagem a fotografia não acrescenta nada: vê-se a linha e a
+          rua, e o resto só pesa. */}
+      {modoEscolha ? (
+        <Pressable
+          style={[
+            styles.botaoSatelite,
+            satelite && styles.botaoSateliteActivo,
+            topoDosBotoes ? { top: spacing.sm + 144 + topoDosBotoes } : null,
+          ]}
+          onPress={() => setSatelite((v) => !v)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityState={{ selected: satelite }}
+          accessibilityLabel={t('verSatelite')}
+        >
+          <Camadas activo={satelite} />
+        </Pressable>
+      ) : null}
 
       {/* A BÚSSOLA ESTÁ SEMPRE VISÍVEL.
           A primeira versão só a mostrava com o mapa torto, e eu justifiquei
