@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth } from '../auth.js';
 import { preco, etaMinutos, straightKm } from '../routing.js';
 import { rotaCompleta } from '../rotas.js';
+import { paragemQueCobre } from '../paradas.js';
 import { nearestDrivers } from '../drivers.js';
 import { taxasPara } from '../taxasDeEntrada.js';
 
@@ -97,5 +98,37 @@ quoteRouter.post(
     }
     const v = await rotaCompleta({ lat: oLat, lng: oLng }, { lat: dLat, lng: dLng });
     return res.json({ linha: v.linha, km: v.km, min: v.min, fonte: v.fonte });
+  })
+);
+
+// POST /api/quote/paragem — onde é que o carro pára para este ponto.
+//
+// A app perguntava directamente ao serviço de rotas qual era a estrada mais
+// próxima. Isso acerta quase sempre e falha nos sítios que mais interessam: no
+// Cristo Rei a estrada mais perto em linha recta passa por cima do monumento, e
+// ninguém é largado ali — quem lá vai é deixado em baixo, no Dolok Oan.
+//
+// Perguntando ao NOSSO servidor, a resposta pode ser corrigida à mão uma vez e
+// passar a valer para toda a gente. Sem paragem definida, o comportamento é o
+// mesmo de antes.
+quoteRouter.post(
+  '/paragem',
+  wrap(async (req, res) => {
+    const lat = num(req.body?.lat);
+    const lng = num(req.body?.lng);
+    if (lat == null || lng == null) return res.status(400).json({ error: 'Faltam coordenadas.' });
+
+    const nossa = await paragemQueCobre(lat, lng);
+    if (nossa) {
+      return res.json({
+        lat: nossa.lat,
+        lng: nossa.lng,
+        nome: nossa.nome,
+        // Diz de onde veio, para se poder perceber no ecrã porque é que o
+        // carro pára ali e não noutro sítio.
+        fonte: 'nossa',
+      });
+    }
+    return res.json({ fonte: 'nenhuma' });
   })
 );

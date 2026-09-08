@@ -28,7 +28,34 @@ const PRAZO_MS = 6000;
 const PERTO_DE_MAIS_M = 10;
 const LONGE_DE_MAIS_M = 120;
 
-export async function pontoNaEstrada(lat, lng) {
+import { api } from '../api/client.js';
+
+// AS NOSSAS PARAGENS VÊM PRIMEIRO, e é o que faz esta função valer alguma
+// coisa nos sítios difíceis.
+//
+// Encostar à estrada mais próxima acerta quase sempre e falha exactamente
+// onde mais interessa. No Cristo Rei a estrada mais perto em linha recta passa
+// por cima do monumento; ninguém é largado ali. O Simão verificou que o Google
+// também erra nesse sítio — não é um serviço melhor que resolve, é saber a
+// terra.
+//
+// Se ele tiver definido uma paragem que cubra este ponto, é essa. Só se não
+// houver é que se pergunta ao serviço de rotas.
+export async function pontoNaEstrada(lat, lng, token) {
+  if (token) {
+    try {
+      const nossa = await api.paragemPara(token, { lat, lng });
+      if (nossa?.fonte === 'nossa' && nossa.lat != null) {
+        return { lat: nossa.lat, lng: nossa.lng, metros: null, rua: nossa.nome || null };
+      }
+    } catch {
+      // Sem resposta nossa segue-se para o serviço de rotas, como sempre.
+    }
+  }
+  return pontoNaEstradaAutomatico(lat, lng);
+}
+
+async function pontoNaEstradaAutomatico(lat, lng) {
   const url = 'https://router.project-osrm.org/nearest/v1/driving/' + `${lng},${lat}?number=1`;
   try {
     const ctrl = new AbortController();

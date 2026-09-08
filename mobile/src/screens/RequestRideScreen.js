@@ -247,7 +247,7 @@ export default function RequestRideScreen({ navigation, route }) {
       // mexer daria um pino aos saltos.
       if (!melhor || destinoRef.current) return;
       const aqui = { lat: melhor.coords.latitude, lng: melhor.coords.longitude };
-      const naEstrada = await pontoNaEstrada(aqui.lat, aqui.lng);
+      const naEstrada = await pontoNaEstrada(aqui.lat, aqui.lng, token);
       if (!naEstrada || destinoRef.current) return;
       const atual = origemRef.current;
       // Como no afinar: só se mexe no que fomos nós a pôr.
@@ -549,7 +549,7 @@ export default function RequestRideScreen({ navigation, route }) {
 
     let vivo = true;
     const escolhido = { lat: destino.lat, lng: destino.lng };
-    pontoNaEstrada(escolhido.lat, escolhido.lng)
+    pontoNaEstrada(escolhido.lat, escolhido.lng, token)
       .then((na) => {
         if (!vivo || !na) return;
         encostado.current = `${na.lat},${na.lng}`;

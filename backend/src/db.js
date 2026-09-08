@@ -605,6 +605,26 @@ export async function initSchema() {
     )
   `);
 
+  // PARAGENS DEFINIDAS À MÃO. Ver `paradas.js`.
+  //
+  // Duas coordenadas por linha: onde é o SÍTIO, e onde PÁRA o carro. Existe
+  // porque encostar à estrada mais próxima falha exactamente nos sítios que
+  // mais interessam — no Cristo Rei a estrada mais perto passa por cima, e
+  // ninguém é largado ali.
+  await query(`
+    CREATE TABLE IF NOT EXISTS paradas (
+      id         SERIAL PRIMARY KEY,
+      nome       TEXT NOT NULL,
+      lat        DOUBLE PRECISION NOT NULL,
+      lng        DOUBLE PRECISION NOT NULL,
+      parada_lat DOUBLE PRECISION NOT NULL,
+      parada_lng DOUBLE PRECISION NOT NULL,
+      raio_m     INTEGER NOT NULL DEFAULT 150,
+      criado_por INTEGER REFERENCES users(id),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
   const [{ now }] = await query('SELECT NOW() AS now');
   console.log('[db] PostgreSQL pronto —', now.toISOString());
 }

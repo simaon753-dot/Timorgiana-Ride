@@ -86,6 +86,8 @@ export const api = {
   // A linha da viagem, pedida ao NOSSO servidor e não a um serviço de rotas
   // directamente. É o servidor que sabe a chave do Google e que conta as
   // chamadas; e assim a linha vem da mesma fonte do mapa.
+  // A paragem definida à mão para este ponto, se houver alguma.
+  paragemPara: (token, corpo) => request('/quote/paragem', { method: 'POST', body: corpo, token }),
   linhaDaRota: (token, corpo) => request('/quote/linha', { method: 'POST', body: corpo, token }),
   quote: (token, body) => request('/quote', { method: 'POST', body, token }),
 

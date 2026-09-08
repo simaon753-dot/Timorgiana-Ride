@@ -71,7 +71,7 @@ export default function EscolherPonto({ visivel, titulo, onEscolher, onFechar })
     if (!centro) return;
     // ENCOSTAR À ESTRADA, como na recolha. Um carro não entra num pátio, e
     // a casa de alguém é quase sempre um portão a meio de um quarteirão.
-    const naEstrada = await pontoNaEstrada(centro.lat, centro.lng);
+    const naEstrada = await pontoNaEstrada(centro.lat, centro.lng, token);
     const p = naEstrada || centro;
     onEscolher({
       lat: p.lat,

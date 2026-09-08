@@ -150,6 +150,7 @@
     <div class="separadores">
       <button data-sec="aprovacoes" aria-pressed="true">Aprovações</button>
       <button data-sec="contas" aria-pressed="false">Contas e acessos</button>
+      <button data-sec="paragens" aria-pressed="false">Paragens</button>
       <button data-sec="dados" aria-pressed="false">Dados</button>
     </div>
 
@@ -171,6 +172,37 @@
       </p>
       <input id="procura" type="search" placeholder="Nome ou número de telemóvel" />
       <div id="pessoas"></div>
+    </div>
+
+    <div id="secParagens" hidden>
+      <p class="explica">
+        <b>Onde o carro pára</b> em sítios que o mapa não acerta sozinho.
+        Encostar à estrada mais próxima resulta quase sempre — e falha
+        exactamente nos sítios que mais interessam. No Cristo Rei a estrada
+        mais perto em linha recta passa por cima do monumento, e ninguém é
+        largado ali: quem lá vai é deixado em baixo, no Dolok Oan.
+      </p>
+      <p class="explica">
+        Uma paragem definida aqui vale para toda a gente e para sempre, venha o
+        sítio da nossa lista ou da pesquisa do Google.
+        <b>Para saber as coordenadas</b>, toque no sítio dentro da app: quando
+        ele não tem nome, o destino mostra as coordenadas — copie-as de lá.
+      </p>
+
+      <div class="caixaDados">
+        <h3>Nova paragem</h3>
+        <label>Nome do sítio<br><input id="pNome" placeholder="Cristo Rei"></label><br>
+        <label>Coordenadas do SÍTIO<br>
+          <input id="pSitio" placeholder="-8.51956, 125.60763"></label><br>
+        <label>Coordenadas de ONDE O CARRO PÁRA<br>
+          <input id="pParada" placeholder="-8.52210, 125.61050"></label><br>
+        <label>Raio, em metros — a que distância do sítio isto ainda vale<br>
+          <input id="pRaio" type="number" value="150" min="10" max="2000"></label><br>
+        <button class="principal" id="btParada">Guardar paragem</button>
+        <div id="pAviso" class="explica"></div>
+      </div>
+
+      <div id="listaParagens"></div>
     </div>
 
     <div id="secDados" hidden>
@@ -631,9 +663,11 @@ for (const b of document.querySelectorAll('.separadores button')) {
     }
     $('secAprovacoes').hidden = b.dataset.sec !== 'aprovacoes';
     $('secContas').hidden = b.dataset.sec !== 'contas';
+    $('secParagens').hidden = b.dataset.sec !== 'paragens';
     $('secDados').hidden = b.dataset.sec !== 'dados';
     if (b.dataset.sec === 'contas') $('procura').focus();
     if (b.dataset.sec === 'dados') mostrarRetencao();
+    if (b.dataset.sec === 'paragens') mostrarParagens();
   };
 }
 
@@ -726,6 +760,73 @@ $('btAtualizar').onclick = async () => {
 // chegou ao disco, mas sabe se o pedido correu bem — e isso chega para não
 // deixar apagar às cegas.
 let transferido = null;
+
+// Lê "-8.51956, 125.60763" e devolve os dois números.
+//
+// Aceita vírgula ou espaço a separar, e ignora espaços à volta: quem cola
+// coordenadas cola-as como as encontrou, e recusar por causa de um espaço
+// seria fazer o trabalho da máquina passar para a pessoa.
+function lerCoordenadas(texto) {
+  const n = String(texto || '').trim().split(/[,\s]+/).map(Number).filter(Number.isFinite);
+  return n.length === 2 ? n : null;
+}
+
+async function mostrarParagens() {
+  const alvo = $('listaParagens');
+  alvo.textContent = 'A carregar…';
+  try {
+    const r = await api('/admin/paradas');
+    if (!r.paradas.length) {
+      alvo.innerHTML = '<p class="explica">Ainda não há nenhuma paragem definida.</p>';
+      return;
+    }
+    alvo.innerHTML = r.paradas
+      .map(
+        (p) =>
+          '<div class="caixaDados"><b>' + p.nome + '</b><br>' +
+          '<span class="explica">sítio ' + p.lat.toFixed(5) + ', ' + p.lng.toFixed(5) +
+          ' · o carro pára em ' + p.parada_lat.toFixed(5) + ', ' + p.parada_lng.toFixed(5) +
+          ' · vale até ' + p.raio_m + ' m</span><br>' +
+          '<button data-apagar="' + p.id + '">Apagar</button></div>'
+      )
+      .join('');
+    for (const b of alvo.querySelectorAll('[data-apagar]')) {
+      b.onclick = async () => {
+        if (!confirm('Apagar esta paragem? O sítio volta a encostar-se à estrada mais próxima.')) return;
+        await api('/admin/paradas/' + b.dataset.apagar, { method: 'DELETE' });
+        mostrarParagens();
+      };
+    }
+  } catch (e) {
+    alvo.textContent = 'Não foi possível ler: ' + e.message;
+  }
+}
+
+$('btParada').onclick = async () => {
+  const aviso = $('pAviso');
+  const sitio = lerCoordenadas($('pSitio').value);
+  const parada = lerCoordenadas($('pParada').value);
+  if (!$('pNome').value.trim()) return (aviso.textContent = 'Falta o nome.');
+  if (!sitio) return (aviso.textContent = 'As coordenadas do sítio não se percebem.');
+  if (!parada) return (aviso.textContent = 'As coordenadas da paragem não se percebem.');
+  aviso.textContent = 'A guardar…';
+  try {
+    await api('/admin/paradas', {
+      method: 'POST',
+      body: JSON.stringify({
+        nome: $('pNome').value,
+        lat: sitio[0], lng: sitio[1],
+        paradaLat: parada[0], paradaLng: parada[1],
+        raioM: $('pRaio').value,
+      }),
+    });
+    aviso.textContent = 'Guardada.';
+    $('pNome').value = ''; $('pSitio').value = ''; $('pParada').value = '';
+    mostrarParagens();
+  } catch (e) {
+    aviso.textContent = 'Não foi possível guardar: ' + e.message;
+  }
+};
 
 async function mostrarRetencao() {
   const alvo = $('estadoRetencao');

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { historicoDe } from '../eventos.js';
+import { listarParadas, criarParada, apagarParada } from '../paradas.js';
 import { requireAuth } from '../auth.js';
 import { query, one, tx } from '../db.js';
 import { estadoDaRetencao } from '../retencao.js';
@@ -1147,4 +1148,54 @@ adminRouter.post(
 adminRouter.get(
   '/retencao',
   wrap(async (req, res) => res.json(await estadoDaRetencao()))
+);
+
+// ── PARAGENS ────────────────────────────────────────────────────────────
+//
+// Onde o carro pára em sítios que um algoritmo não acerta. Ver `paradas.js`.
+// Só o administrador as define, e é essa a ideia: é conhecimento da terra, e
+// quem o tem é quem vive nela.
+
+adminRouter.get(
+  '/paradas',
+  wrap(async (req, res) => res.json({ paradas: await listarParadas() }))
+);
+
+adminRouter.post(
+  '/paradas',
+  wrap(async (req, res) => {
+    const n = (v) => (v != null && v !== '' && !Number.isNaN(Number(v)) ? Number(v) : null);
+    const { nome, lat, lng, paradaLat, paradaLng, raioM } = req.body || {};
+    if (!String(nome || '').trim()) return res.status(400).json({ error: 'Falta o nome.' });
+    const c = [n(lat), n(lng), n(paradaLat), n(paradaLng)];
+    if (c.some((v) => v == null)) {
+      return res.status(400).json({ error: 'Faltam coordenadas do sítio ou da paragem.' });
+    }
+    // Dentro de Timor-Leste, e não em qualquer sítio do mundo. Um engano a
+    // colar coordenadas — trocar a ordem, perder o sinal — criava uma paragem
+    // no meio do oceano que ninguém percebia de onde vinha.
+    const dentro = (la, ln) => la > -9.6 && la < -8.1 && ln > 124 && ln < 127.4;
+    if (!dentro(c[0], c[1]) || !dentro(c[2], c[3])) {
+      return res.status(400).json({ error: 'Essas coordenadas não são de Timor-Leste.' });
+    }
+    const nova = await criarParada({
+      nome,
+      lat: c[0],
+      lng: c[1],
+      paradaLat: c[2],
+      paradaLng: c[3],
+      raioM,
+      adminId: req.user.id,
+    });
+    return res.status(201).json({ parada: nova });
+  })
+);
+
+adminRouter.delete(
+  '/paradas/:id',
+  wrap(async (req, res) => {
+    const fora = await apagarParada(Number(req.params.id));
+    if (!fora) return res.status(404).json({ error: 'Paragem não encontrada.' });
+    return res.json({ ok: true, nome: fora.nome });
+  })
 );
