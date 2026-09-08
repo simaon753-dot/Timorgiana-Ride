@@ -319,7 +319,7 @@ export default {
   privacidadePorAceitar: 'You still need to accept the privacy policy.',
   paisProcurar: 'Search country',
   pontoRecolha: 'Pick-up point',
-  pontoLargada: 'Drop-off point',
+  pontoChegada: 'Drop-off point',
   paisSemResultado: 'No country found.',
   paisOutroDica: 'Type the full international number, with the country code and no +.',
   driverSoTimorTel: 'Driving requires a Timor-Leste number.',

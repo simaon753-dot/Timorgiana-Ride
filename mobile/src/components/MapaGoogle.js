@@ -981,7 +981,7 @@ export default function MapaGoogle({
           >
             <View style={styles.pontaBalao}>
               <Text style={styles.pontaTexto} numberOfLines={1}>
-                {p.qual === 'destino' ? t('pontoLargada') : t('pontoRecolha')}
+                {p.qual === 'destino' ? t('pontoChegada') : t('pontoRecolha')}
               </Text>
             </View>
             <View style={styles.pontaBico} />
