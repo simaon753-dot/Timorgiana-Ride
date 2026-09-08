@@ -244,7 +244,15 @@ export default function MapaGoogle({
   modoEscolha = null,
   onCentro,
   markers = [],
-  trocoAPe = null,
+  // OS TROÇOS A PÉ, agora uma LISTA e não um só.
+  //
+  // Era um, e só servia a recolha. O destino não tinha nenhum — quem pedia
+  // para um sítio no meio de um quarteirão via o pino lá dentro e não fazia
+  // ideia de onde é que o carro o ia largar.
+  //
+  // Cada troço é { de, para, qual }: `de` é onde a pessoa apontou, `para` é
+  // onde o carro chega, e `qual` diz se é a recolha ou a largada.
+  trocosAPe = [],
   center,
   height = 240,
   onPick,
@@ -275,6 +283,11 @@ export default function MapaGoogle({
   const [mapaPronto, setMapaPronto] = useState(false);
   // Onde o cartão do nome tem de ser desenhado, em pixéis do ecrã.
   const [cartoes, setCartoes] = useState([]);
+  // Onde é que o carro pára, em pixéis. Sobreposição e não marcador: um
+  // <Marker> COM FILHOS é fotografado pelo Android e, neste telemóvel, sai
+  // em branco — já custou quatro tentativas a descobrir. Os marcadores desta
+  // app são imagens; tudo o que tem texto vive por cima do mapa.
+  const [pontasNaEstrada, setPontasNaEstrada] = useState([]);
   const [largura, setLargura] = useState(0);
   const [veiculo, setVeiculo] = useState(null);
   // OS NOSSOS LUGARES DESENHADOS NO MAPA.
@@ -491,6 +504,26 @@ export default function MapaGoogle({
     }
   }, [pts]);
 
+  // Onde é que as pontas dos troços caem no ecrã. Mesma mecânica dos
+  // cartões: quem sabe converter coordenada em pixel é o mapa, porque só ele
+  // conhece o zoom, a inclinação e o rumo.
+  const recalcularPontas = useCallback(async () => {
+    if (!mapaRef.current || !trocosAPe.length) {
+      setPontasNaEstrada([]);
+      return;
+    }
+    try {
+      const px = await Promise.all(
+        trocosAPe.map((t) =>
+          mapaRef.current.pointForCoordinate({ latitude: t.para.lat, longitude: t.para.lng })
+        )
+      );
+      setPontasNaEstrada(trocosAPe.map((t, i) => ({ qual: t.qual, x: px[i].x, y: px[i].y })));
+    } catch {
+      setPontasNaEstrada([]);
+    }
+  }, [trocosAPe]);
+
   // As posições dos nossos no ecrã.
   //
   // `pointForCoordinate` e não uma conta de latitude para pixéis: desde que
@@ -523,7 +556,11 @@ export default function MapaGoogle({
   }, [nossos, mapaPronto, aMexer]);
 
   useEffect(() => {
-    if (mapaPronto) recalcularCartoes();
+    if (mapaPronto) {
+      recalcularCartoes();
+      recalcularPontas();
+      recalcularPontas();
+    }
   }, [mapaPronto, markersKey, recalcularCartoes]);
 
   // O VEÍCULO segue o mesmo caminho dos cartões: desenhado POR CIMA do mapa.
@@ -812,18 +849,18 @@ export default function MapaGoogle({
             carro, e esta não é — é o caminho dela. Responde a uma pergunta
             que a pessoa tem e a que ninguém respondia: onde é que eu espero?
             Cinzento-escuro em vez do teal, para não competir com a rota. */}
-        {trocoAPe ? (
+        {trocosAPe.map((t, i) => (
           <Polyline
-            key="a-pe"
+            key={`a-pe-${t.qual || i}`}
             coordinates={[
-              { latitude: trocoAPe.de.lat, longitude: trocoAPe.de.lng },
-              { latitude: trocoAPe.para.lat, longitude: trocoAPe.para.lng },
+              { latitude: t.de.lat, longitude: t.de.lng },
+              { latitude: t.para.lat, longitude: t.para.lng },
             ]}
             strokeColor="#5A6B66"
             strokeWidth={3}
             lineDashPattern={[2, 6]}
           />
-        ) : null}
+        ))}
 
         {rota ? (
           <Polyline
@@ -927,6 +964,30 @@ export default function MapaGoogle({
             </View>
           );
         })}
+
+      {/* ONDE O CARRO PÁRA.
+          Um ponto na estrada e o rótulo por cima, na ponta da linha aos
+          pontinhos. É a pergunta que a pessoa tem quando o pino cai a meio
+          de um quarteirão — "então o carro vem cá dentro?" — e que ninguém
+          respondia do lado do destino.
+          Some enquanto o dedo arrasta, como os cartões: um rótulo atrasado
+          diz que o carro pára ali, e não pára. */}
+      {!aMexer &&
+        pontasNaEstrada.map((p) => (
+          <View
+            key={`ponta-${p.qual}`}
+            pointerEvents="none"
+            style={[styles.ponta, { left: p.x - 60, top: p.y - 34 }]}
+          >
+            <View style={styles.pontaBalao}>
+              <Text style={styles.pontaTexto} numberOfLines={1}>
+                {p.qual === 'destino' ? t('pontoLargada') : t('pontoRecolha')}
+              </Text>
+            </View>
+            <View style={styles.pontaBico} />
+            <View style={styles.pontaPonto} />
+          </View>
+        ))}
 
       {/* Só o RÓTULO do veículo fica por cima — o carro é marcador.
           O rótulo tem de continuar aqui porque o texto muda a cada rua, e
@@ -1077,6 +1138,37 @@ const criarEstilos = () =>
     cartaoDetalhe: { fontSize: 11, color: '#6A7671', marginTop: 1 },
     cartaoDetalheAgora: { color: '#9DB0AA' },
 
+    // O balão sobre a ponta da linha, com o bico a apontar-lhe. Coral, como
+    // nas imagens que o Simão mandou: é a cor da acção nesta app, e parar o
+    // carro é a acção.
+    ponta: { position: 'absolute', width: 120, alignItems: 'center' },
+    pontaBalao: {
+      backgroundColor: colors.coral,
+      borderRadius: radius.pill,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      maxWidth: 120,
+    },
+    pontaTexto: { ...tipo.legenda, color: '#FFFFFF', fontWeight: '700' },
+    pontaBico: {
+      width: 0,
+      height: 0,
+      borderLeftWidth: 5,
+      borderRightWidth: 5,
+      borderTopWidth: 6,
+      borderLeftColor: 'transparent',
+      borderRightColor: 'transparent',
+      borderTopColor: colors.coral,
+    },
+    pontaPonto: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      marginTop: 2,
+      backgroundColor: colors.coral,
+      borderWidth: 2,
+      borderColor: '#FFFFFF',
+    },
     veiculo: { position: 'absolute', width: CARTAO_L },
 
     cartaoSolto: { position: 'absolute' },

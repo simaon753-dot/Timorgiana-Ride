@@ -97,6 +97,9 @@ export default function RequestRideScreen({ navigation, route }) {
   // Uma linha que sobrevivesse a uma mudança do ponto diria "vá a pé daqui
   // até ali" apontando para um sítio que já não é o de recolha.
   const [troco, setTroco] = useState(null);
+  const [trocoDestino, setTrocoDestino] = useState(null);
+  // Qual foi o último ponto que já mandámos encostar. Ver o efeito em baixo.
+  const encostado = useRef(null);
   const origemRef = useRef(null);
   const destinoRef = useRef(null);
   const [erro, setErro] = useState(null);
@@ -506,10 +509,63 @@ export default function RequestRideScreen({ navigation, route }) {
     };
   }, [destino?.lat, destino?.lng, token]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ENCOSTAR O DESTINO À ESTRADA.
+  //
+  // Feito num efeito e não em cada `setDestino` porque há nove sítios onde o
+  // destino se escolhe — pesquisa, mapa, recentes, casa, trabalho, lugares
+  // nossos. Nove cópias da mesma regra divergem; uma só, não pode.
+  //
+  // O RÓTULO NÃO MUDA. Quem escreveu "Praia Cristo Rei" vai para a Praia
+  // Cristo Rei — o que muda é a coordenada para onde o carro conduz, que
+  // passa a ser a beira da estrada. O nome é da pessoa; a coordenada é do
+  // carro.
+  useEffect(() => {
+    if (!destino?.lat) {
+      setTrocoDestino(null);
+      encostado.current = null;
+      return undefined;
+    }
+    const chave = `${destino.lat},${destino.lng}`;
+    // Já tratámos este ponto — ou é ele o RESULTADO de o termos tratado.
+    // Sem esta guarda, encostar mudava o destino, o que voltava a chamar
+    // isto, que encostava outra vez: um ciclo sem fim.
+    if (encostado.current === chave) return undefined;
+    encostado.current = chave;
+
+    let vivo = true;
+    const escolhido = { lat: destino.lat, lng: destino.lng };
+    pontoNaEstrada(escolhido.lat, escolhido.lng)
+      .then((na) => {
+        if (!vivo || !na) return;
+        encostado.current = `${na.lat},${na.lng}`;
+        setTrocoDestino({ de: escolhido, para: { lat: na.lat, lng: na.lng } });
+        setDestino((d) =>
+          d && d.lat === escolhido.lat && d.lng === escolhido.lng
+            ? { ...d, lat: na.lat, lng: na.lng }
+            : d
+        );
+      })
+      .catch(() => {});
+    return () => {
+      vivo = false;
+    };
+  }, [destino?.lat, destino?.lng]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const trocoAPe =
     troco && origem && origem.lat === troco.para.lat && origem.lng === troco.para.lng
       ? troco
       : null;
+
+  // OS DOIS TROÇOS, o da recolha e o da largada.
+  //
+  // O da largada não existia. Quem pedia para um sítio no meio de um
+  // quarteirão — uma casa, uma escola, um mercado — via o pino lá dentro e
+  // não fazia ideia de onde é que o carro o ia deixar. O motorista sabia; o
+  // passageiro não. É a mesma pergunta que o troço da recolha já respondia
+  // do outro lado da viagem.
+  const trocosAPe = [];
+  if (trocoAPe) trocosAPe.push({ ...trocoAPe, qual: 'origem' });
+  if (trocoDestino) trocosAPe.push({ ...trocoDestino, qual: 'destino' });
 
   const marcadores = [];
   if (origem)
@@ -568,7 +624,7 @@ export default function RequestRideScreen({ navigation, route }) {
         <Mapa
           pickable
           fill
-          trocoAPe={trocoAPe}
+          trocosAPe={trocosAPe}
           markers={marcadores}
           onPick={escolherNoMapa}
           arrastavel={!aEscolherNoMapa && !(origem && destino)}

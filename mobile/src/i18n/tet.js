@@ -324,6 +324,8 @@ export default {
   termosPorAceitar: 'Falta simu termu uza nian.',
   privacidadePorAceitar: 'Falta simu politika privasidade nian.',
   paisProcurar: 'Buka nasaun',
+  pontoRecolha: 'Fatin foti',
+  pontoLargada: 'Fatin tun',
   paisSemResultado: 'La hetan nasaun ida.',
   paisOutroDica: 'Hakerek numeru internasionál tomak, ho indikativu no laiha +.',
   driverSoTimorTel: 'Atu lori karreta presiza numeru Timor-Leste nian.',
