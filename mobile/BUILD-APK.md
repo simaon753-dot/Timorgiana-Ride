@@ -234,4 +234,20 @@ Histórico dos tamanhos, para não se voltar a perder:
 |---|---|---|
 | 08/09/2026 | >100 MB | dois mapas de reserva compilados e nunca usados |
 | 08/09/2026 | 77,58 MB | fora o MapLibre e o OpenStreetMap por WebView |
-| — | a medir | fora as arquitecturas de emulador |
+| 08/09/2026 | **44,19 MB** | fora o `x86` e o `x86_64`, que só existem em emuladores |
+
+Menos de metade do que era. Os 33 MB desta última linha eram duas cópias de
+todas as bibliotecas nativas para processadores que telemóvel nenhum tem.
+
+**Daqui para baixo o preço sobe.** O que sobra são as bibliotecas de que a app
+precisa mesmo — React Native, Hermes, a SDK do Google Maps — em duas
+arquitecturas que são as dos telemóveis a sério. Continuar a cortar significa
+uma de duas coisas, e nenhuma é de graça:
+
+- **Tirar o `armeabi-v7a`** poupava outro tanto e deixava de fora os telemóveis
+  de 32 bits — os mais baratos, os das pessoas para quem isto mais pesa.
+- **Ligar o `enableMinifyInReleaseBuilds`** encolhe o lado Java, mas mexe em
+  código por reflexão e a avaria só aparece no APK final, já instalado.
+
+44 MB para uma app com mapa nativo é um número normal. Parar aqui é a decisão
+certa até haver uma razão concreta para não parar.
