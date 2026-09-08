@@ -129,8 +129,22 @@ Volta ao OpenStreetMap em minutos, sem APK novo.
 ## Passo 4 — Gerar o APK
 
 ```bash
-cd "Documents/Claude Code/TimorgianaRide/mobile" && npx eas-cli build -p android --profile preview
+cd "Documents/Claude Code/TimorgianaRide/mobile" && npm run compilar
 ```
+
+**Porque não `npx eas-cli build` directamente.** O `eas.json` vive em `mobile/`
+mas a raiz do git é a pasta acima, e por omissão o EAS arquiva a partir da raiz
+do git — enviava o repositório inteiro, incluindo o mapa do país em PMTiles
+(33 MB) e o PDF do diploma dos sucos (33 MB). Mais de cem megabytes de envio em
+cada tentativa, por uma ligação de Díli; uma delas chegou a partir-se a meio
+(`write EPIPE`).
+
+O `npm run compilar` põe `EAS_NO_VCS=1`, que manda o EAS arquivar a partir da
+pasta do `eas.json` e ler o `.easignore` daqui. Sobem 2,3 MB — só a app.
+
+O preço é que a compilação deixa de registar o commit do git nos seus metadados.
+Se isso fizer falta um dia, o caminho é o `.easignore` da raiz (que também está
+lá) em vez desta variável.
 
 A compilação corre nos servidores da Expo (~10–20 min). No fim recebes um
 **link para descarregar o APK**.

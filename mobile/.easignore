@@ -1,0 +1,37 @@
+# O QUE NÃO SOBE, quando se compila com EAS_NO_VCS=1
+#
+# Há dois caminhos para o EAS decidir o que enviar, e este ficheiro serve o
+# segundo:
+#
+#   · Pelo git (por omissão). Arquiva a partir da RAIZ DO GIT — que aqui é a
+#     pasta acima — e lê o .easignore de lá. É o que manda enviar o
+#     repositório inteiro se esse ficheiro não existir.
+#
+#   · Com EAS_NO_VCS=1. Ignora o git e arquiva a partir da pasta do eas.json,
+#     ou seja ESTA. Lê este ficheiro. É o caminho determinista para um
+#     projecto que vive numa subpasta.
+#
+# O `npm run compilar` usa o segundo. Assim o que sobe é a app e mais nada,
+# sem depender de o EAS resolver bem uma raiz que não é a dele.
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+ios/
+android/
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.DS_Store
+*.pem
+.env*.local
+*.tsbuildinfo
