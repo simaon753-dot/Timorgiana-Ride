@@ -1029,7 +1029,15 @@ function Ponto({ cor, rotulo, valor, vazio, onPress, onCorrigir }) {
       <View style={[styles.bolinha, { backgroundColor: cor }]} />
       <View style={{ flex: 1 }}>
         <Text style={styles.pontoRotulo}>{rotulo}</Text>
-        <Text style={[styles.pontoValor, !valor && styles.pontoVazio]} numberOfLines={1}>
+        {/* SELECCIONÁVEL, para as coordenadas se poderem copiar.
+            Quando um sítio não tem nome, este campo mostra as coordenadas — e
+            é delas que se precisa para definir uma paragem no painel. Sem
+            isto, a única forma de as passar para o painel era escrevê-las à
+            mão a olhar para o ecrã, com dez algarismos e um sinal de menos
+            que não perdoa engano.
+            Uma pressão longa selecciona e o Android oferece "copiar". Não
+            leva biblioteca nenhuma: é uma propriedade do próprio texto. */}
+        <Text style={[styles.pontoValor, !valor && styles.pontoVazio]} numberOfLines={1} selectable>
           {valor || vazio}
         </Text>
       </View>
