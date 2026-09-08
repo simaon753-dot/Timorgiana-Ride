@@ -13,6 +13,15 @@
 #
 # O `npm run compilar` usa o segundo. Assim o que sobe é a app e mais nada,
 # sem depender de o EAS resolver bem uma raiz que não é a dele.
+# O `dist/` ESTÁ AQUI E MESMO ASSIM SUBIA.
+#
+# São 20 MB que o `npm run publicar` deixa para trás — o pacote exportado da
+# actualização anterior. Está listado logo abaixo e o EAS enviou-o à mesma:
+# o envio deu 19 MB em vez dos 2,3 que a pasta pesa sem ele.
+#
+# Não fui descobrir porquê. O `npm run compilar` apaga-o antes de chamar o
+# EAS, e assim a coisa deixa de depender de eu ter percebido bem como o EAS
+# lê este ficheiro. A pasta volta a nascer sozinha na publicação seguinte.
 node_modules/
 .expo/
 dist/

@@ -139,8 +139,14 @@ do git — enviava o repositório inteiro, incluindo o mapa do país em PMTiles
 cada tentativa, por uma ligação de Díli; uma delas chegou a partir-se a meio
 (`write EPIPE`).
 
-O `npm run compilar` põe `EAS_NO_VCS=1`, que manda o EAS arquivar a partir da
-pasta do `eas.json` e ler o `.easignore` daqui. Sobem 2,3 MB — só a app.
+O `npm run compilar` faz duas coisas. Põe `EAS_NO_VCS=1`, que manda o EAS
+arquivar a partir da pasta do `eas.json`; e apaga o `dist/` antes de começar.
+
+O `dist/` são 20 MB que o `npm run publicar` deixa para trás — o pacote
+exportado da actualização anterior. Está listado no `.easignore` e o EAS enviou-o
+à mesma: a primeira compilação por este caminho deu 19 MB em vez dos 2,3 que a
+pasta pesa sem ele. Apagá-lo antes é mais fiável do que descobrir porquê, e a
+pasta volta a nascer sozinha na publicação seguinte.
 
 O preço é que a compilação deixa de registar o commit do git nos seus metadados.
 Se isso fizer falta um dia, o caminho é o `.easignore` da raiz (que também está
