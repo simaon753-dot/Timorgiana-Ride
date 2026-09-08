@@ -321,6 +321,8 @@ export default {
   driverTermsPending: 'Falta simu termu ba motorista.',
   driverTermsRead: 'Lee no simu',
   driverTermsDone: '✓ Termu simu ona',
+  termosPorAceitar: 'Falta simu termu uza nian.',
+  privacidadePorAceitar: 'Falta simu politika privasidade nian.',
 
   // Kanselamentu
   cancelWhyTitle: 'Tanbasá ita kansela?',

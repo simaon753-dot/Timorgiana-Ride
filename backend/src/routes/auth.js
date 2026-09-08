@@ -173,6 +173,50 @@ authRouter.post('/push-token', requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/auth/termos — { termsVersion, privacyVersion }
+//
+// FALTAVA, e a falta era maior do que parecia.
+//
+// Havia rota para o motorista aceitar os termos DELE e mais nenhuma. Ou seja:
+// os termos de passageiro e a política de privacidade só se podiam aceitar no
+// momento do registo, e nunca mais.
+//
+// Isso deixava duas coisas partidas ao mesmo tempo. As contas antigas — as
+// criadas antes de estes campos existirem — ficavam com "Não aceitou" para
+// sempre, sem caminho nenhum para deixarem de o ter. E, pior, no dia em que os
+// termos mudassem, NENHUM passageiro já registado teria como aceitar a versão
+// nova: a app pedia, e não havia onde gravar.
+//
+// Aceita os dois em separado porque são dois consentimentos distintos e mudam
+// em alturas distintas. Enviar um não mexe no outro.
+authRouter.post('/termos', requireAuth, async (req, res) => {
+  try {
+    const termos = String(req.body?.termsVersion || '').trim() || null;
+    const privacidade = String(req.body?.privacyVersion || '').trim() || null;
+    if (!termos && !privacidade) {
+      return res.status(400).json({ error: 'Nada para aceitar.' });
+    }
+
+    // COALESCE nos dois sentidos: o campo que não veio fica como estava, e o
+    // que veio traz a sua própria hora. Escrever NOW() nos dois apagaria a
+    // data verdadeira de um consentimento que ninguém acabou de dar.
+    await query(
+      `UPDATE users
+          SET terms_version   = COALESCE($2, terms_version),
+              terms_accepted_at = CASE WHEN $2 IS NULL THEN terms_accepted_at ELSE NOW() END,
+              privacy_version = COALESCE($3, privacy_version),
+              privacy_accepted_at = CASE WHEN $3 IS NULL THEN privacy_accepted_at ELSE NOW() END
+        WHERE id = $1`,
+      [req.user.id, termos, privacidade]
+    );
+    const u = await findUserById(req.user.id);
+    return res.json({ ok: true, user: toPublicUser(u) });
+  } catch (e) {
+    console.error('[auth/termos]', e);
+    return res.status(500).json({ error: 'Não foi possível guardar.' });
+  }
+});
+
 // GET /api/auth/me — valida o token e devolve o utilizador atual
 authRouter.get('/me', requireAuth, (req, res) => {
   return res.json({ user: toPublicUser(req.user) });

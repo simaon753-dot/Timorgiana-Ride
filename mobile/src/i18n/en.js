@@ -315,6 +315,8 @@ export default {
   driverTermsPending: 'You still need to accept the driver terms.',
   driverTermsRead: 'Read and accept',
   driverTermsDone: '✓ Terms accepted',
+  termosPorAceitar: 'You still need to accept the terms of use.',
+  privacidadePorAceitar: 'You still need to accept the privacy policy.',
 
   cancelWhyTitle: 'Why are you cancelling?',
   cancelReason_mudei_de_ideias: "I don't need the ride any more",

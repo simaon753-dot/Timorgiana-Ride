@@ -1,7 +1,17 @@
 // Versão dos termos. Muda SEMPRE que o texto mudar de sentido — quem
 // aceitou a versão 1 não aceitou a versão 2, e sem este número não há
 // forma de saber quem aceitou o quê.
-export const VERSAO_TERMOS = '2026-08-3';
+// Estava '2026-08-3' — um dia a menos, provavelmente um zero perdido a
+// escrever. Passa a bater certo com a data que o próprio documento declara,
+// "Versão de 29 de Agosto de 2026".
+//
+// CORRIGIDO AGORA E NÃO DEPOIS, e a diferença é toda. Este número é o que fica
+// gravado na conta de quem aceita, e mudá-lo invalida o consentimento de toda
+// a gente que tinha aceitado o anterior. Hoje ninguém aceitou ainda — as duas
+// contas que existem são de teste — por isso corrigir custa zero. Daqui a um
+// mês custaria obrigar todos os passageiros a aceitar outra vez por causa de
+// um erro de escrita.
+export const VERSAO_TERMOS = '2026-08-29';
 // Alterada em 03/09/2026: a cláusula do seguro deixou de pedir "seguro
 // adequado à atividade" — que era vago — e passa a citar a obrigação legal
 // concreta (Instrução Pública n.º 07/2010) e a dizer o que acontece a quem

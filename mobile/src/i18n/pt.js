@@ -322,6 +322,8 @@ export default {
   driverTermsPending: 'Falta aceitares os termos para motoristas.',
   driverTermsRead: 'Ler e aceitar',
   driverTermsDone: '✓ Termos aceites',
+  termosPorAceitar: 'Falta aceitares os termos de utilização.',
+  privacidadePorAceitar: 'Falta aceitares a política de privacidade.',
 
   // Cancelamento
   cancelWhyTitle: 'Porque está a cancelar?',

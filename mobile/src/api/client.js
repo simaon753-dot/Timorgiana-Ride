@@ -138,6 +138,10 @@ export const api = {
 
   ganhos: (token) => request('/driver/ganhos', { token }),
 
+  // Termos de passageiro e privacidade. Separado do de motorista porque são
+  // consentimentos diferentes, guardados em colunas diferentes.
+  aceitarTermos: (token, versoes) =>
+    request('/auth/termos', { method: 'POST', body: versoes, token }),
   acceptDriverTerms: (token, version) =>
     request('/driver/terms', { method: 'POST', body: { version }, token }),
 

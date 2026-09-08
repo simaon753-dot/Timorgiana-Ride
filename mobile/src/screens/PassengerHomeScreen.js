@@ -17,6 +17,7 @@ import PlaceSearch from '../components/PlaceSearch.js';
 import EscolherPonto from '../components/EscolherPonto.js';
 import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
+import { VERSAO_TERMOS, VERSAO_PRIVACIDADE } from '../termos/versao.js';
 import BarraTopo from '../components/BarraTopo.js';
 import { useModo } from '../context/ModoContext.js';
 import StatusBadge from '../components/StatusBadge.js';
@@ -38,6 +39,14 @@ import { colors, spacing, radius, elevacao, registarEstilos } from '../theme.js'
 export default function PassengerHomeScreen({ navigation }) {
   const { t } = useI18n();
   const { user, token, logout } = useAuth();
+  // TERMOS POR ACEITAR — os desta versão, não "uns termos quaisquer".
+  //
+  // Compara-se a VERSÃO e não a existência: quem aceitou a de Agosto não
+  // aceitou a de hoje se o texto mudou de sentido, e é justamente aí que voltar
+  // a perguntar interessa. As contas criadas antes de isto ser guardado têm o
+  // campo vazio e caem no mesmo caso, que é o correcto — nunca aceitaram.
+  const faltaTermos = user?.termsVersion !== VERSAO_TERMOS;
+  const faltaPrivacidade = user?.privacyVersion !== VERSAO_PRIVACIDADE;
   const { podeConduzir, setModo } = useModo();
   const {
     activeRide: viagemBruta,
@@ -340,6 +349,36 @@ export default function PassengerHomeScreen({ navigation }) {
           // e diz o que vai acontecer antes de se lhe tocar. Um botão que
           // diz "Pedir viagem" obriga a adivinhar o passo seguinte.
           <View style={styles.inicio}>
+            {/* AVISA, MAS NÃO TRANCA.
+             *
+             * A tentação era não deixar pedir viagem sem os termos aceites.
+             * Mas um engano numa cadeia de versões deixaria toda a gente à
+             * porta da app ao mesmo tempo, e o remédio seria pior. A faixa
+             * fica sempre à vista até ser resolvida, que é o que uma pessoa
+             * precisa para o fazer — e o painel continua a poder mostrar quem
+             * ainda não aceitou. */}
+            {faltaTermos || faltaPrivacidade ? (
+              <View style={styles.termosCaixa}>
+                <Text style={styles.termosTexto}>
+                  {faltaTermos ? t('termosPorAceitar') : t('privacidadePorAceitar')}
+                </Text>
+                <View style={{ height: spacing.sm }} />
+                <Button
+                  title={t('driverTermsRead')}
+                  onPress={() =>
+                    navigation.navigate('Termos', {
+                      // Um de cada vez, e os termos primeiro. Duas caixas ao
+                      // mesmo tempo pedem duas decisões antes de se poder fazer
+                      // seja o que for; assim que a primeira for aceite, esta
+                      // faixa reaparece com a segunda.
+                      ...(faltaTermos ? { quem: 'passenger' } : { documento: 'privacidade' }),
+                      aceitavel: true,
+                    })
+                  }
+                />
+              </View>
+            ) : null}
+
             <Text style={styles.saudacao}>{t('homeHello', { name: user?.name || '' })}</Text>
             <Text style={styles.convite}>{t('passengerPrompt')}</Text>
 
@@ -638,6 +677,15 @@ const criarEstilos = () =>
     // A mesma linguagem do aviso de "Indisponível" no ecrã do pedido: fundo de
     // tinta de perigo e texto na cor de perigo. É a mesma família de recado —
     // "isto não vai acontecer, e a razão não és tu".
+    // A mesma forma da caixa dos termos de motorista, no ecrã dele. Duas
+    // caixas com o mesmo recado devem ter o mesmo aspecto.
+    termosCaixa: {
+      backgroundColor: colors.tintaCoral,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.md,
+    },
+    termosTexto: { ...tipo.corpoForte, color: colors.text },
     semMotorista: {
       backgroundColor: colors.tintaPerigo,
       borderRadius: radius.md,

@@ -8,6 +8,7 @@ import BarraEstado from '../design/BarraEstado.js';
 import { useI18n } from '../i18n/index.js';
 import { textoTermos, VERSAO_TERMOS_MOTORISTA } from '../termos/index.js';
 import { textoPrivacidade } from '../termos/privacidade.js';
+import { VERSAO_TERMOS, VERSAO_PRIVACIDADE } from '../termos/versao.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
 
@@ -32,10 +33,26 @@ export default function TermosScreen({ navigation, route }) {
   const ePrivacidade = route?.params?.documento === 'privacidade';
   const doc = ePrivacidade ? textoPrivacidade(lang) : textoTermos(lang, quem);
 
+  // ACEITA O DOCUMENTO QUE ESTÁ NO ECRÃ.
+  //
+  // Estava a gravar SEMPRE os termos de motorista, fosse qual fosse o
+  // documento aberto. Quem lesse a política de privacidade e carregasse em
+  // aceitar ficava com os termos de motorista aceites e a privacidade por
+  // aceitar — um consentimento registado no sítio errado, que é pior do que
+  // não ficar registado nenhum: parece que se perguntou uma coisa e
+  // perguntou-se outra.
+  //
+  // São três documentos e três colunas, e cada um tem de ir para a sua.
   async function aceitar() {
     setAGravar(true);
     try {
-      await api.acceptDriverTerms(token, VERSAO_TERMOS_MOTORISTA);
+      if (ePrivacidade) {
+        await api.aceitarTermos(token, { privacyVersion: VERSAO_PRIVACIDADE });
+      } else if (quem === 'driver') {
+        await api.acceptDriverTerms(token, VERSAO_TERMOS_MOTORISTA);
+      } else {
+        await api.aceitarTermos(token, { termsVersion: VERSAO_TERMOS });
+      }
       await refreshUser();
       navigation.goBack();
     } catch (e) {

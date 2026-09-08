@@ -22,6 +22,11 @@
 import { readFileSync } from 'node:fs';
 import { textoTermos } from '../src/termos/index.js';
 import { textoPrivacidade } from '../src/termos/privacidade.js';
+import {
+  VERSAO_TERMOS,
+  VERSAO_TERMOS_MOTORISTA,
+  VERSAO_PRIVACIDADE,
+} from '../src/termos/versao.js';
 
 const LINGUAS = ['pt', 'tet', 'en'];
 const QUEM = ['passenger', 'driver'];
@@ -88,6 +93,23 @@ for (const lang of LINGUAS) {
   const marcasPriv = (priv?.aceitarCurto ?? '').split('**').length - 1;
   if (marcasPriv !== 2) {
     faltas.push(`privacidade ${lang}: "aceitarCurto" devia ter um par de ** (tem ${marcasPriv})`);
+  }
+}
+
+// AS VERSÕES TÊM DE SER DATAS BEM FORMADAS.
+//
+// Estas cadeias ficam gravadas na conta de quem aceita e são a prova de QUE
+// versão foi aceite. Uma delas era '2026-08-3' — um zero perdido a escrever,
+// que ninguém vê porque nada a lê como data: é só texto comparado com texto.
+//
+// Passava despercebida para sempre, e aparecia no painel, ao lado de um nome,
+// como a versão do documento que aquela pessoa aceitou.
+const VERSOES = { VERSAO_TERMOS, VERSAO_TERMOS_MOTORISTA, VERSAO_PRIVACIDADE };
+for (const [nome, v] of Object.entries(VERSOES)) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v ?? '')) {
+    faltas.push(`${nome}: "${v}" não é uma data AAAA-MM-DD`);
+  } else if (Number.isNaN(Date.parse(v))) {
+    faltas.push(`${nome}: "${v}" não é uma data que exista`);
   }
 }
 
