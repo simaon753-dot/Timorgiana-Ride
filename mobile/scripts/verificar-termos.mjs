@@ -8,12 +8,54 @@
 // Foi assim que `aceitarCurto` se perdeu ao regenerar os termos a partir do
 // documento revisto pelo Simão, e o registo ficou partido sem ninguém dar por
 // isso — nem o Metro, nem os outros verificadores.
+//
+// A LISTA DE CAMPOS É LIDA DO ECRÃ, e não escrita aqui à mão.
+//
+// Estava à mão, e afastou-se: o ecrã passou a ler `doc.aceitar`, campo que
+// documento nenhum tem, e a lista daqui nunca soube dele. O botão de aceitar
+// os termos desenhava-se cor de laranja e vazio — sem uma palavra lá dentro —
+// e os cinco verificadores davam verde.
+//
+// O cabeçalho já dizia "os campos todos que os ecrãs lêem". Passa a ser
+// verdade: quem manda é o ecrã, e acrescentar lá um `doc.qualquerCoisa` novo
+// obriga os seis documentos a tê-lo.
+import { readFileSync } from 'node:fs';
 import { textoTermos } from '../src/termos/index.js';
 import { textoPrivacidade } from '../src/termos/privacidade.js';
 
 const LINGUAS = ['pt', 'tet', 'en'];
 const QUEM = ['passenger', 'driver'];
-const OBRIGATORIOS = ['titulo', 'subtitulo', 'atualizado', 'aceitarCurto', 'seccoes'];
+
+// TODOS os sítios que lêem um documento legal, e não só o ecrã que o mostra.
+//
+// São dois e fazem coisas diferentes: o ecrã mostra o documento inteiro
+// (`titulo`, `seccoes`…), e a caixa do registo mostra a frase curta com a
+// parte clicável (`aceitarCurto`). Olhar só para um deixava o campo do outro
+// sem guarda — e `aceitarCurto` é justamente o que já se perdeu uma vez.
+const QUEM_LE = ['src/screens/TermosScreen.js', 'src/components/AceitarTermos.js'];
+
+// Comentários fora antes de procurar. Sem isto, um `doc.aceitar` mencionado
+// num comentário a explicar o erro antigo exigiria o campo de volta — o
+// verificador passaria a defender exactamente o que devia impedir.
+const semComentarios = (f) =>
+  readFileSync(f, 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:])\/\/.*$/gm, '$1');
+
+const OBRIGATORIOS = [
+  ...new Set(
+    QUEM_LE.flatMap((f) =>
+      [...semComentarios(f).matchAll(/\bdoc\.([A-Za-z_$][\w$]*)/g)].map((m) => m[1])
+    )
+  ),
+];
+
+if (!OBRIGATORIOS.length) {
+  // Um resultado vazio aqui não é "está tudo bem" — é o verificador a ter
+  // deixado de encontrar o ecrã, e a passar a aprovar seja o que for.
+  console.error('  ✗ não encontrei campo nenhum lido nos ecrãs — verificador cego');
+  process.exit(1);
+}
 
 const faltas = [];
 

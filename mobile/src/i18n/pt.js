@@ -520,6 +520,7 @@ export default {
   admRegistoMais: '… e mais {n}',
   admRegistoVerConta: 'Ver a conta',
   admVerImagem: 'Ver a imagem',
+  termosAceitar: 'Li e aceito',
   admNadaAqui: 'Sem dados.',
   admMensagensN: 'Mensagens trocadas',
   admMensagensPrivadas: 'A administração não lê o conteúdo das conversas.',

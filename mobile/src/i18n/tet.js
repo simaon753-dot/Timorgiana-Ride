@@ -520,6 +520,7 @@ export default {
   admRegistoMais: '… no tan {n}',
   admRegistoVerConta: 'Haree konta',
   admVerImagem: 'Haree imajen',
+  termosAceitar: 'Haʼu lee no simu',
   admNadaAqui: 'Laiha dadus.',
   admMensagensN: 'Troka mensajen ba malu',
   admMensagensPrivadas: 'Administrasaun la lee konteúdu husi konversa sira.',

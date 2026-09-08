@@ -68,7 +68,18 @@ export default function TermosScreen({ navigation, route }) {
 
         {aceitavel ? (
           <View style={styles.aceitarCaixa}>
-            <Button title={doc.aceitar} onPress={aceitar} loading={aGravar} />
+            {/* O RÓTULO VEM DAS TRADUÇÕES, e não do documento.
+             *
+             * Estava `doc.aceitar`, e campo nenhum dos termos se chama assim —
+             * eles têm `aceitarCurto`, que é a frase da caixa de registo, com
+             * as marcas ** à volta da parte clicável. O botão recebia
+             * `undefined` e desenhava-se cor de laranja, sem palavra nenhuma
+             * lá dentro. O Simão encontrou-o ao aceitar os termos de motorista.
+             *
+             * Pelas traduções, o rótulo passa a estar coberto pelo verificador
+             * que confere as 445 chaves nas três línguas — o mesmo campo não
+             * pode voltar a desaparecer sem alguém dar por isso. */}
+            <Button title={t('termosAceitar')} onPress={aceitar} loading={aGravar} />
           </View>
         ) : null}
       </ScrollView>

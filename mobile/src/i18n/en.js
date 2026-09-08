@@ -507,6 +507,7 @@ export default {
   admRegistoMais: '… and {n} more',
   admRegistoVerConta: 'Open the account',
   admVerImagem: 'View the image',
+  termosAceitar: 'I have read and accept',
   admNadaAqui: 'No data.',
   admMensagensN: 'Messages exchanged',
   admMensagensPrivadas: 'Administrators do not read message contents.',
