@@ -17,6 +17,7 @@ import { setOnline, updateLocation, marcarAusentesOffline } from './drivers.js';
 import { one } from './db.js';
 import { lugaresRouter } from './routes/lugares.js';
 import { estadoDaBusca, marcarPorPerguntar } from './lugares.js';
+import { estadoDasRotas, usoDeHoje } from './rotas.js';
 import { mosaico } from './mosaicos.js';
 import { gzipSync } from 'node:zlib';
 import { municipioDe } from './municipios.js';
@@ -68,7 +69,11 @@ app.get('/api/health', async (req, res) => {
   };
   try {
     await query('SELECT 1');
-    res.json({ ...base, ok: true, database: 'ok' });
+    // Quantas rotas já pedimos hoje ao Google, e se ele está sequer ligado.
+    // Sem isto, a única forma de saber se a Routes API está activa era pedir
+    // uma viagem e olhar para a linha — que é adivinhar com passos extra.
+    const rotas = { ...estadoDasRotas(), hoje: await usoDeHoje().catch(() => null) };
+    res.json({ ...base, ok: true, database: 'ok', rotas });
   } catch (e) {
     console.error('[health] base de dados inacessível:', e.message);
     res.status(503).json({ ...base, ok: false, database: 'inacessível' });
