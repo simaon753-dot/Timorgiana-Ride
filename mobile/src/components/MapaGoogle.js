@@ -229,6 +229,37 @@ function Agulha() {
   );
 }
 
+// AS CAMADAS: fotografia de satélite por cima do mapa desenhado.
+//
+// Três folhas empilhadas, que é a figura que toda a gente associa a "trocar de
+// vista" — a mesma do Google. Acesa a branco quando o satélite está ligado,
+// como o botão de seguir a bússola: é um MODO e não uma acção, e um modo tem
+// de se ver que está a correr.
+function Camadas({ activo }) {
+  const cor = activo ? '#FFFFFF' : '#0E5C54';
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24">
+      <Path d="M12 3 L21 8 L12 13 L3 8 Z" fill={cor} />
+      <Path
+        d="M4.5 11.2 L12 15.4 L19.5 11.2"
+        fill="none"
+        stroke={cor}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M4.5 15 L12 19.2 L19.5 15"
+        fill="none"
+        stroke={cor}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 // A seta de seguir. Um cursor de navegação dentro de um círculo — a mesma
 // figura que o Google usa, e que se distingue da AGULHA da bússola: a agulha
 // diz onde é o norte, esta diz para onde EU estou virado.
@@ -601,6 +632,17 @@ export default function MapaGoogle({
   // que a região diz é onde está e quanto se vê, não para onde está virado.
   const [rumo, setRumo] = useState(0);
   const [aSeguirBussola, setASeguirBussola] = useState(false);
+  // O SATÉLITE COMEÇA DESLIGADO, e é uma decisão sobre o dinheiro de quem usa.
+  //
+  // O mapa normal são instruções de desenho: chegam uma vez e voltam a
+  // desenhar-se em qualquer zoom. O satélite são fotografias, e cada nível de
+  // aproximação é uma fotografia nova — aproximar três vezes são três
+  // descargas. Num país onde os dados se compram ao megabyte, quem passa o dia
+  // com o mapa aberto paga isso.
+  //
+  // Não custa nada ao Simão: a SDK do mapa é "Unlimited" na tabela do Google e
+  // o modo de desenho não muda o SKU. Custa a quem conduz.
+  const [satelite, setSatelite] = useState(false);
   const irParaMim = useCallback(async () => {
     if (aLocalizar || !mapaRef.current) return;
     setALocalizar(true);
@@ -763,6 +805,11 @@ export default function MapaGoogle({
         ref={mapaRef}
         provider={PROVIDER_GOOGLE}
         style={styles.mapa}
+        // "hybrid" e não "satellite": é a fotografia COM os nomes das ruas por
+        // cima. O satélite puro é mais bonito e serve pior — quem escolhe um
+        // ponto de recolha precisa de reconhecer a casa E de saber em que rua
+        // ela fica.
+        mapType={satelite ? 'hybrid' : 'standard'}
         initialRegion={regiaoInicial}
         // Antes o primeiro enquadramento corria no `useEffect` de montagem,
         // quando o mapa nativo ainda não existia — e não fazia nada.
@@ -954,7 +1001,10 @@ export default function MapaGoogle({
               style={[styles.nosso, { left: l.x + 6, top: l.y - 8 }]}
             >
               <View style={styles.nossoPonto} />
-              <Text style={styles.nossoNome} numberOfLines={1}>
+              <Text
+                style={[styles.nossoNome, satelite && styles.nossoNomeSatelite]}
+                numberOfLines={1}
+              >
                 {l.label}
               </Text>
             </View>
@@ -1043,6 +1093,30 @@ export default function MapaGoogle({
         accessibilityLabel={t('seguirBussola')}
       >
         <Seta activo={aSeguirBussola} />
+      </Pressable>
+
+      {/* O SATÉLITE.
+          O selector de mapa já existiu e o Simão mandou-o tirar — eram botões
+          a mais sem motivo. Este volta com um motivo só, e é forte em Díli:
+          grande parte da cidade não tem morada, e as pessoas orientam-se por
+          referências. Num mapa desenhado, um bairro sem nomes de rua é um
+          emaranhado de linhas iguais; na fotografia, a pessoa reconhece a sua
+          própria casa — e é isso que faz o motorista encontrá-la.
+          Desligado por omissão, porque as fotografias custam dados a quem
+          conduz. Ver a nota no estado. */}
+      <Pressable
+        style={[
+          styles.botaoSatelite,
+          satelite && styles.botaoSateliteActivo,
+          topoDosBotoes ? { top: spacing.sm + 144 + topoDosBotoes } : null,
+        ]}
+        onPress={() => setSatelite((v) => !v)}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityState={{ selected: satelite }}
+        accessibilityLabel={t('verSatelite')}
+      >
+        <Camadas activo={satelite} />
       </Pressable>
 
       {/* A BÚSSOLA ESTÁ SEMPRE VISÍVEL.
@@ -1168,6 +1242,15 @@ const criarEstilos = () =>
     },
     // Um halo branco em vez de caixa: lê-se sobre qualquer fundo do mapa e
     // não tapa as ruas por baixo, que é o que uma caixa faria.
+    // SOBRE A FOTOGRAFIA, O CONTRÁRIO. Teal com halo branco lê-se bem sobre um
+    // mapa claro e desaparece sobre um telhado escuro. Branco com sombra
+    // escura é o que o próprio Google usa nos nomes em cima do satélite, e
+    // pela mesma razão: funciona sobre qualquer coisa.
+    nossoNomeSatelite: {
+      color: '#FFFFFF',
+      textShadowColor: 'rgba(0,0,0,0.9)',
+      textShadowRadius: 4,
+    },
     nossoNome: {
       ...tipo.legenda,
       color: '#0E5C54',
@@ -1211,6 +1294,24 @@ const criarEstilos = () =>
       elevation: 3,
     },
     botaoSeguirActivo: { backgroundColor: colors.teal },
+    // O quarto da coluna: 8 + 48 + 48 + 48.
+    botaoSatelite: {
+      position: 'absolute',
+      right: spacing.sm,
+      top: spacing.sm + 144,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.white,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 3,
+    },
+    botaoSateliteActivo: { backgroundColor: colors.teal },
     botaoBussola: {
       position: 'absolute',
       right: spacing.sm,

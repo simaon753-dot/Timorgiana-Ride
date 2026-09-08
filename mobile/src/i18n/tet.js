@@ -159,6 +159,7 @@ export default {
   pedidoPor: 'Husu husi {nome}',
   voltarAoNorte: 'Fila ba norte',
   seguirBussola: 'Tuir bússola',
+  verSatelite: 'Haree ho satélite',
   apagarRecente: 'Hasai husi lista',
   recentesTitulo: "Buka ne'ebé foin lalais",
   emailPorque: 'Serve atu rekupera konta se haluha liafuan-xave.',

@@ -160,6 +160,7 @@ export default {
   pedidoPor: 'Pedido por {nome}',
   voltarAoNorte: 'Voltar ao norte',
   seguirBussola: 'Seguir a bússola',
+  verSatelite: 'Ver por satélite',
   apagarRecente: 'Apagar dos recentes',
   recentesTitulo: 'Pesquisas recentes',
   emailPorque: 'Serve para recuperar a conta se esquecer a senha.',

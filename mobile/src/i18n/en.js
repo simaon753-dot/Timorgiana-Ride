@@ -154,6 +154,7 @@ export default {
   pedidoPor: 'Booked by {nome}',
   voltarAoNorte: 'Back to north',
   seguirBussola: 'Follow compass',
+  verSatelite: 'Satellite view',
   apagarRecente: 'Remove from recents',
   recentesTitulo: 'Recent searches',
   emailPorque: 'Used to recover your account if you forget your password.',
