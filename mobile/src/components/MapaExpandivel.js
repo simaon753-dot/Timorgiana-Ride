@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-// Ver a nota em RequestRideScreen.js: o OSMMap.js continua a servir de
-// saída de emergência e tem esta mesma interface.
+// Ver a nota em RequestRideScreen.js: os mapas de reserva saíram do APK a
+// 08/09/2026 e vivem no histórico do git.
 import Mapa from './MapaGoogle.js';
 import { colors, radius, spacing, fontSize, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';

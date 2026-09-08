@@ -595,7 +595,29 @@ export default function MapaGoogle({
     if (!aSeguirBussola) return undefined;
     let vivo = true;
     let sub = null;
-    let ultimo = null;
+    // O rumo suavizado, e o último que chegou a mover o mapa. São dois
+    // valores diferentes de propósito — ver a explicação em baixo.
+    let suave = null;
+    let aplicado = null;
+    let ultimaOrdem = 0;
+
+    // QUANTO A BÚSSOLA TEM DE MUDAR PARA O MAPA SE MEXER.
+    //
+    // Estavam três graus, e três graus é MENOS do que a bússola de um
+    // telemóvel treme parada em cima da mesa. Perto de metal, dentro de um
+    // carro ou ao pé de um telemóvel a carregar, o desvio é bem maior.
+    //
+    // O resultado era o que o Simão viu: ligava o botão, punha o telemóvel
+    // quieto, e o mapa continuava a rodar sozinho.
+    const GRAUS_PARA_MEXER = 8;
+    // Uma ordem à câmara de cada vez que a anterior teve tempo de acabar. A
+    // animação dura 250 ms; mandar outra a meio é começar por cima do que
+    // ainda está a andar, e é isso que se vê como tremor.
+    const MS_ENTRE_ORDENS = 400;
+    // Quanto pesa cada leitura nova no valor suavizado. Um quinto: o rumo
+    // segue uma volta a sério em menos de um segundo, e o ruído de uma
+    // leitura solta dilui-se antes de chegar ao mapa.
+    const PESO = 0.2;
 
     (async () => {
       try {
@@ -606,15 +628,28 @@ export default function MapaGoogle({
           // agulha de uma bússola de mão também dá.
           const grau = h.trueHeading >= 0 ? h.trueHeading : h.magHeading;
           if (!Number.isFinite(grau)) return;
-          // SÓ SE MEXE ACIMA DE TRÊS GRAUS.
+
+          // PRIMEIRO SUAVIZAR, DEPOIS DECIDIR. Eram as duas coisas de que
+          // isto precisava e faltavam as duas.
           //
-          // A bússola de um telemóvel treme sempre um pouco. Sem este
-          // travão, o mapa recebia dezenas de ordens por segundo e ficava a
-          // vibrar — e cada uma delas é uma animação a começar por cima da
-          // anterior, que nunca chega ao fim.
-          if (ultimo !== null && Math.abs(diferencaAngular(grau, ultimo)) < 3) return;
-          ultimo = grau;
-          mapaRef.current?.animateCamera({ heading: grau }, { duration: 250 });
+          // A média corre pelo caminho mais curto (daí o `diferencaAngular`),
+          // senão a passagem de 359 para 1 grau dava uma volta inteira ao
+          // contrário.
+          if (suave === null) suave = grau;
+          else suave = (suave + PESO * diferencaAngular(grau, suave) + 360) % 360;
+
+          // O TRAVÃO COMPARA COM O QUE ESTÁ NO MAPA, e não com a leitura
+          // anterior. Comparado com a leitura anterior, um tremor de quatro
+          // graus para a frente e para trás passava sempre — cada leitura
+          // estava longe da outra, e o mapa andava sem nunca sair do sítio.
+          if (aplicado !== null && Math.abs(diferencaAngular(suave, aplicado)) < GRAUS_PARA_MEXER) {
+            return;
+          }
+          const agora = Date.now();
+          if (agora - ultimaOrdem < MS_ENTRE_ORDENS) return;
+          ultimaOrdem = agora;
+          aplicado = suave;
+          mapaRef.current?.animateCamera({ heading: suave }, { duration: 250 });
         });
       } catch {
         // Sem bússola no telemóvel não há nada a seguir.

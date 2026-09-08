@@ -52,9 +52,8 @@
             "usesCleartextTraffic": false
           }
         }
+      ]
       ],
-      "@maplibre/maplibre-react-native"
-    ],
     "runtimeVersion": {
       "policy": "appVersion"
     },

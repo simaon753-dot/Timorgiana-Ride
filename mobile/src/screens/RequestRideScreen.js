@@ -10,9 +10,20 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
-// O mapa. Para voltar ao OpenStreetMap — se a chave do Google morrer —
-// troca-se esta linha por `import Mapa from '../components/OSMMap.js';`
-// e corre-se `npm run publicar`. A interface é a mesma nos dois.
+// O mapa. A SAÍDA DE EMERGÊNCIA DEIXOU DE VIVER AQUI DENTRO.
+//
+// Havia dois mapas de reserva instalados e nunca usados — o OpenStreetMap por
+// WebView e o MapLibre nativo. Nenhum era importado por ecrã nenhum, e mesmo
+// assim os dois iam dentro de cada APK: o MapLibre porque estava declarado
+// como plugin no app.json, o que compila o motor de mapas nativo inteiro.
+//
+// Custavam dezenas de megabytes a cada pessoa que instalasse a app, num país
+// onde os dados se compram ao megabyte. Uma reserva que ninguém usa e que toda
+// a gente paga não é uma reserva; é um imposto.
+//
+// Continuam no histórico do git, e o mapa próprio continua servido pelo nosso
+// servidor. Voltar é recuperar os ficheiros e compilar — um dia de trabalho,
+// e só no dia em que for preciso. A interface é a mesma nos dois.
 import Mapa from '../components/MapaGoogle.js';
 import PlaceSearch from '../components/PlaceSearch.js';
 import EscolherLugares from '../components/EscolherLugares.js';
