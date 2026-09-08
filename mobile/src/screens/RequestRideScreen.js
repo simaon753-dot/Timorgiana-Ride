@@ -691,6 +691,13 @@ export default function RequestRideScreen({ navigation, route }) {
           pickable
           fill
           trocosAPe={trocosAPe}
+          // A LINHA VEM DA COTAÇÃO, que é quem calculou o preço.
+          //
+          // Sem isto o mapa pedia a rota por sua conta e ficavam duas: uma que
+          // determinou o preço e outra desenhada por cima. Podiam divergir, e
+          // numa discussão sobre a tarifa não haveria como mostrar por onde é
+          // que o preço passou.
+          linhaDaRota={orcamento?.linha || null}
           markers={marcadores}
           onPick={escolherNoMapa}
           arrastavel={!aEscolherNoMapa && !(origem && destino)}

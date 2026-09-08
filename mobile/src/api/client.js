@@ -83,6 +83,10 @@ export const api = {
   me: (token) => request('/auth/me', { token }),
   health: () => request('/health'),
   fares: () => request('/config/fares'),
+  // A linha da viagem, pedida ao NOSSO servidor e não a um serviço de rotas
+  // directamente. É o servidor que sabe a chave do Google e que conta as
+  // chamadas; e assim a linha vem da mesma fonte do mapa.
+  linhaDaRota: (token, corpo) => request('/quote/linha', { method: 'POST', body: corpo, token }),
   quote: (token, body) => request('/quote', { method: 'POST', body, token }),
 
   createRide: (token, body) => request('/rides', { method: 'POST', body, token }),

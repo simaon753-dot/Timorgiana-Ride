@@ -18,6 +18,11 @@ export function straightKm(a, b) {
 // Se o OSRM não responder, cai para linha reta com um factor de 1,4, que
 // aproxima o desvio típico das estradas. Melhor um preço aproximado do que
 // nenhum preço.
+// MANTIDA para quem já a chamava. A rota que conta agora é a
+// `rotaCompleta` do `rotas.js`, que devolve também a linha e usa o Google —
+// e é importante que o PREÇO venha da mesma fonte que o DESENHO. Um preço
+// calculado sobre um caminho e uma linha desenhada sobre outro é um convite a
+// uma discussão que ninguém consegue arbitrar.
 export async function rota(origem, destino) {
   const url =
     `https://router.project-osrm.org/route/v1/driving/` +

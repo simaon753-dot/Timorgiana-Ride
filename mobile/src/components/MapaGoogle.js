@@ -258,6 +258,13 @@ export default function MapaGoogle({
   // Cada troço é { de, para, qual }: `de` é onde a pessoa apontou, `para` é
   // onde o carro chega, e `qual` diz se é a recolha ou a largada.
   trocosAPe = [],
+  // A LINHA JÁ CALCULADA, quando quem chama a tem.
+  //
+  // O ecrã de pedir viagem já pede a cotação ao servidor, e a cotação já traz
+  // a linha por onde o preço passou. Passando-a aqui, não se pede a mesma
+  // rota duas vezes — e garante-se que a linha desenhada é EXACTAMENTE a
+  // linha cobrada. Sem ela, este componente pede a sua.
+  linhaDaRota = null,
   center,
   height = 240,
   onPick,
@@ -282,6 +289,12 @@ export default function MapaGoogle({
   const mapaRef = useRef(null);
   const c = center || markers[0] || DILI;
   const markersKey = JSON.stringify(markers);
+  // Comparada pelo COMPRIMENTO e pelas pontas, e não ponto a ponto: uma rota
+  // tem centenas de pontos e serializá-la a cada desenho custa mais do que o
+  // desenho.
+  const linhaKey = linhaDaRota?.length
+    ? `${linhaDaRota.length}:${linhaDaRota[0].lat},${linhaDaRota[0].lng}`
+    : '';
 
   const [rota, setRota] = useState(null);
   const [aMexer, setAMexer] = useState(false);
@@ -413,48 +426,49 @@ export default function MapaGoogle({
     setRota({ linha: recta, tracejada: true });
     if (onRoute) onRoute({ km: Math.round(metrosEntre(a, b) * 10) / 10, approx: true });
 
-    const ctrl = new AbortController();
-    const cortar = setTimeout(() => ctrl.abort(), 12000);
-    // "overview=full" e não "simplified".
-    //
-    // Herdei o `simplified` do mapa do OpenStreetMap com o comentário "para
-    // desenhar bastam vinte pontos". Era verdade nos mosaicos do
-    // OpenStreetMap, onde as ruas são traços finos e cinzentos.
-    //
-    // No Google não é. As ruas são largas e bem desenhadas, e uma linha com
-    // vinte pontos CORTA AS CURVAS — passa por dentro dos quarteirões em vez
-    // de acompanhar a estrada. O Simão viu-o à primeira, com o mapa ampliado
-    // sobre a Avenida Marginal.
-    //
-    // A lição não é sobre rotas: um número afinado para um contexto deixa de
-    // valer quando o contexto muda, e o comentário que o justificava passa a
-    // defender a escolha errada.
-    const url =
-      'https://router.project-osrm.org/route/v1/driving/' +
-      `${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson`;
+    // Já veio de fora? Desenha-se e não se pergunta a ninguém.
+    if (linhaDaRota?.length > 1) {
+      setRota({
+        linha: linhaDaRota.map((p) => ({ latitude: p.lat, longitude: p.lng })),
+        tracejada: false,
+      });
+      return undefined;
+    }
 
-    fetch(url, { signal: ctrl.signal })
-      .then((r) => r.json())
+    // PEDIDA AO NOSSO SERVIDOR, e não a um serviço de rotas directamente.
+    //
+    // Durante meses a app falou com o OSRM, que calcula sobre dados do
+    // OpenStreetMap. O mapa é do Google. Em Timor-Leste as estradas do
+    // OpenStreetMap foram traçadas de imagens antigas e ficam dezenas de
+    // metros ao lado de onde o Google as desenha — a linha seguia uma estrada
+    // a sério e assentava ao lado da estrada que a pessoa via.
+    //
+    // O servidor pergunta ao Google, com a chave que só ele tem e um tecto
+    // diário de chamadas, e cai para o OSRM se faltar uma das duas coisas.
+    api
+      .linhaDaRota(token, {
+        originLat: a.lat,
+        originLng: a.lng,
+        destLat: b.lat,
+        destLng: b.lng,
+      })
       .then((j) => {
-        const r = j?.routes?.[0];
-        if (!vivo || !r?.geometry?.coordinates) return;
+        if (!vivo || !j?.linha?.length) return;
         setRota({
-          linha: r.geometry.coordinates.map((p) => ({ latitude: p[1], longitude: p[0] })),
+          linha: j.linha.map((p) => ({ latitude: p.lat, longitude: p.lng })),
           tracejada: false,
         });
-        if (onRoute) onRoute({ km: Math.round(r.distance / 100) / 10 });
+        if (onRoute) onRoute({ km: j.km });
       })
       .catch(() => {
         /* fica a linha recta que já está desenhada */
       })
-      .finally(() => clearTimeout(cortar));
+      .finally(() => {});
 
     return () => {
       vivo = false;
-      clearTimeout(cortar);
-      ctrl.abort();
     };
-  }, [markersKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [markersKey, linhaKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // O CARTÃO É DESENHADO POR CIMA DO MAPA, não dentro dele.
   //

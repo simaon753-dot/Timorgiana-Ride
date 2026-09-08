@@ -590,6 +590,21 @@ export async function initSchema() {
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS cidadao_tl BOOLEAN`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS cidadao_tl_em TIMESTAMPTZ`);
 
+  // CONTADORES POR DIA. Hoje só um — as chamadas de rota ao Google — mas a
+  // tabela é geral porque o próximo há-de vir.
+  //
+  // Na base de dados e não em memória: o Render reinicia a toda a hora no
+  // plano gratuito, e um contador em memória apagava-se em cada reinício.
+  // Um tecto que se apaga sozinho não é tecto nenhum.
+  await query(`
+    CREATE TABLE IF NOT EXISTS contadores (
+      nome  TEXT NOT NULL,
+      dia   DATE NOT NULL,
+      valor INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (nome, dia)
+    )
+  `);
+
   const [{ now }] = await query('SELECT NOW() AS now');
   console.log('[db] PostgreSQL pronto —', now.toISOString());
 }
