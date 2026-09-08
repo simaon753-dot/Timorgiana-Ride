@@ -324,6 +324,13 @@ export default {
   driverTermsDone: '✓ Termos aceites',
   termosPorAceitar: 'Falta aceitares os termos de utilização.',
   privacidadePorAceitar: 'Falta aceitares a política de privacidade.',
+  paisProcurar: 'Procurar país',
+  paisSemResultado: 'Nenhum país encontrado.',
+  paisOutroDica: 'Escreva o número internacional inteiro, com o indicativo e sem o +.',
+  driverSoTimorTel: 'Para conduzir é preciso um número de Timor-Leste.',
+  driverDeclaraCidadao:
+    'Declaro que sou cidadão de Timor-Leste. Conduzir na TimorgianaRide está reservado a cidadãos timorenses.',
+  errCidadaoTL: 'Para conduzir é preciso declarar que é cidadão de Timor-Leste.',
 
   // Cancelamento
   cancelWhyTitle: 'Porque está a cancelar?',
@@ -506,6 +513,11 @@ export default {
   admTermosNao: 'Não aceitou',
   admDecisao: 'Decisão',
   admHistorico: 'Viagens',
+  admCidadania: 'Cidadania declarada',
+  admCidadaniaDeclarou: 'Declarou ser cidadão de Timor-Leste',
+  admCidadaniaSim: 'Sim',
+  admCidadaniaNao: 'Não',
+  admQuando: 'Quando',
   admAvaliacoesRecebidas: 'Avaliações recebidas',
   admTurnosFoto: 'Fotografias de turno',
   admEmergencias: 'Emergências',

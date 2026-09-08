@@ -576,6 +576,20 @@ export async function initSchema() {
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS login_falhas INTEGER NOT NULL DEFAULT 0`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS login_espera_ate TIMESTAMPTZ`);
 
+  // CIDADANIA DECLARADA PELO MOTORISTA.
+  //
+  // Conduzir na TimorgianaRide é para cidadãos de Timor-Leste, por decisão do
+  // Simão a 08/09/2026. A app não consegue PROVAR a nacionalidade de ninguém —
+  // o que consegue é fazer a pergunta antes de haver conta e guardar a
+  // resposta com a hora. A prova é o documento de identificação, que já é
+  // obrigatório e passa pelas mãos de quem aprova.
+  //
+  // Coluna própria e com data própria, e não uma linha nos termos: é um facto
+  // distinto, declarado num momento distinto, e numa disputa é dele que se
+  // precisa isolado.
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS cidadao_tl BOOLEAN`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS cidadao_tl_em TIMESTAMPTZ`);
+
   const [{ now }] = await query('SELECT NOW() AS now');
   console.log('[db] PostgreSQL pronto —', now.toISOString());
 }

@@ -264,6 +264,30 @@ function DetalheConta({ d, t, navigation, token, onMudou, verImagem }) {
         ) : null}
       </Seccao>
 
+      {/* ANTES dos documentos, e não depois. Quem aprova lê a declaração
+
+          e a seguir olha para o bilhete de identidade — é essa ordem que
+
+          faz a confrontação acontecer. Ao contrário, olha-se para cinco
+
+          fotografias e só no fim se descobre o que era preciso confirmar. */}
+
+      {d.conta?.cidadaoTL ? (
+        <Seccao titulo={t('admCidadania')}>
+          <Linha
+            rotulo={t('admCidadaniaDeclarou')}
+
+            valor={d.conta.cidadaoTL.declarou ? t('admCidadaniaSim') : t('admCidadaniaNao')}
+
+            forte
+
+            mau={!d.conta.cidadaoTL.declarou}
+          />
+
+          <Linha rotulo={t('admQuando')} valor={quando(d.conta.cidadaoTL.quando)} />
+        </Seccao>
+      ) : null}
+
       {d.documentos?.length ? (
         <Seccao titulo={t('adminDocs')}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tira}>

@@ -87,6 +87,7 @@ export async function createUser({
   vehicle,
   termsVersion,
   privacyVersion,
+  cidadaoTL = false,
 }) {
   const passwordHash = await bcrypt.hash(password, 10);
   const vehicleType =
@@ -97,9 +98,14 @@ export async function createUser({
     `INSERT INTO users
        (name, phone, email, password_hash, role, vehicle_type, vehicle_model, vehicle_plate,
         vehicle_color, vehicle_seats, driver_status, terms_version, terms_accepted_at,
-        privacy_version, privacy_accepted_at)
+        privacy_version, privacy_accepted_at, cidadao_tl, cidadao_tl_em)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NOW(),$13,
-             CASE WHEN $13::text IS NULL THEN NULL ELSE NOW() END)
+             CASE WHEN $13::text IS NULL THEN NULL ELSE NOW() END,
+             $14,
+             -- A hora só existe se a declaração existir. Guardar uma data ao
+             -- lado de um "não declarou" seria datar uma coisa que ninguém
+             -- disse — o mesmo princípio do consentimento dos menores.
+             CASE WHEN $14::boolean IS TRUE THEN NOW() ELSE NULL END)
      RETURNING *`,
     [
       name.trim(),
@@ -117,6 +123,10 @@ export async function createUser({
       role === 'driver' ? 'pending' : null,
       termsVersion || null,
       privacyVersion || null,
+      // Só faz sentido em motoristas. Num passageiro fica a NULL, que se lê
+      // como "não foi perguntado" — diferente de FALSE, que seria "disse que
+      // não é". A app nem lhe faz a pergunta.
+      role === 'driver' ? !!cidadaoTL : null,
     ]
   );
 }

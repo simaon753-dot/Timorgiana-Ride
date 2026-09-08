@@ -35,6 +35,8 @@ export default function RegisterScreen({ navigation, route }) {
   const { register } = useAuth();
 
   const [role, setRole] = useState(route?.params?.role || 'passenger');
+  // Declaração de cidadania, só para quem se inscreve como motorista.
+  const [cidadaoTL, setCidadaoTL] = useState(false);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -62,6 +64,7 @@ export default function RegisterScreen({ navigation, route }) {
     if (password !== password2) return setError(t('errPasswordMismatch'));
     if (role === 'driver' && !vPlate.trim()) return setError(t('errPlateRequired'));
     if (role === 'driver' && vType === 'car' && !vSeats) return setError(t('errSeatsRequired'));
+    if (role === 'driver' && !cidadaoTL) return setError(t('errCidadaoTL'));
     if (!aceitou) return setError(t('errTermsRequired'));
     if (!aceitouPrivacidade) return setError(t('errPrivacyRequired'));
 
@@ -73,6 +76,7 @@ export default function RegisterScreen({ navigation, route }) {
       role,
       termsVersion: VERSAO_TERMOS,
       privacyVersion: VERSAO_PRIVACIDADE,
+      ...(role === 'driver' ? { cidadaoTL: true } : {}),
       ...(role === 'driver'
         ? {
             vehicle: {
@@ -137,7 +141,16 @@ export default function RegisterScreen({ navigation, route }) {
                 Timor-Leste já escolhido. Quase ninguém lhe vai tocar — é por
                 isso que é pequeno e fica encostado, em vez de ser mais um
                 campo a preencher. */}
-            <CampoTelefone label={t('phone')} valor={phone} onChange={setPhone} />
+            <CampoTelefone
+              label={t('phone')}
+              valor={phone}
+              onChange={setPhone}
+              // Conduzir é para cidadãos de Timor-Leste, e um número
+              // timorense é a única parte disso que a app consegue verificar
+              // sozinha. Quem prova a cidadania é o documento, no painel.
+              soTimor={role === 'driver'}
+              hint={role === 'driver' ? t('driverSoTimorTel') : undefined}
+            />
             {/* O EMAIL DEIXOU DE SER OPCIONAL.
                 Não serve para entrar — entra-se com o telemóvel e a senha,
                 que é o que se sabe de cor. Serve para o dia em que a senha se
@@ -232,6 +245,26 @@ export default function RegisterScreen({ navigation, route }) {
 
             <Aviso texto={error} style={styles.erro} />
 
+            {/* CIDADANIA, DECLARADA E NÃO VERIFICADA.
+                A app não consegue provar a nacionalidade de ninguém — o que
+                consegue é fazer a pergunta antes de haver conta, guardar a
+                resposta com a hora, e pôr o documento à frente de quem
+                aprova. Uma declaração falsa passa a ser uma declaração
+                falsa, e os termos já preveem suspensão para isso. */}
+            {role === 'driver' ? (
+              <Pressable
+                style={styles.declaracao}
+                onPress={() => setCidadaoTL((v) => !v)}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: cidadaoTL }}
+              >
+                <View style={[styles.quadrado, cidadaoTL && styles.quadradoMarcado]}>
+                  {cidadaoTL ? <Text style={styles.visto}>✓</Text> : null}
+                </View>
+                <Text style={styles.declaracaoTexto}>{t('driverDeclaraCidadao')}</Text>
+              </Pressable>
+            ) : null}
+
             <View style={{ marginBottom: spacing.md }}>
               <AceitarTermos
                 aceite={aceitou}
@@ -277,6 +310,27 @@ export default function RegisterScreen({ navigation, route }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
+    // A mesma forma da caixa de aceitar os termos, logo abaixo. São dois
+    // actos da mesma natureza — declarar e consentir — e devem parecer-se.
+    declaracao: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      marginBottom: spacing.md,
+      paddingRight: spacing.sm,
+    },
+    quadrado: {
+      width: 22,
+      height: 22,
+      borderRadius: radius.xs,
+      borderWidth: 2,
+      borderColor: colors.border,
+      marginRight: spacing.sm,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    quadradoMarcado: { backgroundColor: colors.teal, borderColor: colors.teal },
+    visto: { color: colors.onTeal, fontSize: 14, fontWeight: '700', lineHeight: 16 },
+    declaracaoTexto: { ...tipo.corpo, color: colors.text, flex: 1 },
     // Estas duas tinham a cor escrita à mão (#1C2421 e #6B756F). Liam-se
     // bem, porque a caixa do veículo era creme fixo — mas as três cores
     // fixas juntas faziam com que este bloco fosse o único sítio da app que

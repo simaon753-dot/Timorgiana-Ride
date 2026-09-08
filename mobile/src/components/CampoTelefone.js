@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, Modal, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PAISES, PAIS_POR_OMISSAO } from '../dados/paises.js';
+import { PAISES, PAIS_POR_OMISSAO, OUTRO_PAIS } from '../dados/paises.js';
 import { colors, spacing, radius, fontSize, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
@@ -20,17 +20,33 @@ import { useI18n } from '../i18n/index.js';
 // Parece inconsistente e é deliberado: mudar o formato dos números locais
 // obrigava a migrar as contas existentes e a ensinar toda a gente a escrever
 // quatro dígitos que nunca escreveu.
-export default function CampoTelefone({ label, valor, onChange, hint }) {
+export default function CampoTelefone({ label, valor, onChange, hint, soTimor = false }) {
   const { t } = useI18n();
   const [pais, setPais] = useState(PAIS_POR_OMISSAO);
   const [aberto, setAberto] = useState(false);
   const [focado, setFocado] = useState(false);
+  const [procura, setProcura] = useState('');
 
   function montar(digitos, p) {
     const so = String(digitos || '').replace(/[^\d]/g, '');
     if (!so) return '';
-    return p.codigo === 'TL' ? so : `${p.indicativo}${so}`;
+    if (p.codigo === 'TL') return so;
+    // "Outro país": os dígitos escritos JÁ SÃO o número internacional, com o
+    // indicativo lá dentro. Só se lhe põe o + à frente.
+    if (p.codigo === 'XX') return `+${so}`;
+    return `${p.indicativo}${so}`;
   }
+
+  // A lista, filtrada. Procura pelo nome e pelo indicativo — há quem saiba o
+  // número e não o nome em português do seu próprio país.
+  const q = procura.trim().toLowerCase();
+  const visiveis = [...PAISES, OUTRO_PAIS].filter(
+    (p) =>
+      !q ||
+      p.nome.toLowerCase().includes(q) ||
+      p.indicativo.includes(q.replace('+', '')) ||
+      p.codigo.toLowerCase() === q
+  );
 
   // O que se mostra é sempre só os dígitos; o indicativo vive no botão.
   const digitos = String(valor || '')
@@ -41,10 +57,19 @@ export default function CampoTelefone({ label, valor, onChange, hint }) {
     <View style={styles.bloco}>
       {label ? <Text style={styles.rotulo}>{label}</Text> : null}
       <View style={[styles.linha, focado && styles.linhaFocada]}>
-        <Pressable style={styles.pais} onPress={() => setAberto(true)} hitSlop={6}>
+        {/* TRANCADO PARA MOTORISTAS. Conduzir na TimorgianaRide é para
+            cidadãos de Timor-Leste, por isso o selector deixa de ser uma
+            escolha — e mostrar uma escolha que não é escolha seria pior do
+            que não a mostrar. A bandeira fica, para se ver qual é. */}
+        <Pressable
+          style={styles.pais}
+          onPress={() => !soTimor && setAberto(true)}
+          hitSlop={6}
+          disabled={soTimor}
+        >
           <Text style={styles.bandeira}>{pais.bandeira}</Text>
           <Text style={styles.indicativo}>{pais.indicativo}</Text>
-          <Text style={styles.seta}>▾</Text>
+          {soTimor ? null : <Text style={styles.seta}>▾</Text>}
         </Pressable>
         <TextInput
           style={styles.campo}
@@ -54,10 +79,13 @@ export default function CampoTelefone({ label, valor, onChange, hint }) {
           onBlur={() => setFocado(false)}
           keyboardType="phone-pad"
           autoCapitalize="none"
-          placeholder={pais.codigo === 'TL' ? '77123456' : ''}
+          placeholder={
+            pais.codigo === 'TL' ? '77123456' : pais.codigo === 'XX' ? '351912345678' : ''
+          }
           placeholderTextColor={colors.textMuted}
         />
       </View>
+      {pais.codigo === 'XX' ? <Text style={styles.dica}>{t('paisOutroDica')}</Text> : null}
       {hint ? <Text style={styles.dica}>{hint}</Text> : null}
 
       <Modal visible={aberto} animationType="slide" onRequestClose={() => setAberto(false)}>
@@ -68,14 +96,24 @@ export default function CampoTelefone({ label, valor, onChange, hint }) {
               <Text style={styles.fechar}>✕</Text>
             </Pressable>
           </View>
-          <ScrollView>
-            {PAISES.map((p) => (
+          <TextInput
+            style={styles.procura}
+            value={procura}
+            onChangeText={setProcura}
+            placeholder={t('paisProcurar')}
+            placeholderTextColor={colors.textMuted}
+            autoCapitalize="none"
+          />
+          <ScrollView keyboardShouldPersistTaps="handled">
+            {!visiveis.length ? <Text style={styles.semPais}>{t('paisSemResultado')}</Text> : null}
+            {visiveis.map((p) => (
               <Pressable
                 key={p.codigo}
                 style={[styles.item, p.codigo === pais.codigo && styles.itemEscolhido]}
                 onPress={() => {
                   setPais(p);
                   setAberto(false);
+                  setProcura('');
                   // O número mantém-se; só muda o país que o acompanha.
                   onChange(montar(digitos, p));
                 }}
@@ -113,6 +151,19 @@ const criarEstilos = () =>
       borderRightWidth: 1,
       borderRightColor: colors.border,
     },
+    procura: {
+      margin: spacing.md,
+      marginTop: 0,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      backgroundColor: colors.inputBg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      color: colors.text,
+      fontSize: fontSize.md,
+    },
+    semPais: { ...tipo.corpo, color: colors.textMuted, padding: spacing.lg, textAlign: 'center' },
     bandeira: { fontSize: fontSize.lg, marginRight: 4 },
     indicativo: { ...tipo.corpoForte, color: colors.text },
     seta: { ...tipo.legenda, color: colors.textMuted, marginLeft: 3 },

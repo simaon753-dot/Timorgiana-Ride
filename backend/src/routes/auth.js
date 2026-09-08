@@ -32,7 +32,7 @@ authRouter.post('/recuperar', porEndereco({ max: 20, minutos: 60 }));
 // POST /api/auth/register
 authRouter.post('/register', async (req, res) => {
   try {
-    const { name, phone, email, password, role, vehicle, termsVersion, privacyVersion } =
+    const { name, phone, email, password, role, vehicle, termsVersion, privacyVersion, cidadaoTL } =
       req.body || {};
 
     if (!name || !name.trim()) {
@@ -65,6 +65,40 @@ authRouter.post('/register', async (req, res) => {
     if (role === 'driver' && (!vehicle || !vehicle.plate || !vehicle.plate.trim())) {
       return res.status(400).json({ error: 'Motoristas têm de indicar a matrícula do veículo.' });
     }
+
+    // ── CONDUZIR É PARA CIDADÃOS DE TIMOR-LESTE ────────────────────────
+    //
+    // Decisão do Simão a 08/09/2026, sem excepção.
+    //
+    // O QUE ISTO PODE E NÃO PODE FAZER. A app não verifica nacionalidade
+    // nenhuma — ninguém consegue, a partir de um telemóvel. O que faz é três
+    // coisas que juntas valem alguma coisa: exige a declaração antes de haver
+    // conta, guarda-a com a hora, e obriga a um número de Timor-Leste.
+    //
+    // A PROVA é o documento de identificação, que já é obrigatório e passa
+    // pelas mãos de quem aprova. Isto não substitui esse olhar; põe a
+    // exigência à frente da pessoa no momento em que ela ainda pode desistir,
+    // em vez de a deixar entregar cinco documentos para ser recusada no fim.
+    if (role === 'driver') {
+      if (cidadaoTL !== true) {
+        return res.status(400).json({
+          error: 'Conduzir na TimorgianaRide está reservado a cidadãos de Timor-Leste.',
+        });
+      }
+      // Um número timorense chega aqui com oito dígitos e sem indicativo — o
+      // `normalizePhone` tira o +670 quando ele vem. Qualquer outro país
+      // chega com um + à frente, e é essa a diferença que se verifica.
+      //
+      // Não se exige que comece por 7. Seria mais apertado e arriscava
+      // recusar um prefixo de operadora que eu não conheça — e recusar um
+      // motorista de boa fé é pior do que aceitar um número estranho que o
+      // documento vai desmentir.
+      if (!/^\d{8}$/.test(normalizePhone(phone))) {
+        return res.status(400).json({
+          error: 'Para conduzir é preciso um número de telemóvel de Timor-Leste.',
+        });
+      }
+    }
     // Exigido no servidor e não só na app: a caixa marcada no telemóvel é
     // uma cortesia da interface; o que fica como prova é isto.
     if (!termsVersion) {
@@ -84,6 +118,7 @@ authRouter.post('/register', async (req, res) => {
       vehicle,
       termsVersion,
       privacyVersion,
+      cidadaoTL,
     });
     // O CÓDIGO PARTE, MAS NINGUÉM ESPERA POR ELE.
     //

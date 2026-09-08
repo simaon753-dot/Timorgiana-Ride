@@ -49,4 +49,26 @@ export const PAISES = [
   { codigo: 'US', indicativo: '+1', bandeira: '🇺🇸', nome: 'Estados Unidos' },
 ];
 
+// QUALQUER OUTRO PAÍS, escrito à mão.
+//
+// A lista acima é curta de propósito e vai continuar a sê-lo — mas curta
+// significa que alguém há-de faltar. Um cooperante finlandês ou um turista do
+// Sri Lanka encontravam a lista sem o seu país e não tinham por onde seguir:
+// ficavam sem se poder inscrever, e não há mensagem de erro que resolva isso.
+//
+// Acrescentar os duzentos indicativos do mundo resolvia no papel e criava dois
+// problemas — uma lista onde ninguém encontra o seu, e duzentos números que eu
+// teria de escrever de cabeça, alguns deles errados. Um indicativo errado é
+// pior do que nenhum: o número parece bom, é aceite, e o motorista liga para
+// o sítio errado.
+//
+// Assim, quem não estiver na lista escreve o seu número internacional inteiro.
+// Ninguém fica de fora e nenhum número é inventado por mim.
+export const OUTRO_PAIS = {
+  codigo: 'XX',
+  indicativo: '+',
+  bandeira: '🌍',
+  nome: 'Outro país',
+};
+
 export const PAIS_POR_OMISSAO = PAISES[0];

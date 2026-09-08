@@ -323,6 +323,13 @@ export default {
   driverTermsDone: '✓ Termu simu ona',
   termosPorAceitar: 'Falta simu termu uza nian.',
   privacidadePorAceitar: 'Falta simu politika privasidade nian.',
+  paisProcurar: 'Buka nasaun',
+  paisSemResultado: 'La hetan nasaun ida.',
+  paisOutroDica: 'Hakerek numeru internasionál tomak, ho indikativu no laiha +.',
+  driverSoTimorTel: 'Atu lori karreta presiza numeru Timor-Leste nian.',
+  driverDeclaraCidadao:
+    'Haʼu deklara katak haʼu sidadaun Timor-Leste. Lori karreta ho TimorgianaRide rezerva ba sidadaun timoroan.',
+  errCidadaoTL: 'Atu lori karreta tenke deklara katak ita sidadaun Timor-Leste.',
 
   // Kanselamentu
   cancelWhyTitle: 'Tanbasá ita kansela?',
@@ -506,6 +513,11 @@ export default {
   admTermosNao: 'Seidauk simu',
   admDecisao: 'Desizaun',
   admHistorico: 'Viajen sira',
+  admCidadania: 'Sidadania deklaradu',
+  admCidadaniaDeclarou: 'Deklara katak sidadaun Timor-Leste',
+  admCidadaniaSim: 'Sin',
+  admCidadaniaNao: 'Lae',
+  admQuando: 'Bainhira',
   admAvaliacoesRecebidas: 'Avaliasaun ne’ebé simu',
   admTurnosFoto: 'Fotografia kalan nian',
   admEmergencias: 'Emerjénsia',

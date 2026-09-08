@@ -517,6 +517,18 @@ adminRouter.get(
             ? { versao: u.driver_terms_version, quando: u.driver_terms_accepted_at }
             : null,
         },
+        // DECLARAÇÃO DE CIDADANIA, e não verificação dela.
+        //
+        // Vai para o painel ao lado dos documentos de propósito: quem aprova
+        // tem de poder ler "declarou ser cidadão de Timor-Leste" com a
+        // fotografia do bilhete de identidade no mesmo ecrã. Sozinha, a
+        // declaração não prova nada; é a confrontação das duas que decide.
+        //
+        // `null` quer dizer "não foi perguntado" — as contas de passageiro e
+        // as criadas antes desta regra. Diferente de `false`, que seria a
+        // pessoa a dizer que não é.
+        cidadaoTL:
+          u.cidadao_tl == null ? null : { declarou: !!u.cidadao_tl, quando: u.cidadao_tl_em },
         decisao: u.driver_status_em
           ? { motivo: u.driver_status_motivo, quando: u.driver_status_em, por: u.driver_status_por }
           : null,
