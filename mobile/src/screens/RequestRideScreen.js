@@ -257,6 +257,9 @@ export default function RequestRideScreen({ navigation, route }) {
       setOrigem({
         lat: naEstrada.lat,
         lng: naEstrada.lng,
+        // De onde veio, para o pino poder ficar lá e o nome poder
+        // encontrar-se com ele. Ver `ondeMostrar` e o `mesmo()` do nome.
+        escolhido: aqui,
         label: naEstrada.rua || rotuloCoordenadas(naEstrada.lat, naEstrada.lng),
         provisorio: !naEstrada.rua,
       });
@@ -589,19 +592,34 @@ export default function RequestRideScreen({ navigation, route }) {
   if (trocoAPe) trocosAPe.push({ ...trocoAPe, qual: 'origem' });
   if (trocoDestino) trocosAPe.push({ ...trocoDestino, qual: 'destino' });
 
+  // O PINO FICA ONDE A PESSOA APONTOU. O ponto na estrada é que é do carro.
+  //
+  // Antes o pino saltava para a beira da estrada, porque é lá que o carro
+  // encosta e era essa a coordenada guardada. Mas quem aponta uma casa quer
+  // ver o pino NA CASA — ver o pino saltar para a avenida diz que se apontou
+  // mal, quando não se apontou.
+  //
+  // São duas informações diferentes e passam a ter dois desenhos: o pino diz
+  // "é aqui que eu quero ir", o ponto diz "é aqui que o carro pára", e os
+  // pontinhos entre eles são o caminho a pé.
+  //
+  // A coordenada que vai no pedido continua a ser a da estrada — é para lá
+  // que o motorista conduz. Isto muda o que se VÊ, não o que se envia.
+  const ondeMostrar = (p) => p.escolhido || p;
+
   const marcadores = [];
   if (origem)
     marcadores.push({
-      lat: origem.lat,
-      lng: origem.lng,
+      lat: ondeMostrar(origem).lat,
+      lng: ondeMostrar(origem).lng,
       label: origem.label,
       tipo: 'origem',
       cartao: origem.desenhar === true,
     });
   if (destino)
     marcadores.push({
-      lat: destino.lat,
-      lng: destino.lng,
+      lat: ondeMostrar(destino).lat,
+      lng: ondeMostrar(destino).lng,
       label: destino.label,
       tipo: 'destino',
       cartao: destino.desenhar === true,

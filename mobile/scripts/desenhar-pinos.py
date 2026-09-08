@@ -61,6 +61,33 @@ def caminho():
     return p
 
 
+# O PONTO NA ESTRADA: onde o carro encosta.
+#
+# É imagem e não uma vista por cima do mapa, e a razão é a mesma dos pinos —
+# só que descoberta ao contrário. Uma vista desenhada em pixéis por cima do
+# mapa tem de ser recolocada de cada vez que o mapa se mexe, e recolocar
+# depois do movimento significa vê-la a flutuar durante ele. O Simão viu, e
+# tinha razão: um ponto que marca um sítio não pode andar quando o mapa anda.
+#
+# Um marcador com imagem é desenhado PELO mapa, agarrado à coordenada. Nunca
+# se descola, e não passa pela fotografia que estraga os marcadores com
+# filhos.
+PONTO = 20  # mostrado a 20x20
+
+
+def desenhar_ponto(fill='#E85531'):
+    lado = PONTO * S
+    img = Image.new('RGBA', (lado, lado), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    # Anel branco por fora e miolo coral. O anel é o que faz o ponto ler-se
+    # tanto sobre o cinzento de uma avenida como sobre o creme de um
+    # quarteirão — sem ele desaparece numa das duas.
+    d.ellipse([0, 0, lado - 1, lado - 1], fill='#FFFFFF')
+    m = int(3.5 * S)
+    d.ellipse([m, m, lado - 1 - m, lado - 1 - m], fill=fill)
+    return img
+
+
 def desenhar(fill, risco):
     img = Image.new('RGBA', (CAIXA[0] * S, CAIXA[1] * S), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
@@ -141,6 +168,13 @@ def main():
             caminho_ficheiro = os.path.join(pasta, f'pino-{nome}{sufixo}.png')
             alvo.save(caminho_ficheiro)
             print('escrito', os.path.relpath(caminho_ficheiro, aqui))
+
+    ponto = desenhar_ponto()
+    for sufixo, escala in (('', 1), ('@2x', 2), ('@3x', 3)):
+        alvo = ponto.resize((PONTO * escala, PONTO * escala), Image.LANCZOS)
+        caminho_ficheiro = os.path.join(pasta, f'ponto-estrada{sufixo}.png')
+        alvo.save(caminho_ficheiro)
+        print('escrito', os.path.relpath(caminho_ficheiro, aqui))
 
     carro = desenhar_carro()
     for sufixo, escala in (('', 1), ('@2x', 2), ('@3x', 3)):

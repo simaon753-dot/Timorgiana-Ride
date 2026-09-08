@@ -83,6 +83,11 @@ const IMAGEM = {
 // Um marcador anda com o mapa sem ninguém calcular nada. O que faltava era
 // uma forma de o desenhar que funcionasse — e é a mesma dos pinos.
 const CARRO = require('../../assets/mapa/carro.png');
+// O ponto onde o carro encosta. IMAGEM e não vista por cima do mapa: uma
+// vista tem de ser recolocada a cada movimento, e recolocar depois do
+// movimento é vê-la a flutuar durante ele. Um marcador com imagem é
+// desenhado pelo mapa, agarrado à coordenada, e nunca se descola.
+const PONTO_ESTRADA = require('../../assets/mapa/ponto-estrada.png');
 const ANCORA_Y = 42 / PINO_A;
 
 // O TAMANHO VAI DECLARADO NUMA VISTA À VOLTA, e não só nas propriedades do
@@ -911,6 +916,16 @@ export default function MapaGoogle({
           />
         ))}
 
+        {trocosAPe.map((t) => (
+          <Marker
+            key={`ponto-${t.qual}`}
+            coordinate={{ latitude: t.para.lat, longitude: t.para.lng }}
+            anchor={{ x: 0.5, y: 0.5 }}
+            zIndex={900}
+            image={PONTO_ESTRADA}
+          />
+        ))}
+
         {liveMarker ? (
           <Marker
             coordinate={{ latitude: liveMarker.lat, longitude: liveMarker.lng }}
@@ -999,13 +1014,14 @@ export default function MapaGoogle({
               ? Math.max(4, Math.min(p.x - BALAO_L / 2, largura - BALAO_L - 4))
               : p.x - BALAO_L / 2;
           return (
-            <View key={`ponta-${p.qual}`} pointerEvents="none">
-              <View style={[styles.pontaBalao, { left: esq, top: p.y - 30 }]}>
-                <Text style={styles.pontaTexto} numberOfLines={1}>
-                  {p.qual === 'destino' ? t('pontoChegada') : t('pontoRecolha')}
-                </Text>
-              </View>
-              <View style={[styles.pontaPonto, { left: p.x - 6, top: p.y - 6 }]} />
+            <View
+              key={`ponta-${p.qual}`}
+              pointerEvents="none"
+              style={[styles.pontaBalao, { left: esq, top: p.y - 32 }]}
+            >
+              <Text style={styles.pontaTexto} numberOfLines={1}>
+                {p.qual === 'destino' ? t('pontoChegada') : t('pontoRecolha')}
+              </Text>
             </View>
           );
         })}
@@ -1172,17 +1188,7 @@ const criarEstilos = () =>
       alignItems: 'center',
     },
     pontaTexto: { ...tipo.legenda, color: '#FFFFFF', fontWeight: '700' },
-    // O ponto no sítio exacto. Anel branco à volta para se ver por cima de
-    // uma estrada cinzenta e de um quarteirão claro sem se perder em nenhum.
-    pontaPonto: {
-      position: 'absolute',
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-      backgroundColor: colors.coral,
-      borderWidth: 2,
-      borderColor: '#FFFFFF',
-    },
+
     veiculo: { position: 'absolute', width: CARTAO_L },
 
     cartaoSolto: { position: 'absolute' },
