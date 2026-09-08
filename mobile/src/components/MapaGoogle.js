@@ -46,9 +46,6 @@ const COR = {
 const PINO_L = 30;
 const PINO_A = 45;
 const CARTAO_L = 150;
-// Largura do balão que diz onde o carro pára. Fixa, para se poder prender à
-// borda do ecrã com uma conta e não com uma medição.
-const BALAO_L = 132;
 
 // O PINO DENTRO DO MAPA É UMA IMAGEM, e não o componente <Pino>.
 //
@@ -291,11 +288,6 @@ export default function MapaGoogle({
   const [mapaPronto, setMapaPronto] = useState(false);
   // Onde o cartão do nome tem de ser desenhado, em pixéis do ecrã.
   const [cartoes, setCartoes] = useState([]);
-  // Onde é que o carro pára, em pixéis. Sobreposição e não marcador: um
-  // <Marker> COM FILHOS é fotografado pelo Android e, neste telemóvel, sai
-  // em branco — já custou quatro tentativas a descobrir. Os marcadores desta
-  // app são imagens; tudo o que tem texto vive por cima do mapa.
-  const [pontasNaEstrada, setPontasNaEstrada] = useState([]);
   const [largura, setLargura] = useState(0);
   const [veiculo, setVeiculo] = useState(null);
   // OS NOSSOS LUGARES DESENHADOS NO MAPA.
@@ -512,30 +504,6 @@ export default function MapaGoogle({
     }
   }, [pts]);
 
-  // Onde é que as pontas dos troços caem no ecrã. Mesma mecânica dos
-  // cartões: quem sabe converter coordenada em pixel é o mapa, porque só ele
-  // conhece o zoom, a inclinação e o rumo.
-  const trocosKey = trocosAPe.map((t) => `${t.qual}:${t.para.lat},${t.para.lng}`).join('|');
-
-  const recalcularPontas = useCallback(async () => {
-    if (!mapaRef.current || !trocosAPe.length) {
-      setPontasNaEstrada([]);
-      return;
-    }
-    try {
-      const px = await Promise.all(
-        trocosAPe.map((t) =>
-          mapaRef.current.pointForCoordinate({ latitude: t.para.lat, longitude: t.para.lng })
-        )
-      );
-      setPontasNaEstrada(trocosAPe.map((t, i) => ({ qual: t.qual, x: px[i].x, y: px[i].y })));
-    } catch {
-      setPontasNaEstrada([]);
-    }
-    // Pela CHAVE e não pela lista: quem chama constrói um array novo em cada
-    // desenho, e uma dependência que muda sempre faz isto correr sempre.
-  }, [trocosKey]); // eslint-disable-line react-hooks/exhaustive-deps
-
   // As posições dos nossos no ecrã.
   //
   // `pointForCoordinate` e não uma conta de latitude para pixéis: desde que
@@ -570,9 +538,8 @@ export default function MapaGoogle({
   useEffect(() => {
     if (mapaPronto) {
       recalcularCartoes();
-      recalcularPontas();
     }
-  }, [mapaPronto, markersKey, recalcularCartoes, recalcularPontas]);
+  }, [mapaPronto, markersKey, recalcularCartoes]);
 
   // O VEÍCULO segue o mesmo caminho dos cartões: desenhado POR CIMA do mapa.
   //
@@ -735,17 +702,12 @@ export default function MapaGoogle({
       centroRef.current = { lat: regiao.latitude, lng: regiao.longitude };
       regiaoRef.current = regiao;
       recalcularCartoes();
-      // FALTAVA, e era o que punha o balão do ponto de chegada a flutuar
-      // longe da linha. Os pontinhos são desenho DO MAPA e acompanham-no;
-      // o balão é pixéis por cima, e sem isto ficava onde tinha sido
-      // calculado antes de o mapa ajustar o enquadramento à viagem.
-      recalcularPontas();
       buscarNossos(regiao);
       if (modoEscolha && onCentro) {
         onCentro({ type: 'centro', lat: regiao.latitude, lng: regiao.longitude });
       }
     },
-    [modoEscolha, onCentro, recalcularCartoes, recalcularPontas, buscarNossos]
+    [modoEscolha, onCentro, recalcularCartoes, buscarNossos]
   );
 
   // O PRIMEIRO ENVIO É IMEDIATO. Quem abre o modo de escolha já está a
@@ -872,9 +834,13 @@ export default function MapaGoogle({
               { latitude: t.de.lat, longitude: t.de.lng },
               { latitude: t.para.lat, longitude: t.para.lng },
             ]}
+            // Como os do Google: pontos redondos e espaçados, cinzento
+            // neutro. Não é a cor de nada nosso de propósito — este troço não
+            // é da app, é o bocado que a pessoa faz a pé.
             strokeColor="#5A6B66"
-            strokeWidth={3}
-            lineDashPattern={[2, 6]}
+            strokeWidth={4}
+            lineCap="round"
+            lineDashPattern={[1, 9]}
           />
         ))}
 
@@ -998,33 +964,6 @@ export default function MapaGoogle({
           respondia do lado do destino.
           Some enquanto o dedo arrasta, como os cartões: um rótulo atrasado
           diz que o carro pára ali, e não pára. */}
-      {!aMexer &&
-        pontasNaEstrada.map((p) => {
-          // O PONTO E O BALÃO SÃO DUAS PEÇAS SEPARADAS, e têm de ser.
-          //
-          // O ponto marca onde o carro pára: tem de ficar EXACTAMENTE ali,
-          // aconteça o que acontecer. O balão é só o nome disso, e junto à
-          // borda do ecrã tem de se encolher para dentro — senão vai parar
-          // debaixo dos botões do canto, que foi o que o Simão viu.
-          //
-          // Juntos numa peça só, prender o balão arrastava o ponto com ele e
-          // passava a apontar para onde o carro não pára.
-          const esq =
-            largura > 0
-              ? Math.max(4, Math.min(p.x - BALAO_L / 2, largura - BALAO_L - 4))
-              : p.x - BALAO_L / 2;
-          return (
-            <View
-              key={`ponta-${p.qual}`}
-              pointerEvents="none"
-              style={[styles.pontaBalao, { left: esq, top: p.y - 32 }]}
-            >
-              <Text style={styles.pontaTexto} numberOfLines={1}>
-                {p.qual === 'destino' ? t('pontoChegada') : t('pontoRecolha')}
-              </Text>
-            </View>
-          );
-        })}
 
       {/* Só o RÓTULO do veículo fica por cima — o carro é marcador.
           O rótulo tem de continuar aqui porque o texto muda a cada rua, e
@@ -1178,16 +1117,6 @@ const criarEstilos = () =>
     // O balão sobre a ponta da linha, com o bico a apontar-lhe. Coral, como
     // nas imagens que o Simão mandou: é a cor da acção nesta app, e parar o
     // carro é a acção.
-    pontaBalao: {
-      position: 'absolute',
-      width: BALAO_L,
-      backgroundColor: colors.coral,
-      borderRadius: radius.pill,
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      alignItems: 'center',
-    },
-    pontaTexto: { ...tipo.legenda, color: '#FFFFFF', fontWeight: '700' },
 
     veiculo: { position: 'absolute', width: CARTAO_L },
 

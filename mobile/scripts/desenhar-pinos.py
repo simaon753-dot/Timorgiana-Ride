@@ -72,19 +72,27 @@ def caminho():
 # Um marcador com imagem é desenhado PELO mapa, agarrado à coordenada. Nunca
 # se descola, e não passa pela fotografia que estraga os marcadores com
 # filhos.
-PONTO = 20  # mostrado a 20x20
+PONTO = 16  # mostrado a 16x16
 
 
-def desenhar_ponto(fill='#E85531'):
+def desenhar_ponto(anel='#3F4A46'):
+    """Círculo branco com anel escuro — o fim da linha, como no Google Maps.
+
+    O Simão comparou a nossa versão com a do Google e preferiu a do Google:
+    sem balão, sem rótulo, só o círculo na estrada e os pontinhos até ao pino.
+    Tem razão — o rótulo dizia por palavras o que o desenho já diz, e obrigava
+    a uma sobreposição em pixéis que nunca ficava agarrada ao mapa.
+
+    Branco por dentro e escuro à volta, e não o contrário: assim lê-se sobre
+    o cinzento de uma avenida e sobre o creme de um quarteirão sem se perder
+    em nenhum dos dois.
+    """
     lado = PONTO * S
     img = Image.new('RGBA', (lado, lado), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    # Anel branco por fora e miolo coral. O anel é o que faz o ponto ler-se
-    # tanto sobre o cinzento de uma avenida como sobre o creme de um
-    # quarteirão — sem ele desaparece numa das duas.
-    d.ellipse([0, 0, lado - 1, lado - 1], fill='#FFFFFF')
-    m = int(3.5 * S)
-    d.ellipse([m, m, lado - 1 - m, lado - 1 - m], fill=fill)
+    d.ellipse([0, 0, lado - 1, lado - 1], fill=anel)
+    m = int(2.6 * S)
+    d.ellipse([m, m, lado - 1 - m, lado - 1 - m], fill='#FFFFFF')
     return img
 
 

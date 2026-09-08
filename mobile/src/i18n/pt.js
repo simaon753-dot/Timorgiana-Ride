@@ -325,8 +325,6 @@ export default {
   termosPorAceitar: 'Falta aceitares os termos de utilização.',
   privacidadePorAceitar: 'Falta aceitares a política de privacidade.',
   paisProcurar: 'Procurar país',
-  pontoRecolha: 'Ponto de recolha',
-  pontoChegada: 'Ponto de chegada',
   paisSemResultado: 'Nenhum país encontrado.',
   paisOutroDica: 'Escreva o número internacional inteiro, com o indicativo e sem o +.',
   driverSoTimorTel: 'Para conduzir é preciso um número de Timor-Leste.',
