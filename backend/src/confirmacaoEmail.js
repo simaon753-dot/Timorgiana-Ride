@@ -29,7 +29,9 @@ function gerarCodigo() {
 }
 
 export async function emitirConfirmacao(userId) {
-  const u = await one('SELECT id, name, email, email_confirmado FROM users WHERE id = $1', [userId]);
+  const u = await one('SELECT id, name, email, email_confirmado FROM users WHERE id = $1', [
+    userId,
+  ]);
   if (!u || !u.email || u.email_confirmado) return null;
 
   const codigo = gerarCodigo();
@@ -86,9 +88,10 @@ export async function confirmarComCodigo(userId, codigo) {
 
   const certo = await bcrypt.compare(String(codigo || ''), u.email_codigo_hash);
   if (!certo) {
-    await query('UPDATE users SET email_codigo_tentativas = email_codigo_tentativas + 1 WHERE id = $1', [
-      userId,
-    ]);
+    await query(
+      'UPDATE users SET email_codigo_tentativas = email_codigo_tentativas + 1 WHERE id = $1',
+      [userId]
+    );
     return falhou;
   }
 

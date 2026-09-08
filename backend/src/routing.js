@@ -104,7 +104,7 @@ function aoCentimoPermitido(valor) {
 
 function estimarMin(km) {
   const VELOCIDADE_KMH = 20;
-  return Math.max(1, Math.round((Number(km) || 0) / VELOCIDADE_KMH * 60));
+  return Math.max(1, Math.round(((Number(km) || 0) / VELOCIDADE_KMH) * 60));
 }
 
 // Tempo até o motorista chegar ao passageiro. Velocidade média baixa de
@@ -112,5 +112,5 @@ function estimarMin(km) {
 // pior do que uma conservadora que se cumpre.
 export function etaMinutos(km) {
   const VELOCIDADE_KMH = 20;
-  return Math.max(1, Math.round((km * 1.4) / VELOCIDADE_KMH * 60));
+  return Math.max(1, Math.round(((km * 1.4) / VELOCIDADE_KMH) * 60));
 }

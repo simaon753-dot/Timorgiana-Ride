@@ -89,9 +89,7 @@ function paraMosaico(lat, lng, z) {
   const n = 2 ** z;
   return {
     x: Math.floor(((lng + 180) / 360) * n),
-    y: Math.floor(
-      ((1 - Math.asinh(Math.tan((lat * Math.PI) / 180)) / Math.PI) / 2) * n
-    ),
+    y: Math.floor(((1 - Math.asinh(Math.tan((lat * Math.PI) / 180)) / Math.PI) / 2) * n),
   };
 }
 

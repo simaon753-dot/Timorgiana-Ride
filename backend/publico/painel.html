@@ -40,6 +40,20 @@
   .separadores button[aria-pressed="true"] { color: var(--teal); border-bottom-color: var(--teal);
     font-weight: 600; }
   .explica { color: var(--suave); font-size: 14px; margin: 0 0 14px; max-width: 640px; }
+  .caixaDados { background: var(--branco); border: 1px solid var(--borda);
+    border-radius: 14px; padding: 20px; max-width: 640px; }
+  .caixaDados h3 { margin: 0 0 6px; font-size: 17px; }
+  .caixaDados label { display: block; margin: 14px 0 4px; }
+  .caixaDados input[type=date] { padding: 9px 11px; border: 1px solid var(--borda);
+    border-radius: 8px; font-size: 15px; font-family: inherit; }
+  .linhaBotoes { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 4px; }
+  .linhaBotoes button { padding: 10px 16px; border-radius: 8px; border: 1px solid var(--teal);
+    background: var(--teal); color: #fff; font-size: 14px; cursor: pointer; font-family: inherit; }
+  /* O apagar é vermelho e começa apagado. A cor não é decoração: é a única
+     diferença visível entre um botão que transfere e um que destrói. */
+  .linhaBotoes button.perigo { background: var(--mau); border-color: var(--mau); }
+  .linhaBotoes button:disabled { background: var(--borda); border-color: var(--borda);
+    color: var(--suave); cursor: not-allowed; }
   #procura { max-width: 420px; margin-bottom: 16px; }
   .pessoa { background: var(--branco); border: 1px solid var(--borda); border-radius: 12px;
     padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center;
@@ -136,6 +150,7 @@
     <div class="separadores">
       <button data-sec="aprovacoes" aria-pressed="true">Aprovações</button>
       <button data-sec="contas" aria-pressed="false">Contas e acessos</button>
+      <button data-sec="dados" aria-pressed="false">Dados</button>
     </div>
 
     <div id="secAprovacoes">
@@ -156,6 +171,36 @@
       </p>
       <input id="procura" type="search" placeholder="Nome ou número de telemóvel" />
       <div id="pessoas"></div>
+    </div>
+
+    <div id="secDados" hidden>
+      <p class="explica">
+        Os <b>eventos das viagens</b> e o <b>registo de acessos</b> apagam-se sozinhos ao
+        fim do prazo. As <b>viagens</b> não — são o registo de ganhos dos motoristas, e
+        saem daqui à mão, depois de guardadas.
+      </p>
+
+      <div id="estadoRetencao" class="explica"></div>
+
+      <div class="caixaDados">
+        <h3>Transferir e apagar viagens</h3>
+        <p class="meta">
+          Escolha a data. Vai levar as viagens terminadas até esse dia, com os eventos,
+          as conversas e as avaliações — tudo num ficheiro só.
+        </p>
+        <label for="ateData" class="meta">Até ao dia</label>
+        <input id="ateData" type="date" />
+
+        <div class="linhaBotoes">
+          <button id="btTransferir">Transferir ficheiro</button>
+          <button id="btApagar" class="perigo" disabled>Apagar o que foi transferido</button>
+        </div>
+
+        <p class="meta" id="notaApagar">
+          O botão de apagar só acorda depois de o ficheiro ter sido transferido nesta
+          sessão. Viagens com pedido de socorro nunca são apagadas.
+        </p>
+      </div>
     </div>
   </main>
 </div>
@@ -586,7 +631,9 @@ for (const b of document.querySelectorAll('.separadores button')) {
     }
     $('secAprovacoes').hidden = b.dataset.sec !== 'aprovacoes';
     $('secContas').hidden = b.dataset.sec !== 'contas';
+    $('secDados').hidden = b.dataset.sec !== 'dados';
     if (b.dataset.sec === 'contas') $('procura').focus();
+    if (b.dataset.sec === 'dados') mostrarRetencao();
   };
 }
 
@@ -669,6 +716,102 @@ $('btAtualizar').onclick = async () => {
   }
 };
 
+// ── Dados: transferir e apagar viagens ────────────────────────────────
+//
+// O APAGAR SÓ ACORDA DEPOIS DE UMA TRANSFERÊNCIA BEM SUCEDIDA, e só para a
+// MESMA data. Mudar o dia volta a adormecê-lo.
+//
+// É a única coisa que impede o engano que aqui importa: carregar em apagar
+// convencido de que já se tinha guardado. O browser não sabe se o ficheiro
+// chegou ao disco, mas sabe se o pedido correu bem — e isso chega para não
+// deixar apagar às cegas.
+let transferido = null;
+
+async function mostrarRetencao() {
+  const alvo = $('estadoRetencao');
+  alvo.textContent = 'A carregar…';
+  try {
+    const r = await api('/admin/retencao');
+    const desde = (x) => (x ? new Date(x).toLocaleDateString('pt-PT') : '—');
+    alvo.innerHTML =
+      '<b>' + r.eventos.linhas + '</b> eventos de viagem, o mais antigo de ' +
+      desde(r.eventos.maisAntigo) + ' — apagam-se aos ' + r.eventos.meses + ' meses.<br>' +
+      '<b>' + r.acessos.linhas + '</b> acessos a documentos, o mais antigo de ' +
+      desde(r.acessos.maisAntigo) + ' — apagam-se aos ' + r.acessos.meses + ' meses.<br>' +
+      '<b>' + r.viagens.linhas + '</b> viagens terminadas — não expiram sozinhas.';
+  } catch (e) {
+    alvo.textContent = 'Não foi possível ler o estado: ' + e.message;
+  }
+}
+
+function aoMudarData() {
+  // Data diferente, transferência diferente. Sem isto, transferir Janeiro e
+  // depois escrever Dezembro apagava nove meses que nunca saíram daqui.
+  $('btApagar').disabled = transferido !== $('ateData').value;
+}
+
+async function transferirViagens() {
+  const ate = $('ateData').value;
+  if (!ate) return avisar('Escolha a data primeiro.', true);
+  const bt = $('btTransferir');
+  bt.disabled = true;
+  bt.textContent = 'A preparar…';
+  try {
+    const r = await fetch('/api/admin/exportar/viagens?ate=' + encodeURIComponent(ate), {
+      headers: { Authorization: 'Bearer ' + token },
+    });
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({}));
+      throw new Error(j.error || 'HTTP ' + r.status);
+    }
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'timorgianaride-viagens-ate-' + ate + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    transferido = ate;
+    aoMudarData();
+    avisar('Ficheiro transferido. Guarde-o antes de apagar.');
+  } catch (e) {
+    avisar('Não foi possível transferir: ' + e.message, true);
+  } finally {
+    bt.disabled = false;
+    bt.textContent = 'Transferir ficheiro';
+  }
+}
+
+async function apagarViagens() {
+  const ate = $('ateData').value;
+  if (transferido !== ate) return avisar('Transfira o ficheiro primeiro.', true);
+  if (!confirm('Apagar todas as viagens terminadas até ' + ate + '? Não há como voltar atrás.')) {
+    return;
+  }
+  const bt = $('btApagar');
+  bt.disabled = true;
+  bt.textContent = 'A apagar…';
+  try {
+    const r = await api('/admin/exportar/viagens/apagar', {
+      method: 'POST',
+      body: JSON.stringify({ ate, confirmar: 'APAGAR' }),
+    });
+    transferido = null;
+    avisar(
+      r.viagens + ' viagem(ns) apagada(s)' +
+        (r.retidasPorSocorro ? ' · ' + r.retidasPorSocorro + ' retida(s) por terem pedido de socorro' : '')
+    );
+    mostrarRetencao();
+  } catch (e) {
+    avisar('Não foi possível apagar: ' + e.message, true);
+  } finally {
+    bt.textContent = 'Apagar o que foi transferido';
+    aoMudarData();
+  }
+}
+
 function sair() {
   token = '';
   localStorage.removeItem('tr_token');
@@ -678,6 +821,17 @@ function sair() {
   $('ecraEntrar').hidden = false;
 }
 $('btSair').onclick = sair;
+$('btTransferir').onclick = transferirViagens;
+$('btApagar').onclick = apagarViagens;
+$('ateData').onchange = aoMudarData;
+// Começa no dia de hoje menos seis meses: é o prazo dos eventos, e é a data
+// que quase sempre se quer. Uma caixa de data vazia obriga a escolher um dia
+// de calendário para uma decisão que já tem uma resposta óbvia.
+(() => {
+  const d = new Date();
+  d.setMonth(d.getMonth() - 6);
+  $('ateData').value = d.toISOString().slice(0, 10);
+})();
 
 $('btEntrar').onclick = async () => {
   mostrarErro('erroEntrar', '');

@@ -506,6 +506,7 @@ export default {
   admRegistoUltima: 'last',
   admRegistoMais: '… and {n} more',
   admRegistoVerConta: 'Open the account',
+  admVerImagem: 'View the image',
   admNadaAqui: 'No data.',
   admMensagensN: 'Messages exchanged',
   admMensagensPrivadas: 'Administrators do not read message contents.',

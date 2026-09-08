@@ -42,10 +42,7 @@ lugaresRouter.get(
   wrap(async (req, res) => {
     const lat = Number(req.query.lat);
     const lng = Number(req.query.lng);
-    const r = await podeIr(
-      Number.isFinite(lat) ? lat : null,
-      Number.isFinite(lng) ? lng : null
-    );
+    const r = await podeIr(Number.isFinite(lat) ? lat : null, Number.isFinite(lng) ? lng : null);
     res.json(r);
   })
 );

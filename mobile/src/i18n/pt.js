@@ -519,6 +519,7 @@ export default {
   admRegistoUltima: 'última',
   admRegistoMais: '… e mais {n}',
   admRegistoVerConta: 'Ver a conta',
+  admVerImagem: 'Ver a imagem',
   admNadaAqui: 'Sem dados.',
   admMensagensN: 'Mensagens trocadas',
   admMensagensPrivadas: 'A administração não lê o conteúdo das conversas.',

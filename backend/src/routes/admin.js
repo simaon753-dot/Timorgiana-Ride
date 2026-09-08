@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { historicoDe } from '../eventos.js';
 import { requireAuth } from '../auth.js';
-import { query, one } from '../db.js';
+import { query, one, tx } from '../db.js';
+import { estadoDaRetencao } from '../retencao.js';
 import { getDocument } from '../documents.js';
 import { toPublicUser } from '../users.js';
 import { alertasAbertos, resolverAlerta } from '../sos.js';
@@ -975,4 +976,163 @@ adminRouter.post(
 
     res.json({ ok: true });
   })
+);
+
+// ── TRANSFERIR E APAGAR VIAGENS ────────────────────────────────────────
+//
+// Pedido do Simão a 08/09/2026: poder levar as viagens antigas para o
+// escritório e libertá-las da base de dados.
+//
+// A retenção automática trata dos EVENTOS das viagens (seis meses) e do
+// registo de acessos (vinte e quatro). As VIAGEMS em si não expiram sozinhas —
+// são o registo de ganhos do motorista, e ninguém apaga isso a um relógio.
+// Saem daqui, à mão, e só depois de estarem guardadas noutro sítio.
+//
+// A REGRA QUE FAZ ISTO SER SEGURO: o ficheiro que se transfere tem de conter
+// TUDO o que o apagamento vai levar. Se o ficheiro tivesse só as viagens e o
+// apagamento levasse também as conversas e as avaliações, ficava-se com uma
+// cópia que parece completa e não é — e só se descobre no dia em que ela é
+// precisa. Por isso a exportação leva as cinco tabelas.
+
+// Que viagens estão em causa. Uma só definição, usada pela exportação e pelo
+// apagamento: se fossem duas, divergiam, e a diferença entre elas seria
+// exactamente aquilo que se perde sem cópia.
+const VIAGENS_ATE = `
+  SELECT r.id FROM rides r
+   WHERE r.status IN ('completed','cancelled')
+     AND r.created_at < ($1::date + 1)
+`;
+
+// AS VIAGENS COM PEDIDO DE SOCORRO NÃO SE APAGAM.
+//
+// Numa viagem em que alguém carregou no botão de emergência, o registo é a
+// coisa mais importante que o sistema tem. Um prazo não é razão para a deitar
+// fora, e a data em que isso possa vir a fazer falta não se sabe de antemão.
+//
+// Ficam para trás e o número delas é dito a quem apagou, para ninguém pensar
+// que as levou no ficheiro.
+const SEM_SOS = ` AND NOT EXISTS (SELECT 1 FROM sos_alerts s WHERE s.ride_id = r.id) `;
+
+function dataValida(v) {
+  const s = String(v || '').trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s)) ? s : null;
+}
+
+// GET /api/admin/exportar/viagens?ate=AAAA-MM-DD
+adminRouter.get(
+  '/exportar/viagens',
+  wrap(async (req, res) => {
+    const ate = dataValida(req.query.ate);
+    if (!ate) return res.status(400).json({ error: 'Indica a data no formato AAAA-MM-DD.' });
+
+    const ids = (await query(VIAGENS_ATE, [ate])).map((r) => r.id);
+    if (!ids.length) {
+      return res.status(404).json({ error: 'Não há viagens terminadas até essa data.' });
+    }
+
+    const [viagens, eventos, mensagens, avaliacoes, socorros] = await Promise.all([
+      query(
+        `SELECT r.*, p.name AS passageiro, p.phone AS passageiro_telefone,
+                d.name AS motorista, d.phone AS motorista_telefone
+           FROM rides r
+           JOIN users p ON p.id = r.passenger_id
+           LEFT JOIN users d ON d.id = r.driver_id
+          WHERE r.id = ANY($1) ORDER BY r.id`,
+        [ids]
+      ),
+      query(`SELECT * FROM ride_events WHERE ride_id = ANY($1) ORDER BY id`, [ids]),
+      query(`SELECT * FROM messages WHERE ride_id = ANY($1) ORDER BY id`, [ids]),
+      query(`SELECT * FROM ratings WHERE ride_id = ANY($1) ORDER BY id`, [ids]),
+      query(`SELECT * FROM sos_alerts WHERE ride_id = ANY($1) ORDER BY id`, [ids]),
+    ]);
+
+    const porApagar = (await query(VIAGENS_ATE + SEM_SOS, [ate])).length;
+
+    // Fica registado que estes dados saíram, e por quem. Exportar é levar
+    // dados pessoais para fora do sistema — telefones, trajectos, conversas —
+    // e isso é precisamente o género de acto que este registo existe para
+    // conseguir mostrar mais tarde.
+    registarAcesso(req.user.id, `exportou ${viagens.length} viagens até ${ate}`, null);
+
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="timorgianaride-viagens-ate-${ate}.json"`
+    );
+    return res.end(
+      JSON.stringify(
+        {
+          gerado: new Date().toISOString(),
+          por: { id: req.user.id, nome: req.user.name },
+          ate,
+          // O que o apagamento a seguir vai levar, e o que vai deixar. Escrito
+          // DENTRO do ficheiro para quem o abrir daqui a dois anos não ter de
+          // adivinhar o que ele contém.
+          resumo: {
+            viagens: viagens.length,
+            eventos: eventos.length,
+            mensagens: mensagens.length,
+            avaliacoes: avaliacoes.length,
+            socorros: socorros.length,
+            apagaveis: porApagar,
+            retidasPorSocorro: viagens.length - porApagar,
+          },
+          viagens,
+          eventos,
+          mensagens,
+          avaliacoes,
+          socorros,
+        },
+        null,
+        2
+      )
+    );
+  })
+);
+
+// POST /api/admin/exportar/viagens/apagar  { ate, confirmar: 'APAGAR' }
+adminRouter.post(
+  '/exportar/viagens/apagar',
+  wrap(async (req, res) => {
+    const ate = dataValida(req.body?.ate);
+    if (!ate) return res.status(400).json({ error: 'Indica a data no formato AAAA-MM-DD.' });
+    // Uma palavra escrita à mão, e não um booleano. Um `true` chega aqui por
+    // engano de mil maneiras; a palavra só chega se alguém a escrever.
+    if (String(req.body?.confirmar || '') !== 'APAGAR') {
+      return res.status(400).json({ error: 'Confirmação em falta.' });
+    }
+
+    const feito = await tx(async (cliente) => {
+      const { rows } = await cliente.query(VIAGENS_ATE + SEM_SOS, [ate]);
+      const ids = rows.map((r) => r.id);
+      if (!ids.length) return { viagens: 0 };
+
+      // Por ordem de dependência. O `ride_events` cai sozinho por cascata,
+      // mas apaga-se aqui à mesma para a contagem devolvida ser verdadeira.
+      const ev = await cliente.query(`DELETE FROM ride_events WHERE ride_id = ANY($1)`, [ids]);
+      const ms = await cliente.query(`DELETE FROM messages WHERE ride_id = ANY($1)`, [ids]);
+      const av = await cliente.query(`DELETE FROM ratings WHERE ride_id = ANY($1)`, [ids]);
+      const vi = await cliente.query(`DELETE FROM rides WHERE id = ANY($1)`, [ids]);
+      return {
+        viagens: vi.rowCount,
+        eventos: ev.rowCount,
+        mensagens: ms.rowCount,
+        avaliacoes: av.rowCount,
+      };
+    });
+
+    const retidas = (await query(VIAGENS_ATE, [ate])).length;
+
+    // O apagamento fica registado. Seria estranho um sistema que guarda quem
+    // viu um documento e não guarda quem apagou mil viagens.
+    registarAcesso(req.user.id, `apagou ${feito.viagens} viagens até ${ate}`, null);
+
+    return res.json({ ...feito, retidasPorSocorro: retidas });
+  })
+);
+
+// GET /api/admin/retencao — os prazos a funcionar, não prometidos
+adminRouter.get(
+  '/retencao',
+  wrap(async (req, res) => res.json(await estadoDaRetencao()))
 );

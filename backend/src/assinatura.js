@@ -53,7 +53,15 @@ export const PACOTES = {
 
 // Como o dinheiro chega. O servidor é a autoridade sobre esta lista para a
 // app não precisar de sair uma versão nova quando abrir um banco novo.
-export const FORMAS_PAGAMENTO = ['mandiri', 'bnu', 'bnctl', 'bri', 'telemor', 'escritorio', 'agente'];
+export const FORMAS_PAGAMENTO = [
+  'mandiri',
+  'bnu',
+  'bnctl',
+  'bri',
+  'telemor',
+  'escritorio',
+  'agente',
+];
 
 // O dia é o de Díli, não o do servidor. O Render corre algures na Ásia e o
 // UTC muda de dia às nove da manhã em Timor-Leste: sem isto, o trabalho de
@@ -127,10 +135,7 @@ export async function podeEntrarAoServico(userId) {
 // sobre um dia cobrado não tem como se resolver, e resolve-se sempre contra
 // quem não tem registo.
 export async function estadoDe(userId) {
-  const u = await one(
-    `SELECT dias_saldo, vehicle_type FROM users WHERE id = $1`,
-    [userId]
-  );
+  const u = await one(`SELECT dias_saldo, vehicle_type FROM users WHERE id = $1`, [userId]);
   const dias = await query(
     `SELECT TO_CHAR(dia, 'YYYY-MM-DD') AS dia, gratuito, ride_id
        FROM dias_contados WHERE user_id = $1

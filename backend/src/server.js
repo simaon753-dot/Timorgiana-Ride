@@ -28,6 +28,7 @@ import {
   toPublicRide,
 } from './rides.js';
 import { registarSemEsperar, EVENTOS } from './eventos.js';
+import { limparAntigos, MESES_ACESSOS, MESES_EVENTOS } from './retencao.js';
 import { fileURLToPath } from 'node:url';
 
 const app = express();
@@ -459,6 +460,31 @@ async function start() {
     }
   }
   await varrerPedidosMortos();
+
+  // O QUE JÁ PASSOU DO PRAZO.
+  //
+  // De hora a hora, e não de minuto a minuto como os outros dois: apagar
+  // linhas velhas não tem pressa nenhuma, e uma passagem que não encontra
+  // nada continua a custar uma ida à base de dados.
+  //
+  // Corre também ao arrancar, porque no plano gratuito o servidor adormece —
+  // se só corresse pelo temporizador, uma semana de pouco movimento passava
+  // sem limpeza nenhuma.
+  async function varrerPrazos() {
+    try {
+      const feito = await limparAntigos();
+      if (feito.eventos || feito.acessos) {
+        console.log(
+          `[retenção] ${feito.eventos} evento(s) além de ${MESES_EVENTOS} meses e` +
+            ` ${feito.acessos} acesso(s) além de ${MESES_ACESSOS} meses, apagados`
+        );
+      }
+    } catch (e) {
+      console.error('[retenção] não foi possível limpar:', e.message);
+    }
+  }
+  await varrerPrazos();
+  setInterval(varrerPrazos, 3600000).unref();
 
   // Perguntar ao Google pelos lugares aprovados que ainda não foram
   // perguntados. Não se espera por isto para abrir a porta: são chamadas a um

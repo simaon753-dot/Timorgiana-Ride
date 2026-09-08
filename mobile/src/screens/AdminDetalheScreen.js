@@ -5,6 +5,7 @@ import Voltar from '../components/Voltar.js';
 import BarraEstado from '../design/BarraEstado.js';
 import Carregando from '../design/Carregando.js';
 import ImagemProtegida from '../design/ImagemProtegida.js';
+import VerImagem from '../design/VerImagem.js';
 import Aviso from '../design/Aviso.js';
 import { tipo } from '../design/tipografia.js';
 import { colors, spacing, radius, registarEstilos } from '../theme.js';
@@ -45,6 +46,10 @@ export default function AdminDetalheScreen({ navigation, route }) {
   const { tipoAlvo, id } = route.params || {};
   const [dados, setDados] = useState(null);
   const [erro, setErro] = useState(null);
+  // A imagem que está aberta em grande, ou nada. Vive AQUI e não dentro do
+  // cartão de cada documento: um visualizador por documento seria um Modal por
+  // documento, todos montados ao mesmo tempo.
+  const [imagem, setImagem] = useState(null);
 
   const carregar = useCallback(async () => {
     setErro(null);
@@ -85,14 +90,48 @@ export default function AdminDetalheScreen({ navigation, route }) {
 
         {v ? <DetalheViagem v={v} t={t} navigation={navigation} /> : null}
         {c ? (
-          <DetalheConta d={dados} t={t} navigation={navigation} token={token} onMudou={carregar} />
+          <DetalheConta
+            d={dados}
+            t={t}
+            navigation={navigation}
+            token={token}
+            onMudou={carregar}
+            verImagem={setImagem}
+          />
         ) : null}
       </ScrollView>
+
+      <VerImagem
+        caminho={imagem?.caminho}
+        titulo={imagem?.titulo}
+        legenda={imagem?.legenda}
+        onFechar={() => setImagem(null)}
+      />
     </SafeAreaView>
   );
 }
 
 // ── Viagem ────────────────────────────────────────────────────────────
+// SALTAR DE UM DETALHE PARA OUTRO SEM EMPILHAR.
+//
+// Estava `navigation.push`, que ACRESCENTA sempre um ecrã — mesmo sendo o
+// mesmo ecrã. Da viagem ia-se ao passageiro, do passageiro a outra viagem, e
+// dessa outra vez ao mesmo passageiro; cada toque punha mais um por cima. O
+// Simão gravou-se a fazê-lo: aos 17 segundos do vídeo vê-se a Viagem #63 a
+// deslizar para fora com outra Viagem #63 por baixo.
+//
+// E depois pagava-se a subida toda à descida: seis toques para entrar eram
+// seis no Voltar para sair.
+//
+// Com `replace`, o detalhe é UM ecrã por onde se anda. Pode saltar-se de
+// viagem para pessoa e de pessoa para viagem as vezes que forem precisas —
+// por baixo continua a estar a lista de onde se veio, e um Voltar leva lá.
+// Foi exactamente o que ele pediu: "depois de clicar no botão voltar uma vez,
+// volta ao principal".
+function abrirDetalhe(navigation, tipoAlvo, id) {
+  navigation.replace('AdminDetalhe', { tipoAlvo, id });
+}
+
 function DetalheViagem({ v, t, navigation }) {
   return (
     <>
@@ -159,7 +198,7 @@ function DetalheViagem({ v, t, navigation }) {
 }
 
 // ── Conta ─────────────────────────────────────────────────────────────
-function DetalheConta({ d, t, navigation, token, onMudou }) {
+function DetalheConta({ d, t, navigation, token, onMudou, verImagem }) {
   // Confirmar um documento substituído. Recarrega a seguir, para a marca
   // "por confirmar" desaparecer sem ter de sair e voltar ao ecrã.
   async function marcarRevisto(id) {
@@ -230,7 +269,23 @@ function DetalheConta({ d, t, navigation, token, onMudou }) {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tira}>
             {d.documentos.map((doc) => (
               <View key={doc.id} style={styles.docCaixa}>
-                <ImagemProtegida caminho={`/admin/documents/${doc.id}`} style={styles.doc} />
+                {/* TOCAR ABRE EM GRANDE. Noventa e dois pixels dizem que há
+                    uma fotografia; não deixam ler o número de uma carta nem
+                    conferir a data impressa contra a que o motorista escreveu
+                    — que é o trabalho de quem aprova. */}
+                <Pressable
+                  onPress={() =>
+                    verImagem({
+                      caminho: `/admin/documents/${doc.id}`,
+                      titulo: NOME_DO_DOC[doc.tipo] ? t(NOME_DO_DOC[doc.tipo]) : doc.tipo,
+                      legenda: doc.validade ? paraMostrar(doc.validade) : t('docSemValidade'),
+                    })
+                  }
+                  accessibilityRole="imagebutton"
+                  accessibilityLabel={t('admVerImagem')}
+                >
+                  <ImagemProtegida caminho={`/admin/documents/${doc.id}`} style={styles.doc} />
+                </Pressable>
                 <Text style={[styles.docNome, doc.caducado && styles.mauTexto]}>
                   {NOME_DO_DOC[doc.tipo] ? t(NOME_DO_DOC[doc.tipo]) : doc.tipo}
                   {doc.caducado ? ' ⚠' : ''}
@@ -272,7 +327,19 @@ function DetalheConta({ d, t, navigation, token, onMudou }) {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tira}>
             {d.turnos.map((tn) => (
               <View key={tn.id} style={styles.docCaixa}>
-                <ImagemProtegida caminho={`/admin/turnos/${tn.id}/foto`} style={styles.doc} />
+                <Pressable
+                  onPress={() =>
+                    verImagem({
+                      caminho: `/admin/turnos/${tn.id}/foto`,
+                      titulo: t('admTurnosFoto'),
+                      legenda: tn.dia,
+                    })
+                  }
+                  accessibilityRole="imagebutton"
+                  accessibilityLabel={t('admVerImagem')}
+                >
+                  <ImagemProtegida caminho={`/admin/turnos/${tn.id}/foto`} style={styles.doc} />
+                </Pressable>
                 <Text style={styles.docNome}>{tn.dia}</Text>
               </View>
             ))}
@@ -286,7 +353,7 @@ function DetalheConta({ d, t, navigation, token, onMudou }) {
             <Pressable
               key={v.id}
               style={styles.item}
-              onPress={() => navigation.push('AdminDetalhe', { tipoAlvo: 'viagem', id: v.id })}
+              onPress={() => abrirDetalhe(navigation, 'viagem', v.id)}
             >
               <View style={{ flex: 1 }}>
                 <Text style={styles.itemTitulo} numberOfLines={1}>
@@ -323,10 +390,7 @@ function DetalheConta({ d, t, navigation, token, onMudou }) {
 
 function Pessoa({ p, t, navigation }) {
   return (
-    <Pressable
-      style={styles.item}
-      onPress={() => navigation.push('AdminDetalhe', { tipoAlvo: 'utilizador', id: p.id })}
-    >
+    <Pressable style={styles.item} onPress={() => abrirDetalhe(navigation, 'utilizador', p.id)}>
       <View style={{ flex: 1 }}>
         <Text style={styles.itemTitulo}>{p.nome}</Text>
         <Text style={styles.itemMeta}>

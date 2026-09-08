@@ -519,6 +519,7 @@ export default {
   admRegistoUltima: 'ikus',
   admRegistoMais: '… no tan {n}',
   admRegistoVerConta: 'Haree konta',
+  admVerImagem: 'Haree imajen',
   admNadaAqui: 'Laiha dadus.',
   admMensagensN: 'Troka mensajen ba malu',
   admMensagensPrivadas: 'Administrasaun la lee konteúdu husi konversa sira.',

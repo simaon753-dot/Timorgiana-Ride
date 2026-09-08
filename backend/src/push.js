@@ -84,7 +84,10 @@ export async function notificarAdminsSOS({ nome, rideId, lat, lng }) {
   );
   if (!admins.length) return { enviadas: 0 };
 
-  const onde = lat != null && lng != null ? `${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}` : 'sem posição';
+  const onde =
+    lat != null && lng != null
+      ? `${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}`
+      : 'sem posição';
   return enviar(
     admins.map((a) => ({
       to: a.push_token,
