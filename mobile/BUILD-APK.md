@@ -211,3 +211,27 @@ bundle; com `--clear`, entrou.
 O `src/config.js` exporta `API_SOURCE`, que diz de onde veio o endereço
 (variável de compilação, `app.json`, Expo Go, ou o fallback `localhost`).
 Útil quando a app diz "sem ligação ao servidor" e não se percebe porquê.
+
+## Porque é que o APK tem o tamanho que tem
+
+O Android compila **uma cópia de cada biblioteca nativa por arquitectura de
+processador** — o React Native, o Hermes, a SDK do Google Maps, tudo. Um APK
+universal leva-as todas dentro, e cada telemóvel usa uma e ignora as outras.
+
+O valor por omissão são quatro: `armeabi-v7a`, `arm64-v8a`, `x86`, `x86_64`.
+
+**O `x86` e o `x86_64` são para emuladores.** Nenhum telemóvel Android à venda
+os usa. Estavam dentro do APK de toda a gente sem servir a ninguém, e saíram
+(`buildArchs` no `app.json`).
+
+**O `armeabi-v7a` fica, e é decisão e não esquecimento.** É o ARM de 32 bits,
+dos telemóveis mais baratos e mais antigos. Tirá-lo poupava mais, e deixava de
+fora exactamente as pessoas para quem o tamanho da instalação já era o problema.
+
+Histórico dos tamanhos, para não se voltar a perder:
+
+| Data | APK | O que mudou |
+|---|---|---|
+| 08/09/2026 | >100 MB | dois mapas de reserva compilados e nunca usados |
+| 08/09/2026 | 77,58 MB | fora o MapLibre e o OpenStreetMap por WebView |
+| — | a medir | fora as arquitecturas de emulador |
