@@ -299,7 +299,13 @@ export default function RequestRideScreen({ navigation, route }) {
     }
     const nome = await nomeDoLugar(lat, lng, 0);
     if (!nome) return;
-    const mesmo = (p) => p && p.lat === lat && p.lng === lng;
+    // Bate certo com o ponto TAL COMO FOI ESCOLHIDO, mesmo que ele já tenha
+    // sido encostado à estrada entretanto. Ver `escolhido` no efeito de
+    // encostar o destino.
+    const mesmo = (p) =>
+      p &&
+      ((p.lat === lat && p.lng === lng) ||
+        (p.escolhido && p.escolhido.lat === lat && p.escolhido.lng === lng));
     if (tipo === 'destino')
       setDestino((p) => (mesmo(p) ? { ...p, label: nome, provisorio: false } : p));
     else setOrigem((p) => (mesmo(p) ? { ...p, label: nome, provisorio: false } : p));
@@ -424,7 +430,13 @@ export default function RequestRideScreen({ navigation, route }) {
     // sobrescrevia um ponto que a pessoa entretanto já tinha mudado.
     const nome = await nomeDoLugar(lat, lng);
     if (!nome) return;
-    const mesmo = (p) => p && p.lat === lat && p.lng === lng;
+    // Bate certo com o ponto TAL COMO FOI ESCOLHIDO, mesmo que ele já tenha
+    // sido encostado à estrada entretanto. Ver `escolhido` no efeito de
+    // encostar o destino.
+    const mesmo = (p) =>
+      p &&
+      ((p.lat === lat && p.lng === lng) ||
+        (p.escolhido && p.escolhido.lat === lat && p.escolhido.lng === lng));
     setOrigem((p) => (mesmo(p) ? { ...p, label: nome, provisorio: false } : p));
     setDestino((p) => (mesmo(p) ? { ...p, label: nome, provisorio: false } : p));
   }
@@ -541,7 +553,17 @@ export default function RequestRideScreen({ navigation, route }) {
         setTrocoDestino({ de: escolhido, para: { lat: na.lat, lng: na.lng } });
         setDestino((d) =>
           d && d.lat === escolhido.lat && d.lng === escolhido.lng
-            ? { ...d, lat: na.lat, lng: na.lng }
+            ? // `escolhido` FICA GUARDADO no ponto, e não é enfeite.
+              //
+              // O nome do sítio chega do geocodificador segundos depois, e
+              // quem o recebe confirma que o ponto ainda é o mesmo comparando
+              // COORDENADAS. Ao encostar à estrada eu mudo-as — e o nome, ao
+              // chegar, deixava de bater certo e era deitado fora. O destino
+              // ficava a mostrar "-8.52285, 125.60982".
+              //
+              // Guardando aqui de onde este ponto veio, o nome volta a
+              // encontrar-se com ele.
+              { ...d, lat: na.lat, lng: na.lng, escolhido }
             : d
         );
       })

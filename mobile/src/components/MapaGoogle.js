@@ -46,6 +46,9 @@ const COR = {
 const PINO_L = 30;
 const PINO_A = 45;
 const CARTAO_L = 150;
+// Largura do balão que diz onde o carro pára. Fixa, para se poder prender à
+// borda do ecrã com uma conta e não com uma medição.
+const BALAO_L = 132;
 
 // O PINO DENTRO DO MAPA É UMA IMAGEM, e não o componente <Pino>.
 //
@@ -507,6 +510,8 @@ export default function MapaGoogle({
   // Onde é que as pontas dos troços caem no ecrã. Mesma mecânica dos
   // cartões: quem sabe converter coordenada em pixel é o mapa, porque só ele
   // conhece o zoom, a inclinação e o rumo.
+  const trocosKey = trocosAPe.map((t) => `${t.qual}:${t.para.lat},${t.para.lng}`).join('|');
+
   const recalcularPontas = useCallback(async () => {
     if (!mapaRef.current || !trocosAPe.length) {
       setPontasNaEstrada([]);
@@ -522,7 +527,9 @@ export default function MapaGoogle({
     } catch {
       setPontasNaEstrada([]);
     }
-  }, [trocosAPe]);
+    // Pela CHAVE e não pela lista: quem chama constrói um array novo em cada
+    // desenho, e uma dependência que muda sempre faz isto correr sempre.
+  }, [trocosKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // As posições dos nossos no ecrã.
   //
@@ -559,9 +566,8 @@ export default function MapaGoogle({
     if (mapaPronto) {
       recalcularCartoes();
       recalcularPontas();
-      recalcularPontas();
     }
-  }, [mapaPronto, markersKey, recalcularCartoes]);
+  }, [mapaPronto, markersKey, recalcularCartoes, recalcularPontas]);
 
   // O VEÍCULO segue o mesmo caminho dos cartões: desenhado POR CIMA do mapa.
   //
@@ -724,12 +730,17 @@ export default function MapaGoogle({
       centroRef.current = { lat: regiao.latitude, lng: regiao.longitude };
       regiaoRef.current = regiao;
       recalcularCartoes();
+      // FALTAVA, e era o que punha o balão do ponto de chegada a flutuar
+      // longe da linha. Os pontinhos são desenho DO MAPA e acompanham-no;
+      // o balão é pixéis por cima, e sem isto ficava onde tinha sido
+      // calculado antes de o mapa ajustar o enquadramento à viagem.
+      recalcularPontas();
       buscarNossos(regiao);
       if (modoEscolha && onCentro) {
         onCentro({ type: 'centro', lat: regiao.latitude, lng: regiao.longitude });
       }
     },
-    [modoEscolha, onCentro, recalcularCartoes, buscarNossos]
+    [modoEscolha, onCentro, recalcularCartoes, recalcularPontas, buscarNossos]
   );
 
   // O PRIMEIRO ENVIO É IMEDIATO. Quem abre o modo de escolha já está a
@@ -973,21 +984,31 @@ export default function MapaGoogle({
           Some enquanto o dedo arrasta, como os cartões: um rótulo atrasado
           diz que o carro pára ali, e não pára. */}
       {!aMexer &&
-        pontasNaEstrada.map((p) => (
-          <View
-            key={`ponta-${p.qual}`}
-            pointerEvents="none"
-            style={[styles.ponta, { left: p.x - 60, top: p.y - 34 }]}
-          >
-            <View style={styles.pontaBalao}>
-              <Text style={styles.pontaTexto} numberOfLines={1}>
-                {p.qual === 'destino' ? t('pontoChegada') : t('pontoRecolha')}
-              </Text>
+        pontasNaEstrada.map((p) => {
+          // O PONTO E O BALÃO SÃO DUAS PEÇAS SEPARADAS, e têm de ser.
+          //
+          // O ponto marca onde o carro pára: tem de ficar EXACTAMENTE ali,
+          // aconteça o que acontecer. O balão é só o nome disso, e junto à
+          // borda do ecrã tem de se encolher para dentro — senão vai parar
+          // debaixo dos botões do canto, que foi o que o Simão viu.
+          //
+          // Juntos numa peça só, prender o balão arrastava o ponto com ele e
+          // passava a apontar para onde o carro não pára.
+          const esq =
+            largura > 0
+              ? Math.max(4, Math.min(p.x - BALAO_L / 2, largura - BALAO_L - 4))
+              : p.x - BALAO_L / 2;
+          return (
+            <View key={`ponta-${p.qual}`} pointerEvents="none">
+              <View style={[styles.pontaBalao, { left: esq, top: p.y - 30 }]}>
+                <Text style={styles.pontaTexto} numberOfLines={1}>
+                  {p.qual === 'destino' ? t('pontoChegada') : t('pontoRecolha')}
+                </Text>
+              </View>
+              <View style={[styles.pontaPonto, { left: p.x - 6, top: p.y - 6 }]} />
             </View>
-            <View style={styles.pontaBico} />
-            <View style={styles.pontaPonto} />
-          </View>
-        ))}
+          );
+        })}
 
       {/* Só o RÓTULO do veículo fica por cima — o carro é marcador.
           O rótulo tem de continuar aqui porque o texto muda a cada rua, e
@@ -1141,30 +1162,23 @@ const criarEstilos = () =>
     // O balão sobre a ponta da linha, com o bico a apontar-lhe. Coral, como
     // nas imagens que o Simão mandou: é a cor da acção nesta app, e parar o
     // carro é a acção.
-    ponta: { position: 'absolute', width: 120, alignItems: 'center' },
     pontaBalao: {
+      position: 'absolute',
+      width: BALAO_L,
       backgroundColor: colors.coral,
       borderRadius: radius.pill,
       paddingHorizontal: 10,
       paddingVertical: 4,
-      maxWidth: 120,
+      alignItems: 'center',
     },
     pontaTexto: { ...tipo.legenda, color: '#FFFFFF', fontWeight: '700' },
-    pontaBico: {
-      width: 0,
-      height: 0,
-      borderLeftWidth: 5,
-      borderRightWidth: 5,
-      borderTopWidth: 6,
-      borderLeftColor: 'transparent',
-      borderRightColor: 'transparent',
-      borderTopColor: colors.coral,
-    },
+    // O ponto no sítio exacto. Anel branco à volta para se ver por cima de
+    // uma estrada cinzenta e de um quarteirão claro sem se perder em nenhum.
     pontaPonto: {
-      width: 10,
-      height: 10,
-      borderRadius: 5,
-      marginTop: 2,
+      position: 'absolute',
+      width: 12,
+      height: 12,
+      borderRadius: 6,
       backgroundColor: colors.coral,
       borderWidth: 2,
       borderColor: '#FFFFFF',
