@@ -1,0 +1,55 @@
+# O QUE NÃO SOBE PARA COMPILAR A APP
+#
+# O eas.json vive em mobile/, mas a raiz do git é AQUI — e o EAS arquiva a
+# partir da raiz do git para que projectos com várias pastas funcionem. Sem
+# este ficheiro, cada compilação enviava o repositório INTEIRO: o mapa de
+# Timor-Leste em PMTiles (33 MB), o PDF do diploma dos sucos (33 MB), o
+# backend, os documentos jurídicos, o plano. Nada disso entra num APK.
+#
+# Para o Simão, em Díli, isso eram mais de 100 MB de envio em cada
+# compilação, por uma ligação que se paga ao megabyte.
+#
+# ATENÇÃO: quando este ficheiro existe, o EAS deixa de olhar para o
+# .gitignore. Tudo o que lá estava e continua a interessar tem de estar
+# repetido aqui em baixo — senão o node_modules subia, e o remédio ficava
+# pior do que a doença.
+
+# ── Tudo o que não é a aplicação ───────────────────────────────────────
+/backend/
+/juridico/
+/plano/
+/piloto/
+/teste/
+/copias/
+/mapa-proprio/
+/MUNICÍPIO, POSTO, SUCO E ALDEIA/
+/AUDITORIA-PRE-LANCAMENTO.md
+/README.md
+/endereco.command
+
+# ── O que o .gitignore já dizia, e continua a valer ────────────────────
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.DS_Store
+*.pem
+.env*.local
+*.tsbuildinfo
+
+# As pastas nativas são geradas pelo EAS a partir da configuração; enviar
+# as locais faria a compilação usar as nossas em vez das dela.
+/mobile/ios/
+/mobile/android/
