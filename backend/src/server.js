@@ -18,6 +18,7 @@ import { one } from './db.js';
 import { lugaresRouter } from './routes/lugares.js';
 import { estadoDaBusca, marcarPorPerguntar } from './lugares.js';
 import { estadoDasRotas, usoDeHoje } from './rotas.js';
+import { estadoDoEmail } from './email.js';
 import { mosaico } from './mosaicos.js';
 import { gzipSync } from 'node:zlib';
 import { municipioDe } from './municipios.js';
@@ -73,7 +74,13 @@ app.get('/api/health', async (req, res) => {
     // Sem isto, a única forma de saber se a Routes API está activa era pedir
     // uma viagem e olhar para a linha — que é adivinhar com passos extra.
     const rotas = { ...estadoDasRotas(), hoje: await usoDeHoje().catch(() => null) };
-    res.json({ ...base, ok: true, database: 'ok', rotas });
+    // Se o email está ligado, e o último erro se houve algum.
+    //
+    // Sem isto, um código de confirmação que não chega é indistinguível de um
+    // que a pessoa não abriu — e a diferença é toda: num caso corrige-se a
+    // configuração, no outro telefona-se à pessoa. Nunca mostra a chave, só
+    // se ela existe.
+    res.json({ ...base, ok: true, database: 'ok', rotas, email: estadoDoEmail() });
   } catch (e) {
     console.error('[health] base de dados inacessível:', e.message);
     res.status(503).json({ ...base, ok: false, database: 'inacessível' });
