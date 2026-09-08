@@ -566,7 +566,24 @@ export default function RequestRideScreen({ navigation, route }) {
               //
               // Guardando aqui de onde este ponto veio, o nome volta a
               // encontrar-se com ele.
-              { ...d, lat: na.lat, lng: na.lng, escolhido }
+              {
+                ...d,
+                lat: na.lat,
+                lng: na.lng,
+                escolhido,
+                // O NOME DA RUA SERVE DE REDE, e estávamos a deitá-lo fora.
+                //
+                // Quem encosta o ponto à estrada já sabe o nome dessa estrada
+                // — vem na mesma resposta. A recolha usava-o há muito; o
+                // destino não, e por isso um sítio que o geocodificador não
+                // conhece — uma encosta, um caminho de terra — ficava a
+                // mostrar "-8.51956, 125.60763" para sempre.
+                //
+                // Só substitui enquanto o rótulo for PROVISÓRIO. Um nome a
+                // sério, escrito pela pessoa ou vindo da pesquisa, não se
+                // troca por uma rua.
+                ...(d.provisorio && na.rua ? { label: na.rua, provisorio: false } : {}),
+              }
             : d
         );
       })
@@ -605,21 +622,30 @@ export default function RequestRideScreen({ navigation, route }) {
   //
   // A coordenada que vai no pedido continua a ser a da estrada — é para lá
   // que o motorista conduz. Isto muda o que se VÊ, não o que se envia.
-  const ondeMostrar = (p) => p.escolhido || p;
-
+  // A COORDENADA VAI INTEIRA; o sítio do pino vai à parte.
+  //
+  // `lat`/`lng` são sempre as da estrada — é com elas que se calcula a rota
+  // e o preço, e é para lá que o motorista conduz. `pino` diz só onde
+  // DESENHAR o pino, que é onde a pessoa apontou.
+  //
+  // Na versão anterior mandei o ponto escolhido como coordenada do marcador,
+  // e a rota passou a ser calculada de dentro de um quarteirão para dentro de
+  // outro. Duas informações diferentes no mesmo campo.
   const marcadores = [];
   if (origem)
     marcadores.push({
-      lat: ondeMostrar(origem).lat,
-      lng: ondeMostrar(origem).lng,
+      lat: origem.lat,
+      lng: origem.lng,
+      pino: origem.escolhido || null,
       label: origem.label,
       tipo: 'origem',
       cartao: origem.desenhar === true,
     });
   if (destino)
     marcadores.push({
-      lat: ondeMostrar(destino).lat,
-      lng: ondeMostrar(destino).lng,
+      lat: destino.lat,
+      lng: destino.lng,
+      pino: destino.escolhido || null,
       label: destino.label,
       tipo: 'destino',
       cartao: destino.desenhar === true,

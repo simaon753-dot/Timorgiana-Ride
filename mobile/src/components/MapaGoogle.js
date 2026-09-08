@@ -319,6 +319,19 @@ export default function MapaGoogle({
           detalhe: (partes[1] || '').trim(),
           qual: m.tipo === 'destino' ? 'destino' : 'origem',
           cartao: !!m.cartao,
+          // ONDE SE DESENHA O PINO, quando não é onde o carro pára.
+          //
+          // `lat`/`lng` são a coordenada da ESTRADA e continuam a ser a
+          // verdade do marcador: é com elas que se calcula a rota, se
+          // enquadra o mapa e se pede o preço. O pino é que se desenha no
+          // sítio que a pessoa apontou.
+          //
+          // Confundi as duas na versão anterior — pus o marcador inteiro no
+          // ponto escolhido, e a rota passou a ser calculada de dentro de um
+          // quarteirão para dentro de outro. O OSRM encostava cada ponta à
+          // estrada que lhe apetecesse e a linha dava a volta ao mundo. O
+          // Simão viu-o em Cristo Rei.
+          pino: m.pino || null,
         };
       }),
     [markersKey] // eslint-disable-line react-hooks/exhaustive-deps
@@ -858,7 +871,10 @@ export default function MapaGoogle({
         {pts.map((p, i) => (
           <Marker
             key={`${p.lat},${p.lng},${p.qual},${i}`}
-            coordinate={{ latitude: p.lat, longitude: p.lng }}
+            coordinate={{
+              latitude: p.pino ? p.pino.lat : p.lat,
+              longitude: p.pino ? p.pino.lng : p.lng,
+            }}
             anchor={{ x: 0.5, y: ANCORA_Y }}
             // ARRASTAR PARA CORRIGIR. O GPS de um telemóvel entre prédios
             // erra 20 a 40 metros, e nenhum código corrige uma leitura de
