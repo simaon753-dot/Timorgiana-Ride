@@ -60,20 +60,34 @@ export default function MapaExpandivel({
 
       <Modal visible={aberto} animationType="slide" onRequestClose={() => setAberto(false)}>
         <SafeAreaView style={styles.cheio} edges={['top', 'bottom']}>
-          {/* O mapa é remontado aqui — é um mapa novo, com espaço para
-              mostrar o trajeto inteiro em vez da faixa do cartão. */}
+          {/* SÓ SE DESENHA QUANDO ESTÁ ABERTO, e isto não é um detalhe.
+           *
+           * O <Modal> do React Native MONTA OS FILHOS mesmo fechado — a vista
+           * existe, apenas não se vê. Ou seja: cada ecrã com mapa montava
+           * DOIS mapas, o do cartão e este, e cada um pedia a sua rota ao
+           * servidor. Metade das chamadas ao Google eram para um mapa que
+           * ninguém estava a ver.
+           *
+           * Descobri-o a estranhar sete chamadas num dia em que o Simão só
+           * abriu a app umas vezes. O contador do /api/health serviu para o
+           * que foi feito.
+           *
+           * Poupa também memória e bateria: um mapa nativo não é barato, e
+           * havia sempre um a mais por ecrã. */}
           <View style={{ flex: 1 }}>
-            <Mapa
-              markers={markers}
-              center={center}
-              liveMarker={liveMarker}
-              liveLabel={liveLabel}
-              fill
-              // Desce a coluna do mapa em 48 — exactamente o intervalo entre
-              // dois botões — para o ✕ ficar no lugar vago no topo dela, e
-              // não em cima do primeiro.
-              topoDosBotoes={48}
-            />
+            {aberto ? (
+              <Mapa
+                markers={markers}
+                center={center}
+                liveMarker={liveMarker}
+                liveLabel={liveLabel}
+                fill
+                // Desce a coluna do mapa em 48 — exactamente o intervalo entre
+                // dois botões — para o ✕ ficar no lugar vago no topo dela, e
+                // não em cima do primeiro.
+                topoDosBotoes={48}
+              />
+            ) : null}
             {cracha}
             <Pressable style={styles.fechar} onPress={() => setAberto(false)} hitSlop={10}>
               <Text style={styles.fecharIcone}>✕</Text>
