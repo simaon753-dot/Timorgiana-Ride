@@ -34,7 +34,19 @@ dia e 3 domínios** — nós gastamos um email por registo.
 
 ## 3 · Verificar o domínio
 
-No Resend: **Domains → Add Domain →** escrever `timorgiana.com`.
+No Resend: **Domains → Add Domain →** escrever **`envio.timorgiana.com`**.
+
+> **NUM SUBDOMÍNIO, e não no domínio principal.** Corrigi isto depois de o
+> próprio Resend o recomendar — eu tinha dito `timorgiana.com`.
+>
+> A razão deles é reputação: se o domínio de envio apanhar queixas de spam, não
+> contamina o domínio da empresa. A razão que me convenceu é outra e é melhor
+> para este caso — **resolve de origem o conflito de SPF** avisado mais abaixo.
+> Com o Resend em `envio.` e um futuro Workspace em `timorgiana.com`, os dois
+> registos ficam em nomes diferentes e nunca se encontram.
+>
+> O remetente passa a ser `codigo@envio.timorgiana.com`. Quem recebe vê
+> «TimorgianaRide» em cima; o endereço vai em letra pequena.
 
 Ele mostra **três registos**. Copiar cada um para o painel de DNS da
 **Domainesia** (área de cliente → Domínios → o domínio → gestão de DNS), com o
@@ -53,10 +65,15 @@ hora.
 > que diz vir de si veio mesmo de si. Sem estes três registos o Gmail atira o
 > código para o lixo — teria tudo configurado e ninguém receberia nada.
 
-> ⚠️ **Se um dia puser email normal neste domínio** (Google Workspace, Zoho),
-> atenção ao SPF: **só pode existir UM registo SPF**. Os dois têm de ser
-> fundidos numa linha só, não acrescentados lado a lado. Dois registos SPF
-> fazem falhar os dois.
+> ⚠️ **A armadilha do SPF, e porque deixou de existir.** Só pode haver UM
+> registo SPF por nome. Se o Resend estivesse no domínio principal e um dia
+> chegasse o Google Workspace, os dois teriam de ser fundidos numa linha só —
+> e dois registos SPF lado a lado fazem falhar os dois, o que se descobre com o
+> correio já a não chegar.
+>
+> Com o Resend em `envio.timorgiana.com`, o SPF dele vive nesse nome e o do
+> Workspace viveria em `timorgiana.com`. Nomes diferentes, registos diferentes,
+> sem fusão nenhuma. É a segunda razão para o subdomínio, e a que mais pesa.
 
 ## 4 · A chave
 
@@ -73,10 +90,10 @@ No Resend: **API Keys → Create API Key**, permissão *Sending access*.
 
 ```
 RESEND_API_KEY = re_...
-EMAIL_DE       = TimorgianaRide <codigo@timorgiana.com>
+EMAIL_DE       = TimorgianaRide <codigo@envio.timorgiana.com>
 ```
 
-O `codigo@` não precisa de existir como caixa de correio — é só o remetente.
+O `codigo@envio.` não precisa de existir como caixa de correio — é só o remetente.
 Guardar; o Render reinicia sozinho.
 
 ## 6 · Confirmar
