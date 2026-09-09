@@ -157,6 +157,45 @@ if (!config.databaseUrl) {
   process.exit(1);
 }
 
-if (config.jwtSecret === 'dev-secret-inseguro-mudar') {
-  console.warn('[config] AVISO: JWT_SECRET não definido. A usar segredo de desenvolvimento.');
+// O SEGREDO DAS SESSÕES não pode ser um dos valores públicos.
+//
+// Com ele, quem o souber fabrica a sessão de qualquer pessoa e vê tudo o que
+// ela vê. Estes dois estão escritos no repositório, que é PÚBLICO: o de
+// reserva do próprio código, e o exemplo do .env que alguém pode colar tal e
+// qual sem reparar.
+//
+// Antes isto só AVISAVA e o servidor subia na mesma — ou seja, um servidor
+// mal configurado parecia saudável. Agora, ligado a uma base de dados que
+// não é a local (o mesmo teste que decide o SSL, acima), RECUSA arrancar.
+// Falhar alto é melhor do que servir a fingir que está seguro.
+//
+// Localmente, contra a base local, o valor de reserva continua a servir para
+// desenvolver sem obrigar ninguém a definir nada.
+//
+// PORQUE NÃO EXIJO AQUI UM COMPRIMENTO MÍNIMO: o segredo verdadeiro está no
+// alojamento, não no repositório — eu não o vejo, e não sei quantos
+// caracteres tem. Uma regra de comprimento podia recusar o servidor que
+// AGORA funciona, no próximo deploy, e deitar o serviço abaixo para toda a
+// gente. Recuso só o que sei ao certo ser inseguro: os valores públicos. Um
+// segredo curto leva um aviso, nunca uma paragem.
+const SEGREDOS_PUBLICOS = new Set([
+  'dev-secret-inseguro-mudar',
+  'trocar-este-segredo-em-producao',
+]);
+const baseLocal = /localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL || '');
+
+if (SEGREDOS_PUBLICOS.has(config.jwtSecret)) {
+  if (baseLocal) {
+    console.warn('[config] AVISO: JWT_SECRET por definir. A usar o segredo de desenvolvimento (só local).');
+  } else {
+    console.error(
+      '[config] ERRO: JWT_SECRET está com um valor público, com uma base de dados remota.\n' +
+        '          Qualquer pessoa poderia fabricar sessões. O servidor não vai arrancar.\n' +
+        '          Gere um segredo com:  openssl rand -hex 32\n' +
+        '          e defina JWT_SECRET nas variáveis de ambiente do alojamento.'
+    );
+    process.exit(1);
+  }
+} else if (config.jwtSecret.length < 32) {
+  console.warn('[config] AVISO: JWT_SECRET é curto. Recomenda-se 32+ caracteres (openssl rand -hex 32).');
 }
