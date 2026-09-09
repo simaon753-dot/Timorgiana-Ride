@@ -125,6 +125,14 @@ export default function RequestRideScreen({ navigation, route }) {
   // Se dá para ir ao sítio que a mira aponta. `null` = ainda não se sabe, e
   // nesse caso não se diz nada.
   const [coberturaCentro, setCoberturaCentro] = useState(null);
+  // ONDE O CARRO PARARIA, mostrado ANTES de a pessoa confirmar o ponto.
+  //
+  // O pino do meio do mapa diz onde ela está a apontar; não dizia onde o
+  // carro consegue chegar. Nos sítios em que os dois coincidem não falta
+  // nada — e são os sítios em que isto não interessa. No Cristo Rei, quem
+  // aponta o monumento estava a confirmar um ponto sem saber que o carro
+  // pára trezentos metros abaixo, e só descobria depois.
+  const [paragemCentro, setParagemCentro] = useState(null);
   // O MESMO PARA O DESTINO JÁ ESCOLHIDO, e não só para a mira.
   //
   // O aviso do modo de apontar só existe enquanto se aponta. Um destino
@@ -337,10 +345,18 @@ export default function RequestRideScreen({ navigation, route }) {
   // arrasto de dois segundos dispararia uma dúzia de perguntas ao Nominatim
   // — que é gratuito, partilhado, e aceita cerca de um pedido por segundo.
   const relogioNome = useRef(null);
+  // QUAL É O PEDIDO A VALER. Sem isto, um arrasto durante a espera das
+  // respostas deixava duas voltas em voo, e a que chegasse por último
+  // escrevia por cima — mesmo sendo a do sítio antigo. O nome errado
+  // corrigia-se ao arrastar outra vez; um ponto de paragem errado ficava
+  // desenhado no mapa, e isso é uma afirmação sobre onde o carro pára.
+  const pedidoCentro = useRef(0);
   function centroMudou({ lat, lng }) {
     setCentro({ lat, lng });
     setNomeCentro(null);
+    setParagemCentro(null);
     clearTimeout(relogioNome.current);
+    const meu = ++pedidoCentro.current;
     relogioNome.current = setTimeout(async () => {
       // Precisão zero: um ponto posto à mão é exacto por definição — quem o
       // apontou está a olhar para o mapa e viu onde o pôs.
@@ -348,17 +364,25 @@ export default function RequestRideScreen({ navigation, route }) {
       // Os dois pedidos ao mesmo tempo e não um a seguir ao outro: são
       // independentes, e numa rede de Díli esperar por um para começar o
       // outro duplica o tempo até a lista aparecer.
-      const [nome, perto, cobertura] = await Promise.all([
+      const [nome, perto, cobertura, naEstrada] = await Promise.all([
         nomeDoLugar(lat, lng, 0),
         api.lugaresPerto(token, lat, lng).catch(() => ({ lugares: [] })),
         // A mesma pergunta que o servidor volta a fazer ao criar a viagem.
         api.cobertura(token, lat, lng).catch(() => null),
+        // A MESMA função que encosta o ponto depois de escolhido. De
+        // propósito: se a previsão usasse outro caminho, mostrava-se uma
+        // coisa e confirmava-se outra, e o dia em que divergissem ninguém
+        // saberia qual das duas estava certa.
+        pontoNaEstrada(lat, lng, token).catch(() => null),
       ]);
+      // Chegou tarde: entretanto o mapa já foi para outro sítio.
+      if (meu !== pedidoCentro.current) return;
       setNomeCentro(nome || rotuloCoordenadas(lat, lng));
       setPertoDoCentro(perto?.lugares || []);
       // Sem resposta fica `null` e não se diz nada. Um aviso que pisca a cada
       // arrasto por causa da rede é pior do que aviso nenhum.
       setCoberturaCentro(cobertura ? !!cobertura.ok : null);
+      setParagemCentro(naEstrada || null);
     }, 500);
   }
 
@@ -627,6 +651,23 @@ export default function RequestRideScreen({ navigation, route }) {
   const trocosAPe = [];
   if (trocoAPe) trocosAPe.push({ ...trocoAPe, qual: 'origem' });
   if (trocoDestino) trocosAPe.push({ ...trocoDestino, qual: 'destino' });
+
+  // A PREVISÃO, enquanto se escolhe no mapa e antes de confirmar.
+  //
+  // Entra na MESMA lista dos troços a pé, e não num desenho próprio. O que
+  // se quer mostrar é exactamente aquilo: o círculo na estrada e os pontinhos
+  // do pino até lá. Um desenho paralelo ficaria parecido hoje e diferente
+  // daqui a três meses, quando alguém mexesse num e não no outro.
+  //
+  // O `qual` é 'centro' e não 'origem'/'destino' porque este ponto ainda não
+  // é nenhum dos dois — é o que qualquer deles VAI SER se a pessoa confirmar.
+  if (aEscolherNoMapa && centro && paragemCentro) {
+    trocosAPe.push({
+      de: centro,
+      para: { lat: paragemCentro.lat, lng: paragemCentro.lng },
+      qual: 'centro',
+    });
+  }
 
   // AS OUTRAS PARAGENS: as da lista que não são a que está posta.
   //
