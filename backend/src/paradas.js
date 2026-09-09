@@ -57,15 +57,28 @@ export function apagarParada(id) {
   return one('DELETE FROM paradas WHERE id = $1 RETURNING id, nome', [id]);
 }
 
-// A paragem que cobre este ponto, se houver alguma.
+// TODAS as paragens que cobrem este ponto, da mais perto para a mais longe.
+//
+// ANTES DEVOLVIA UMA SÓ, a mais próxima, e o resto era deitado fora. O
+// argumento era o do centro comercial dentro do recinto de um mercado: das
+// duas, vale a que estiver mais perto do que a pessoa apontou.
+//
+// O Simão mudou a política, e tem razão. Duas paragens a cobrir o mesmo sítio
+// não são um empate a desempatar por nós — são duas maneiras de lá chegar, e
+// quem sabe qual serve é quem vai. No Cristo Rei, quem vai a pé às escadas
+// quer o Dolok Oan; quem leva uma pessoa idosa de carro quer o acesso de
+// cima. A distância em linha recta não sabe nada disto.
+//
+// Escolher em silêncio pela mais próxima não estava só a arriscar errar:
+// estava a esconder que havia uma alternativa. Agora vão todas, a app mostra-
+// as no mapa, e a primeira — a mais perto — continua a ser a que fica posta
+// sem ninguém tocar em nada.
 //
 // A distância é calculada em SQL, com a mesma fórmula que já ordena os
-// motoristas por proximidade. A mais próxima ganha: se duas paragens se
-// sobrepuserem — um centro comercial dentro do recinto de um mercado — vale a
-// que estiver mais perto do que a pessoa apontou.
-export async function paragemQueCobre(lat, lng) {
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-  return one(
+// motoristas por proximidade.
+export async function paragensQueCobrem(lat, lng) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return [];
+  return query(
     `SELECT id, nome, parada_lat AS lat, parada_lng AS lng,
             6371000 * 2 * asin(sqrt(
               power(sin(radians($1 - p.lat) / 2), 2) +
@@ -79,7 +92,10 @@ export async function paragemQueCobre(lat, lng) {
               power(sin(radians($2 - p.lng) / 2), 2)
             )) <= p.raio_m
       ORDER BY metros ASC
-      LIMIT 1`,
+      -- SEM LIMITE, mas com um tecto de sanidade. Um engano a definir raios
+      -- enormes no painel podia pôr dez pontos em cima uns dos outros num
+      -- mapa de telemóvel, e aí não se escolhe nada — não se percebe nada.
+      LIMIT 4`,
     [lat, lng]
   );
 }

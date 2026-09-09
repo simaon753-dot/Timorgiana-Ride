@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { requireAuth } from '../auth.js';
 import { preco, etaMinutos, straightKm } from '../routing.js';
 import { rotaCompleta } from '../rotas.js';
-import { paragemQueCobre } from '../paradas.js';
+import { paragensQueCobrem } from '../paradas.js';
 import { nearestDrivers } from '../drivers.js';
 import { taxasPara } from '../taxasDeEntrada.js';
 
@@ -122,15 +122,34 @@ quoteRouter.post(
     const lng = num(req.body?.lng);
     if (lat == null || lng == null) return res.status(400).json({ error: 'Faltam coordenadas.' });
 
-    const nossa = await paragemQueCobre(lat, lng);
-    if (nossa) {
+    const nossas = await paragensQueCobrem(lat, lng);
+    if (nossas.length) {
+      const principal = nossas[0];
       return res.json({
-        lat: nossa.lat,
-        lng: nossa.lng,
-        nome: nossa.nome,
+        // A MAIS PERTO CONTINUA A VIR EM PRIMEIRO e nestes mesmos campos.
+        //
+        // Não é indecisão: é o que mantém as versões antigas da app a
+        // funcionar. Há telemóveis com o APK de há semanas que chamam este
+        // mesmo endereço e só sabem ler `lat`, `lng` e `nome`. Se eu tivesse
+        // trocado isto por uma lista, essas passavam a não ter paragem
+        // nenhuma — e ninguém ligava o defeito a esta alteração.
+        //
+        // A lista vai a mais, num campo novo, que quem não o conhece ignora.
+        lat: principal.lat,
+        lng: principal.lng,
+        nome: principal.nome,
         // Diz de onde veio, para se poder perceber no ecrã porque é que o
         // carro pára ali e não noutro sítio.
         fonte: 'nossa',
+        // TODAS, incluindo a primeira. A app precisa da lista inteira para
+        // saber quais são as outras — mandar só as restantes obrigava-a a
+        // remontar o conjunto, e é o género de conta que se faz mal uma vez.
+        paragens: nossas.map((p) => ({
+          id: p.id,
+          nome: p.nome,
+          lat: p.lat,
+          lng: p.lng,
+        })),
       });
     }
     return res.json({ fonte: 'nenhuma' });

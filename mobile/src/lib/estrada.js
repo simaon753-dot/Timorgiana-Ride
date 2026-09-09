@@ -41,12 +41,29 @@ import { api } from '../api/client.js';
 //
 // Se ele tiver definido uma paragem que cubra este ponto, é essa. Só se não
 // houver é que se pergunta ao serviço de rotas.
+//
+// E SE HOUVER MAIS DO QUE UMA, VÃO TODAS. O servidor deixou de desempatar
+// pela mais próxima e passou a mandar a lista: duas paragens a cobrir o mesmo
+// sítio não são um empate nosso para resolver, são duas maneiras de lá chegar,
+// e quem sabe qual serve é quem vai. A primeira continua a ser a que fica
+// posta; as outras aparecem no mapa para se poder tocar numa delas.
 export async function pontoNaEstrada(lat, lng, token) {
   if (token) {
     try {
       const nossa = await api.paragemPara(token, { lat, lng });
       if (nossa?.fonte === 'nossa' && nossa.lat != null) {
-        return { lat: nossa.lat, lng: nossa.lng, metros: null, rua: nossa.nome || null };
+        return {
+          lat: nossa.lat,
+          lng: nossa.lng,
+          metros: null,
+          rua: nossa.nome || null,
+          // Só quando há escolha a fazer. Uma paragem só não é uma lista de
+          // uma — é o caso normal, e quem recebe isto não deve ter de saber
+          // a diferença entre "sem alternativas" e "uma alternativa que é
+          // ela própria".
+          paragens:
+            Array.isArray(nossa.paragens) && nossa.paragens.length > 1 ? nossa.paragens : null,
+        };
       }
     } catch {
       // Sem resposta nossa segue-se para o serviço de rotas, como sempre.

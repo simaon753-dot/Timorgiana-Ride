@@ -85,6 +85,7 @@ const CARRO = require('../../assets/mapa/carro.png');
 // movimento é vê-la a flutuar durante ele. Um marcador com imagem é
 // desenhado pelo mapa, agarrado à coordenada, e nunca se descola.
 const PONTO_ESTRADA = require('../../assets/mapa/ponto-estrada.png');
+const PONTO_OUTRO = require('../../assets/mapa/ponto-outro.png');
 const ANCORA_Y = 42 / PINO_A;
 
 // O TAMANHO VAI DECLARADO NUMA VISTA À VOLTA, e não só nas propriedades do
@@ -289,6 +290,12 @@ export default function MapaGoogle({
   // Cada troço é { de, para, qual }: `de` é onde a pessoa apontou, `para` é
   // onde o carro chega, e `qual` diz se é a recolha ou a largada.
   trocosAPe = [],
+  // AS OUTRAS PARAGENS do mesmo sítio, quando o Simão definiu mais do que
+  // uma. Cada uma traz `qual` ('origem' ou 'destino'), porque as duas pontas
+  // da viagem podem ter alternativas ao mesmo tempo e o toque tem de saber
+  // qual delas está a mudar.
+  paragens = [],
+  onEscolherParagem,
   // A LINHA JÁ CALCULADA, quando quem chama a tem.
   //
   // O ecrã de pedir viagem já pede a cotação ao servidor, e a cotação já traz
@@ -978,6 +985,25 @@ export default function MapaGoogle({
             anchor={{ x: 0.5, y: 0.5 }}
             zIndex={900}
             image={PONTO_ESTRADA}
+          />
+        ))}
+
+        {/* AS OUTRAS PARAGENS. Cinzentas e por baixo da que está posta.
+            `title` e não um filho: um marcador com filhos é fotografado pelo
+            mapa e no telemóvel do Simão não aparece de todo. O título abre o
+            balão nativo do Google, desenhado por ele e não por nós — é a
+            única maneira de pôr aqui o nome do sítio sem partir o marcador.
+            Sem o nome isto eram dois pontos cinzentos iguais, e escolher
+            entre dois pontos iguais não é escolher. */}
+        {paragens.map((p) => (
+          <Marker
+            key={`outra-${p.qual}-${p.lat},${p.lng}`}
+            coordinate={{ latitude: p.lat, longitude: p.lng }}
+            anchor={{ x: 0.5, y: 0.5 }}
+            zIndex={880}
+            image={PONTO_OUTRO}
+            title={p.nome || undefined}
+            onPress={onEscolherParagem ? () => onEscolherParagem(p) : undefined}
           />
         ))}
 

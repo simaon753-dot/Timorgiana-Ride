@@ -96,6 +96,33 @@ def desenhar_ponto(anel='#3F4A46'):
     return img
 
 
+# A OUTRA PARAGEM: onde o carro TAMBÉM pode parar.
+#
+# Quando o Simão define duas paragens a cobrir o mesmo sítio, a app deixou de
+# escolher uma em silêncio e mostra as duas. Esta é a que não está posta.
+#
+# CINZENTA, e não com a cor da marca. É o mesmo desenho da paragem activa —
+# tem de se ler como sendo a mesma espécie de coisa — mas apagada, porque a
+# diferença que interessa é qual das duas está escolhida. Duas iguais no mapa
+# não são uma escolha, são uma dúvida.
+#
+# A CAIXA É MAIOR DO QUE O CÍRCULO, e o resto é transparente. Um marcador de
+# 16 pixéis desenha-se bem e toca-se mal: o dedo de um adulto cobre uns 40, e
+# quem falha o toque conclui que não é para tocar. A área de toque de um
+# marcador é a da imagem, por isso a margem invisível é o que o torna
+# alcançável sem o tornar maior aos olhos.
+PONTO_OUTRO = 34  # caixa; o círculo continua a ler-se a 16
+
+
+def desenhar_ponto_alternativo():
+    lado = PONTO_OUTRO * S
+    img = Image.new('RGBA', (lado, lado), (0, 0, 0, 0))
+    circulo = desenhar_ponto(anel='#8A9591')
+    canto = (lado - circulo.width) // 2
+    img.paste(circulo, (canto, canto), circulo)
+    return img
+
+
 def desenhar(fill, risco):
     img = Image.new('RGBA', (CAIXA[0] * S, CAIXA[1] * S), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
@@ -181,6 +208,13 @@ def main():
     for sufixo, escala in (('', 1), ('@2x', 2), ('@3x', 3)):
         alvo = ponto.resize((PONTO * escala, PONTO * escala), Image.LANCZOS)
         caminho_ficheiro = os.path.join(pasta, f'ponto-estrada{sufixo}.png')
+        alvo.save(caminho_ficheiro)
+        print('escrito', os.path.relpath(caminho_ficheiro, aqui))
+
+    outro = desenhar_ponto_alternativo()
+    for sufixo, escala in (('', 1), ('@2x', 2), ('@3x', 3)):
+        alvo = outro.resize((PONTO_OUTRO * escala, PONTO_OUTRO * escala), Image.LANCZOS)
+        caminho_ficheiro = os.path.join(pasta, f'ponto-outro{sufixo}.png')
         alvo.save(caminho_ficheiro)
         print('escrito', os.path.relpath(caminho_ficheiro, aqui))
 

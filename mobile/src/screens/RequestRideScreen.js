@@ -98,6 +98,12 @@ export default function RequestRideScreen({ navigation, route }) {
   // até ali" apontando para um sítio que já não é o de recolha.
   const [troco, setTroco] = useState(null);
   const [trocoDestino, setTrocoDestino] = useState(null);
+  // AS PARAGENS DE CADA PONTA, quando o Simão definiu mais do que uma para o
+  // mesmo sítio. Guarda-se a lista inteira e não só as que sobram: a que está
+  // posta muda quando se toca noutra, e uma lista completa não precisa de ser
+  // remontada de cada vez.
+  const [paragensOrigem, setParagensOrigem] = useState(null);
+  const [paragensDestino, setParagensDestino] = useState(null);
   // Qual foi o último ponto que já mandámos encostar. Ver o efeito em baixo.
   const encostado = useRef(null);
   const origemRef = useRef(null);
@@ -264,6 +270,7 @@ export default function RequestRideScreen({ navigation, route }) {
       if (!atual || atual.lat !== meu.lat || atual.lng !== meu.lng) return;
 
       setTroco({ de: aqui, para: { lat: naEstrada.lat, lng: naEstrada.lng } });
+      setParagensOrigem(naEstrada.paragens || null);
       setOrigem({
         lat: naEstrada.lat,
         lng: naEstrada.lng,
@@ -547,6 +554,7 @@ export default function RequestRideScreen({ navigation, route }) {
   useEffect(() => {
     if (!destino?.lat) {
       setTrocoDestino(null);
+      setParagensDestino(null);
       encostado.current = null;
       return undefined;
     }
@@ -564,6 +572,7 @@ export default function RequestRideScreen({ navigation, route }) {
         if (!vivo || !na) return;
         encostado.current = `${na.lat},${na.lng}`;
         setTrocoDestino({ de: escolhido, para: { lat: na.lat, lng: na.lng } });
+        setParagensDestino(na.paragens || null);
         setDestino((d) =>
           d && d.lat === escolhido.lat && d.lng === escolhido.lng
             ? // `escolhido` FICA GUARDADO no ponto, e não é enfeite.
@@ -618,6 +627,54 @@ export default function RequestRideScreen({ navigation, route }) {
   const trocosAPe = [];
   if (trocoAPe) trocosAPe.push({ ...trocoAPe, qual: 'origem' });
   if (trocoDestino) trocosAPe.push({ ...trocoDestino, qual: 'destino' });
+
+  // AS OUTRAS PARAGENS: as da lista que não são a que está posta.
+  //
+  // A que está posta já está desenhada — é o círculo escuro no fim do troço a
+  // pé. Desenhá-la outra vez por baixo, a cinzento, punha dois marcadores na
+  // mesma coordenada e o de cima tapava o de baixo sem nada mudar aos olhos,
+  // a não ser um toque que escolhia o que já estava escolhido.
+  const outrasParagens = [];
+  const juntarOutras = (lista, ponto, qual) => {
+    if (!lista || !ponto) return;
+    for (const pa of lista) {
+      if (pa.lat === ponto.lat && pa.lng === ponto.lng) continue;
+      outrasParagens.push({ ...pa, qual });
+    }
+  };
+  juntarOutras(paragensOrigem, origem, 'origem');
+  juntarOutras(paragensDestino, destino, 'destino');
+
+  // TOCAR NUMA DAS OUTRAS passa o carro a parar ali.
+  //
+  // O que muda é só a COORDENADA para onde o carro conduz. O rótulo fica —
+  // quem escreveu "Cristo Rei" continua a ir ao Cristo Rei — e o pino fica
+  // onde a pessoa apontou, porque `escolhido` vai no espalhar. É a mesma
+  // separação de sempre: o nome e o pino são da pessoa, a coordenada é do
+  // carro.
+  //
+  // O troço a pé é refeito com ela, senão os pontinhos continuavam a apontar
+  // para a paragem antiga e o mapa dizia duas coisas ao mesmo tempo.
+  //
+  // Muda o preço, e tem de mudar: outra paragem é outro caminho. A cotação
+  // recalcula-se sozinha porque depende das coordenadas.
+  const escolherParagem = (pa) => {
+    if (!pa) return;
+    if (pa.qual === 'origem') {
+      setTroco((t) => (t ? { ...t, para: { lat: pa.lat, lng: pa.lng } } : t));
+      setOrigem((o) => (o ? { ...o, lat: pa.lat, lng: pa.lng } : o));
+      return;
+    }
+    // A GUARDA ANTES DE MUDAR, e não depois.
+    //
+    // Mudar o destino acorda o efeito que encosta pontos à estrada. Ele veria
+    // uma coordenada que ainda não tratou, perguntaria ao servidor qual é a
+    // paragem que a cobre — e a resposta seria a mais próxima, ou seja a que
+    // acabámos de trocar. O toque desfazia-se sozinho.
+    encostado.current = `${pa.lat},${pa.lng}`;
+    setTrocoDestino((t) => (t ? { ...t, para: { lat: pa.lat, lng: pa.lng } } : t));
+    setDestino((d) => (d ? { ...d, lat: pa.lat, lng: pa.lng } : d));
+  };
 
   // O PINO FICA ONDE A PESSOA APONTOU. O ponto na estrada é que é do carro.
   //
@@ -701,6 +758,8 @@ export default function RequestRideScreen({ navigation, route }) {
           pickable
           fill
           trocosAPe={trocosAPe}
+          paragens={outrasParagens}
+          onEscolherParagem={escolherParagem}
           // A LINHA VEM DA COTAÇÃO, que é quem calculou o preço.
           //
           // Sem isto o mapa pedia a rota por sua conta e ficavam duas: uma que
