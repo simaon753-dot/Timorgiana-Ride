@@ -18,7 +18,7 @@
 //
 // O lado da app tinha cinco verificadores e o servidor não tinha nenhum.
 // Corre antes de cada envio.
-import { readdirSync, statSync, readFileSync } from 'node:fs';
+import { readdirSync, statSync, readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
@@ -118,6 +118,28 @@ if (!problemas.length) {
         }
       }
     }
+  }
+}
+
+// 4. As páginas legais públicas dizem o mesmo que a app?
+//
+//    O Google Play exige um endereço público para a política de privacidade, e
+//    essas páginas são geradas do texto da aplicação. Se alguém alterar uma
+//    cláusula e não voltar a gerar, o público fica a ler uma versão e quem
+//    instala a app lê outra — e num documento legal duas versões diferentes
+//    são piores do que uma só, porque ninguém sabe qual vale.
+if (!problemas.length) {
+  try {
+    const { gerarPaginas } = await import('./gerar-legal.mjs');
+    for (const [nome, esperado] of Object.entries(gerarPaginas())) {
+      const caminho = 'publico/' + nome;
+      const actual = existsSync(caminho) ? readFileSync(caminho, 'utf8') : null;
+      if (actual !== esperado) {
+        problemas.push(`${caminho} está desactualizado — corre \`node scripts/gerar-legal.mjs\``);
+      }
+    }
+  } catch (e) {
+    problemas.push(`não foi possível conferir as páginas legais: ${e.message}`);
   }
 }
 

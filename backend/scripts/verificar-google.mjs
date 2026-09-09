@@ -162,7 +162,9 @@ async function principal() {
   const lugares = busca.corpo?.lugares || [];
   console.log(`\n  fonte: ${fonte}`);
   for (const l of lugares.slice(0, 5)) {
-    console.log(`    ${l.fonte === 'google' ? '[G]' : l.fonte === 'osm' ? '[O]' : '[N]'} ${l.label}`);
+    console.log(
+      `    ${l.fonte === 'google' ? '[G]' : l.fonte === 'osm' ? '[O]' : '[N]'} ${l.label}`
+    );
   }
 
   console.log('');

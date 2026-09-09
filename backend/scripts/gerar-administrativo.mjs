@@ -151,6 +151,9 @@ const saida = {
 fs.writeFileSync(SAIDA, JSON.stringify(saida, null, 2) + '\n');
 
 const nPostos = saida.municipios.reduce((s, m) => s + m.postos.length, 0);
-const nSucos = saida.municipios.reduce((s, m) => s + m.postos.reduce((x, p) => x + p.sucos.length, 0), 0);
+const nSucos = saida.municipios.reduce(
+  (s, m) => s + m.postos.reduce((x, p) => x + p.sucos.length, 0),
+  0
+);
 console.log(`  ✓ ${saida.municipios.length} municípios, ${nPostos} postos, ${nSucos} sucos`);
 console.log(`  ✓ escrito em dados/administrativo.json`);

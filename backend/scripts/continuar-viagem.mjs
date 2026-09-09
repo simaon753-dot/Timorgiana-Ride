@@ -16,7 +16,7 @@ import { pool, one, query } from '../src/db.js';
 const TEL = '79999124';
 const SENHA = 'teste-motorista-2026';
 const SERVIDOR = process.env.SERVIDOR || 'https://timorgiana-ride.onrender.com';
-const PASSO_M = 120;      // metros por salto
+const PASSO_M = 120; // metros por salto
 const INTERVALO_MS = 3000;
 
 const metros = (a, b) => {
@@ -32,10 +32,15 @@ const v = await one(
      ORDER BY id DESC LIMIT 1`,
   [u.id]
 );
-if (!v) { console.log('  não há viagem em curso.'); await pool.end(); process.exit(0); }
+if (!v) {
+  console.log('  não há viagem em curso.');
+  await pool.end();
+  process.exit(0);
+}
 
 const entrada = await fetch(`${SERVIDOR}/api/auth/login`, {
-  method: 'POST', headers: { 'Content-Type': 'application/json' },
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ phone: TEL, password: SENHA }),
 });
 const TOKEN = (await entrada.json()).token;
@@ -89,9 +94,11 @@ if (v.status === 'accepted') {
 
 if (v.status !== 'in_progress') {
   const r = await api(`/rides/${v.id}/start`, { code: v.pickup_code });
-  console.log(r.ok
-    ? `  ✓ viagem iniciada com o código ${v.pickup_code} (lido da base — ver a nota no topo)`
-    : '  ✗ ' + (await r.text()).slice(0, 120));
+  console.log(
+    r.ok
+      ? `  ✓ viagem iniciada com o código ${v.pickup_code} (lido da base — ver a nota no topo)`
+      : '  ✗ ' + (await r.text()).slice(0, 120)
+  );
   await espera(2000);
 }
 
@@ -126,9 +133,11 @@ async function estrada(a, b) {
 
 console.log(`\n  a caminho de ${v.dest_label}\n`);
 const caminho = (await estrada(pos, destino)) || [];
-console.log(caminho.length
-  ? `  pela estrada, ${caminho.length} pontos\n`
-  : '  sem rota do servidor de estradas: vai a direito\n');
+console.log(
+  caminho.length
+    ? `  pela estrada, ${caminho.length} pontos\n`
+    : '  sem rota do servidor de estradas: vai a direito\n'
+);
 
 const total = metros(pos, destino);
 while (metros(pos, destino) > 60) {
@@ -146,13 +155,19 @@ while (metros(pos, destino) > 60) {
       restante -= p;
     } else {
       const f = restante / p;
-      pos = { lat: pos.lat + (proximo.lat - pos.lat) * f, lng: pos.lng + (proximo.lng - pos.lng) * f };
+      pos = {
+        lat: pos.lat + (proximo.lat - pos.lat) * f,
+        lng: pos.lng + (proximo.lng - pos.lng) * f,
+      };
       restante = 0;
     }
   }
   if (!caminho.length) {
     const f = Math.min(1, PASSO_M / d);
-    pos = { lat: pos.lat + (destino.lat - pos.lat) * f, lng: pos.lng + (destino.lng - pos.lng) * f };
+    pos = {
+      lat: pos.lat + (destino.lat - pos.lat) * f,
+      lng: pos.lng + (destino.lng - pos.lng) * f,
+    };
   }
   socket.emit('driver:location', pos);
   const feito = Math.round(((total - d) / total) * 100);

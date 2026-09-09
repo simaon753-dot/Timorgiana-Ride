@@ -85,7 +85,9 @@ async function prepararConta() {
 }
 
 const u = await prepararConta();
-console.log(`\n  Motorista de teste  ·  #${u.id}  ·  ${TIPO === 'car' ? 'Carro' : 'Motorizada'} branco  ·  TESTE-01`);
+console.log(
+  `\n  Motorista de teste  ·  #${u.id}  ·  ${TIPO === 'car' ? 'Carro' : 'Motorizada'} branco  ·  TESTE-01`
+);
 console.log(`  No posto do ETO  ·  ${ETO.lat}, ${ETO.lng}`);
 console.log(`  Servidor: ${SERVIDOR}\n`);
 
@@ -128,8 +130,11 @@ socket.on('connect', () => {
       return terminar();
     }
     console.log('  ✓ ao serviço, à espera de pedido.\n');
-    console.log('  Peça uma viagem no seu telemóvel — escolha ' +
-      (TIPO === 'car' ? 'CARRO' : 'MOTORIZADA') + '.\n');
+    console.log(
+      '  Peça uma viagem no seu telemóvel — escolha ' +
+        (TIPO === 'car' ? 'CARRO' : 'MOTORIZADA') +
+        '.\n'
+    );
     enviarPosicao();
     relogio = setInterval(enviarPosicao, 4000);
   });
@@ -251,8 +256,10 @@ async function aceitar(r) {
   // carro deslizaria para o meio do oceano em vez de andar até à recolha.
   const oLat = Number(r.originLat);
   const oLng = Number(r.originLng);
-  viagem = { id: r.id, origin: Number.isFinite(oLat) && Number.isFinite(oLng)
-    ? { lat: oLat, lng: oLng } : null };
+  viagem = {
+    id: r.id,
+    origin: Number.isFinite(oLat) && Number.isFinite(oLng) ? { lat: oLat, lng: oLng } : null,
+  };
   if (viagem.origin) {
     caminho = (await estrada(posicao, viagem.origin)) || [];
     console.log(
@@ -309,7 +316,9 @@ socket.on('connect_error', (e) => console.log('  ✗ ligação:', e.message));
 
 async function terminar() {
   clearInterval(relogio);
-  try { socket.emit('driver:setOnline', false); } catch {}
+  try {
+    socket.emit('driver:setOnline', false);
+  } catch {}
   await query('UPDATE users SET is_online = FALSE WHERE id = $1', [u.id]).catch(() => {});
   socket.close();
   await pool.end().catch(() => {});

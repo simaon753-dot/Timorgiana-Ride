@@ -120,7 +120,10 @@ await cliente.query('SET search_path = public');
 // O que interessa contar. Os dias em saldo vêm primeiro porque são o número
 // que representa dinheiro: o que as pessoas pagaram e ainda não usaram.
 const contas = [
-  ['dias em saldo (pagos e por usar)', 'SELECT COALESCE(SUM(dias_saldo),0)::int AS n FROM public.users'],
+  [
+    'dias em saldo (pagos e por usar)',
+    'SELECT COALESCE(SUM(dias_saldo),0)::int AS n FROM public.users',
+  ],
   ['carregamentos', 'SELECT COUNT(*)::int AS n FROM public.carregamentos'],
   ['dias contados', 'SELECT COUNT(*)::int AS n FROM public.dias_contados'],
   ['contas', 'SELECT COUNT(*)::int AS n FROM public.users'],

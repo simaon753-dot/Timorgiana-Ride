@@ -190,6 +190,29 @@ app.get('/mapa/estilo.json', (req, res) => {
   res.sendFile(fileURLToPath(new URL('../publico/estilo.json', import.meta.url)));
 });
 
+// OS DOCUMENTOS LEGAIS, num endereço público.
+//
+// O Google Play exige um URL para a política de privacidade — o texto dentro
+// da aplicação não serve, e sem ele a submissão é recusada. É requisito de
+// publicação, não uma cortesia.
+//
+// As páginas são GERADAS do mesmo texto que a app mostra
+// (`scripts/gerar-legal.mjs`), e não escritas à parte. Duas cópias de um
+// documento legal divergem, e duas versões diferentes são piores do que uma
+// só: ninguém sabe qual vale.
+//
+// Ao contrário do painel, estas QUEREM ser indexadas — quem procurar a
+// política de privacidade da TimorgianaRide deve encontrá-la.
+for (const [caminho, ficheiro] of [
+  ['/privacidade', 'privacidade.html'],
+  ['/termos', 'termos.html'],
+]) {
+  app.get(caminho, (req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.sendFile(fileURLToPath(new URL(`../publico/${ficheiro}`, import.meta.url)));
+  });
+}
+
 app.get('/painel', (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   res.setHeader('X-Robots-Tag', 'noindex, nofollow');
