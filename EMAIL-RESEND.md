@@ -8,17 +8,24 @@ verificação para as duas.
 
 ---
 
-## 1 · Comprar o domínio
+## 1 · O domínio — feito
 
-Recomendo o **Cloudflare Registrar** (`dash.cloudflare.com`): vende ao preço de
-custo, cerca de **$10/ano**, sem aumento na renovação e sem coisas atadas à
-venda. E o painel de DNS que vai precisar a seguir é o mesmo sítio — uma conta
-em vez de duas.
+`timorgiana.com`, comprado na **Domainesia** a 09/09/2026, em nome da sociedade.
 
-Alternativas iguais de simples: Namecheap, Porkbun.
-
-> **Porquê isto importa.** Os outros registadores vendem barato no primeiro ano
-> e sobem depois. Ao preço de custo não há primeiro ano.
+> **Porque não foi o Cloudflare.** Era a recomendação — vende ao preço de custo
+> e tem bom painel de DNS. Mas recusou o cartão Visa do Mandiri duas vezes, sem
+> sequer chegar à confirmação por SMS: as transacções internacionais online de
+> um cartão indonésio raramente passam num serviço americano.
+>
+> A Domainesia aceita transferência e conta virtual do Mandiri — paga-se de
+> dentro do sistema onde o dinheiro já funciona. Custou o mesmo.
+>
+> **Não se perdeu nada.** O Cloudflare era conveniência, não requisito: os três
+> registos abaixo são três linhas de texto que qualquer painel de DNS aceita.
+>
+> Fica a lição para as compras seguintes (Render, Expo, o que vier): **serviços
+> americanos recusam este cartão.** Procurar sempre quem aceite transferência
+> indonésia, ou ter outro meio de pagamento pronto.
 
 ## 2 · Conta no Resend
 
@@ -29,8 +36,9 @@ dia e 3 domínios** — nós gastamos um email por registo.
 
 No Resend: **Domains → Add Domain →** escrever `timorgiana.com`.
 
-Ele mostra **três registos**. Copiar cada um para o DNS do Cloudflare
-(**DNS → Records → Add record**), com o mesmo tipo, nome e valor:
+Ele mostra **três registos**. Copiar cada um para o painel de DNS da
+**Domainesia** (área de cliente → Domínios → o domínio → gestão de DNS), com o
+mesmo tipo, nome e valor:
 
 | O que é | Para que serve |
 |---|---|
