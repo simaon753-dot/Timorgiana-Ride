@@ -937,14 +937,69 @@ export default function MapaGoogle({
           />
         ))}
 
-        {rota ? (
+        {/* A ROTA, DESENHADA COMO O GOOGLE DESENHA A DELE.
+            O caminho já era o deles — as coordenadas vêm da Routes API, por
+            isso a linha passa pelas estradas por onde eles mandariam. O que
+            faltava era o aspecto: eles põem DUAS linhas, uma escura mais
+            larga por baixo e a da cor por cima, com as pontas redondas.
+
+            Não é enfeite. Uma linha lisa da nossa cor cruza uma avenida
+            cinzenta, um rio azul e um quarteirão creme, e em cada um deles
+            perde-se um bocado — o verde escuro sobre o cinzento de uma via
+            rápida quase não se vê. O contorno dá-lhe uma margem própria: seja
+            o que for que esteja por baixo, há sempre dois tons a separá-los.
+
+            AS CORES ESTÃO ESCRITAS À MÃO, e é de propósito. São as do tema
+            (`teal` e `tealDark`), mas o mapa do Google é sempre claro — não
+            segue o nosso modo escuro. Uma linha que mudasse de cor à noite
+            ficaria a ser desenhada sobre o mesmo fundo de sempre.
+
+            A LINHA RECTA NÃO LEVA CONTORNO. Ela aparece quando não sabemos o
+            caminho e ligamos os dois pontos a direito; o tracejado é o que
+            diz "isto é um palpite". Vesti-la com o acabamento da rota a
+            sério era dar-lhe uma confiança que ela não tem. */}
+        {rota && rota.tracejada ? (
           <Polyline
-            key={rota.tracejada ? 'recta' : 'estrada'}
+            key="recta"
             coordinates={rota.linha}
             strokeColor="#0E5C54"
-            strokeWidth={rota.tracejada ? 4 : 5}
-            strokeOpacity={rota.tracejada ? 0.6 : 0.9}
-            lineDashPattern={rota.tracejada ? [8, 8] : undefined}
+            strokeWidth={4}
+            strokeOpacity={0.6}
+            lineDashPattern={[8, 8]}
+          />
+        ) : null}
+
+        {/* AS DUAS SOLTAS e não dentro de um fragmento. O MapView entrega os
+            filhos ao mapa nativo, e um fragmento é uma camada de React que
+            não existe do lado nativo. Funciona quase sempre; "quase" não
+            chega quando eu não tenho o telemóvel dele para confirmar. */}
+        {rota && !rota.tracejada ? (
+          <Polyline
+            key="estrada-contorno"
+            coordinates={rota.linha}
+            strokeColor="#0A463F"
+            strokeWidth={10}
+            lineCap="round"
+            lineJoin="round"
+            zIndex={1}
+          />
+        ) : null}
+
+        {rota && !rota.tracejada ? (
+          // SEM `strokeOpacity`, e a ausência é a decisão.
+          //
+          // A linha antiga ia a 0,9 e sozinha ninguém dava pelos 10% — o que
+          // se via por baixo era o mapa. Com uma linha escura debaixo dela,
+          // esses 10% passavam a ser o contorno a subir através do verde, e a
+          // cor saía turva. Opaca, cada uma faz o seu trabalho.
+          <Polyline
+            key="estrada"
+            coordinates={rota.linha}
+            strokeColor="#0E5C54"
+            strokeWidth={6}
+            lineCap="round"
+            lineJoin="round"
+            zIndex={2}
           />
         ) : null}
 
