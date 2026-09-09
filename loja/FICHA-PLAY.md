@@ -1,7 +1,8 @@
 # Ficha da Google Play — TimorgianaRide
 
 Materiais e textos para a submissão. Os gráficos geram-se com
-`python3 loja/gerar.py`; as capturas de ecrã tira-as o Simão do telemóvel.
+`python3 loja/gerar.py`; as capturas de ecrã tira-as o Simão do telemóvel e
+prepara-as `python3 loja/capturas.py`.
 
 ---
 
@@ -11,7 +12,14 @@ Materiais e textos para a submissão. Os gráficos geram-se com
 |---|---|---|
 | Ícone da loja | `loja/icone-512.png` | 512 × 512 ✓ |
 | Gráfico de destaque | `loja/destaque-1024x500.png` | 1024 × 500 ✓ |
-| Capturas de ecrã | **faltam** | mín. 2, entre 320 e 3840 px |
+| Capturas de ecrã | `loja/capturas/` | mín. 2, entre 320 e 3840 px |
+
+**A regra que apanha toda a gente:** o lado maior não pode ter mais do dobro
+do lado menor. Um telemóvel normal fotografa a 1080x2400 — proporção 2,22:1,
+e a loja recusa. Não corrigir isso à mão: pôr as fotografias do telemóvel em
+`loja/capturas-originais/`, com nomes que ordenem pela ordem que se quer na
+loja, e correr `python3 loja/capturas.py`. Alarga a tela em vez de cortar a
+imagem, e sai em `loja/capturas/` pronto a enviar.
 
 **As capturas que valem a pena**, por esta ordem — a primeira é a que quase
 toda a gente vê e a única que muitos vêem:
@@ -20,6 +28,18 @@ toda a gente vê e a única que muitos vêem:
 2. O ecrã de escolher veículo, com os dois preços
 3. A viagem a decorrer, com o motorista e a matrícula
 4. O ecrã do motorista, com um pedido a chegar
+
+As duas primeiras fazem-se sozinho. As duas últimas precisam de duas contas
+ligadas ao mesmo tempo, ou seja de dois telemóveis; se não houver, publica-se
+com as duas primeiras e acrescentam-se depois — a ficha altera-se a qualquer
+momento.
+
+O que fica nas capturas fica público para sempre: uma matrícula, um nome, um
+número de telemóvel. Só dados nossos, e só os que não nos importa ver na loja.
+
+A faixa "Aplicação em fase de teste" aparece nas duas capturas do ecrã
+inicial, e **fica**. A Google exige que as capturas mostrem a app como ela é;
+e quem instalar depois de a ver não se sente enganado.
 
 ---
 

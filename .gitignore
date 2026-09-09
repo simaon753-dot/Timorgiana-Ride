@@ -44,3 +44,9 @@ copias/
 # documentos de identificação dos motoristas e os telemóveis dos passageiros,
 # e este repositório é público.
 copia-*.sql
+
+# Capturas em bruto do telemóvel. O repositório é público e o histórico do
+# git é para sempre: aqui entram fotografias que talvez não sejam usadas, com
+# nomes, números e matrículas verdadeiros. Só vai para o repositório o que for
+# escolhido, já preparado, em loja/capturas/.
+loja/capturas-originais/

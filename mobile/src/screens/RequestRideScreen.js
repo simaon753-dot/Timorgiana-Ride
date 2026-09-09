@@ -1052,7 +1052,8 @@ function Ponto({ cor, rotulo, valor, vazio, onPress, onCorrigir }) {
         </Text>
       </View>
 
-      {/* O ! ao lado do nome, e não uma frase por baixo.
+      {/* O ! ao lado do nome, e não uma frase por baixo. Cinzento e não
+          vermelho — a razão está na folha de estilo, em `avisoNome`.
           A frase ocupava uma linha em cada campo e empurrava tudo para
           baixo — duas linhas de texto para uma coisa que quase ninguém
           usa. O ícone diz o mesmo num canto: há aqui uma dúvida, toca se
@@ -1230,19 +1231,44 @@ const criarEstilos = () =>
     // Vermelho por dentro, aro branco por fora. O aro não é enfeite: sem ele o
     // ícone desaparecia sobre o fundo claro do painel no tema claro, e sobre o
     // preto no tema escuro. Assim lê-se nos dois.
+    // CINZENTO, e já foi vermelho.
+    //
+    // Estava com `colors.danger` — a mesma cor com que a app assinala erros.
+    // E isto não é um erro: é um convite a corrigir o nome de um sítio, para
+    // quem quiser e souber. Nada está mal quando ele aparece.
+    //
+    // Ninguém deu por isso em meses de uso, e há uma razão: DENTRO da app
+    // toca-se. Toca-se uma vez, percebe-se o que é, e nunca mais engana.
+    // O mal-entendido desfaz-se sozinho em dois segundos.
+    //
+    // Quem apanhou o defeito foi a primeira captura de ecrã para a loja. Uma
+    // imagem tira exactamente essa saída — fica o vermelho sem a hipótese de
+    // lhe tocar, que é a condição de quem ainda não instalou nada e está a
+    // decidir se vale a pena. E aí dois círculos vermelhos ao lado da recolha
+    // e do destino dizem o que o vermelho sempre disse.
+    //
+    // As cores são as fichas do tema e não valores à mão, por isso serve os
+    // dois: `textMuted` sobre `white` (a SUPERFÍCIE, escura de noite) dá o
+    // anel sempre igual ao cartão por trás, e o `!` sempre com contraste
+    // suficiente — 4,77:1 de dia, 5,22:1 de noite.
+    //
+    // E isto CORRIGE UMA FALHA que ninguém tinha visto: o vermelho de noite
+    // (#FF5252 com o ! branco) dava 3,19:1, abaixo do mínimo de 4,5:1. De
+    // noite, que é quando os motoristas conduzem. A troca era por causa do
+    // significado da cor; o contraste veio de lá a reboque.
     avisoNome: {
       width: 20,
       height: 20,
       borderRadius: 10,
-      backgroundColor: colors.danger,
+      backgroundColor: colors.textMuted,
       borderWidth: 1.5,
-      borderColor: '#FFFFFF',
+      borderColor: colors.white,
       alignItems: 'center',
       justifyContent: 'center',
       marginLeft: spacing.sm,
     },
     avisoNomeTexto: {
-      color: '#FFFFFF',
+      color: colors.white,
       fontSize: 13,
       lineHeight: 16,
       fontWeight: '800',
