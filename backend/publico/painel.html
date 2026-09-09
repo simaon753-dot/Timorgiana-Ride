@@ -18,8 +18,14 @@
     display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
   header h1 { font-size: 17px; margin: 0; font-weight: 600; }
   header .espaco { flex: 1; }
+  /* 44 px DE ALTURA MÍNIMA em tudo o que se toca.
+     Isto é usado ao telemóvel, muitas vezes de pé e à pressa. Os botões
+     tinham 31 px; a ponta de um dedo cobre uns 44, e quem falha o toque não
+     conclui que falhou — conclui que o botão não responde, e volta a tocar
+     com mais força no mesmo sítio. */
   header button { background: rgba(255,255,255,.15); color: #fff; border: 0;
-    padding: 7px 13px; border-radius: 7px; cursor: pointer; font-size: 13px; }
+    padding: 7px 13px; border-radius: 7px; cursor: pointer; font-size: 13px;
+    min-height: 44px; }
   main { max-width: 1200px; margin: 0 auto; padding: 20px; }
 
   .entrar { max-width: 340px; margin: 12vh auto; background: var(--branco);
@@ -28,15 +34,29 @@
   .entrar p { margin: 0 0 18px; color: var(--suave); font-size: 13px; }
   label { display: block; font-size: 12px; color: var(--suave);
     text-transform: uppercase; letter-spacing: .5px; margin: 12px 0 5px; }
+  /* 16 px e não 15: abaixo de 16, o Safari do telemóvel dá zoom sozinho ao
+     tocar num campo, e a página fica torta até se sair dele. */
   input { width: 100%; padding: 11px 12px; border: 1px solid var(--borda);
-    border-radius: 9px; font-size: 15px; background: var(--branco); color: var(--texto); }
+    border-radius: 9px; font-size: 16px; background: var(--branco); color: var(--texto); }
   .principal { width: 100%; margin-top: 18px; padding: 12px; background: var(--coral);
     color: #22100a; border: 0; border-radius: 9px; font-size: 15px; font-weight: 600;
     cursor: pointer; }
 
-  .separadores { display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 1px solid var(--borda); }
+  /* A BARRA ROLA DE LADO, e não passa para a linha de baixo.
+     Os quatro nomes medem cerca de 424 px; um telemóvel tem 375. Sem isto,
+     "Dados" ficava fora do ecrã e a PÁGINA INTEIRA ganhava rolamento
+     horizontal — o texto todo a fugir para o lado ao tocar. Com `wrap` os
+     separadores caíam para duas linhas, o que parece avaria. Rolar de lado
+     é o que uma barra de separadores faz num telemóvel.
+     A barra de rolamento fica escondida: ocupa espaço e não diz nada que o
+     corte do último separador já não diga. */
+  .separadores { display: flex; gap: 8px; margin-bottom: 18px;
+    border-bottom: 1px solid var(--borda);
+    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .separadores::-webkit-scrollbar { display: none; }
   .separadores button { background: none; border: 0; border-bottom: 3px solid transparent;
-    padding: 10px 4px; margin-right: 18px; cursor: pointer; font-size: 15px; color: var(--suave); }
+    padding: 10px 4px; margin-right: 18px; cursor: pointer; font-size: 15px; color: var(--suave);
+    flex: 0 0 auto; white-space: nowrap; min-height: 44px; }
   .separadores button[aria-pressed="true"] { color: var(--teal); border-bottom-color: var(--teal);
     font-weight: 600; }
   .explica { color: var(--suave); font-size: 14px; margin: 0 0 14px; max-width: 640px; }
@@ -65,7 +85,9 @@
     color: var(--teal); font-variant-numeric: tabular-nums; margin: 14px 0; }
   .filtros { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
   .filtros button { background: var(--branco); border: 1px solid var(--borda);
-    padding: 7px 14px; border-radius: 999px; cursor: pointer; font-size: 13px; color: var(--texto); }
+    padding: 7px 16px; border-radius: 999px; cursor: pointer; font-size: 13px; color: var(--texto);
+    min-height: 44px; display: inline-flex; align-items: center; gap: 7px;
+    transition: background .15s, border-color .15s; }
   .filtros button[aria-pressed="true"] { background: var(--teal); border-color: var(--teal); color: #fff; }
 
   .conta { background: var(--branco); border: 1px solid var(--borda); border-radius: 14px;
@@ -122,7 +144,37 @@
   .lupaBarra { display: flex; gap: 8px; justify-content: flex-end; padding: 10px;
     background: var(--papel); border-bottom: 1px solid var(--borda); }
   .lupaBarra button { background: var(--teal); color: #fff; border: 0;
-    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px;
+    min-height: 44px; }
+
+  /* O ANEL DE FOCO, com a cor da casa.
+     Nunca houve `outline: none` aqui, por isso o foco do teclado SEMPRE se
+     viu — o do browser. Não é uma avaria que se corrige, é um anel emprestado
+     que se substitui: o do sistema é um fio azul que sobre o creme e o verde
+     desta página quase não se lê.
+     `:focus-visible` e não `:focus`: assim aparece a quem anda de Tab e não a
+     quem clica com o rato, que já sabe onde carregou. */
+  :focus-visible { outline: 3px solid var(--coral); outline-offset: 2px; border-radius: 4px; }
+
+  /* Para leitores de ecrã, não para os olhos. O campo de procura só tinha
+     texto de exemplo lá dentro, e texto de exemplo desaparece ao escrever —
+     quem não vê o ecrã fica sem saber o que aquele campo é. */
+  .soLeitor { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+  /* QUANTOS ESTÃO À ESPERA, no próprio separador.
+     A pergunta com que se abre este painel é "há alguma coisa para fazer?".
+     A resposta obrigava a carregar num filtro para a descobrir. */
+  .quantos { background: var(--coral); color: #22100a; font-size: 12px; font-weight: 700;
+    border-radius: 999px; padding: 1px 8px; font-variant-numeric: tabular-nums; }
+  .filtros button[aria-pressed="true"] .quantos { background: var(--branco); color: var(--teal); }
+
+  /* Quem pediu ao sistema para reduzir o movimento não leva nenhum. Aqui há
+     pouco — a rotação de um documento na lupa — mas "pouco" não é a decisão
+     de quem o pediu. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
 </style>
 </head>
 <body>
@@ -156,7 +208,7 @@
 
     <div id="secAprovacoes">
     <div class="filtros">
-      <button data-estado="pending" aria-pressed="true">À espera</button>
+      <button data-estado="pending" aria-pressed="true">À espera<span class="quantos" id="nEspera" hidden></span></button>
       <button data-estado="approved" aria-pressed="false">Aprovados</button>
       <button data-estado="rejected" aria-pressed="false">Recusados</button>
       <button data-estado="todos" aria-pressed="false">Todos</button>
@@ -170,6 +222,7 @@
         diga-lho — e para quem <b>esqueceu a palavra-passe</b>: gere um código,
         diga-o ao telefone, e é a pessoa que escolhe a senha nova.
       </p>
+      <label class="soLeitor" for="procura">Procurar por nome ou número de telemóvel</label>
       <input id="procura" type="search" placeholder="Nome ou número de telemóvel" />
       <div id="pessoas"></div>
     </div>
@@ -237,7 +290,10 @@
   </main>
 </div>
 
-<div id="aviso" hidden></div>
+<!-- role/aria-live: esta faixa é a ÚNICA confirmação de que uma aprovação
+     resultou. Sem isto, um leitor de ecrã não a anuncia — e a pessoa fica
+     sem saber se carregou ou não. -->
+<div id="aviso" role="status" aria-live="polite" hidden></div>
 
 <dialog id="janelaCodigo">
   <div class="codigoCaixa">
@@ -425,9 +481,41 @@ const observador = new IntersectionObserver(
   { rootMargin: '300px' }
 );
 
+// QUANTOS ESTÃO À ESPERA, no separador e no título do separador do browser.
+//
+// SEM PEDIDO EXTRA no caso normal. "À espera" é o filtro que abre por
+// omissão, e nesse caso o número já veio na resposta que desenhou a lista —
+// passa-se para aqui em vez de se voltar a perguntar. Só quando se está a
+// olhar para outro filtro é que há uma segunda pergunta ao servidor.
+//
+// NO TÍTULO também, e não é enfeite: este painel fica aberto num separador
+// atrás do trabalho. Um "(3)" no separador é a diferença entre saber que há
+// gente à espera e ir lá ver de vez em quando.
+//
+// Falhar aqui não faz nada. Uma contagem é uma comodidade; se a rede a
+// perder, o painel continua inteiro e o número fica como estava.
+async function contarEspera(jaSabido) {
+  let n = jaSabido;
+  try {
+    if (n == null) n = (await api('/admin/drivers?status=pending')).drivers.length;
+  } catch {
+    return;
+  }
+  const alvo = $('nEspera');
+  if (alvo) {
+    alvo.textContent = String(n);
+    alvo.hidden = n === 0;
+  }
+  document.title = n > 0 ? `(${n}) TimorgianaRide · Aprovações` : 'TimorgianaRide · Aprovações';
+}
+
 async function desenhar() {
   const { drivers } = await api('/admin/drivers?status=' + estado);
   const lista = $('lista');
+  // ANTES do `return` da lista vazia, senão a contagem só se actualizava
+  // quando houvesse alguém — ou seja, nunca chegava a zero e ficava a dizer
+  // que há trabalho depois de o trabalho estar feito.
+  contarEspera(estado === 'pending' ? drivers.length : null);
   if (!drivers.length) {
     lista.innerHTML = '<div class="vazio">Nada por tratar.</div>';
     return;
