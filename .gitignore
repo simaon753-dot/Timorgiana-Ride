@@ -39,3 +39,8 @@ Thumbs.db
 # Cópias da base de dados: contêm documentos de identificação em base64.
 # Nunca entram no repositório.
 copias/
+
+# As cópias de segurança da base de dados. NUNCA no repositório: levam os
+# documentos de identificação dos motoristas e os telemóveis dos passageiros,
+# e este repositório é público.
+copia-*.sql
