@@ -14,6 +14,7 @@ import BarraEstado from '../design/BarraEstado.js';
 import { tipo } from '../design/tipografia.js';
 import { FIXOS, lerFixos, guardarFixo, destinosRecentes } from '../lib/lugares.js';
 import PlaceSearch from '../components/PlaceSearch.js';
+import AvisoTeste from '../components/AvisoTeste.js';
 import EscolherPonto from '../components/EscolherPonto.js';
 import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
@@ -146,6 +147,7 @@ export default function PassengerHomeScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <BarraEstado />
       <ScrollView contentContainerStyle={styles.scroll}>
+        <AvisoTeste />
         <BarraTopo navigation={navigation} />
 
         {/* Um motorista que veio aqui pedir uma viagem tem de saber como

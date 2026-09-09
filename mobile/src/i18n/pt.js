@@ -87,6 +87,7 @@ export default {
   callLabel: 'Ligar',
   cancelRide: 'Cancelar viagem',
   newRide: 'Nova viagem',
+  avisoTeste: 'Aplicação em fase de teste. Pode haver falhas.',
   noDriverFound: 'Nenhum motorista respondeu. Tenta outra vez.',
 
   availableRequests: 'Pedidos de viagem',

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Logo from '../components/Logo.js';
+import AvisoTeste from '../components/AvisoTeste.js';
 import Button from '../components/Button.js';
 import TextField from '../components/TextField.js';
 import BarraTopo from '../components/BarraTopo.js';
@@ -102,6 +103,7 @@ export default function DriverHomeScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <BarraEstado />
       <ScrollView contentContainerStyle={styles.scroll}>
+        <AvisoTeste />
         <BarraTopo navigation={navigation} />
 
         {/* A fotografia do dia vem ANTES do interruptor: sem ela o

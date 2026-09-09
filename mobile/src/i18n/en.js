@@ -87,6 +87,7 @@ export default {
   callLabel: 'Call',
   cancelRide: 'Cancel ride',
   newRide: 'New ride',
+  avisoTeste: 'App in testing. There may be problems.',
   noDriverFound: 'No driver answered. Please try again.',
 
   availableRequests: 'Ride requests',
