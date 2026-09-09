@@ -21,6 +21,10 @@ quoteRouter.post(
     const oLng = num(req.body?.originLng);
     const dLat = num(req.body?.destLat);
     const dLng = num(req.body?.destLng);
+    // Quantas pessoas vão. Só muda o preço do CARRO e só a partir de cinco —
+    // ver a nota em config.js. Sem este número, a cotação assumia sempre uma
+    // pessoa e um grupo de seis via o preço de quatro até pedir a viagem.
+    const pessoas = num(req.body?.passengers);
 
     if (oLat == null || oLng == null || dLat == null || dLng == null) {
       return res.status(400).json({ error: 'Faltam as coordenadas de origem ou destino.' });
@@ -51,7 +55,7 @@ quoteRouter.post(
         const maisPerto = perto[0];
         return {
           type: tipo,
-          fareUsd: preco(tipo, viagem.km, viagem.min),
+          fareUsd: preco(tipo, viagem.km, viagem.min, tipo === 'car' ? pessoas : null),
           etaMin: maisPerto ? etaMinutos(maisPerto.km) : null,
           available: !!maisPerto,
         };

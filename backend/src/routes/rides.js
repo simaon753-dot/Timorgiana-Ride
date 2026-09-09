@@ -187,7 +187,15 @@ ridesRouter.post(
         { lat: Number(originLat), lng: Number(originLng) },
         { lat: Number(destLat), lng: Number(destLng) }
       );
-      precoFinal = preco(vehicleType === 'motorbike' ? 'motorbike' : 'car', viagem.km, viagem.min);
+      precoFinal = preco(
+        vehicleType === 'motorbike' ? 'motorbike' : 'car',
+        viagem.km,
+        viagem.min,
+        // O MESMO NÚMERO QUE A COTAÇÃO VIU. Se aqui se ignorasse, o passageiro
+        // via um preço no ecrã e a viagem nascia com outro — e o do ecrã é o
+        // que ele aceitou.
+        vehicleType === 'car' ? passengers : null
+      );
       kmViagem = viagem.km;
       minViagem = viagem.min;
     }

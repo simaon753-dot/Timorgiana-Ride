@@ -140,6 +140,10 @@ export default function RequestRideScreen({ navigation, route }) {
         originLng: origem.lng,
         destLat: destino.lat,
         destLng: destino.lng,
+        // QUANTAS PESSOAS VÃO, porque a partir de cinco o quilómetro do carro
+        // é outro — só um carro grande as leva, e custa mais ao motorista.
+        // Ver a nota em config.js do servidor.
+        passengers: pessoas,
       })
       .then((q) => !cancelado && setOrcamento(q))
       .catch(() => !cancelado && setOrcamento(null))
@@ -147,7 +151,13 @@ export default function RequestRideScreen({ navigation, route }) {
     return () => {
       cancelado = true;
     };
-  }, [token, origem?.lat, origem?.lng, destino?.lat, destino?.lng]);
+    // `pessoas` ENTRA NAS DEPENDÊNCIAS, e tem de entrar.
+    //
+    // Sem isto, mudar de 4 para 5 pessoas não refazia a cotação: o ecrã
+    // continuava a mostrar o preço de quatro e a viagem nascia com o de
+    // cinco. O passageiro aceitava um preço e pagava outro — e o preço do
+    // ecrã é o que ele aceitou.
+  }, [token, origem?.lat, origem?.lng, destino?.lat, destino?.lng, pessoas]);
 
   useEffect(() => {
     origemRef.current = origem;

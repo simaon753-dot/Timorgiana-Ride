@@ -93,6 +93,29 @@ export const config = {
       porKm: Number(process.env.FARE_CAR_POR_KM) || 0.64,
       porMinuto: Number(process.env.FARE_CAR_POR_MINUTO) || 0.03,
       minimo: Number(process.env.FARE_CAR_MINIMO) || 1.0,
+      // ── A PARTIR DE CINCO PESSOAS ────────────────────────────────
+      //
+      // A concorrência cobra $1,00/km ao carro de seis lugares contra $0,85
+      // ao de quatro — mais 17,6%. Aplicado ao nosso $0,64 dá $0,75, o que
+      // nos deixa abaixo deles nas duas tabelas e na mesma proporção.
+      //
+      // É COBRADO PELAS PESSOAS E NÃO PELO VEÍCULO, e a diferença é toda.
+      //
+      // O nosso preço é firme no momento do pedido, e nesse momento não se
+      // sabe que carro vai aceitar. Cobrar pelo veículo que aparece obrigava
+      // a só dizer o preço quando ele chegasse — e a certeza do preço antes
+      // de entrar é o que faz as pessoas confiarem num sistema a dinheiro.
+      //
+      // O número de pessoas é escolhido ANTES de o preço aparecer, e uma
+      // viagem de cinco ou seis só pode ser aceite por um carro grande: o
+      // sistema já filtra por lugares na lista e na aceitação. Cobrar pela
+      // coisa que o passageiro controla e conhece guarda as duas pontas.
+      //
+      // Cinco e não seis: um carro normal leva quatro passageiros. É aos
+      // cinco que passa a ser preciso outro veículo, e é aí que o custo do
+      // motorista muda.
+      lugaresGrande: Number(process.env.FARE_CAR_LUGARES_GRANDE) || 5,
+      porKmGrande: Number(process.env.FARE_CAR_POR_KM_GRANDE) || 0.75,
     },
   },
 

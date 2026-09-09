@@ -68,11 +68,21 @@ export function duracaoRealista(km, minutosOsrm) {
 // Sem tempo conhecido, estima-se dos quilómetros pela mesma velocidade que o
 // resto da app assume. É melhor do que cobrar zero pela parcela e melhor do
 // que recusar dar preço.
-export function preco(vehicleType, km, min = null) {
+export function preco(vehicleType, km, min = null, pessoas = null) {
   const t = config.tarifas[vehicleType] || config.tarifas.car;
   const minutos = Number.isFinite(Number(min)) && Number(min) > 0 ? Number(min) : estimarMin(km);
   const distancia = Math.max(0, Number(km) || 0);
-  const bruto = t.base + t.porKm * distancia + (t.porMinuto || 0) * minutos;
+
+  // O QUILÓMETRO MUDA A PARTIR DE CINCO PESSOAS. Ver a nota em config.js.
+  //
+  // Só no carro: numa motorizada vai sempre uma pessoa, e um `pessoas` de
+  // cinco chegado aqui com `motorbike` seria um pedido mal formado — a
+  // ausência de `porKmGrande` nessa tarifa faz a conta ignorá-lo sozinha.
+  const muitos =
+    t.lugaresGrande != null && Number(pessoas) >= t.lugaresGrande && t.porKmGrande != null;
+  const porKm = muitos ? t.porKmGrande : t.porKm;
+
+  const bruto = t.base + porKm * distancia + (t.porMinuto || 0) * minutos;
   return Math.max(t.minimo, aoCentimoPermitido(bruto));
 }
 
