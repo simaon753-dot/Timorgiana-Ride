@@ -88,6 +88,9 @@ export default {
   cancelRide: 'Cancel ride',
   newRide: 'New ride',
   avisoTeste: 'App in testing. There may be problems.',
+  avisoTesteTitulo: 'App in testing',
+  avisoTesteDetalhe:
+    'We are testing the service in Dili. There may be faults, drivers will not always be available, and prices and rules may change during this phase.',
   noDriverFound: 'No driver answered. Please try again.',
 
   availableRequests: 'Ride requests',

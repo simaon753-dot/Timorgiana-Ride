@@ -89,6 +89,23 @@ export default function WelcomeScreen({ navigation }) {
         <View style={styles.janela} />
 
         <View style={[styles.baixo, { paddingBottom: insets.bottom + spacing.md }]}>
+          {/* O AVISO DE TESTE, ACIMA DO BOTÃO DE ENTRAR.
+              Estava só nos dois ecrãs iniciais, ou seja, DEPOIS de a pessoa
+              já ter conta e já ter entrado. Quem chega pela primeira vez —
+              que é exactamente quem precisa de saber — não o via em lado
+              nenhum.
+              Aqui diz mais do que a faixa de dentro: que o serviço está a ser
+              testado em Díli, que pode não haver motoristas a toda a hora, e
+              que os preços e as regras ainda podem mudar. São as três coisas
+              que fazem alguém desinstalar sem perceber porquê, e ditas antes
+              deixam de ser surpresas.
+              Fica ACIMA do "Iniciar sessão" de propósito: lê-se no caminho
+              para o botão, e não depois de já se ter carregado nele. */}
+          <View style={styles.aviso}>
+            <Text style={styles.avisoTitulo}>{t('avisoTesteTitulo')}</Text>
+            <Text style={styles.avisoTexto}>{t('avisoTesteDetalhe')}</Text>
+          </View>
+
           {/* A CHAMADA, feita aqui e não com o <Button> comum.
               A maqueta tem uma seta dentro de um círculo à esquerda do texto,
               e o <Button> só aceita ícones que sejam texto. A tinta escura
@@ -202,6 +219,28 @@ const criarEstilos = () =>
     janela: { flex: 1, minHeight: spacing.xl },
 
     baixo: { paddingHorizontal: spacing.lg },
+
+    // Painel translúcido sobre o véu: agrupa o aviso sem lhe pôr uma cor
+
+    // de alarme. Não é um erro — é uma condição do serviço, e a cor de
+
+    // perigo fazia cada abertura parecer uma avaria.
+
+    aviso: {
+      backgroundColor: 'rgba(255,255,255,0.13)',
+
+      borderRadius: radius.lg,
+
+      paddingVertical: spacing.md,
+
+      paddingHorizontal: spacing.md,
+
+      marginBottom: spacing.md,
+    },
+
+    avisoTitulo: { ...tipo.corpoForte, color: colors.onTeal },
+
+    avisoTexto: { ...tipo.pequeno, color: colors.onTeal, opacity: 0.88, marginTop: 3 },
 
     chamada: {
       flexDirection: 'row',
