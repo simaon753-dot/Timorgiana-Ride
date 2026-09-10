@@ -88,6 +88,9 @@ export default {
   cancelRide: 'Kansela viajen',
   newRide: 'Viajen foun',
   avisoTeste: 'Aplikasaun iha faze teste. Bele iha problema.',
+  avisoTesteTitulo: 'Aplikasaun iha faze teste',
+  avisoTesteDetalhe:
+    'Ami testa hela servisu iha Dili. Bele iha problema, la iha motorista disponível bebeik, no presu ho regra sira bele muda durante faze ne’e.',
   noDriverFound: 'Motorista ida la responde. Koko fali.',
 
   availableRequests: 'Pedidu viajen',

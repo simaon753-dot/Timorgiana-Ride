@@ -88,6 +88,9 @@ export default {
   cancelRide: 'Cancelar viagem',
   newRide: 'Nova viagem',
   avisoTeste: 'Aplicação em fase de teste. Pode haver falhas.',
+  avisoTesteTitulo: 'Aplicação em fase de teste',
+  avisoTesteDetalhe:
+    'Estamos a testar o serviço em Díli. Pode haver falhas, nem sempre haverá motoristas disponíveis, e os preços e as regras podem mudar durante esta fase.',
   noDriverFound: 'Nenhum motorista respondeu. Tenta outra vez.',
 
   availableRequests: 'Pedidos de viagem',
