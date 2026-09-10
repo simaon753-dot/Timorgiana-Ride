@@ -380,6 +380,7 @@ export default {
   vehicleSeats: 'Bele tula passajeiru hira',
   vehicleSeatsHelp: 'La sura ita-an rasik.',
   errSeatsRequired: 'indika pasajeiru hira mak kareta bele tula.',
+  errColorRequired: 'Hili veíkulu nia kór — ne’e mak pasajeiru buka ita.',
   howManyPeople: 'Ema hira mak ba?',
 
   cor_branco: 'Mutin',

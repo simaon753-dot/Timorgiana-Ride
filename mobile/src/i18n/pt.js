@@ -381,6 +381,7 @@ export default {
   vehicleSeats: 'Quantos passageiros leva',
   vehicleSeatsHelp: 'Sem te contar a ti.',
   errSeatsRequired: 'Indique quantos passageiros o carro leva.',
+  errColorRequired: 'Escolha a cor do veículo — é como o passageiro o encontra.',
   howManyPeople: 'Quantas pessoas vão?',
 
   cor_branco: 'Branco',

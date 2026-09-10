@@ -423,6 +423,20 @@ const mostrarData = (iso) => {
 function verificar(d) {
   const porTipo = Object.fromEntries((d.documents || []).map((x) => [x.kind, x]));
   const linhas = [];
+
+  // A COR DO VEÍCULO, e impede a aprovação como um documento em falta.
+  //
+  // É o que o passageiro vê primeiro: a matrícula só se lê a três metros, e
+  // ao fundo da rua o que identifica um veículo é a cor. Sem ela, quem espera
+  // fica a olhar para todos os carros que passam.
+  //
+  // O campo existia no registo desde sempre, mas nunca foi exigido — e o
+  // primeiro motorista a sério ficou sem cor, sem ninguém dar por isso até um
+  // passageiro estar na rua à espera. A app passou a exigi-la; esta linha é o
+  // que apanha quem se registou antes disso.
+  if (!d.vehicle?.color) {
+    linhas.push({ c: 'no', t: 'Sem cor do veículo — o passageiro não o distingue ao longe' });
+  }
   const faltam = TIPOS.filter(([k]) => !porTipo[k]).map(([, n]) => n);
   linhas.push(
     faltam.length

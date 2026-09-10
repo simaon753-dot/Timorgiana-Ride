@@ -370,6 +370,7 @@ export default {
   vehicleSeats: 'How many passengers it carries',
   vehicleSeatsHelp: 'Not counting you.',
   errSeatsRequired: 'Please say how many passengers the car carries.',
+  errColorRequired: 'Choose the vehicle colour — it is how the passenger finds you.',
   howManyPeople: 'How many people are going?',
 
   cor_branco: 'White',

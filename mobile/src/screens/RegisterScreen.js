@@ -64,6 +64,16 @@ export default function RegisterScreen({ navigation, route }) {
     if (password !== password2) return setError(t('errPasswordMismatch'));
     if (role === 'driver' && !vPlate.trim()) return setError(t('errPlateRequired'));
     if (role === 'driver' && vType === 'car' && !vSeats) return setError(t('errSeatsRequired'));
+    // A COR É OBRIGATÓRIA, e não era.
+    //
+    // É o que o passageiro vê primeiro. A matrícula só se lê a três metros;
+    // ao fundo da rua o que identifica um veículo é a cor. Sem ela, quem
+    // espera fica a olhar para todos os carros que passam.
+    //
+    // O campo já cá estava e já aparecia no ecrã — só nunca foi exigido. Um
+    // motorista que não lhe tocasse ficava sem cor para sempre, e ninguém
+    // dava por isso até um passageiro estar na rua à espera.
+    if (role === 'driver' && !vColor) return setError(t('errColorRequired'));
     if (role === 'driver' && !cidadaoTL) return setError(t('errCidadaoTL'));
     if (!aceitou) return setError(t('errTermsRequired'));
     if (!aceitouPrivacidade) return setError(t('errPrivacyRequired'));
