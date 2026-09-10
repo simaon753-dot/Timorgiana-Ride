@@ -563,7 +563,22 @@ export default function RequestRideScreen({ navigation, route }) {
             }
           : {}),
       });
-      navigation.goBack();
+      // VOLTA AO INÍCIO, e não um passo atrás.
+      //
+      // Era `goBack()`, e chegava enquanto a pilha tinha dois ecrãs: Início e
+      // Pedir viagem. Um passo atrás dava no Início, que é onde a viagem a
+      // decorrer se mostra.
+      //
+      // Ao separar o pedido em dois passos, a pilha passou a ter três — o
+      // "Para onde vai?" entrou pelo meio — e o mesmo `goBack()` passou a cair
+      // aí. Quem pedia uma viagem via o ecrã de escolher destino, como se o
+      // pedido não tivesse acontecido; só carregando outra vez em voltar é que
+      // aparecia "à procura de motorista".
+      //
+      // `navigate` e não `popToTop()`: o que queremos é chegar ao Início, e
+      // dizê-lo pelo nome sobrevive a alguém acrescentar um ecrã antes dele.
+      // `popToTop` leva ao primeiro da pilha, seja ele qual for.
+      navigation.navigate('Tabs');
     } catch (e) {
       setErro(e?.message === 'NETWORK' ? t('errNetwork') : e?.message || t('errGeneric'));
     } finally {
