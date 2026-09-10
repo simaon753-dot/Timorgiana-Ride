@@ -103,6 +103,27 @@ export function RideProvider({ children }) {
     // um caminho que só funciona da segunda vez em diante.
     socket.on('connect', async () => {
       setConnected(true);
+
+      // PÔR A VIAGEM EM DIA, e para os dois lados.
+      //
+      // Isto só o motorista fazia, e o passageiro ficava por sua conta. Se a
+      // ligação dele caísse durante a viagem — ecrã apagado, app em segundo
+      // plano, rede fraca —, perdia o aviso de conclusão pelo socket e nunca
+      // mais perguntava o que tinha acontecido. O ecrã ficava preso em
+      // "Motorista a chegar" depois de a viagem estar concluída.
+      //
+      // Pergunta-se pela viagem CONCRETA e não por "a activa": uma viagem
+      // terminada já não é activa, e era justamente o seu fim que faltava
+      // saber. Sem isto, a app perdia também a avaliação, que só aparece com
+      // a viagem concluída na mão.
+      try {
+        const id = rideIdRef.current;
+        const { ride } = id ? await api.ride(token, id) : await api.activeRide(token);
+        if (!cancelled && ride) setActiveRide(ride);
+      } catch {
+        /* a viagem pode já não existir; a próxima ligação tenta outra vez */
+      }
+
       if (!isDriver) return;
 
       // VOLTAR A DIZER QUE ESTAMOS AO SERVIÇO.
@@ -330,6 +351,14 @@ export function RideProvider({ children }) {
   );
 
   const dismissRide = useCallback(async () => {
+    // A REFERÊNCIA É LIMPA AQUI, e não só pelo efeito que a segue.
+    //
+    // O efeito que a acerta corre depois do desenho, e nesse intervalo uma
+    // reconexão ainda leria o id antigo — e como a app passou a pôr-se em dia
+    // ao religar, iria buscar a viagem que o utilizador acabou de dispensar e
+    // punha-a outra vez no ecrã. Janela estreita, mas o custo de a fechar é
+    // uma linha.
+    rideIdRef.current = null;
     setActiveRide(null);
     if (isDriver) {
       try {

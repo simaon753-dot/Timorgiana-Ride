@@ -722,3 +722,31 @@ ridesRouter.get(
     res.send(foto.bytes);
   })
 );
+
+// GET /api/rides/:id — uma viagem, para quem participa nela.
+//
+// PORQUE EXISTE. Só havia `/rides/active`, e "activa" exclui de propósito as
+// viagens terminadas. Isso chega enquanto a ligação ao vivo aguenta — quem
+// está ligado recebe a conclusão pelo socket e o ecrã acompanha.
+//
+// Não chega quando a ligação cai. Um passageiro com o ecrã apagado, a app em
+// segundo plano ou uma rede fraca perde o aviso; ao voltar, `/rides/active`
+// responde "nenhuma" e a app não fica a saber o que aconteceu à que tinha —
+// se foi concluída, se foi cancelada, ou por quem. O ecrã ficava preso em
+// "Motorista a chegar" para sempre.
+//
+// Aqui pergunta-se pela viagem CONCRETA e recebe-se o estado final dela,
+// terminada ou não. É o que permite à app acordar e pôr-se em dia.
+//
+// `rideForParticipant` já devolve nulo a quem não é da viagem, e a resposta é
+// 404 e não 403: quem não participa não fica a saber sequer que ela existe.
+ridesRouter.get(
+  '/:id',
+  wrap(async (req, res) => {
+    const row = await rideForParticipant(Number(req.params.id), req.user.id);
+    if (!row) return res.status(404).json({ error: 'Viagem não encontrada.' });
+    return res.json({
+      ride: toPublicRide(row, { paraPassageiro: row.passenger_id === req.user.id }),
+    });
+  })
+);

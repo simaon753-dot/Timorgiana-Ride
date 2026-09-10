@@ -93,6 +93,10 @@ export const api = {
 
   createRide: (token, body) => request('/rides', { method: 'POST', body, token }),
   activeRide: (token) => request('/rides/active', { token }),
+  // Uma viagem concreta, terminada ou não. Serve para a app se pôr em dia
+  // depois de perder a ligação: `activeRide` exclui as terminadas e não
+  // sabe dizer o que aconteceu à que se estava a seguir.
+  ride: (token, id) => request(`/rides/${id}`, { token }),
   rideHistory: (token) => request('/rides/history', { token }),
   availableRides: (token) => request('/rides/available', { token }),
   acceptRide: (token, id, fareUsd) =>
