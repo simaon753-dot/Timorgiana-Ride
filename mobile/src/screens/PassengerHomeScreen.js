@@ -7,16 +7,15 @@ import {
   ActivityIndicator,
   Linking,
   Pressable,
+  Image,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BarraEstado from '../design/BarraEstado.js';
 import Retrato from '../design/Retrato.js';
+import Icone from '../design/Icone.js';
 import { tipo } from '../design/tipografia.js';
-import { FIXOS, lerFixos, guardarFixo, destinosRecentes } from '../lib/lugares.js';
-import PlaceSearch from '../components/PlaceSearch.js';
 import AvisoTeste from '../components/AvisoTeste.js';
-import EscolherPonto from '../components/EscolherPonto.js';
 import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
 import { VERSAO_TERMOS, VERSAO_PRIVACIDADE } from '../termos/versao.js';
@@ -37,6 +36,11 @@ import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
 import { colors, spacing, radius, elevacao, registarEstilos } from '../theme.js';
+
+// As fotografias dos dois veículos. Fora do componente para não voltarem a
+// ser resolvidas a cada desenho do ecrã.
+const IMG_MOTA = require('../../assets/veiculos/mota.png');
+const IMG_CARRO = require('../../assets/veiculos/carro.png');
 
 export default function PassengerHomeScreen({ navigation }) {
   const { t } = useI18n();
@@ -83,59 +87,6 @@ export default function PassengerHomeScreen({ navigation }) {
   // enquanto ainda se procura. O texto diz-lhe qual dos dois é — sem
   // impedir nada: às vezes cancelar é mesmo o que faz falta.
   const [aCancelar, setACancelar] = useState(false);
-  const [fixos, setFixos] = useState({});
-  const [recentes, setRecentes] = useState([]);
-
-  // Carrega ao entrar e sempre que se volta a este ecrã: um destino novo
-  // acabado de usar deve aparecer nos recentes sem obrigar a reabrir a
-  // aplicação.
-  useEffect(() => {
-    const actualizar = () => {
-      lerFixos().then(setFixos);
-      destinosRecentes(token).then(setRecentes);
-    };
-    actualizar();
-    return navigation.addListener('focus', actualizar);
-  }, [navigation, token]);
-
-  function irPara(destino) {
-    navigation.navigate('RequestRide', destino ? { destino } : undefined);
-  }
-
-  // A pesquisa abre-se aqui mesmo, e não no ecrã de pedir viagem.
-  //
-  // A primeira ideia foi passar uma função pelos parâmetros da navegação
-  // para o outro ecrã a chamar. Não presta: parâmetros de navegação têm
-  // de ser dados simples — uma função dá avisos e perde-se quando o
-  // sistema restaura o estado da aplicação.
-  //
-  // Definir a casa também não é pedir uma viagem. Sobrecarregar o ecrã
-  // de pedido com um segundo propósito obrigava a mudar-lhe o botão e a
-  // explicar ao utilizador em que modo está.
-  const [aDefinir, setADefinir] = useState(null);
-  // A definir apontando no mapa, e não escrevendo.
-  //
-  // A casa de alguém em Díli é justamente o que não se escreve: não tem nome
-  // que se procure, tem um portão que se aponta. Pedir para escrever era
-  // pedir o que não existe.
-  const [aApontar, setAApontar] = useState(null);
-
-  // Guardar em separado de quem o pediu: há dois caminhos até aqui — a
-  // pesquisa escrita e o apontar no mapa — e cada um sabe qual dos fixos
-  // estava a definir. Fazer a função ler esse estado obrigava os dois a
-  // guardá-lo no mesmo sítio, e o segundo teria de o pôr lá só para o
-  // primeiro o ler.
-  async function guardarLugarEm(id, lugar) {
-    if (!id) return;
-    setFixos(await guardarFixo(id, lugar));
-  }
-
-  async function guardarLugar(lugar) {
-    const id = aDefinir;
-    setADefinir(null);
-    await guardarLugarEm(id, lugar);
-  }
-
   async function cancelarComMotivo(motivo) {
     setACancelar(false);
     const r = await cancelRide(activeRide.id, motivo);
@@ -397,117 +348,47 @@ export default function PassengerHomeScreen({ navigation }) {
             ) : null}
 
             <Text style={styles.saudacao}>{t('homeHello', { name: user?.name || '' })}</Text>
-            <Text style={styles.convite}>{t('passengerPrompt')}</Text>
+            <Text style={styles.convite}>{t('escolherVeiculo')}</Text>
 
-            <Pressable
-              style={({ pressed }) => [styles.barraDestino, pressed && styles.premido]}
-              onPress={() => irPara(null)}
-              accessibilityRole="button"
-              accessibilityLabel={t('requestRide')}
-            >
-              <View style={styles.pontoPartida} />
-              <Text style={styles.barraTexto}>{t('whereTo')}</Text>
-              <Text style={styles.barraSeta}>›</Text>
-            </Pressable>
-
-            {/* Casa e trabalho. Um toque leva lá; o lápis muda o sítio.
-                O lápis existe porque a alternativa era um toque longo — e
-                um gesto que ninguém descobre é funcionalidade que não
-                existe. */}
-            <View style={styles.lugares}>
-              {FIXOS.map((f) => {
-                const lugar = fixos[f.id];
-                return (
-                  <Pressable
-                    key={f.id}
-                    style={({ pressed }) => [styles.lugar, pressed && styles.premido]}
-                    onPress={() => (lugar ? irPara(lugar) : setADefinir(f.id))}
-                    accessibilityRole="button"
-                  >
-                    <Text style={styles.lugarIcone}>{f.icone}</Text>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.lugarNome}>{t(f.chave)}</Text>
-                      <Text style={styles.lugarMorada} numberOfLines={1}>
-                        {lugar ? lugar.label : t('lugarDefinir')}
-                      </Text>
-                    </View>
-                    {lugar ? (
-                      // `stopPropagation` porque a linha inteira já é um
-                      // botão que leva ao sítio. Sem isto, tocar no lápis
-                      // pedia a viagem em vez de abrir a edição — e a casa
-                      // ficava impossível de mudar depois de definida.
-                      //
-                      // É o mesmo defeito que o ! do ecrã de pedir viagem já
-                      // tinha corrigido, e que eu não fui ver antes de
-                      // escrever este. Um botão dentro de outro botão precisa
-                      // sempre disto; não é um caso especial, é a regra.
-                      <Pressable
-                        onPress={(e) => {
-                          e.stopPropagation();
-                          setADefinir(f.id);
-                        }}
-                        hitSlop={12}
-                      >
-                        <Text style={styles.lugarLapis}>✎</Text>
-                      </Pressable>
-                    ) : null}
-                  </Pressable>
-                );
-              })}
+            {/* O VEÍCULO É O PRIMEIRO PASSO, e não o último.
+                Antes escolhia-se o destino aqui e o veículo três ecrãs à
+                frente, ao lado do preço. O Simão pediu ao contrário, e faz
+                sentido em Díli: entre mota e carro a diferença de preço é
+                mais do dobro, e é a decisão que a pessoa já traz tomada
+                quando pega no telemóvel.
+                Dois cartões grandes e não uma lista: são duas opções, e uma
+                escolha entre duas coisas mostra-se lado a lado. */}
+            <View style={styles.veiculos}>
+              {[
+                {
+                  id: 'motorbike',
+                  img: IMG_MOTA,
+                  nome: t('vehicleMotorbike'),
+                  nota: t('motoMaisBarato'),
+                },
+                { id: 'car', img: IMG_CARRO, nome: t('vehicleCar'), nota: t('carroMaisAbrigado') },
+              ].map((v) => (
+                <Pressable
+                  key={v.id}
+                  style={({ pressed }) => [styles.veiculo, pressed && styles.premido]}
+                  onPress={() => navigation.navigate('EscolherDestino', { veiculo: v.id })}
+                  accessibilityRole="button"
+                  accessibilityLabel={v.nome}
+                >
+                  <Image source={v.img} style={styles.veiculoFoto} resizeMode="contain" />
+                  <View style={styles.veiculoTextos}>
+                    <Text style={styles.veiculoNome}>{v.nome}</Text>
+                    <Text style={styles.veiculoNota}>{v.nota}</Text>
+                  </View>
+                  <Icone nome="seta" tamanho={20} cor={colors.textMuted} />
+                </Pressable>
+              ))}
             </View>
-
-            {recentes.length > 0 ? (
-              <>
-                <Text style={styles.recentesTitulo}>{t('lugarRecentes')}</Text>
-                {recentes.map((r, i) => (
-                  <Pressable
-                    key={`${r.lat},${r.lng},${i}`}
-                    style={({ pressed }) => [styles.recente, pressed && styles.premido]}
-                    onPress={() => irPara(r)}
-                    accessibilityRole="button"
-                  >
-                    <Text style={styles.recenteIcone}>🕘</Text>
-                    <Text style={styles.recenteTexto} numberOfLines={1}>
-                      {r.label}
-                    </Text>
-                  </Pressable>
-                ))}
-              </>
-            ) : null}
           </View>
         )}
 
         <View style={{ flex: 1, minHeight: spacing.xl }} />
       </ScrollView>
-
-      <EscolherPonto
-        visivel={!!aApontar}
-        titulo={t(FIXOS.find((f) => f.id === aApontar)?.chave || 'lugarDefinir')}
-        onFechar={() => setAApontar(null)}
-        onEscolher={(lugar) => {
-          const qual = aApontar;
-          setAApontar(null);
-          if (qual) guardarLugarEm(qual, lugar);
-        }}
-      />
-
-      {aDefinir ? (
-        <View style={styles.pesquisaSobreposta}>
-          <PlaceSearch
-            placeholder={t(FIXOS.find((f) => f.id === aDefinir)?.chave)}
-            onEscolher={guardarLugar}
-            onFechar={() => setADefinir(null)}
-            rotuloMapa={t('escolherNoMapa')}
-            onEscolherNoMapa={() => {
-              // Guarda-se QUAL se estava a definir antes de fechar a
-              // pesquisa: fechá-la limpa o `aDefinir`, e sem isto o mapa
-              // abria sem saber se era a casa ou o trabalho.
-              setAApontar(aDefinir);
-              setADefinir(null);
-            }}
-          />
-        </View>
-      ) : null}
     </SafeAreaView>
   );
 }
@@ -536,32 +417,27 @@ const criarEstilos = () =>
     corTexto: { ...tipo.legenda, color: colors.text },
     // ---- Estado sem viagem ----
     inicio: { paddingTop: spacing.sm },
-    saudacao: { ...tipo.display, color: colors.text },
-    convite: { ...tipo.corpo, color: colors.textMuted, marginTop: spacing.xs },
-    barraDestino: {
+    // Os dois cartões de veículo. Altura fixa para os dois ficarem iguais
+    // mesmo com fotografias de proporções diferentes — a mota é alta e
+    // estreita, o carro é baixo e largo, e sem altura fixa um cartão
+    // ficava maior do que o outro sem razão nenhuma.
+    veiculos: { gap: spacing.md, marginTop: spacing.lg },
+    veiculo: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.md,
-      marginTop: spacing.xl,
       backgroundColor: colors.white,
-      borderWidth: 1,
-      borderColor: colors.border,
       borderRadius: radius.lg,
-      paddingVertical: spacing.md,
-      paddingHorizontal: spacing.md,
-      ...elevacao.plana,
+      padding: spacing.md,
+      minHeight: 104,
+      ...elevacao.cartao,
     },
-    // O ponto é a única coisa coral do ecrã em repouso. Marca onde a
-    // viagem começa, e é o que faz a barra ler-se como um mapa e não como
-    // um campo de texto qualquer.
-    pontoPartida: {
-      width: 11,
-      height: 11,
-      borderRadius: radius.pill,
-      backgroundColor: colors.coral,
-    },
-    barraTexto: { ...tipo.corpoForte, color: colors.text, flex: 1 },
-    barraSeta: { fontSize: 24, color: colors.textMuted, marginTop: -2 },
+    veiculoFoto: { width: 104, height: 76 },
+    veiculoTextos: { flex: 1 },
+    veiculoNome: { ...tipo.subtitulo, color: colors.text },
+    veiculoNota: { ...tipo.pequeno, color: colors.textMuted, marginTop: 2 },
+    saudacao: { ...tipo.display, color: colors.text },
+    convite: { ...tipo.corpo, color: colors.textMuted, marginTop: spacing.xs },
     premido: { opacity: 0.92, transform: [{ scale: 0.995 }] },
 
     // ---- Identificação do veículo ----
@@ -589,45 +465,6 @@ const criarEstilos = () =>
       borderColor: colors.border,
       borderRadius: radius.md,
     },
-
-    // A pesquisa cobre o ecrã enquanto se define um lugar. Sem isto
-    // ficava atrás do conteúdo e a lista de resultados era inalcançável.
-    pesquisaSobreposta: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: colors.paper,
-      zIndex: 10,
-    },
-
-    // ---- Lugares guardados e recentes ----
-    lugares: { marginTop: spacing.lg, gap: spacing.sm },
-    lugar: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.md,
-      backgroundColor: colors.white,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border,
-      borderRadius: radius.lg,
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.md,
-    },
-    // Sem disco de cor por trás: o ícone sozinho.
-    lugarIcone: { fontSize: 20 },
-    lugarNome: { ...tipo.corpoForte, color: colors.text },
-    lugarMorada: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },
-    lugarLapis: { fontSize: 17, color: colors.textMuted },
-
-    recentesTitulo: { ...tipo.etiqueta, color: colors.textMuted, marginTop: spacing.lg },
-    recente: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.md,
-      paddingVertical: spacing.sm,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
-    },
-    recenteIcone: { fontSize: 15, opacity: 0.7 },
-    recenteTexto: { ...tipo.corpo, color: colors.text, flex: 1 },
 
     safe: { flex: 1, backgroundColor: colors.paper },
     scroll: { flexGrow: 1, padding: spacing.lg },

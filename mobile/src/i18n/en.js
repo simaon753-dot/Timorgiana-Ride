@@ -243,6 +243,10 @@ export default {
   pickupDistance: '{km} km from you',
 
   whereTo: 'Where to?',
+  procurarDestino: 'Search for a destination',
+  escolherVeiculo: 'How would you like to travel?',
+  motoMaisBarato: 'Cheaper, and quicker through traffic',
+  carroMaisAbrigado: 'Sheltered, and up to six people',
   pickupPoint: 'Pickup',
   dropoffPoint: 'Destination',
   tapMapToChoose: 'Tap the map to choose the destination',
