@@ -146,6 +146,11 @@ export default {
   km: 'km',
 
   serverSettings: 'Server',
+  reporPrefs: 'Reset preferences',
+  reporPrefsPergunta: 'Reset preferences?',
+  reporPrefsDetalhe:
+    'Returns the language, theme and mode to their starting values, as on a fresh install. Your account, home, work and history are untouched.',
+  reporPrefsFeito: 'Preferences reset.',
   serverTitle: 'Server address',
   serverExplain:
     "The TimorgianaRide server address. You only need to change this if the app can't connect.",

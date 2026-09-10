@@ -15,6 +15,11 @@ export const LANGUAGES = [
 ];
 
 const STORAGE_KEY = 'tgr.lang';
+
+// A LÍNGUA DE ARRANQUE, numa constante e não escrita em dois sítios.
+// O estado inicial e o "repor preferências" têm de concordar; escritos à mão
+// nos dois, divergiam no dia em que um deles mudasse.
+export const LINGUA_POR_OMISSAO = 'tet';
 const I18nContext = createContext(null);
 
 export function I18nProvider({ children }) {
@@ -37,7 +42,7 @@ export function I18nProvider({ children }) {
   // Ou seja: o tétum é o que se mostra, o português é o que segura. Quem já
   // escolheu uma língua alguma vez continua com a sua — isto só vale para a
   // primeira vez, antes de haver escolha guardada.
-  const [lang, setLangState] = useState('tet');
+  const [lang, setLangState] = useState(LINGUA_POR_OMISSAO);
 
   // Carrega a língua escolhida anteriormente
   useEffect(() => {
@@ -66,7 +71,20 @@ export function I18nProvider({ children }) {
     [lang]
   );
 
-  return <I18nContext.Provider value={{ lang, setLang, t }}>{children}</I18nContext.Provider>;
+  // REPOR: apaga a escolha guardada e volta ao arranque, SEM voltar a
+  // guardar nada. Se aqui se chamasse `setLang`, ficava outra vez um valor
+  // gravado — e o próximo arranque continuaria a não ser o de quem chega
+  // pela primeira vez, que é justamente o que isto serve para ver.
+  const reporLingua = useCallback(async () => {
+    await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
+    setLangState(LINGUA_POR_OMISSAO);
+  }, []);
+
+  return (
+    <I18nContext.Provider value={{ lang, setLang, reporLingua, t }}>
+      {children}
+    </I18nContext.Provider>
+  );
 }
 
 export function useI18n() {

@@ -152,6 +152,11 @@ export default {
 
   // Definições do servidor
   serverSettings: 'Servidor',
+  reporPrefs: 'Repor preferências',
+  reporPrefsPergunta: 'Repor as preferências?',
+  reporPrefsDetalhe:
+    'Volta à língua, ao tema e ao modo de arranque, como numa instalação nova. A sua conta, a casa, o trabalho e o histórico não são tocados.',
+  reporPrefsFeito: 'Preferências repostas.',
   serverTitle: 'Endereço do servidor',
   serverExplain:
     'Endereço do servidor TimorgianaRide. Só precisas de mexer aqui se a app não conseguir ligar-se.',

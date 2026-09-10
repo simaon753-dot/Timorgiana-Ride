@@ -152,6 +152,11 @@ export default {
 
   // Konfigurasaun servidór
   serverSettings: 'Servidór',
+  reporPrefs: 'Fó fila preferénsia sira',
+  reporPrefsPergunta: 'Fó fila preferénsia sira?',
+  reporPrefsDetalhe:
+    'Fila ba lian, tema no modu inisiál, hanesan instalasaun foun. Ita-nia konta, uma, servisu no istória la troka.',
+  reporPrefsFeito: 'Preferénsia sira fila ona.',
   serverTitle: 'Enderesu servidór',
   serverExplain: 'Enderesu servidór TimorgianaRide. Troka deʼit se aplikasaun la bele liga.',
   serverField: 'Enderesu',
