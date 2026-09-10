@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Voltar from '../components/Voltar.js';
 import LanguageToggle from '../components/LanguageToggle.js';
@@ -19,7 +20,7 @@ import { api } from '../api/client.js';
 // a app funcione". Juntá-los obrigava a passar por cima de definições
 // para chegar aos dados, e vice-versa.
 export default function OpcoesScreen({ navigation }) {
-  const { t } = useI18n();
+  const { t, reporLingua } = useI18n();
   const { user } = useAuth();
   const { tema, setTema } = useTema();
 
@@ -40,6 +41,38 @@ export default function OpcoesScreen({ navigation }) {
       .then((r) => r?.numeros && setNumeros({ ...NUMEROS_RESERVA, ...r.numeros }))
       .catch(() => {});
   }, []);
+
+  // REPOR AS PREFERÊNCIAS — e só as preferências.
+  //
+  // A aplicação guarda oito coisas no telemóvel, e três delas NÃO são
+  // preferências: a casa e o trabalho (moradas que a pessoa escreveu), a
+  // sessão (apagá-la punha-a fora da conta) e o endereço do servidor (apagá-lo
+  // podia deixar a app a falar com o sítio errado). Um botão que limpasse
+  // tudo era um botão que destrói dados por trazer um nome inofensivo.
+  //
+  // Fica-se pelas quatro que se podem repor sem perder nada: a língua, o
+  // tema, o modo e os recentes escondidos.
+  //
+  // A LÍNGUA é a única que muda à vista no mesmo instante, porque tem um
+  // `reporLingua` que também acerta o que está em memória. O tema e o modo
+  // ficam apagados no disco e aplicam-se ao reabrir — dizê-lo é mais honesto
+  // do que fingir que tudo muda já.
+  async function reporPreferencias() {
+    Alert.alert(t('reporPrefsPergunta'), t('reporPrefsDetalhe'), [
+      { text: t('cancel'), style: 'cancel' },
+      {
+        text: t('reporPrefs'),
+        style: 'destructive',
+        onPress: async () => {
+          await AsyncStorage.multiRemove(['tgr.tema', 'tgr.modo', 'tgr.recentesEscondidos']).catch(
+            () => {}
+          );
+          await reporLingua();
+          Alert.alert(t('reporPrefsFeito'));
+        },
+      },
+    ]);
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -95,6 +128,7 @@ export default function OpcoesScreen({ navigation }) {
             onPress={() => navigation.navigate('Termos', { documento: 'privacidade' })}
           />
           <Item texto={t('serverSettings')} onPress={() => navigation.navigate('Server')} />
+          <Item texto={t('reporPrefs')} onPress={reporPreferencias} />
         </Seccao>
 
         <Seccao titulo={t('profileHelp')}>

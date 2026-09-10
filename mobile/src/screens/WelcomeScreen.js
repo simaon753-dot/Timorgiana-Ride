@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ImageBackground, ScrollView } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
@@ -60,36 +60,53 @@ export default function WelcomeScreen({ navigation }) {
       <SafeAreaView style={styles.safe} edges={['top']}>
         <StatusBar style="light" />
 
-        <View style={styles.topo}>
-          <Pressable
-            onPress={() => navigation.navigate('Server')}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={t('serverSettings')}
-          >
-            <Icone nome="engrenagem" tamanho={22} cor={colors.onTeal} />
-          </Pressable>
-          <LanguageToggle onTeal />
-        </View>
+        {/* O ECRÃ ROLA, e passou a precisar disso quando lhe acrescentei o
+            aviso de teste.
+            Antes o conteúdo cabia à justa e o `janela` com `flex: 1` comia o
+            que sobrava. Com mais um bloco, passou a faltar espaço — e um
+            ecrã sem rolamento não encolhe: CORTA. O que ficou de fora foi a
+            última linha, o "juntos em cada destino", que o Simão deixou de
+            ver.
+            `flexGrow: 1` no conteúdo mantém o desenho igual quando há
+            espaço: o `janela` continua a esticar-se e a fotografia continua a
+            respirar no meio. Só quando não há é que desliza. Ecrã pequeno,
+            letra grande do sistema, uma língua mais comprida — qualquer uma
+            destas voltaria a cortar, e nenhuma volta a cortar agora. */}
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          <View style={styles.topo}>
+            <Pressable
+              onPress={() => navigation.navigate('Server')}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel={t('serverSettings')}
+            >
+              <Icone nome="engrenagem" tamanho={22} cor={colors.onTeal} />
+            </Pressable>
+            <LanguageToggle onTeal />
+          </View>
 
-        <View style={styles.marca}>
-          <Logo onTeal />
-          {/* "Bem-" branco e "vindo" em menta, como na maqueta. Numa só linha
+          <View style={styles.marca}>
+            <Logo onTeal />
+            {/* "Bem-" branco e "vindo" em menta, como na maqueta. Numa só linha
               de texto e não em dois blocos: assim as duas metades partilham a
               linha de base e a palavra não se parte ao mudar de língua. */}
-          <Text style={styles.titulo}>
-            {primeiraMetade(t('welcomeTitle'))}
-            <Text style={{ color: MENTA }}>{segundaMetade(t('welcomeTitle'))}</Text>
-          </Text>
-          <Text style={styles.subtitulo}>{t('welcomeSubtitle')}</Text>
-        </View>
+            <Text style={styles.titulo}>
+              {primeiraMetade(t('welcomeTitle'))}
+              <Text style={{ color: MENTA }}>{segundaMetade(t('welcomeTitle'))}</Text>
+            </Text>
+            <Text style={styles.subtitulo}>{t('welcomeSubtitle')}</Text>
+          </View>
 
-        {/* O espaço onde a fotografia respira. Sem conteúdo de propósito: é o
+          {/* O espaço onde a fotografia respira. Sem conteúdo de propósito: é o
             único sítio do ecrã onde o véu abre. */}
-        <View style={styles.janela} />
+          <View style={styles.janela} />
 
-        <View style={[styles.baixo, { paddingBottom: insets.bottom + spacing.md }]}>
-          {/* O AVISO DE TESTE, ACIMA DO BOTÃO DE ENTRAR.
+          <View style={[styles.baixo, { paddingBottom: insets.bottom + spacing.md }]}>
+            {/* O AVISO DE TESTE, ACIMA DO BOTÃO DE ENTRAR.
               Estava só nos dois ecrãs iniciais, ou seja, DEPOIS de a pessoa
               já ter conta e já ter entrado. Quem chega pela primeira vez —
               que é exactamente quem precisa de saber — não o via em lado
@@ -101,35 +118,35 @@ export default function WelcomeScreen({ navigation }) {
               deixam de ser surpresas.
               Fica ACIMA do "Iniciar sessão" de propósito: lê-se no caminho
               para o botão, e não depois de já se ter carregado nele. */}
-          <View style={styles.aviso}>
-            <Text style={styles.avisoTitulo}>{t('avisoTesteTitulo')}</Text>
-            <Text style={styles.avisoTexto}>{t('avisoTesteDetalhe')}</Text>
-          </View>
+            <View style={styles.aviso}>
+              <Text style={styles.avisoTitulo}>{t('avisoTesteTitulo')}</Text>
+              <Text style={styles.avisoTexto}>{t('avisoTesteDetalhe')}</Text>
+            </View>
 
-          {/* A CHAMADA, feita aqui e não com o <Button> comum.
+            {/* A CHAMADA, feita aqui e não com o <Button> comum.
               A maqueta tem uma seta dentro de um círculo à esquerda do texto,
               e o <Button> só aceita ícones que sejam texto. A tinta escura
               sobre o coral é a mesma que ele usa — branco sobre este laranja
               dá 2,82:1 e não se lê. */}
-          <Pressable
-            style={({ pressed }) => [styles.chamada, pressed && styles.premido]}
-            onPress={() => navigation.navigate('Login')}
-            accessibilityRole="button"
-          >
-            <View style={styles.chamadaCirculo}>
-              <Icone nome="seta" tamanho={18} cor={colors.coral} />
+            <Pressable
+              style={({ pressed }) => [styles.chamada, pressed && styles.premido]}
+              onPress={() => navigation.navigate('Login')}
+              accessibilityRole="button"
+            >
+              <View style={styles.chamadaCirculo}>
+                <Icone nome="seta" tamanho={18} cor={colors.coral} />
+              </View>
+              <Text style={styles.chamadaTexto}>{t('loginTitle')}</Text>
+              <Icone nome="seta" tamanho={16} cor="#22100A" />
+            </Pressable>
+
+            <View style={styles.separador}>
+              <Tais altura={3} style={styles.separadorLinha} />
+              <Text style={styles.separadorTexto}>{t('noAccountQuestion')}</Text>
+              <Tais altura={3} style={styles.separadorLinha} />
             </View>
-            <Text style={styles.chamadaTexto}>{t('loginTitle')}</Text>
-            <Icone nome="seta" tamanho={16} cor="#22100A" />
-          </Pressable>
 
-          <View style={styles.separador}>
-            <Tais altura={3} style={styles.separadorLinha} />
-            <Text style={styles.separadorTexto}>{t('noAccountQuestion')}</Text>
-            <Tais altura={3} style={styles.separadorLinha} />
-          </View>
-
-          {/* OS DOIS CARTÕES VOLTARAM AOS ANTERIORES, por decisão do Simão.
+            {/* OS DOIS CARTÕES VOLTARAM AOS ANTERIORES, por decisão do Simão.
               Eu tinha-lhes posto as ilustrações da maqueta. Saíram de um
               ficheiro de 887 px de largura e, recortadas, ficaram com 179 —
               esticadas no telemóvel dele, que tem 1440. Ao lado de texto
@@ -137,24 +154,25 @@ export default function WelcomeScreen({ navigation }) {
               O emoji é desenhado pelo sistema e é sempre nítido, em qualquer
               tamanho. Aqui ganha à ilustração, e ganha por uma razão que não
               tem nada a ver com desenho. */}
-          <View style={styles.registos}>
-            <Escolha
-              emoji="🧍"
-              texto={t('passenger')}
-              onPress={() => navigation.navigate('Register', { role: 'passenger' })}
-            />
-            <Escolha
-              emoji="🚗 🛵"
-              texto={t('driver')}
-              onPress={() => navigation.navigate('Register', { role: 'driver' })}
-            />
-          </View>
+            <View style={styles.registos}>
+              <Escolha
+                emoji="🧍"
+                texto={t('passenger')}
+                onPress={() => navigation.navigate('Register', { role: 'passenger' })}
+              />
+              <Escolha
+                emoji="🚗 🛵"
+                texto={t('driver')}
+                onPress={() => navigation.navigate('Register', { role: 'driver' })}
+              />
+            </View>
 
-          <View style={styles.lema}>
-            <Icone nome="pin" tamanho={14} cor={colors.onTeal} />
-            <Text style={styles.lemaTexto}>{t('lemaEntrada')}</Text>
+            <View style={styles.lema}>
+              <Icone nome="pin" tamanho={14} cor={colors.onTeal} />
+              <Text style={styles.lemaTexto}>{t('lemaEntrada')}</Text>
+            </View>
           </View>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </ImageBackground>
   );
@@ -197,6 +215,7 @@ const criarEstilos = () =>
   StyleSheet.create({
     fundo: { flex: 1, backgroundColor: colors.teal },
     safe: { flex: 1 },
+    scroll: { flexGrow: 1 },
 
     topo: {
       flexDirection: 'row',
