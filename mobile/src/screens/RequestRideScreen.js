@@ -73,7 +73,22 @@ export default function RequestRideScreen({ navigation, route }) {
   const [destino, setDestino] = useState(route?.params?.destino || null);
   const [orcamento, setOrcamento] = useState(null);
   const [aCalcular, setACalcular] = useState(false);
-  const [veiculo, setVeiculo] = useState('car');
+  // O VEÍCULO CHEGA JÁ ESCOLHIDO do primeiro passo, e fica PRÉ-SELECCIONADO —
+  // não fechado.
+  //
+  // O Simão separou o pedido em dois ecrãs: veículo primeiro, destino depois.
+  // Seria natural passar a mostrar aqui só o veículo escolhido, e foi a
+  // primeira coisa que pensei fazer. Está errado.
+  //
+  // Os dois preços lado a lado são a informação que faz a decisão: entre a
+  // mota e o carro a diferença é mais do dobro, e ninguém sabe qual quer sem
+  // ver quanto custa CADA UM para AQUELE destino. Escolher o veículo antes de
+  // haver destino é escolher sem preço à frente.
+  //
+  // Por isso o primeiro passo é uma intenção, não um compromisso: chega aqui
+  // já marcado, e a pessoa continua a ver o outro preço e a poder trocar com
+  // um toque. Ganha-se o ecrã inicial simples sem perder a comparação.
+  const [veiculo, setVeiculo] = useState(route?.params?.veiculo || 'car');
   const [pessoas, setPessoas] = useState(1);
   // Pedir para outra pessoa. Tudo vazio no caso normal, que é a maioria.
   const [paraOutra, setParaOutra] = useState(false);

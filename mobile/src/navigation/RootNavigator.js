@@ -10,6 +10,7 @@ import LoginScreen from '../screens/LoginScreen.js';
 import RegisterScreen from '../screens/RegisterScreen.js';
 import RecuperarScreen from '../screens/RecuperarScreen.js';
 import RequestRideScreen from '../screens/RequestRideScreen.js';
+import EscolherDestinoScreen from '../screens/EscolherDestinoScreen.js';
 import DriverPendingScreen from '../screens/DriverPendingScreen.js';
 import ChatScreen from '../screens/ChatScreen.js';
 import ServerScreen from '../screens/ServerScreen.js';
@@ -67,6 +68,7 @@ export default function RootNavigator() {
               <Stack.Screen name="Tabs" component={Tabuladores} />
               {/* Sem condição de papel: qualquer conta pode pedir uma
                 viagem, incluindo quem também conduz. */}
+              <Stack.Screen name="EscolherDestino" component={EscolherDestinoScreen} />
               <Stack.Screen name="RequestRide" component={RequestRideScreen} />
               {/* O registo de motorista deixou de ser uma prisão: quem
                 espera aprovação continua a poder pedir viagens, e chega
