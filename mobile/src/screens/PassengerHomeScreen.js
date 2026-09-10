@@ -260,12 +260,29 @@ export default function PassengerHomeScreen({ navigation }) {
             ) : null}
 
             {withDriver ? (
-              <View style={{ marginTop: spacing.md, gap: spacing.sm }}>
+              <View style={{ marginTop: spacing.md }}>
                 <ShareTripButton
                   ride={activeRide}
                   driverLocation={driverLocation}
                   driverPlace={driverPlace}
                 />
+              </View>
+            ) : null}
+
+            {/* A EMERGÊNCIA APARECE DESDE QUE HÁ VIAGEM, e não só depois de
+                um motorista aceitar.
+                Estava dentro do bloco que só existe quando há motorista, ao
+                lado do partilhar viagem — e enquanto o ecrã dizia "à procura
+                de motorista" não havia botão de emergência nenhum.
+                Isso é ao contrário do que faz sentido. Quem pediu uma viagem
+                já disse à aplicação onde está, e pode precisar de ajuda antes
+                de alguém aceitar — à espera na rua, de noite, é exactamente
+                quando se está mais sozinho. O alerta não depende do motorista
+                para nada: regista a hora e o sítio, e oferece a chamada.
+                Sai quando a viagem termina, que é quando deixa de haver
+                viagem a que socorrer. */}
+            {!isFinal ? (
+              <View style={{ marginTop: spacing.sm }}>
                 <SosButton rideId={activeRide.id} />
               </View>
             ) : null}

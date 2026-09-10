@@ -114,6 +114,7 @@ export default {
   escolherEsteSitio: 'Hili fatin ida ne’e',
   escolherNoMapa: 'Hili iha mapa',
   aVerNome: 'Buka hela naran fatin ne’e…',
+  aObterNome: 'Foti hela fatin nia naran…',
   arrastarPino: 'La’ós iha ne’e? Dada pinu iha mapa',
   pontosFixados: 'Fatin foti no destinu fiksu ona. Toka ida ne’ebé atu troka.',
   gettingLocation: 'Buka fatin…',
