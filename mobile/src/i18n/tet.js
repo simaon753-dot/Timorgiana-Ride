@@ -259,6 +259,7 @@ export default {
   payCash: 'Osan',
   confirmRide: 'Husu ho',
   chooseVehicle: 'Hili veíkulu',
+  seuVeiculo: 'Veíkulu',
   tripInfo: '{km} km · {min} min',
   priceApprox: 'folin besik',
   needBothPoints: 'Hili fatin foti no destinu iha mapa.',

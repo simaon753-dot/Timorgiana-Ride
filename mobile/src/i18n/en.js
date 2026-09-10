@@ -255,6 +255,7 @@ export default {
   payCash: 'Cash',
   confirmRide: 'Book for',
   chooseVehicle: 'Choose a vehicle',
+  seuVeiculo: 'Vehicle',
   tripInfo: '{km} km · {min} min',
   priceApprox: 'approximate price',
   needBothPoints: 'Choose the pickup and the destination on the map.',

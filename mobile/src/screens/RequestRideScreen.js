@@ -40,6 +40,7 @@ import { useRides } from '../context/RideContext.js';
 import { api } from '../api/client.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
+import Icone from '../design/Icone.js';
 import BarraEstado from '../design/BarraEstado.js';
 
 export default function RequestRideScreen({ navigation, route }) {
@@ -88,7 +89,27 @@ export default function RequestRideScreen({ navigation, route }) {
   // Por isso o primeiro passo é uma intenção, não um compromisso: chega aqui
   // já marcado, e a pessoa continua a ver o outro preço e a poder trocar com
   // um toque. Ganha-se o ecrã inicial simples sem perder a comparação.
-  const [veiculo, setVeiculo] = useState(route?.params?.veiculo || 'car');
+  // O VEÍCULO ESCOLHIDO NO PRIMEIRO PASSO FECHA A ESCOLHA AQUI.
+  //
+  // Eu tinha-o deixado apenas PRÉ-MARCADO, com os dois preços à vista, para
+  // se poderem comparar. O Simão viu no telemóvel e decidiu ao contrário:
+  // quem carregou na mota e pediu uma viagem deve ver só a mota.
+  //
+  // Tem razão, e a razão é a que eu não vi: dois passos que voltam a
+  // perguntar a mesma coisa não são dois passos, são um passo repetido. A
+  // escolha estava feita no ecrã anterior; repeti-la aqui dizia à pessoa que
+  // a primeira não tinha contado.
+  //
+  // Quem quiser o outro veículo carrega em voltar — o ecrã do destino mostra
+  // qual está escolhido e volta-se ao início com dois toques.
+  //
+  // `null` E NÃO 'car' quando não vem nenhum: há um caminho que entra aqui
+  // sem passar pelo primeiro passo — o motorista que muda para passageiro,
+  // pelo Perfil. Esse continua a escolher aqui, como sempre escolheu, e é
+  // por isso que a escolha não desapareceu do ecrã, só deixou de aparecer a
+  // quem já a fez.
+  const veiculoFixo = route?.params?.veiculo || null;
+  const [veiculo, setVeiculo] = useState(veiculoFixo || 'car');
   const [pessoas, setPessoas] = useState(1);
   // Pedir para outra pessoa. Tudo vazio no caso normal, que é a maioria.
   const [paraOutra, setParaOutra] = useState(false);
@@ -1009,16 +1030,23 @@ export default function RequestRideScreen({ navigation, route }) {
             <ActivityIndicator color={colors.teal} style={{ marginVertical: spacing.lg }} />
           ) : orcamento ? (
             <>
-              <Text style={styles.seccao}>{t('chooseVehicle')}</Text>
-              {orcamento.options.map((o) => (
-                <CartaoVeiculo
-                  key={o.type}
-                  opcao={o}
-                  ativo={veiculo === o.type}
-                  onPress={() => setVeiculo(o.type)}
-                  t={t}
-                />
-              ))}
+              {/* O título muda com o número de opções: "Escolha o veículo"
+                  em cima de uma lista de um é uma instrução que não se pode
+                  cumprir. */}
+              <Text style={styles.seccao}>{t(veiculoFixo ? 'seuVeiculo' : 'chooseVehicle')}</Text>
+              {orcamento.options
+                .filter((o) => !veiculoFixo || o.type === veiculoFixo)
+                .map((o) => (
+                  <CartaoVeiculo
+                    key={o.type}
+                    opcao={o}
+                    ativo={veiculo === o.type}
+                    // Sem toque quando é o único: um cartão que responde ao
+                    // dedo e não muda nada ensina que os toques não contam.
+                    onPress={veiculoFixo ? undefined : () => setVeiculo(o.type)}
+                    t={t}
+                  />
+                ))}
               {/* Taxas de entrada, logo a seguir à escolha do veículo.
                   Aqui e não antes, porque no Timor Plaza só o carro paga —
                   o aviso muda conforme o que se escolhe. */}
@@ -1044,15 +1072,28 @@ export default function RequestRideScreen({ navigation, route }) {
             // poder ser pedida; o preço combina-se com o motorista, que é
             // o que já acontece quando o servidor não consegue calcular.
             <>
-              <Text style={styles.seccao}>{t('chooseVehicle')}</Text>
-              <SegmentedPicker
-                value={veiculo}
-                onChange={setVeiculo}
-                options={[
-                  { value: 'car', label: t('vehicleCar'), icon: '🚗' },
-                  { value: 'motorbike', label: t('vehicleMotorbike'), icon: '🏍️' },
-                ]}
-              />
+              <Text style={styles.seccao}>{t(veiculoFixo ? 'seuVeiculo' : 'chooseVehicle')}</Text>
+              {veiculoFixo ? (
+                <View style={styles.veiculoFixo}>
+                  <Icone
+                    nome={veiculoFixo === 'motorbike' ? 'mota' : 'carro'}
+                    tamanho={22}
+                    cor={colors.teal}
+                  />
+                  <Text style={styles.veiculoFixoTexto}>
+                    {veiculoFixo === 'motorbike' ? t('vehicleMotorbike') : t('vehicleCar')}
+                  </Text>
+                </View>
+              ) : (
+                <SegmentedPicker
+                  value={veiculo}
+                  onChange={setVeiculo}
+                  options={[
+                    { value: 'car', label: t('vehicleCar'), icon: '🚗' },
+                    { value: 'motorbike', label: t('vehicleMotorbike'), icon: '🏍️' },
+                  ]}
+                />
+              )}
               {veiculo === 'car' ? (
                 <>
                   <Text style={styles.seccao}>{t('howManyPeople')}</Text>
@@ -1310,6 +1351,24 @@ const criarEstilos = () =>
     pontoVazio: { color: colors.textMuted, fontWeight: '400' },
     linha: { height: 1, backgroundColor: colors.border, marginLeft: 26 },
     dicaArrastar: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
+
+    // O veículo já escolhido, quando não há nada a escolher. Cartão calmo
+
+    // e não botão: é informação, não uma pergunta.
+
+    veiculoFixo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+
+      backgroundColor: colors.tintaTeal,
+      borderRadius: radius.md,
+
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.md,
+    },
+
+    veiculoFixoTexto: { ...tipo.corpo, color: colors.teal, fontWeight: '700' },
 
     seccao: {
       ...tipo.etiqueta,
