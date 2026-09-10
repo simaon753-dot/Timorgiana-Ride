@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, ImageBackground, Image } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ImageBackground } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
@@ -12,8 +12,6 @@ import { useI18n } from '../i18n/index.js';
 import { colors, spacing, radius, elevacao, registarEstilos } from '../theme.js';
 
 const FUNDO = require('../../assets/entrada/fundo.jpg');
-const IL_PASSAGEIRO = require('../../assets/entrada/passageiro.png');
-const IL_MOTORISTA = require('../../assets/entrada/motorista.png');
 
 // A MENTA do "Bem-VINDO", e porque é um literal.
 //
@@ -114,17 +112,23 @@ export default function WelcomeScreen({ navigation }) {
             <Tais altura={3} style={styles.separadorLinha} />
           </View>
 
+          {/* OS DOIS CARTÕES VOLTARAM AOS ANTERIORES, por decisão do Simão.
+              Eu tinha-lhes posto as ilustrações da maqueta. Saíram de um
+              ficheiro de 887 px de largura e, recortadas, ficaram com 179 —
+              esticadas no telemóvel dele, que tem 1440. Ao lado de texto
+              nítido, viam-se moles.
+              O emoji é desenhado pelo sistema e é sempre nítido, em qualquer
+              tamanho. Aqui ganha à ilustração, e ganha por uma razão que não
+              tem nada a ver com desenho. */}
           <View style={styles.registos}>
-            <Cartao
-              img={IL_PASSAGEIRO}
+            <Escolha
+              emoji="🧍"
               texto={t('passenger')}
-              cor={colors.coral}
               onPress={() => navigation.navigate('Register', { role: 'passenger' })}
             />
-            <Cartao
-              img={IL_MOTORISTA}
+            <Escolha
+              emoji="🚗 🛵"
               texto={t('driver')}
-              cor={colors.teal}
               onPress={() => navigation.navigate('Register', { role: 'driver' })}
             />
           </View>
@@ -151,23 +155,23 @@ function segundaMetade(s) {
   return i > 0 ? s.slice(i + 1) : s.slice(Math.ceil(s.length / 2));
 }
 
-// Um cartão de registo. A barra de cor em baixo distingue os dois sem
-// precisar de os pintar por inteiro — na maqueta é laranja no passageiro e
-// verde no motorista, e é o que os separa de relance.
-function Cartao({ img, texto, cor, onPress }) {
+// As duas escolhas de registo. Só o ícone, sem círculo por trás.
+//
+// O círculo tinha 46 px de largura fixa e o ícone do motorista são DOIS
+// emoji: não cabiam, e o Android cortava o segundo — daí a motorizada ter
+// desaparecido e ficar só o carro. Sem contentor de largura fixa, o texto
+// ocupa o que precisa e os dois aparecem.
+function Escolha({ emoji, texto, onPress }) {
   return (
     <Pressable
-      style={({ pressed }) => [styles.cartao, pressed && styles.premido]}
+      style={({ pressed }) => [styles.escolha, pressed && styles.premido]}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={texto}
     >
-      <Image source={img} style={styles.cartaoImagem} resizeMode="contain" />
-      <View style={styles.cartaoRodape}>
-        <Text style={styles.cartaoTexto}>{texto}</Text>
-        <Icone nome="seta" tamanho={14} cor={colors.teal} />
-      </View>
-      <View style={[styles.cartaoBarra, { backgroundColor: cor }]} />
+      <Text style={styles.emoji} numberOfLines={1}>
+        {emoji}
+      </Text>
+      <Text style={styles.escolhaTexto}>{texto}</Text>
     </Pressable>
   );
 }
@@ -231,26 +235,21 @@ const criarEstilos = () =>
     separadorLinha: { flex: 1, opacity: 0.55 },
     separadorTexto: { ...tipo.pequeno, color: colors.onTeal, opacity: 0.9 },
 
-    registos: { flexDirection: 'row', gap: spacing.md },
-    cartao: {
+    registos: { flexDirection: 'row', gap: spacing.sm },
+    escolha: {
       flex: 1,
-      backgroundColor: colors.white,
-      borderRadius: radius.lg,
-      paddingTop: spacing.md,
-      overflow: 'hidden',
-      ...elevacao.painel,
-    },
-    cartaoImagem: { width: '100%', height: 86 },
-    cartaoRodape: {
-      flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      gap: 6,
+      backgroundColor: colors.white,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.lg,
       paddingVertical: spacing.md,
+      ...elevacao.plana,
     },
-    cartaoTexto: { ...tipo.corpoForte, color: colors.teal },
-    // A barra fica no fundo do cartão, encostada às três arestas.
-    cartaoBarra: { height: 6 },
+    // `lineHeight` fixo para as duas caixas terem a mesma altura mesmo que um
+    // emoji tenha métricas diferentes do outro no telemóvel.
+    emoji: { fontSize: 26, lineHeight: 34, marginBottom: spacing.xs },
+    escolhaTexto: { ...tipo.corpoForte, color: colors.text },
 
     lema: {
       flexDirection: 'row',
