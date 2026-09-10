@@ -1,5 +1,5 @@
 import { query, one } from './db.js';
-import { TIPOS_VEICULO } from './config.js';
+import { TIPOS_VEICULO, TIPOS_CARGA, VOLUMES_CARGA, AJUDAS_CARGA } from './config.js';
 import { municipioDe } from './municipios.js';
 
 // Estados que ainda contam como "viagem a decorrer"
@@ -147,6 +147,20 @@ export function toPublicRide(row, opcoes = {}) {
           },
         }
       : {}),
+    // A carga, quando a há. Mesmo molde do `viajante`: um grupo que só existe
+    // num caso, em vez de cinco campos a nulo em todas as outras viagens.
+    ...(row.carga_tipo
+      ? {
+          carga: {
+            tipo: row.carga_tipo,
+            volume: row.carga_volume || null,
+            ajuda: row.carga_ajuda || null,
+            notas: row.carga_notas || null,
+            // O INSTANTE da declaração, e não um "sim". Ver a nota em db.js.
+            declaradoEm: row.carga_declarado_em || null,
+          },
+        }
+      : {}),
     driver: row.driver_id
       ? {
           id: row.driver_id,
@@ -188,6 +202,12 @@ export async function createRide({
   viajanteNome = null,
   viajanteTelefone = null,
   viajanteMenor = false,
+  // O que vai dentro, quando a viagem é de bens. Tudo nulo numa de pessoas.
+  cargaTipo = null,
+  cargaVolume = null,
+  cargaAjuda = null,
+  cargaNotas = null,
+  cargaDeclarada = false,
 }) {
   // Quatro dígitos, com zeros à frente. Não é um segredo criptográfico —
   // é uma senha dita em voz alta à porta do carro, e vive uns minutos.
@@ -210,13 +230,28 @@ export async function createRide({
         .slice(0, 20) || null
     : null;
   const ehMenor = nomeViajante ? !!viajanteMenor : false;
+
+  // O TIPO MANDA, como o nome manda no viajante. Sem tipo de carga não há
+  // carga — o volume, a ajuda e as observações ficam de fora também, mesmo
+  // que venham preenchidos. Uma viagem que diz "ajuda a carregar" e não sabe
+  // dizer o quê manda o motorista decidir às cegas.
+  const tipoCarga = TIPOS_CARGA.includes(cargaTipo) ? cargaTipo : null;
+  const volumeCarga = tipoCarga && VOLUMES_CARGA.includes(cargaVolume) ? cargaVolume : null;
+  const ajudaCarga = tipoCarga && AJUDAS_CARGA.includes(cargaAjuda) ? cargaAjuda : null;
+  const notasCarga = tipoCarga
+    ? String(cargaNotas || '')
+        .trim()
+        .slice(0, 400) || null
+    : null;
   const inserted = await one(
     `INSERT INTO rides
        (passenger_id, dest_label, dest_lat, dest_lng, origin_label, origin_lat, origin_lng,
         vehicle_type, fare_usd, distance_km, duration_min, passengers,
         pickup_code, municipio,
-        viajante_nome, viajante_telefone, viajante_menor, consentimento_em, status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,'requested')
+        viajante_nome, viajante_telefone, viajante_menor, consentimento_em,
+        carga_tipo, carga_volume, carga_ajuda, carga_notas, carga_declarado_em, status)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,
+             $19,$20,$21,$22,$23,'requested')
      RETURNING id`,
     [
       passengerId,
@@ -246,6 +281,15 @@ export async function createRide({
       // aconteceu não vale mais: vale menos, porque deixa de se poder
       // confiar nele.
       ehMenor ? new Date() : null,
+      tipoCarga,
+      volumeCarga,
+      ajudaCarga,
+      notasCarga,
+      // A DECLARAÇÃO SÓ EXISTE SE HOUVER CARGA, pela mesma razão do
+      // consentimento acima: guardar a hora de uma declaração numa viagem de
+      // pessoas seria guardar a declaração de uma coisa que ninguém declarou.
+      // Um registo que diz mais do que aconteceu vale menos, não mais.
+      tipoCarga && cargaDeclarada ? new Date() : null,
     ]
   );
   return getRideById(inserted.id);

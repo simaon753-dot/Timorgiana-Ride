@@ -25,6 +25,17 @@ quoteRouter.post(
     // ver a nota em config.js. Sem este número, a cotação assumia sempre uma
     // pessoa e um grupo de seis via o preço de quatro até pedir a viagem.
     const pessoas = num(req.body?.passengers);
+    // A CARGA ENTRA NA COTAÇÃO e não só no pedido.
+    //
+    // O volume multiplica a distância e a ajuda soma uma parcela fixa. Se a
+    // cotação os ignorasse, o preço mostrado no ecrã seria o de uma carga
+    // pequena sem ajuda — e o cobrado no fim seria outro. Um preço firme
+    // antes de entrar é o que faz as pessoas confiarem num sistema a
+    // dinheiro; mostrar um e cobrar outro desfá-lo de uma vez.
+    const carga = {
+      volume: req.body?.cargaVolume || null,
+      ajuda: req.body?.cargaAjuda || null,
+    };
 
     if (oLat == null || oLng == null || dLat == null || dLng == null) {
       return res.status(400).json({ error: 'Faltam as coordenadas de origem ou destino.' });
@@ -55,7 +66,7 @@ quoteRouter.post(
         const maisPerto = perto[0];
         return {
           type: tipo,
-          fareUsd: preco(tipo, viagem.km, viagem.min, tipo === 'car' ? pessoas : null),
+          fareUsd: preco(tipo, viagem.km, viagem.min, tipo === 'car' ? pessoas : null, carga),
           etaMin: maisPerto ? etaMinutos(maisPerto.km) : null,
           available: !!maisPerto,
         };

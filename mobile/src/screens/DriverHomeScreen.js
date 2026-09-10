@@ -38,6 +38,27 @@ import BarraEstado from '../design/BarraEstado.js';
 // em vez de "inspection". Num mapa e não construído letra a letra: uma chave
 // montada em tempo de execução escapa ao verificador de traduções, e foi
 // assim que os tipos de lugar quase saíram sem tétum.
+const CHAVE_CARGA = {
+  compras: 'cargaCompras',
+  moveis: 'cargaMoveis',
+  caixas: 'cargaCaixas',
+  eletrodomesticos: 'cargaEletrodomesticos',
+  materiais: 'cargaMateriais',
+  mercadorias: 'cargaMercadorias',
+  outros: 'cargaOutros',
+};
+const CHAVE_VOLUME = {
+  pequeno: 'cargaVolPequeno',
+  medio: 'cargaVolMedio',
+  grande: 'cargaVolGrande',
+};
+const CHAVE_AJUDA = {
+  nenhuma: 'cargaAjudaNenhuma',
+  carregar: 'cargaAjudaCarregar',
+  descarregar: 'cargaAjudaDescarregar',
+  ambas: 'cargaAjudaAmbas',
+};
+
 const NOME_DO_DOC = {
   licence: 'docLicence',
   vehicle: 'docVehicle',
@@ -338,6 +359,25 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
           />
         </View>
       ) : null}
+      {/* A CARGA, ANTES DE ACEITAR — e é a razão de existir metade da fase 2.
+          Um motorista que aceita sem saber o que vai levar chega, olha para um
+          sofá que não lhe cabe na caixa, e vai-se embora: a viagem perde-se
+          para os dois e a manhã de alguém fica estragada.
+          O que precisa de decidir é isto: o que é, quanto é, e se lhe pedem
+          para carregar. As observações vêm a seguir porque são o detalhe, não
+          a decisão. */}
+      {ride.carga ? (
+        <View style={styles.carga}>
+          <Text style={styles.cargaLinha}>
+            {t(CHAVE_CARGA[ride.carga.tipo] || 'cargaOutros')}
+            {ride.carga.volume ? ` · ${t(CHAVE_VOLUME[ride.carga.volume])}` : ''}
+          </Text>
+          {ride.carga.ajuda && ride.carga.ajuda !== 'nenhuma' ? (
+            <Text style={styles.cargaAjuda}>{t(CHAVE_AJUDA[ride.carga.ajuda])}</Text>
+          ) : null}
+          {ride.carga.notas ? <Text style={styles.cargaNotas}>{ride.carga.notas}</Text> : null}
+        </View>
+      ) : null}
       <View style={styles.metaRow}>
         <Text style={styles.passenger}>🧍 {ride.passenger?.name}</Text>
         <Text style={styles.wants}>
@@ -624,6 +664,16 @@ const criarEstilos = () =>
     // Sem fundo nem contorno: um link, não um botão. Ver a nota no cartão.
     ignorar: { alignSelf: 'center', paddingVertical: spacing.sm, marginTop: spacing.xs },
     ignorarTexto: { ...tipo.pequeno, color: colors.textMuted },
+    carga: {
+      backgroundColor: colors.tintaTeal,
+      borderRadius: radius.md,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      marginTop: spacing.sm,
+    },
+    cargaLinha: { ...tipo.corpoForte, color: colors.teal },
+    cargaAjuda: { ...tipo.pequeno, color: colors.teal, marginTop: 1 },
+    cargaNotas: { ...tipo.pequeno, color: colors.textMuted, marginTop: 3 },
     precoLinha: {
       flexDirection: 'row',
       alignItems: 'center',
