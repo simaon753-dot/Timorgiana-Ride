@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BarraEstado from '../design/BarraEstado.js';
+import Retrato from '../design/Retrato.js';
 import { tipo } from '../design/tipografia.js';
 import { FIXOS, lerFixos, guardarFixo, destinosRecentes } from '../lib/lugares.js';
 import PlaceSearch from '../components/PlaceSearch.js';
@@ -205,7 +206,21 @@ export default function PassengerHomeScreen({ navigation }) {
             {withDriver ? (
               <View style={styles.driverBox}>
                 <Text style={styles.boxTitle}>{t('yourDriver')}</Text>
-                <Text style={styles.driverName}>{activeRide.driver.name}</Text>
+                {/* O ROSTO AO LADO DO NOME, e não um nome sozinho.
+                    A política de segurança manda confirmar "a matrícula, o
+                    modelo do veículo e o nome/fotografia do motorista" antes
+                    de entrar. As duas primeiras estavam no ecrã; a fotografia
+                    não estava em lado nenhum, e a instrução não se podia
+                    cumprir.
+                    Junto do nome de propósito: quem espera na rua olha uma
+                    vez para o ecrã e uma vez para a pessoa. Separados, eram
+                    duas verificações; juntos, é uma. */}
+                <View style={styles.linhaMotorista}>
+                  <Retrato tamanho={54} caminho={`/rides/${activeRide.id}/retrato`} />
+                  <Text style={[styles.driverName, styles.nomeAoLado]}>
+                    {activeRide.driver.name}
+                  </Text>
+                </View>
 
                 {/* Identificação do veículo, em bloco próprio.
                     Quem espera na rua faz sempre a mesma sequência: vê a
@@ -653,6 +668,11 @@ const criarEstilos = () =>
       padding: spacing.md,
     },
     boxTitle: { ...tipo.etiqueta, color: colors.teal, marginBottom: spacing.xs },
+    // O retrato e o nome na mesma linha, alinhados ao centro pela vertical.
+    linhaMotorista: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    // Sem a margem de cima que o nome tinha quando estava sozinho: aqui é o
+    // retrato que dá a altura da linha.
+    nomeAoLado: { marginTop: 0, flexShrink: 1 },
     driverName: { ...tipo.titulo, color: colors.text },
     row: {
       flexDirection: 'row',

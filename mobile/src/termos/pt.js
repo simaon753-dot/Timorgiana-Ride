@@ -93,7 +93,7 @@ export const termosMotorista = {
     {
       titulo: 'Validação e Proteção de Documentos',
       texto:
-        'Pedimos a carta de condução, o documento do veículo e uma fotografia sua exclusivamente para confirmar a sua identidade e elegibilidade formal – é isso que transmite confiança ao passageiro ao entrar no veículo. Estes documentos ficam guardados na nossa base de dados e são acedidos unicamente pela equipa de gestão da plataforma. Não são exibidos aos passageiros nem partilhados com terceiros. Pode solicitar a eliminação dos seus documentos, o que resultará no encerramento da sua conta de motorista.',
+        'Pedimos a carta de condução, o documento do veículo e uma fotografia sua exclusivamente para confirmar a sua identidade e elegibilidade formal – é isso que transmite confiança ao passageiro ao entrar no veículo. A carta de condução e o documento do veículo ficam guardados na nossa base de dados, são acedidos unicamente pela equipa de gestão da plataforma e não são exibidos aos passageiros nem partilhados com terceiros. A sua fotografia é diferente: é mostrada ao passageiro da viagem que aceitar, no ecrã dele, enquanto essa viagem durar — é assim que ele confirma que entrou no carro certo, tal como confirma a matrícula e o modelo. Termina a viagem, deixa de ser mostrada, e o histórico não a guarda à vista. Pode solicitar a eliminação dos seus documentos, o que resultará no encerramento da sua conta de motorista.',
     },
     {
       titulo: 'Segurança e Regras de Conduta',

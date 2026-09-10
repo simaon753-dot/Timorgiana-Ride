@@ -88,7 +88,7 @@ export const termosMotorista = {
     {
       titulo: 'Validasaun no Protesaun Dokumentu Sira',
       texto:
-        'Ami husu kartaun kondusaun, dokumentu veíkulu no ita-nia fotografia eskluzivamente atu konfirma ita-nia identidade no elijibilidade formál – ne’e mak fó fiar ba pasajeiru bainhira tama ba veíkulu. Dokumentu sira-ne’e rai iha ami-nia base de dados no aseita de’it husi ekipa jestaun plataforma nian. La hatudu ba pasajeiru no la fahe ba parte seluk. Ita bele husu atu hamos tiha ita-nia dokumentu sira, no ne’e sei resulta taka ita-nia konta motorista nian.',
+        'Ami husu kartaun kondusaun, dokumentu veíkulu no ita-nia fotografia eskluzivamente atu konfirma ita-nia identidade no elijibilidade formál – ne’e mak fó fiar ba pasajeiru bainhira tama ba veíkulu. Kartaun kondusaun no dokumentu veíkulu rai iha ami-nia base de dados, ekipa jestaun plataforma nian de’it mak asesu, no la hatudu ba pasajeiru ka fahe ba parte seluk. Ita-nia fotografia la hanesan: hatudu ba pasajeiru iha viajen ne’ebé ita simu, iha nia ekrã, durante viajen ne’e — ne’e mak nia konfirma katak tama ona ba veíkulu loos, hanesan nia konfirma matríkula no modelu. Viajen remata, la hatudu ona, no istória viajen la rai iha matan. Ita bele husu atu hamos tiha ita-nia dokumentu sira, no ne’e sei resulta taka ita-nia konta motorista nian.',
     },
     {
       titulo: 'Seguransa no Regra Konduta Nian',

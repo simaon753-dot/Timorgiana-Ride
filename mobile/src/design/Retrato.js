@@ -13,7 +13,11 @@ import ImagemProtegida from './ImagemProtegida.js';
 // Cai para o 👤 sem barulho em três casos: quem não é motorista, quem
 // ainda não enviou nenhuma, e quem não tem rede. Nenhum deles merece um
 // ecrã de erro no perfil.
-export default function Retrato({ tamanho = 78, versao }) {
+// `caminho` deixa o mesmo componente servir os dois lados: o motorista a ver
+// o seu retrato no perfil, e o passageiro a ver o do motorista da viagem. O
+// desenho é o mesmo — o círculo, o anel, o 👤 quando não há — e é preciso que
+// seja: se o passageiro visse uma moldura diferente, parecia outra coisa.
+export default function Retrato({ tamanho = 78, versao, caminho }) {
   // A data faz parte da chave: quando muda, a imagem é procurada de novo.
   // É isto que faz a fotografia de hoje substituir a de ontem, em vez de
   // ficar a anterior agarrada ao ecrã.
@@ -29,7 +33,7 @@ export default function Retrato({ tamanho = 78, versao }) {
   return (
     <View style={[styles.caixa, lado]}>
       <ImagemProtegida
-        caminho={`/driver/retrato?dia=${dia}`}
+        caminho={caminho ? `${caminho}?dia=${dia}` : `/driver/retrato?dia=${dia}`}
         chave={dia}
         style={[lado, styles.comFoto]}
         reserva={semFoto}

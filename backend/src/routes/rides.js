@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { criarAlerta, cancelamentosRecentes } from '../sos.js';
+import { ultimaFotoDeTurno } from '../turnos.js';
+import { getOwnDocument } from '../documents.js';
 import { requireAuth, requireRole, requireApprovedDriver } from '../auth.js';
 import {
   createRide,
@@ -677,5 +679,46 @@ ridesRouter.post(
       cancelamentos,
       aviso: cancelamentos >= config.avisoCancelamentos ? 'demasiados' : null,
     });
+  })
+);
+
+// GET /api/rides/:id/retrato — o rosto do motorista, para quem vai entrar no
+// carro dele.
+//
+// PORQUE EXISTE. A política de segurança manda o passageiro confirmar "a
+// matrícula, o modelo do veículo e o nome/fotografia do motorista" antes de
+// entrar. A matrícula e o modelo estavam no ecrã; a fotografia não estava em
+// lado nenhum, e a instrução era impossível de cumprir.
+//
+// A ESCOLHA DA FOTOGRAFIA É A MESMA de `/driver/retrato`, e de propósito: a do
+// turno mais recente primeiro, a do registo depois. Quem vai entrar no carro
+// quer saber quem está ao volante HOJE, e a do turno é a prova mais fresca
+// disso. Duas regras diferentes para a mesma pergunta acabariam a mostrar
+// caras diferentes ao motorista e ao passageiro.
+//
+// QUEM PODE VER. Só as duas pessoas da viagem, e só enquanto ela não
+// terminou — a mesma regra que já esconde os telefones. Uma cara não é menos
+// pessoal do que um número: acabada a viagem, deixa de haver motivo para
+// alguém a rever, e o histórico não a mostra.
+ridesRouter.get(
+  '/:id/retrato',
+  wrap(async (req, res) => {
+    const ride = await getRideById(Number(req.params.id));
+    if (!ride || !ride.driver_id) return res.status(404).json({ error: 'Sem motorista.' });
+
+    const meu = ride.passenger_id === req.user.id || ride.driver_id === req.user.id;
+    const terminada = ride.status === 'completed' || ride.status === 'cancelled';
+    // 404 e não 403 a quem não é da viagem: um 403 confirmaria que aquela
+    // viagem existe e que tem motorista. Quem não é dela não fica a saber
+    // nada, nem sequer que há algo ali.
+    if (!meu || terminada) return res.status(404).json({ error: 'Sem fotografia.' });
+
+    const turno = await ultimaFotoDeTurno(ride.driver_id);
+    const foto = turno || (await getOwnDocument(ride.driver_id, 'photo'));
+    if (!foto) return res.status(404).json({ error: 'Sem fotografia.' });
+
+    res.setHeader('Cache-Control', 'private, no-cache');
+    res.setHeader('Content-Type', foto.mime);
+    res.send(foto.bytes);
   })
 );

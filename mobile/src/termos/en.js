@@ -126,7 +126,7 @@ export const termosMotorista = {
     {
       titulo: 'Document validation and protection',
       texto:
-        'We ask for your driving licence, the vehicle document and a photograph of yourself solely to confirm your identity and formal eligibility — this is what gives passengers confidence when getting into the vehicle. These documents are stored in our database and accessed only by the platform management team. They are not shown to passengers or shared with third parties. You may request the deletion of your documents, which will result in the closure of your driver account.',
+        'We ask for your driving licence, the vehicle document and a photograph of yourself solely to confirm your identity and formal eligibility — this is what gives passengers confidence when getting into the vehicle. Your driving licence and vehicle document are stored in our database, accessed only by the platform management team, and are not shown to passengers or shared with third parties. Your photograph is different: it is shown to the passenger of a ride you accept, on their screen, for as long as that ride lasts — this is how they confirm they got into the right vehicle, just as they confirm the plate and the model. Once the ride ends it is no longer shown, and the ride history does not display it. You may request the deletion of your documents, which will result in the closure of your driver account.',
     },
     {
       titulo: 'Safety and rules of conduct',

@@ -17,7 +17,20 @@ export const VERSAO_TERMOS = '2026-08-29';
 // concreta (Instrução Pública n.º 07/2010) e a dizer o que acontece a quem
 // não a cumpre. Mudou o SENTIDO da obrigação, por isso muda a versão, e os
 // motoristas voltam a ter de aceitar.
-export const VERSAO_TERMOS_MOTORISTA = '2026-09-03';
+// Alterada em 10/09/2026: a fotografia do motorista deixa de estar no mesmo
+// saco dos documentos. Os termos diziam duas coisas opostas — a política de
+// segurança mandava o PASSAGEIRO confirmar "o nome/fotografia do motorista"
+// antes de entrar, e a cláusula do motorista prometia que a fotografia NÃO
+// era exibida aos passageiros. A app cumpria a segunda, e por isso a
+// instrução de segurança era impossível de seguir.
+//
+// O Simão decidiu pelo lado do passageiro: a fotografia passa a ser mostrada
+// a quem vai entrar no carro, enquanto a viagem durar. A carta e o documento
+// do veículo continuam a não ser exibidos a ninguém.
+//
+// Muda o que o motorista autoriza sobre a sua própria imagem, portanto muda a
+// versão e os motoristas voltam a ter de aceitar.
+export const VERSAO_TERMOS_MOTORISTA = '2026-09-10';
 
 // A privacidade tem versão PRÓPRIA, e não a dos termos.
 //
