@@ -47,17 +47,62 @@ export async function guardarFixo(id, lugar) {
 //
 // Sem coordenadas não serve: um nome sozinho obrigaria a pesquisar outra
 // vez, que é exactamente o que isto existe para evitar.
+// RECENTES ESCONDIDOS, e porque é esconder e não apagar.
+//
+// Os recentes NÃO SÃO UMA LISTA GUARDADA: são calculados do histórico de
+// viagens, de cada vez que o ecrã abre. Não há nada para apagar — a viagem
+// aconteceu, e o histórico é registo do serviço, não uma lista de sugestões
+// que se possa limpar.
+//
+// Por isso guarda-se aqui, no telemóvel, quais os destinos que esta pessoa
+// não quer voltar a ver sugeridos. A viagem fica onde estava; o que sai é a
+// sugestão. E fica no aparelho pela mesma razão que a casa e o trabalho: uma
+// lista de sítios que alguém preferiu esconder diz mais do que parece.
+const CHAVE_ESCONDIDOS = 'tgr.recentesEscondidos';
+
+// A MESMA CHAVE que agrupa os recentes, para os dois concordarem. Se o
+// esconder usasse outra forma de identificar o sítio, esconder-se-ia um
+// destino e continuaria a aparecer outro igual com outra coordenada.
+export function chaveDoRecente(label) {
+  return String(label || '')
+    .split(',')[0]
+    .trim()
+    .toLowerCase();
+}
+
+export async function recentesEscondidos() {
+  try {
+    const bruto = await AsyncStorage.getItem(CHAVE_ESCONDIDOS);
+    return new Set(bruto ? JSON.parse(bruto) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+export async function esconderRecente(label) {
+  const chave = chaveDoRecente(label);
+  if (!chave) return;
+  const escondidos = await recentesEscondidos();
+  escondidos.add(chave);
+  try {
+    await AsyncStorage.setItem(CHAVE_ESCONDIDOS, JSON.stringify([...escondidos]));
+  } catch {
+    /* sem espaço ou sem permissão: a sugestão volta a aparecer, e mais nada */
+  }
+}
+
 export async function destinosRecentes(token, quantos = 3) {
   try {
     const r = await api.rideHistory(token);
     const vistos = new Set();
+    const escondidos = await recentesEscondidos();
     const saida = [];
     for (const v of r.rides || []) {
       if (v.destLat == null || v.destLng == null || !v.destLabel) continue;
       // Duas viagens ao mesmo sítio raramente têm coordenadas idênticas;
       // agrupar pelo nome curto evita a mesma rua três vezes na lista.
-      const chave = String(v.destLabel).split(',')[0].trim().toLowerCase();
-      if (!chave || vistos.has(chave)) continue;
+      const chave = chaveDoRecente(v.destLabel);
+      if (!chave || vistos.has(chave) || escondidos.has(chave)) continue;
       vistos.add(chave);
       saida.push({ lat: v.destLat, lng: v.destLng, label: v.destLabel });
       if (saida.length >= quantos) break;

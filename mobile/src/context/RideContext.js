@@ -308,7 +308,13 @@ export function RideProvider({ children }) {
 
   const sendMessage = useCallback(
     async (body) => {
-      if (!activeId) return;
+      // ATIRA em vez de desistir em silêncio.
+      //
+      // Era `return` sem mais nada. Quem escrevesse sem viagem activa via o
+      // texto desaparecer da caixa e mais nada acontecer — a mensagem não
+      // ia, não ficava, e não havia erro. O ecrã só repõe o texto quando
+      // apanha uma excepção, e aqui não havia nenhuma para apanhar.
+      if (!activeId) throw new Error('SEM_VIAGEM');
       const { message } = await api.sendMessage(token, activeId, body);
       setMessages((prev) => [...prev, message]);
       return message;

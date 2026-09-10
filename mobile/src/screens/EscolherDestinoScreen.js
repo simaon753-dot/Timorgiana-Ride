@@ -6,7 +6,7 @@ import Icone from '../design/Icone.js';
 import { tipo } from '../design/tipografia.js';
 import PlaceSearch from '../components/PlaceSearch.js';
 import EscolherPonto from '../components/EscolherPonto.js';
-import { FIXOS, lerFixos, guardarFixo, destinosRecentes } from '../lib/lugares.js';
+import { FIXOS, lerFixos, guardarFixo, destinosRecentes, esconderRecente } from '../lib/lugares.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { colors, spacing, radius, elevacao, registarEstilos } from '../theme.js';
@@ -58,6 +58,14 @@ export default function EscolherDestinoScreen({ navigation, route }) {
   async function guardarLugarEm(id, lugar) {
     if (!id) return;
     setFixos(await guardarFixo(id, lugar));
+  }
+
+  // Esconde a sugestão e tira-a já do ecrã, sem esperar pela releitura do
+  // histórico: quem toca no ✕ quer ver aquilo desaparecer nesse instante.
+  async function removerRecente(label) {
+    setRecentes((lista) => lista.filter((r) => r.label !== label));
+    await esconderRecente(label);
+    destinosRecentes(token).then(setRecentes);
   }
 
   async function guardarLugar(lugar) {
@@ -171,6 +179,25 @@ export default function EscolherDestinoScreen({ navigation, route }) {
                 <Text style={styles.recenteTexto} numberOfLines={1}>
                   {r.label}
                 </Text>
+                {/* TIRAR DA LISTA — e não apagar a viagem.
+                    Os recentes são calculados do histórico; a viagem
+                    aconteceu e fica. O que sai daqui é a sugestão.
+                    `stopPropagation` porque a linha inteira já é um botão que
+                    leva ao sítio: sem isto, tocar no ✕ pedia a viagem para o
+                    destino que se estava a tentar remover. É o mesmo cuidado
+                    do lápis da casa, e não é caso especial — é a regra de um
+                    botão dentro de outro botão. */}
+                <Pressable
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    removerRecente(r.label);
+                  }}
+                  hitSlop={12}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('removerRecente')}
+                >
+                  <Text style={styles.recenteRemover}>✕</Text>
+                </Pressable>
               </Pressable>
             ))}
           </>
@@ -289,6 +316,9 @@ const criarEstilos = () =>
     },
     recenteIcone: { fontSize: 15, opacity: 0.7 },
     recenteTexto: { ...tipo.corpo, color: colors.text, flex: 1 },
+    // Discreto: tirar da lista é raro, e não deve competir com o toque
+    // que leva ao sítio.
+    recenteRemover: { fontSize: 15, color: colors.textMuted, paddingHorizontal: 4 },
 
     // A pesquisa cobre o ecrã enquanto se define um lugar. Sem isto ficava
     // atrás do conteúdo e a lista de resultados era inalcançável.
