@@ -30,7 +30,7 @@ export default {
   vehicleSection: 'Vehicle details',
   vehicleType: 'Vehicle type',
   vehicleCar: 'Car',
-  vehicleCarry: 'Carry',
+  vehicleCarry: 'Carry / Pickup',
   carryNota: 'For goods, not people',
   vehicleMotorbike: 'Motorbike',
   vehicleModel: 'Model',

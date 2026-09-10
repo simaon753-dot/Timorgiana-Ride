@@ -27,7 +27,7 @@ export default {
   vehicleSection: 'Dados do veículo',
   vehicleType: 'Tipo de veículo',
   vehicleCar: 'Carro',
-  vehicleCarry: 'Carry',
+  vehicleCarry: 'Carry / Pickup',
   carryNota: 'Para transportar bens, não pessoas',
   vehicleMotorbike: 'Motorizada',
   vehicleModel: 'Modelo',
