@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Alert, Linking, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { Alert, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Location from 'expo-location';
 import { colors, radius, spacing, registarEstilos } from '../theme.js';
+import { FAMILIAS } from '../design/tipografia.js';
+import Icone from '../design/Icone.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
@@ -118,9 +120,28 @@ export default function SosButton({ rideId, compact }) {
         accessibilityRole="button"
         accessibilityLabel={t('sos')}
       >
-        <Text style={[styles.texto, compact && styles.textoCompacto]}>
-          {aEnviar ? '…' : compact ? 'SOS' : `🚨  ${t('sos')}`}
-        </Text>
+        {/* ÍCONE E TEXTO SEPARADOS, e não uma cadeia com o emoji lá dentro.
+            No telemóvel do Simão este botão apareceu vermelho com o 🚨
+            sozinho: o "Emergência" não se via. Num botão de emergência.
+            Não consegui reproduzir nem explicar a causa — a minha primeira
+            teoria (o peso 800 sem família de letra) foi desmentida pela
+            fotografia dele, onde o código de recolha usa o mesmo peso e
+            aparece bem.
+            Por isso mudei de abordagem em vez de continuar a adivinhar: o
+            emoji sai, entra o ícone desenhado, e o texto passa a ser um
+            elemento com vida própria. Deixa de haver uma cadeia onde um
+            caractere pode levar o resto atrás — se o ícone falhar, o texto
+            aparece na mesma, e ao contrário também. */}
+        {aEnviar ? (
+          <Text style={[styles.texto, compact && styles.textoCompacto]}>…</Text>
+        ) : compact ? (
+          <Text style={[styles.texto, styles.textoCompacto]}>SOS</Text>
+        ) : (
+          <View style={styles.linha}>
+            <Icone nome="sirene" tamanho={20} cor="#fff" traco={2.4} />
+            <Text style={styles.texto}>{t('sos')}</Text>
+          </View>
+        )}
       </TouchableOpacity>
     </>
   );
@@ -146,13 +167,27 @@ const criarEstilos = () =>
     // Branco fixo, e certo: assenta sobre uma superfície que é escura
     // nos dois temas. Um token de tema aqui trocaria o texto por laranja
     // sobre vermelho.
+    //
+    // A FAMÍLIA É NOMEADA, e não pedida por peso.
+    //
+    // Estava `fontWeight: '800'` sem `fontFamily`. Isso não pede a fonte da
+    // app — pede ao Android que fabrique um peso 800 a partir da fonte do
+    // SISTEMA, e o resultado depende do telemóvel. No do Simão o texto
+    // deixou de aparecer: ficava o 🚨 sozinho num botão vermelho, sem dizer
+    // o que fazia. Num botão de emergência.
+    //
+    // A app carrega a Plus Jakarta Sans com as variantes de peso já
+    // desenhadas, e todos os outros botões nomeiam a família. Este era o
+    // único que não o fazia, e por isso era o único que dependia da sorte.
     texto: {
+      fontFamily: FAMILIAS.extra,
       color: '#fff',
-      fontWeight: '800',
       fontSize: 16,
+      lineHeight: 22,
       letterSpacing: 0.5,
     },
     textoCompacto: { fontSize: 13, letterSpacing: 0 },
+    linha: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   });
 
 let styles = criarEstilos();
