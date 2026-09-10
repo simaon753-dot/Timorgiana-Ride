@@ -29,7 +29,10 @@
         "backgroundColor": "#0E5C54"
       },
       "edgeToEdgeEnabled": true,
-      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
       "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
@@ -47,10 +50,14 @@
         {
           "android": {
             "usesCleartextTraffic": false,
-            "buildArchs": ["armeabi-v7a", "arm64-v8a"]
+            "buildArchs": [
+              "armeabi-v7a",
+              "arm64-v8a"
+            ]
           }
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "runtimeVersion": {
       "policy": "appVersion"

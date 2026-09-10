@@ -1,9 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { lerToken, guardarToken, apagarToken } from '../lib/cofreSessao.js';
 import { api, ApiError } from '../api/client.js';
 import { loadSavedServer } from '../serverUrl.js';
 
-const TOKEN_KEY = 'tgr.token';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
@@ -19,7 +18,7 @@ export function AuthProvider({ children }) {
       // errado (o de compilação em vez do que o utilizador configurou).
       await loadSavedServer();
       try {
-        const saved = await AsyncStorage.getItem(TOKEN_KEY);
+        const saved = await lerToken();
         if (saved) {
           const { user } = await api.me(saved);
           setToken(saved);
@@ -27,7 +26,7 @@ export function AuthProvider({ children }) {
         }
       } catch {
         // Token inválido/expirado ou sem rede — começa sem sessão
-        await AsyncStorage.removeItem(TOKEN_KEY);
+        await apagarToken();
       } finally {
         setRestoring(false);
       }
@@ -37,7 +36,7 @@ export function AuthProvider({ children }) {
   const persist = useCallback(async ({ user, token }) => {
     setUser(user);
     setToken(token);
-    await AsyncStorage.setItem(TOKEN_KEY, token);
+    await guardarToken(token);
   }, []);
 
   const login = useCallback(
@@ -74,7 +73,7 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     setUser(null);
     setToken(null);
-    await AsyncStorage.removeItem(TOKEN_KEY);
+    await apagarToken();
   }, []);
 
   return (
