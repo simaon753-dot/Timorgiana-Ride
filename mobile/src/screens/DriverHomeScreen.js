@@ -26,6 +26,7 @@ import ChatButton from '../components/ChatButton.js';
 import SosButton from '../components/SosButton.js';
 import RatingPanel from '../components/RatingPanel.js';
 import { rideMarkers } from '../lib/rideMarkers.js';
+import { VEICULOS, nomeDoVeiculo } from '../dados/tiposDeVeiculo.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
@@ -282,12 +283,10 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
   // relance; inteiro quando a decisão merecer olhar com cuidado.
   const marcadores = rideMarkers(ride);
 
-  const wants =
-    ride.vehicleType === 'motorbike'
-      ? t('vehicleMotorbike')
-      : ride.vehicleType === 'car'
-        ? t('vehicleCar')
-        : t('vehicleAny');
+  // `vehicleAny` continua a existir e é preciso: há viagens sem tipo
+  // gravado — pedidos antigos, ou feitos sem coordenadas — e a essas não se
+  // pode chamar "Carro" só porque é o valor de reserva da tabela.
+  const wants = VEICULOS[ride.vehicleType] ? nomeDoVeiculo(t, ride.vehicleType) : t('vehicleAny');
 
   async function accept() {
     setBusy(true);

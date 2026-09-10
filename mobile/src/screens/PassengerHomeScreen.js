@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BarraEstado from '../design/BarraEstado.js';
 import Retrato from '../design/Retrato.js';
+import { TIPOS_VEICULO, VEICULOS, nomeDoVeiculo } from '../dados/tiposDeVeiculo.js';
 import Icone from '../design/Icone.js';
 import { tipo } from '../design/tipografia.js';
 import AvisoTeste from '../components/AvisoTeste.js';
@@ -36,11 +37,6 @@ import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
 import { colors, spacing, radius, elevacao, registarEstilos } from '../theme.js';
-
-// As fotografias dos dois veículos. Fora do componente para não voltarem a
-// ser resolvidas a cada desenho do ecrã.
-const IMG_MOTA = require('../../assets/veiculos/mota.png');
-const IMG_CARRO = require('../../assets/veiculos/carro.png');
 
 export default function PassengerHomeScreen({ navigation }) {
   const { t } = useI18n();
@@ -69,7 +65,7 @@ export default function PassengerHomeScreen({ navigation }) {
   // nome>", que é absurdo e mina a confiança no resto.
   const activeRide = viagemBruta && viagemBruta.driver?.id !== user?.id ? viagemBruta : null;
 
-  const vehicleLabel = (v) => (v?.type === 'motorbike' ? t('vehicleMotorbike') : t('vehicleCar'));
+  const vehicleLabel = (v) => nomeDoVeiculo(t, v?.type);
   const markers = activeRide ? rideMarkers(activeRide) : [];
   const withDriver =
     activeRide?.driver && ['accepted', 'arriving', 'in_progress'].includes(activeRide.status);
@@ -376,26 +372,18 @@ export default function PassengerHomeScreen({ navigation }) {
                 Dois cartões grandes e não uma lista: são duas opções, e uma
                 escolha entre duas coisas mostra-se lado a lado. */}
             <View style={styles.veiculos}>
-              {[
-                {
-                  id: 'motorbike',
-                  img: IMG_MOTA,
-                  nome: t('vehicleMotorbike'),
-                  nota: t('motoMaisBarato'),
-                },
-                { id: 'car', img: IMG_CARRO, nome: t('vehicleCar'), nota: t('carroMaisAbrigado') },
-              ].map((v) => (
+              {TIPOS_VEICULO.map((id) => VEICULOS[id]).map((v) => (
                 <Pressable
                   key={v.id}
                   style={({ pressed }) => [styles.veiculo, pressed && styles.premido]}
                   onPress={() => navigation.navigate('EscolherDestino', { veiculo: v.id })}
                   accessibilityRole="button"
-                  accessibilityLabel={v.nome}
+                  accessibilityLabel={t(v.chaveNome)}
                 >
-                  <Image source={v.img} style={styles.veiculoFoto} resizeMode="contain" />
+                  <Image source={v.imagem} style={styles.veiculoFoto} resizeMode="contain" />
                   <View style={styles.veiculoTextos}>
-                    <Text style={styles.veiculoNome}>{v.nome}</Text>
-                    <Text style={styles.veiculoNota}>{v.nota}</Text>
+                    <Text style={styles.veiculoNome}>{t(v.chaveNome)}</Text>
+                    <Text style={styles.veiculoNota}>{t(v.chaveNota)}</Text>
                   </View>
                   <Icone nome="seta" tamanho={20} cor={colors.textMuted} />
                 </Pressable>

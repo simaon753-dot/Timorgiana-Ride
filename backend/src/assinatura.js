@@ -49,6 +49,14 @@ export const PACOTES = {
     { dias: 10, usd: 6 },
     { dias: 30, usd: 15 },
   ],
+  // Carry: iguais aos do carro por agora. Um veículo de carga trabalha menos
+  // viagens por dia do que um táxi, e talvez isto deva ser mais barato — mas
+  // isso decide-se com viagens feitas, não antes da primeira.
+  carry: [
+    { dias: 3, usd: 4 },
+    { dias: 10, usd: 12 },
+    { dias: 30, usd: 30 },
+  ],
 };
 
 // Como o dinheiro chega. O servidor é a autoridade sobre esta lista para a
@@ -155,7 +163,7 @@ export async function estadoDe(userId) {
     dias: u?.dias_saldo ?? 0,
     gratuito,
     gratuitoAte: GRATUITO_ATE,
-    pacotes: PACOTES[u?.vehicle_type === 'motorbike' ? 'motorbike' : 'car'],
+    pacotes: PACOTES[u?.vehicle_type] || PACOTES.car,
     formasPagamento: FORMAS_PAGAMENTO,
     diasContados: dias,
     carregamentos: carregamentos.map((c) => ({ ...c, valor_usd: Number(c.valor_usd) })),

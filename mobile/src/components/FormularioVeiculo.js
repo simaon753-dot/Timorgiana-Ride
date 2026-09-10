@@ -9,6 +9,7 @@ import EscolherLugares from './EscolherLugares.js';
 import { LUGARES } from '../dados/veiculos.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
+import { TIPOS_VEICULO, VEICULOS } from '../dados/tiposDeVeiculo.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
@@ -66,10 +67,11 @@ export default function FormularioVeiculo({ onPronto }) {
       <SegmentedPicker
         value={tipo}
         onChange={setTipo}
-        options={[
-          { value: 'car', label: t('vehicleCar'), icon: '🚗' },
-          { value: 'motorbike', label: t('vehicleMotorbike'), icon: '🏍️' },
-        ]}
+        options={TIPOS_VEICULO.map((id) => ({
+          value: id,
+          label: t(VEICULOS[id].chaveNome),
+          icon: VEICULOS[id].emoji,
+        }))}
       />
       <View style={{ height: spacing.md }} />
 
@@ -81,9 +83,7 @@ export default function FormularioVeiculo({ onPronto }) {
         label={t('vehiclePlate')}
         value={matricula}
         onChangeText={setMatricula}
-        placeholder={t(
-          tipo === 'motorbike' ? 'vehiclePlatePlaceholderMoto' : 'vehiclePlatePlaceholderCar'
-        )}
+        placeholder={t(VEICULOS[tipo]?.chaveMatricula || 'vehiclePlatePlaceholderCar')}
         hint={t('vehiclePlateHint')}
         autoCapitalize="characters"
       />

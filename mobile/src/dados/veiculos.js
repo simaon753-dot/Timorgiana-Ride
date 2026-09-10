@@ -134,8 +134,31 @@ export const LUGARES = [1, 2, 3, 4, 5, 6];
 
 // Lista plana para a pesquisa, com a marca à frente do modelo: escrever
 // "avanza" ou "toyota" tem de encontrar a mesma coisa.
+// VEÍCULOS DE CARGA que circulam em Díli.
+//
+// Mesma ressalva das outras duas listas: não vem de registo oficial nenhum. A
+// esmagadora maioria são veículos indonésios de cabina avançada — o "carry" a
+// que o serviço deve o nome é literalmente o Suzuki Carry, tão comum aqui que
+// virou o nome da categoria, como "gilete" para lâmina.
+//
+// Precisa de ser corrigida por quem conhece a rua. E há sempre "Outro", com
+// escrita livre: uma lista que não tem o veículo de alguém obriga essa pessoa
+// a mentir ou a desistir do registo.
+export const CARGA = [
+  { marca: 'Suzuki', modelos: ['Carry', 'Carry Pick-up', 'APV Pick-up', 'Mega Carry'] },
+  { marca: 'Daihatsu', modelos: ['Gran Max Pick-up', 'Hijet', 'Luxio'] },
+  { marca: 'Mitsubishi', modelos: ['L300', 'Colt Diesel', 'Triton'] },
+  { marca: 'Toyota', modelos: ['Hilux', 'Dyna', 'Hiace'] },
+  { marca: 'Isuzu', modelos: ['Traga', 'Elf', 'D-Max'] },
+  { marca: 'Nissan', modelos: ['Navara'] },
+  { marca: 'Ford', modelos: ['Ranger'] },
+];
+
 export function listaPlana(tipo) {
-  const fonte = tipo === 'motorbike' ? MOTORIZADAS : CARROS;
+  // Três listas e não duas. Antes era um ternário — tudo o que não fosse mota
+  // caía nos carros de passageiros, e um Suzuki Carry aparecia numa lista de
+  // berlinas onde nunca esteve.
+  const fonte = tipo === 'motorbike' ? MOTORIZADAS : tipo === 'carry' ? CARGA : CARROS;
   const saida = [];
   for (const { marca, modelos } of fonte) {
     for (const nome of modelos) {

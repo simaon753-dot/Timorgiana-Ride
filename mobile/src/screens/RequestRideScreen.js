@@ -41,6 +41,7 @@ import { api } from '../api/client.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 import Icone from '../design/Icone.js';
+import { TIPOS_VEICULO, VEICULOS, nomeDoVeiculo, veiculo } from '../dados/tiposDeVeiculo.js';
 import BarraEstado from '../design/BarraEstado.js';
 
 export default function RequestRideScreen({ navigation, route }) {
@@ -109,7 +110,7 @@ export default function RequestRideScreen({ navigation, route }) {
   // por isso que a escolha não desapareceu do ecrã, só deixou de aparecer a
   // quem já a fez.
   const veiculoFixo = route?.params?.veiculo || null;
-  const [veiculo, setVeiculo] = useState(veiculoFixo || 'car');
+  const [veiculoAtual, setVeiculo] = useState(veiculoFixo || 'car');
 
   // QUANTOS PEDIDOS DE NOME ESTÃO EM VOO para o destino.
   //
@@ -591,8 +592,8 @@ export default function RequestRideScreen({ navigation, route }) {
         originLabel: origem.label,
         originLat: origem.lat,
         originLng: origem.lng,
-        vehicleType: veiculo,
-        ...(veiculo === 'car' ? { passengers: pessoas } : {}),
+        vehicleType: veiculoAtual,
+        ...(veiculo(veiculoAtual).perguntaLugares ? { passengers: pessoas } : {}),
         ...(paraOutra
           ? {
               viajanteNome: outroNome.trim(),
@@ -849,7 +850,12 @@ export default function RequestRideScreen({ navigation, route }) {
       cartao: destino.desenhar === true,
     });
 
-  const opcao = orcamento?.options?.find((o) => o.type === veiculo);
+  // `veiculoAtual` e não `veiculo`: este último passou a ser a FUNÇÃO que lê
+  // a tabela dos tipos. Comparado com ela, `o.type === veiculo` nunca é
+  // verdade — e não rebenta: devolve `undefined` e o preço desaparece do
+  // botão, em silêncio. Nenhum verificador apanha isto; apanhou-o uma busca
+  // às sobras da renomeação.
+  const opcao = orcamento?.options?.find((o) => o.type === veiculoAtual);
 
   // Pedir depende de haver DOIS PONTOS, não de haver preço.
   //
@@ -1107,7 +1113,7 @@ export default function RequestRideScreen({ navigation, route }) {
                   <CartaoVeiculo
                     key={o.type}
                     opcao={o}
-                    ativo={veiculo === o.type}
+                    ativo={veiculoAtual === o.type}
                     // Sem toque quando é o único: um cartão que responde ao
                     // dedo e não muda nada ensina que os toques não contam.
                     onPress={veiculoFixo ? undefined : () => setVeiculo(o.type)}
@@ -1117,12 +1123,17 @@ export default function RequestRideScreen({ navigation, route }) {
               {/* Taxas de entrada, logo a seguir à escolha do veículo.
                   Aqui e não antes, porque no Timor Plaza só o carro paga —
                   o aviso muda conforme o que se escolhe. */}
-              <TaxasDeEntrada taxas={orcamento.taxasDeEntrada} veiculo={veiculo} t={t} />
+              <TaxasDeEntrada taxas={orcamento.taxasDeEntrada} tipoVeiculo={veiculoAtual} t={t} />
 
               {/* Só em carro: numa motorizada vai sempre uma pessoa, e
                   perguntar seria fazer perder tempo com uma resposta que
                   já se sabe. */}
-              {veiculo === 'car' ? (
+              {/* SÓ A QUEM TRANSPORTA PESSOAS.
+                  Era `veiculo === 'car'`. Com o Carry a pergunta deixa de
+                  fazer sentido: quem manda uma máquina de lavar não vai lá
+                  dentro. A condição passa a ler-se da tabela dos tipos, e o
+                  quarto tipo não obriga a voltar aqui. */}
+              {veiculo(veiculoAtual).perguntaLugares ? (
                 <>
                   <Text style={styles.seccao}>{t('howManyPeople')}</Text>
                   <EscolherLugares opcoes={LUGARES} valor={pessoas} onEscolher={setPessoas} />
@@ -1142,26 +1153,26 @@ export default function RequestRideScreen({ navigation, route }) {
               <Text style={styles.seccao}>{t(veiculoFixo ? 'seuVeiculo' : 'chooseVehicle')}</Text>
               {veiculoFixo ? (
                 <View style={styles.veiculoFixo}>
-                  <Icone
-                    nome={veiculoFixo === 'motorbike' ? 'mota' : 'carro'}
-                    tamanho={22}
-                    cor={colors.teal}
-                  />
-                  <Text style={styles.veiculoFixoTexto}>
-                    {veiculoFixo === 'motorbike' ? t('vehicleMotorbike') : t('vehicleCar')}
-                  </Text>
+                  <Icone nome={veiculo(veiculoFixo).icone} tamanho={22} cor={colors.teal} />
+                  <Text style={styles.veiculoFixoTexto}>{nomeDoVeiculo(t, veiculoFixo)}</Text>
                 </View>
               ) : (
                 <SegmentedPicker
-                  value={veiculo}
+                  value={veiculoAtual}
                   onChange={setVeiculo}
-                  options={[
-                    { value: 'car', label: t('vehicleCar'), icon: '🚗' },
-                    { value: 'motorbike', label: t('vehicleMotorbike'), icon: '🏍️' },
-                  ]}
+                  options={TIPOS_VEICULO.map((id) => ({
+                    value: id,
+                    label: t(VEICULOS[id].chaveNome),
+                    icon: VEICULOS[id].emoji,
+                  }))}
                 />
               )}
-              {veiculo === 'car' ? (
+              {/* SÓ A QUEM TRANSPORTA PESSOAS.
+                  Era `veiculo === 'car'`. Com o Carry a pergunta deixa de
+                  fazer sentido: quem manda uma máquina de lavar não vai lá
+                  dentro. A condição passa a ler-se da tabela dos tipos, e o
+                  quarto tipo não obriga a voltar aqui. */}
+              {veiculo(veiculoAtual).perguntaLugares ? (
                 <>
                   <Text style={styles.seccao}>{t('howManyPeople')}</Text>
                   <EscolherLugares opcoes={LUGARES} valor={pessoas} onEscolher={setPessoas} />
@@ -1177,7 +1188,14 @@ export default function RequestRideScreen({ navigation, route }) {
           {/* Aqui e não dentro dos dois ramos acima: a pergunta é a mesma
               haja cotação ou não, e repetida nos dois divergiria ao primeiro
               descuido. */}
-          {origem && destino ? (
+          {/* Só quando há alguém a viajar. Para bens, "quem recebe" é outra
+              coisa — nome e telefone de quem recebe a entrega — e entra com o
+              resto do ecrã do Carry, na fase seguinte.
+
+              UMA condição, e não duas encaixadas: dentro dos parênteses de um
+              ternário não cabe um `{ }` — nem um comentário nem outro
+              ternário. É a terceira vez hoje que caio neste mesmo sítio. */}
+          {origem && destino && veiculo(veiculoAtual).levaPessoas ? (
             <ParaOutraPessoa
               activo={paraOutra}
               onActivo={setParaOutra}
@@ -1300,8 +1318,8 @@ function Ponto({ cor, rotulo, valor, vazio, onPress, onCorrigir }) {
 }
 
 function CartaoVeiculo({ opcao, ativo, onPress, t }) {
-  const nome = opcao.type === 'motorbike' ? t('vehicleMotorbike') : t('vehicleCar');
-  const icone = opcao.type === 'motorbike' ? '🏍️' : '🚗';
+  const nome = nomeDoVeiculo(t, opcao.type);
+  const icone = veiculo(opcao.type).emoji;
   return (
     <Pressable
       style={[
@@ -1550,15 +1568,18 @@ registarEstilos(() => {
 //
 // Só aparece se o veículo ESCOLHIDO pagar. No Timor Plaza a motorizada entra
 // de graça, e mostrar-lhe um aviso de taxa seria dizer-lhe uma coisa falsa.
-function TaxasDeEntrada({ taxas, veiculo, t }) {
-  const aplicaveis = (taxas ?? []).filter((x) => x.taxa?.[veiculo]);
+// O parâmetro chama-se `tipoVeiculo` e não `veiculo`: com o nome antigo
+// tapava a função importada dentro deste componente, e quem aqui escrevesse
+// `veiculo(x)` receberia uma cadeia de texto em vez da ficha do tipo.
+function TaxasDeEntrada({ taxas, tipoVeiculo, t }) {
+  const aplicaveis = (taxas ?? []).filter((x) => x.taxa?.[tipoVeiculo]);
   if (!aplicaveis.length) return null;
 
   return (
     <View style={estilosTaxa.caixa}>
       <Text style={estilosTaxa.titulo}>{t('taxaEntradaTitulo')}</Text>
       {aplicaveis.map((x) => {
-        const c = x.taxa[veiculo];
+        const c = x.taxa[tipoVeiculo];
         const valor =
           c.usd == null
             ? t('taxaSemValor')

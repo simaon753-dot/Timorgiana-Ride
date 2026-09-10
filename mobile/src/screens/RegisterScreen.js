@@ -25,6 +25,7 @@ import EscolherModelo from '../components/EscolherModelo.js';
 import EscolherCor from '../components/EscolherCor.js';
 import EscolherLugares from '../components/EscolherLugares.js';
 import { LUGARES } from '../dados/veiculos.js';
+import { TIPOS_VEICULO, VEICULOS } from '../dados/tiposDeVeiculo.js';
 import { VERSAO_TERMOS } from '../termos/index.js';
 import { VERSAO_PRIVACIDADE } from '../termos/versao.js';
 import { useAuth } from '../context/AuthContext.js';
@@ -63,7 +64,8 @@ export default function RegisterScreen({ navigation, route }) {
     if (password.length < 6) return setError(t('errPasswordShort'));
     if (password !== password2) return setError(t('errPasswordMismatch'));
     if (role === 'driver' && !vPlate.trim()) return setError(t('errPlateRequired'));
-    if (role === 'driver' && vType === 'car' && !vSeats) return setError(t('errSeatsRequired'));
+    if (role === 'driver' && VEICULOS[vType]?.perguntaLugares && !vSeats)
+      return setError(t('errSeatsRequired'));
     // A COR É OBRIGATÓRIA, e não era.
     //
     // É o que o passageiro vê primeiro. A matrícula só se lê a três metros;
@@ -206,14 +208,11 @@ export default function RegisterScreen({ navigation, route }) {
                 <SegmentedPicker
                   value={vType}
                   onChange={setVType}
-                  options={[
-                    { value: 'car', label: t('vehicleCar'), icon: '🚗' },
-                    {
-                      value: 'motorbike',
-                      label: t('vehicleMotorbike'),
-                      icon: '🏍️',
-                    },
-                  ]}
+                  options={TIPOS_VEICULO.map((id) => ({
+                    value: id,
+                    label: t(VEICULOS[id].chaveNome),
+                    icon: VEICULOS[id].emoji,
+                  }))}
                 />
                 <View style={{ height: spacing.md }} />
 
@@ -230,16 +229,12 @@ export default function RegisterScreen({ navigation, route }) {
                   label={t('vehiclePlate')}
                   value={vPlate}
                   onChangeText={setVPlate}
-                  placeholder={t(
-                    vType === 'motorbike'
-                      ? 'vehiclePlatePlaceholderMoto'
-                      : 'vehiclePlatePlaceholderCar'
-                  )}
+                  placeholder={t(VEICULOS[vType]?.chaveMatricula || 'vehiclePlatePlaceholderCar')}
                   hint={t('vehiclePlateHint')}
                   autoCapitalize="characters"
                 />
 
-                {vType === 'car' ? (
+                {VEICULOS[vType]?.perguntaLugares ? (
                   <>
                     <Text style={styles.rotulo}>{t('vehicleSeats')}</Text>
                     <Text style={styles.ajuda}>{t('vehicleSeatsHelp')}</Text>
