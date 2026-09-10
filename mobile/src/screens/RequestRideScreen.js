@@ -110,6 +110,34 @@ export default function RequestRideScreen({ navigation, route }) {
   // quem já a fez.
   const veiculoFixo = route?.params?.veiculo || null;
   const [veiculo, setVeiculo] = useState(veiculoFixo || 'car');
+
+  // QUANTOS PEDIDOS DE NOME ESTÃO EM VOO para o destino.
+  //
+  // PORQUE EXISTE. O Simão escolheu um destino e carregou em "Pedir" antes de
+  // o nome do sítio chegar. A viagem foi criada com o rótulo de reserva — as
+  // coordenadas cruas, "−8.55044, 125.56155" — e a partir daí não havia como
+  // corrigir: o motorista via um par de números em vez do nome do sítio.
+  //
+  // Não se resolve bloqueando enquanto o rótulo for provisório: há sítios que
+  // NÃO TÊM nome, e o rótulo fica provisório para sempre. Bloquear por aí era
+  // tornar impossível pedir viagem para uma casa sem morada, que em Díli é a
+  // maioria delas.
+  //
+  // Bloqueia-se enquanto a PERGUNTA está em voo, e só isso. Se o nome chegar,
+  // o botão liberta-se com o nome certo; se não chegar nenhum, liberta-se na
+  // mesma com as coordenadas. A espera dura o que durar a resposta, e não um
+  // tempo inventado por mim.
+  const [aNomearDestino, setANomearDestino] = useState(0);
+
+  // Envolve uma pergunta de nome para o destino, contando-a enquanto dura.
+  async function comNomeEmVoo(promessa) {
+    setANomearDestino((n) => n + 1);
+    try {
+      return await promessa;
+    } finally {
+      setANomearDestino((n) => Math.max(0, n - 1));
+    }
+  }
   const [pessoas, setPessoas] = useState(1);
   // Pedir para outra pessoa. Tudo vazio no caso normal, que é a maioria.
   const [paraOutra, setParaOutra] = useState(false);
@@ -361,7 +389,10 @@ export default function RequestRideScreen({ navigation, route }) {
       setOrigem(ponto);
       setPrecisao(null);
     }
-    const nome = await nomeDoLugar(lat, lng, 0);
+    const nome =
+      tipo === 'destino'
+        ? await comNomeEmVoo(nomeDoLugar(lat, lng, 0))
+        : await nomeDoLugar(lat, lng, 0);
     if (!nome) return;
     // Bate certo com o ponto TAL COMO FOI ESCOLHIDO, mesmo que ele já tenha
     // sido encostado à estrada entretanto. Ver `escolhido` no efeito de
@@ -481,16 +512,22 @@ export default function RequestRideScreen({ navigation, route }) {
     // Com a pesquisa aberta, o campo que a abriu decide — a pessoa disse
     // explicitamente qual queria. Só sem pesquisa é que adivinhamos:
     // primeiro toque é a recolha, o seguinte é o destino.
+    // Guarda-se QUAL dos dois este toque definiu: só o destino conta para a
+    // espera do nome, e daqui para baixo as duas hipóteses seguem o mesmo
+    // caminho.
+    let ehDestino = false;
     if (pesquisa === 'origem') {
       setOrigem(ponto);
       setPesquisa(null);
     } else if (pesquisa === 'destino') {
       setDestino(ponto);
       setPesquisa(null);
+      ehDestino = true;
     } else if (!origem) {
       setOrigem(ponto);
     } else if (!destino) {
       setDestino(ponto);
+      ehDestino = true;
     } else {
       // VIAGEM DEFINIDA: o toque no mapa deixa de mudar seja o que for.
       //
@@ -508,7 +545,9 @@ export default function RequestRideScreen({ navigation, route }) {
     // O nome chega depois e substitui o rótulo — mas só se o ponto ainda
     // for este. Sem essa verificação, um nome lento de um toque antigo
     // sobrescrevia um ponto que a pessoa entretanto já tinha mudado.
-    const nome = await nomeDoLugar(lat, lng);
+    const nome = ehDestino
+      ? await comNomeEmVoo(nomeDoLugar(lat, lng))
+      : await nomeDoLugar(lat, lng);
     if (!nome) return;
     // Bate certo com o ponto TAL COMO FOI ESCOLHIDO, mesmo que ele já tenha
     // sido encostado à estrada entretanto. Ver `escolhido` no efeito de
@@ -829,7 +868,13 @@ export default function RequestRideScreen({ navigation, route }) {
   const outroCompleto =
     !paraOutra ||
     (!!outroNome.trim() && !!outroTelefone.trim() && (!outroMenor || outroConsentimento));
-  const podePedir = !!origem && !!destino && !aPedir && outroCompleto && coberturaDestino !== false;
+  const podePedir =
+    !!origem &&
+    !!destino &&
+    !aPedir &&
+    aNomearDestino === 0 &&
+    outroCompleto &&
+    coberturaDestino !== false;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -1018,7 +1063,14 @@ export default function RequestRideScreen({ navigation, route }) {
               Diz também de quanto é o erro: "mais ou menos 40 m" explica
               porque é que o pino não está exactamente na porta, e transforma
               um defeito aparente numa informação. */}
-          {origem && destino ? (
+          {aNomearDestino > 0 ? (
+            // ENQUANTO O NOME VEM A CAMINHO.
+            //
+            // O botão de pedir fica à espera, e um botão que não responde sem
+            // dizer porquê parece avariado. Esta linha é a diferença entre
+            // "está a carregar" e "está partido".
+            <Text style={styles.dicaArrastar}>{t('aObterNome')}</Text>
+          ) : origem && destino ? (
             // Fixados. Dizê-lo evita o pior caso: alguém tentar arrastar,
             // não conseguir, e concluir que a app está avariada.
             <Text style={styles.dicaArrastar}>{t('pontosFixados')}</Text>
