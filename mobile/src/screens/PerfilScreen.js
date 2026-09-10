@@ -3,6 +3,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
+import { nomeDoVeiculo } from '../dados/tiposDeVeiculo.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useModo } from '../context/ModoContext.js';
@@ -97,10 +98,7 @@ export default function PerfilScreen({ navigation }) {
             passageiro encontra o carro na rua. */}
         {veiculo?.plate ? (
           <Seccao titulo={t('profileVehicle')}>
-            <Linha
-              rotulo={t('vehicleType')}
-              valor={veiculo.type === 'motorbike' ? t('vehicleMotorbike') : t('vehicleCar')}
-            />
+            <Linha rotulo={t('vehicleType')} valor={nomeDoVeiculo(t, veiculo.type)} />
             {veiculo.model ? <Linha rotulo={t('vehicleModel')} valor={veiculo.model} /> : null}
             <Linha rotulo={t('vehiclePlate')} valor={veiculo.plate} forte />
             {veiculo.color ? (

@@ -1,4 +1,5 @@
 import { query, one } from './db.js';
+import { TIPOS_VEICULO } from './config.js';
 import { municipioDe } from './municipios.js';
 
 // Estados que ainda contam como "viagem a decorrer"
@@ -225,7 +226,7 @@ export async function createRide({
       originLabel?.trim() || null,
       num(originLat),
       num(originLng),
-      vehicleType === 'car' || vehicleType === 'motorbike' ? vehicleType : null,
+      TIPOS_VEICULO.includes(vehicleType) ? vehicleType : null,
       num(fareUsd),
       num(distanceKm),
       durationMin != null ? Math.round(Number(durationMin)) : null,

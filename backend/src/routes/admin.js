@@ -540,7 +540,7 @@ adminRouter.get(
         // Os preços vão daqui e não ficam escritos na app: um preço em dois
         // sítios é um preço que vai divergir. Mudar um pacote passa a ser
         // uma publicação do servidor.
-        pacotes: PACOTES[u.vehicle_type === 'motorbike' ? 'motorbike' : 'car'],
+        pacotes: PACOTES[u.vehicle_type] || PACOTES.car,
         formasPagamento: FORMAS_PAGAMENTO,
       },
       documentos: docs.map((d) => ({

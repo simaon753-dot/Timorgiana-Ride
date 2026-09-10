@@ -1,5 +1,15 @@
 import 'dotenv/config';
 
+// OS TIPOS DE VEÍCULO, numa lista só.
+//
+// Estavam escritos à mão em catorze sítios do servidor, sempre como um
+// ternário de dois — `x === 'motorbike' ? 'motorbike' : 'car'`. Cada um deles
+// teria de virar um ternário de três, e o quarto tipo obrigaria a repetir
+// tudo outra vez. Uma lista resolve os catorze de uma vez.
+//
+// A ORDEM é a que o passageiro vê: da mais barata para a mais especial.
+export const TIPOS_VEICULO = ['motorbike', 'car', 'carry'];
+
 export const config = {
   // O alojamento define a porta por variável de ambiente
   port: Number(process.env.PORT) || 4000,
@@ -116,6 +126,27 @@ export const config = {
       // motorista muda.
       lugaresGrande: Number(process.env.FARE_CAR_LUGARES_GRANDE) || 5,
       porKmGrande: Number(process.env.FARE_CAR_POR_KM_GRANDE) || 0.75,
+    },
+    // CARRY — transporte de bens. Valores DE PARTIDA, por decidir.
+    //
+    // O Simão escreveu "não assumir preços fixos; preparar para o
+    // administrador configurar depois". Estes números existem para o serviço
+    // poder funcionar hoje, e são a coisa deste ficheiro com menos fundamento:
+    // não vêm de nenhum preço observado na rua, ao contrário da mota e do
+    // carro, que vieram de quatro orçamentos da concorrência.
+    //
+    // Porque é que são mais altos do que o carro, mesmo assim: uma viagem de
+    // Carry inclui parar, carregar e descarregar. O tempo do motorista não é
+    // só a distância — e a parcela por minuto, aqui, conta mais do que nas
+    // outras duas.
+    //
+    // Todos por variável de ambiente, como os outros: mudam no alojamento
+    // sem publicar app nenhuma.
+    carry: {
+      base: Number(process.env.FARE_CARRY_BASE) || 1.5,
+      porKm: Number(process.env.FARE_CARRY_POR_KM) || 0.85,
+      porMinuto: Number(process.env.FARE_CARRY_POR_MINUTO) || 0.05,
+      minimo: Number(process.env.FARE_CARRY_MINIMO) || 3.0,
     },
   },
 

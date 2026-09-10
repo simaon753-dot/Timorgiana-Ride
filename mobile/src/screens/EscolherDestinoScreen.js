@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BarraEstado from '../design/BarraEstado.js';
 import Icone from '../design/Icone.js';
+import { nomeDoVeiculo, veiculo as tipoDoVeiculo } from '../dados/tiposDeVeiculo.js';
 import { tipo } from '../design/tipografia.js';
 import PlaceSearch from '../components/PlaceSearch.js';
 import EscolherPonto from '../components/EscolherPonto.js';
@@ -95,14 +96,8 @@ export default function EscolherDestinoScreen({ navigation, route }) {
               distraído, ou volta a ele minutos depois, precisa de ver o que
               escolheu antes de dizer para onde vai. */}
           <View style={styles.veiculoEscolhido}>
-            <Icone
-              nome={veiculo === 'motorbike' ? 'mota' : 'carro'}
-              tamanho={18}
-              cor={colors.teal}
-            />
-            <Text style={styles.veiculoTexto}>
-              {veiculo === 'motorbike' ? t('vehicleMotorbike') : t('vehicleCar')}
-            </Text>
+            <Icone nome={tipoDoVeiculo(veiculo).icone} tamanho={18} cor={colors.teal} />
+            <Text style={styles.veiculoTexto}>{nomeDoVeiculo(t, veiculo)}</Text>
           </View>
         </View>
 

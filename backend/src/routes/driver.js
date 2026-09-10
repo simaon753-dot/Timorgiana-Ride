@@ -225,7 +225,7 @@ driverRouter.post(
     if (!plate || !String(plate).trim()) {
       return res.status(400).json({ error: 'Indica a matrícula do veículo.' });
     }
-    const tipo = type === 'motorbike' ? 'motorbike' : 'car';
+    const tipo = TIPOS_VEICULO.includes(type) ? type : 'car';
     if (tipo === 'car' && !seats) {
       return res.status(400).json({ error: 'Indica quantos passageiros o carro leva.' });
     }

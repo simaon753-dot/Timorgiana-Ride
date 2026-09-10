@@ -206,6 +206,23 @@ function desenho(nome, p, cheio, preenchido, c) {
           <Circle cx="16.5" cy="15.5" r="1.8" {...p} />
         </>
       );
+    case 'carry':
+      // CABINA À FRENTE, CAIXA ABERTA ATRÁS.
+      //
+      // Tem de se distinguir do `carro` de relance, senão a terceira opção da
+      // Home lê-se como "outro carro". O que a distingue não é o tamanho — é
+      // a silhueta partida em dois: um bloco alto onde vai o motorista, e uma
+      // plataforma baixa e aberta onde vão os bens.
+      return (
+        <>
+          <Path d="M3.2 15.4V8.6a1.6 1.6 0 0 1 1.6-1.6h3.4v8.4" {...p} />
+          <Path d="M8.2 11.4h10.2a1.6 1.6 0 0 1 1.6 1.6v2.4" {...p} />
+          <Line x1="3.2" y1="15.4" x2="20" y2="15.4" {...p} />
+          <Line x1="12" y1="11.4" x2="12" y2="15.4" {...p} />
+          <Circle cx="7" cy="17.8" r="2" {...p} />
+          <Circle cx="16.6" cy="17.8" r="2" {...p} />
+        </>
+      );
     case 'mota':
       return (
         <>

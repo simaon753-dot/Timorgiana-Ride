@@ -20,6 +20,7 @@ import { tipo } from '../design/tipografia.js';
 import { Metrica, Pastilha, Ponto, Bloco, Esqueleto, ESTADO } from '../design/painel.js';
 import BarraEstado from '../design/BarraEstado.js';
 import { useI18n } from '../i18n/index.js';
+import { nomeDoVeiculo } from '../dados/tiposDeVeiculo.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
 import ImagemProtegida from '../design/ImagemProtegida.js';
@@ -645,7 +646,7 @@ function Motorista({ m, t, token, navigation, onAprovar, onRecusar, onSuspender 
             <Text style={styles.seta}>›</Text>
           </View>
           <Text style={styles.meta}>
-            {m.phone} · {m.vehicle?.type === 'motorbike' ? t('vehicleMotorbike') : t('vehicleCar')}
+            {m.phone} · {nomeDoVeiculo(t, m.vehicle?.type)}
             {m.vehicle?.plate ? ` · ${m.vehicle.plate}` : ''}
           </Text>
         </Pressable>

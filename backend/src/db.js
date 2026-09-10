@@ -488,6 +488,26 @@ export async function initSchema() {
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS privacy_accepted_at TIMESTAMPTZ`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS duration_min INTEGER`);
 
+  // O TERCEIRO TIPO DE VEÍCULO: 'carry', para transporte de bens.
+  //
+  // As duas restrições nasceram com dois tipos e recusariam 'carry' em
+  // silêncio de escrita — um INSERT falhado, não um valor ignorado. Trocam-se
+  // em vez de se apagarem: uma coluna sem restrição aceita erros de escrita
+  // para sempre, e o dia em que alguém gravar 'carrry' com três erres ninguém
+  // dá por isso.
+  //
+  // Os nomes vieram da própria base (pg_constraint), não da convenção: se o
+  // nome estivesse errado o DROP não fazia nada, a restrição antiga ficava lá,
+  // e o 'carry' era recusado para sempre sem uma linha de erro que o
+  // explicasse.
+  for (const tabela of ['users', 'rides']) {
+    await query(`ALTER TABLE ${tabela} DROP CONSTRAINT IF EXISTS ${tabela}_vehicle_type_check`);
+    await query(
+      `ALTER TABLE ${tabela} ADD CONSTRAINT ${tabela}_vehicle_type_check
+       CHECK (vehicle_type IN ('car','motorbike','carry'))`
+    );
+  }
+
   await query('CREATE INDEX IF NOT EXISTS idx_docs_user ON driver_documents(user_id)');
 
   // Registo de acessos da administração ao conteúdo privado.

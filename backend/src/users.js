@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { TIPOS_VEICULO } from './config.js';
 import { query, one } from './db.js';
 
 // Normaliza o número de telemóvel: remove espaços e símbolos comuns.
@@ -91,7 +92,7 @@ export async function createUser({
 }) {
   const passwordHash = await bcrypt.hash(password, 10);
   const vehicleType =
-    role === 'driver' ? (vehicle?.type === 'motorbike' ? 'motorbike' : 'car') : null;
+    role === 'driver' ? (TIPOS_VEICULO.includes(vehicle?.type) ? vehicle.type : 'car') : null;
 
   // Motoristas novos ficam à espera de aprovação; passageiros entram logo
   return one(

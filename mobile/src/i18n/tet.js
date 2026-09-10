@@ -27,6 +27,8 @@ export default {
   vehicleSection: 'Dadus veíkulu',
   vehicleType: 'Tipu veíkulu',
   vehicleCar: 'Kareta',
+  vehicleCarry: 'Carry',
+  carryNota: "Atu lori sasán, la'ós ema",
   vehicleMotorbike: 'Motorizada',
   vehicleModel: 'Modelu',
   vehiclePlate: 'Matríkula',

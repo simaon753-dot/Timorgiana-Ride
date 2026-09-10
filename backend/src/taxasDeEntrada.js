@@ -35,6 +35,8 @@ export const LOCAIS_COM_TAXA = [
       // por hora, muda-se 'entrada' para 'hora' e publica-se.
       car: { usd: 1, por: 'entrada' },
       motorbike: null,
+      // Um Carry entra como um carro: é o que a cancela vê.
+      carry: { usd: 1, por: 'entrada' },
     },
   },
   {
@@ -50,6 +52,7 @@ export const LOCAIS_COM_TAXA = [
     taxa: {
       car: { usd: 1, por: 'hora' },
       motorbike: { usd: 0.5, por: 'hora' },
+      carry: { usd: 1, por: 'hora' },
     },
   },
 ];

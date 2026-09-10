@@ -44,7 +44,7 @@ quoteRouter.post(
     // próximo. Sem motoristas disponíveis, a opção aparece indisponível
     // em vez de desaparecer — o passageiro percebe porque não pode pedir.
     const opcoes = await Promise.all(
-      ['motorbike', 'car'].map(async (tipo) => {
+      TIPOS_VEICULO.map(async (tipo) => {
         const perto = await nearestDrivers({
           lat: oLat,
           lng: oLng,

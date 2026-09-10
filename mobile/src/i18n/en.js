@@ -30,6 +30,8 @@ export default {
   vehicleSection: 'Vehicle details',
   vehicleType: 'Vehicle type',
   vehicleCar: 'Car',
+  vehicleCarry: 'Carry',
+  carryNota: 'For goods, not people',
   vehicleMotorbike: 'Motorbike',
   vehicleModel: 'Model',
   vehiclePlate: 'Number plate',
