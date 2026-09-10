@@ -255,7 +255,7 @@ export default {
   procurarDestino: 'Search for a destination',
   escolherVeiculo: 'How would you like to travel?',
   motoMaisBarato: 'Cheaper, and quicker through traffic',
-  carroMaisAbrigado: 'Sheltered, and up to six people',
+  carroMaisAbrigado: 'Sheltered from sun and rain, and fits luggage',
   pickupPoint: 'Pickup',
   dropoffPoint: 'Destination',
   tapMapToChoose: 'Tap the map to choose the destination',

@@ -76,11 +76,20 @@ export default function PerfilScreen({ navigation }) {
           {user?.driverStatus === 'approved' ? (
             <Text style={styles.verificado}>{t('perfilVerificado')}</Text>
           ) : null}
+          {/* SÓ A MÉDIA, sem quantas pessoas avaliaram.
+              O número de avaliações estava lá para dar contexto — uma média
+              de 5,0 feita por doze pessoas vale mais do que a mesma feita por
+              uma. Mas num serviço a começar esse contexto joga sempre contra:
+              os primeiros motoristas têm duas ou três avaliações, e "5,0 · 2"
+              lê-se como pouca coisa quando na verdade é tudo o que houve até
+              agora.
+              Decisão do Simão. Fica a média, que é o que se quer saber.
+
+              O comentário fica AQUI FORA e não dentro dos parênteses do
+              ternário: ali o JavaScript lê um comentário de JSX como um
+              objecto literal, e o ficheiro deixa de compilar. */}
           {user?.ratingAvg ? (
-            <Text style={styles.estrelas}>
-              ⭐ {Number(user.ratingAvg).toFixed(1)}
-              {user.ratingCount ? ` · ${user.ratingCount}` : ''}
-            </Text>
+            <Text style={styles.estrelas}>⭐ {Number(user.ratingAvg).toFixed(1)}</Text>
           ) : null}
         </View>
 

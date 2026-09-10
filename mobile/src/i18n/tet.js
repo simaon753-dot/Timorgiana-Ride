@@ -16,7 +16,7 @@ export default {
   welcomeSubtitle: 'Husu viajen lalais. La iha komisaun — selu ho osan ba motorista.',
 
   // Halo konta
-  registerTitle: 'Halo konta',
+  registerTitle: 'Kria konta',
   accountType: 'Tipu konta',
   name: 'Naran ofisiál',
   phone: 'Telefone',
@@ -31,15 +31,15 @@ export default {
   vehicleModel: 'Modelu',
   vehiclePlate: 'Matríkula',
   vehicleColor: 'Kór',
-  createAccountButton: 'Halo konta',
+  createAccountButton: 'Kria konta',
   haveAccountQuestion: 'Ita iha ona konta?',
   signInLink: 'Tama',
 
   // Tama
   loginTitle: 'Tama',
-  loginSubtitle: 'Tama ho ita-nia númeru telefone.',
+  loginSubtitle: 'Tama ho ita-nia númeru telemóvel.',
   loginButton: 'Tama',
-  recEsqueci: 'Ha’u haluha liafuan-xave',
+  recEsqueci: "Ha'u haluha seña",
   recTitulo: 'Hetan fila fali asesu',
   recComo:
     'Telefone ba TimorgianaRide no husu kódigu asesu. Sira fó liuhusi telefone no serve dala ida deit.',
@@ -51,8 +51,7 @@ export default {
   recFeitoTitulo: 'Liafuan-xave troka ona',
   recFeitoTexto: 'Ita bele tama ho liafuan-xave foun.',
   noAccountQuestion: 'Seidauk iha konta?',
-  registerLink: 'Halo konta',
-
+  registerLink: 'Kria konta',
   // Sala
   errNameRequired: 'hakerek ita-nia naran.',
   errPhoneRequired: 'Hakerek númeru telefone neʼebé loos.',
@@ -87,10 +86,10 @@ export default {
   callLabel: 'Telefone',
   cancelRide: 'Kansela viajen',
   newRide: 'Viajen foun',
-  avisoTeste: 'Aplikasaun iha faze teste. Bele iha problema.',
+  avisoTeste: 'Aplikasaun iha hela faze teste. Bele iha fallansu.',
   avisoTesteTitulo: 'Aplikasaun iha faze teste',
   avisoTesteDetalhe:
-    'Ami testa hela servisu iha Dili. Bele iha problema, la iha motorista disponível bebeik, no presu ho regra sira bele muda durante faze ne’e.',
+    "Ami teste hela servisu ne'e iha Díli. Bele iha fallansu, motorista dalaruma la disponível, no presu no regra sira bele iha mudansa iha faze ida ne'e.",
   noDriverFound: 'Motorista ida la responde. Koko fali.',
 
   availableRequests: 'Pedidu viajen',
@@ -257,9 +256,9 @@ export default {
   pickupDistance: 'dook {km} km husi ita',
   whereTo: 'Ita atu ba ne’ebé?',
   procurarDestino: 'Buka destinu ida',
-  escolherVeiculo: 'Ita hakarak viaja oinsá?',
+  escolherVeiculo: 'Ita hakarak viajen oinsá?',
   motoMaisBarato: 'Barata liu no lalais liu iha tránzitu',
-  carroMaisAbrigado: 'Iha laran, no to’o ema neen',
+  carroMaisAbrigado: 'Proteje husi loro-matan no udan, no bele lori sasán',
   pickupPoint: 'Foti',
   dropoffPoint: 'Destinu',
   tapMapToChoose: 'Toka iha mapa atu hili destinu',

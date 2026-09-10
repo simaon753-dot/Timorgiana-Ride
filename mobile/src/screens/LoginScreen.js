@@ -97,14 +97,26 @@ export default function LoginScreen({ navigation }) {
 
             {/* Esqueceu-se da palavra-passe.
                 Antes não havia saída nenhuma: a conta perdia-se com os dias
-                comprados e os documentos aprovados lá dentro. */}
-            <Pressable
-              onPress={() => navigation.navigate('Recuperar')}
-              hitSlop={8}
-              style={{ alignSelf: 'center', marginTop: spacing.md }}
-            >
-              <Text style={styles.footerLink}>{t('recEsqueci')}</Text>
-            </Pressable>
+                comprados e os documentos aprovados lá dentro.
+
+                SÓ APARECE DEPOIS DE ALGO CORRER MAL, por decisão do Simão.
+                Quem chega a este ecrã vem entrar, não vem recuperar nada — e
+                uma saída oferecida antes de haver problema é uma sugestão de
+                que talvez o venha a haver. Depois de um erro deixa de ser
+                sugestão e passa a ser resposta, que é quando serve.
+
+                Vale para os três erros: número em falta, palavra-passe curta,
+                e a entrada recusada. Nos três a pessoa já tentou e falhou,
+                que é a condição que ele descreveu. */}
+            {error ? (
+              <Pressable
+                onPress={() => navigation.navigate('Recuperar')}
+                hitSlop={8}
+                style={{ alignSelf: 'center', marginTop: spacing.md }}
+              >
+                <Text style={styles.footerLink}>{t('recEsqueci')}</Text>
+              </Pressable>
+            ) : null}
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>{t('noAccountQuestion')} </Text>
