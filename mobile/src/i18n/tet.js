@@ -271,6 +271,7 @@ export default {
 
   // Emerjénsia
   sos: 'Emerjénsia',
+  chatSemViagem: 'Konversa iha de’it durante viajen.',
   sosConfirmTitle: 'Husu ajuda?',
   sosConfirmExplain:
     'Ami avisa TimorgianaRide ho ita-nia fatin, no ita bele telefone ba polísia, ambulánsia no bombeiros (APC). Uza deʼit iha emerjénsia loloos.',
@@ -558,6 +559,7 @@ export default {
   lugarTrabalho: 'Serbisu fatin',
   lugarDefinir: 'Toka atu define',
   lugarRecentes: 'Foin lalais',
+  removerRecente: 'Hasai husi lista',
   lugarGuardado: 'Fatin rai tiha ona',
   passwordConfirm: 'Konfirma seña',
   errPasswordMismatch: 'Seña rua la hanesan.',

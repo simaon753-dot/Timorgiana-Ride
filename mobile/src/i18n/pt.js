@@ -272,6 +272,7 @@ export default {
 
   // Emergência
   sos: 'Emergência',
+  chatSemViagem: 'A conversa só existe durante uma viagem.',
   sosConfirmTitle: 'Pedir ajuda?',
   sosConfirmExplain:
     'Vamos avisar a TimorgianaRide com a sua posição e pode ligar à polícia, ambulância e bombeiros (APC). Use só numa emergência real.',
@@ -558,6 +559,7 @@ export default {
   lugarTrabalho: 'Trabalho',
   lugarDefinir: 'Tocar para definir',
   lugarRecentes: 'Recentes',
+  removerRecente: 'Tirar da lista',
   lugarGuardado: 'Lugar guardado',
   passwordConfirm: 'Confirmar palavra-passe',
   errPasswordMismatch: 'As palavras-passe não coincidem.',

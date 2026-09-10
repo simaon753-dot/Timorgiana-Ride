@@ -266,6 +266,7 @@ export default {
   searchOrTap: 'Search or tap the map',
 
   sos: 'Emergency',
+  chatSemViagem: 'The chat only exists during a ride.',
   sosConfirmTitle: 'Ask for help?',
   sosConfirmExplain:
     'We will alert TimorgianaRide with your location and you can call the police. Use this only in a real emergency.',
@@ -545,6 +546,7 @@ export default {
   lugarTrabalho: 'Work',
   lugarDefinir: 'Tap to set',
   lugarRecentes: 'Recent',
+  removerRecente: 'Remove from list',
   lugarGuardado: 'Place saved',
   passwordConfirm: 'Confirm password',
   errPasswordMismatch: 'The passwords do not match.',

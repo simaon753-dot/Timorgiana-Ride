@@ -41,14 +41,34 @@ export default function ChatScreen({ navigation }) {
     return () => clearTimeout(id);
   }, [messages.length]);
 
+  // O ERRO PASSA A VER-SE.
+  //
+  // O Simão disse que a conversa "não funciona". Não consegui reproduzir a
+  // falha nem encontrá-la a ler o código — e percebi porquê: quando falha,
+  // esta função repõe o texto na caixa e MAIS NADA. Três coisas diferentes
+  // podem correr mal aqui — não há viagem, o motorista ainda não aceitou, a
+  // rede não respondeu — e as três davam o mesmo ecrã mudo.
+  //
+  // Não sei qual delas é. Mas a partir de agora a app diz qual, e isso
+  // transforma "não funciona" numa frase que se pode seguir.
+  const [erro, setErro] = useState(null);
+
   async function onSend() {
     const body = text.trim();
     if (!body) return;
+    setErro(null);
     setText('');
     try {
       await sendMessage(body);
-    } catch {
+    } catch (e) {
       setText(body); // repõe o texto se falhar
+      setErro(
+        e?.message === 'SEM_VIAGEM'
+          ? t('chatSemViagem')
+          : e?.message === 'NETWORK'
+            ? t('errNetwork')
+            : e?.message || t('errGeneric')
+      );
     }
   }
 
@@ -109,6 +129,11 @@ export default function ChatScreen({ navigation }) {
           )}
         </ScrollView>
 
+        {/* O erro fica JUNTO À CAIXA e não no topo do ecrã: é aqui que a
+            pessoa está a olhar quando carrega em enviar, e uma mensagem que
+            obriga a rolar para cima é uma mensagem que não existe. */}
+        {erro ? <Text style={styles.erro}>{erro}</Text> : null}
+
         <View style={styles.inputBar}>
           <TextInput
             style={styles.input}
@@ -130,6 +155,14 @@ export default function ChatScreen({ navigation }) {
 const criarEstilos = () =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.paper },
+    erro: {
+      ...tipo.pequeno,
+      color: colors.danger,
+      backgroundColor: colors.tintaPerigo,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      textAlign: 'center',
+    },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
