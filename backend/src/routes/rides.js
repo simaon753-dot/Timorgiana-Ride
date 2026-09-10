@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { TIPOS_CARGA, TIPOS_VEICULO } from '../config.js';
 import { criarAlerta, cancelamentosRecentes } from '../sos.js';
 import { ultimaFotoDeTurno } from '../turnos.js';
 import { getOwnDocument } from '../documents.js';
@@ -107,9 +108,35 @@ ridesRouter.post(
       viajanteTelefone,
       viajanteMenor,
       consentimentoMenor,
+      cargaTipo,
+      cargaVolume,
+      cargaAjuda,
+      cargaNotas,
+      cargaDeclarada,
     } = req.body || {};
     if (!destLabel || !destLabel.trim()) {
       return res.status(400).json({ error: 'Indica o destino.' });
+    }
+
+    // ── Transporte de bens ─────────────────────────────────────────
+    //
+    // Validado AQUI e não só na app, pela mesma razão das regras abaixo: a
+    // app é conveniência, um telemóvel modificado manda o que quiser, e estas
+    // duas são as que dão sentido ao serviço.
+    //
+    // A DECLARAÇÃO é condição de o pedido existir, não um aviso. Sem ela não
+    // se cria viagem nenhuma — e o que fica gravado é a HORA em que foi feita,
+    // porque um "sim" diz que alguém concordou alguma vez e a hora diz que
+    // concordou antes daquela viagem.
+    if (vehicleType === 'carry') {
+      if (!TIPOS_CARGA.includes(cargaTipo)) {
+        return res.status(400).json({ error: 'Indica o que vais transportar.' });
+      }
+      if (!cargaDeclarada) {
+        return res.status(400).json({
+          error: 'Confirma que os bens são legais, seguros e cabem no veículo.',
+        });
+      }
     }
 
     // ── Pedir para outra pessoa ────────────────────────────────────
@@ -189,14 +216,27 @@ ridesRouter.post(
         { lat: Number(originLat), lng: Number(originLng) },
         { lat: Number(destLat), lng: Number(destLng) }
       );
+      // O TIPO VEM DA LISTA, e não de um ternário de dois.
+      //
+      // Estava `vehicleType === 'motorbike' ? 'motorbike' : 'car'`, sobra do
+      // tempo em que só havia dois tipos. Com o Carry passou a ser um DEFEITO
+      // A SÉRIO, e esteve em produção desde a fase 1: o ecrã mostrava o preço
+      // de Carry e a viagem nascia com o preço de CARRO. Onze dólares vistos,
+      // sete cobrados — e a app inteira assenta em o preço ser firme antes de
+      // se entrar.
+      //
+      // A carga vai junto pela mesma razão que o número de pessoas: o volume
+      // multiplica a distância e a ajuda soma uma parcela. Ignorados aqui, o
+      // passageiro via um preço no ecrã e a viagem nascia com outro.
       precoFinal = preco(
-        vehicleType === 'motorbike' ? 'motorbike' : 'car',
+        TIPOS_VEICULO.includes(vehicleType) ? vehicleType : 'car',
         viagem.km,
         viagem.min,
         // O MESMO NÚMERO QUE A COTAÇÃO VIU. Se aqui se ignorasse, o passageiro
         // via um preço no ecrã e a viagem nascia com outro — e o do ecrã é o
         // que ele aceitou.
-        vehicleType === 'car' ? passengers : null
+        vehicleType === 'car' ? passengers : null,
+        { volume: cargaVolume, ajuda: cargaAjuda }
       );
       kmViagem = viagem.km;
       minViagem = viagem.min;
@@ -214,8 +254,15 @@ ridesRouter.post(
       fareUsd: precoFinal,
       distanceKm: kmViagem,
       durationMin: minViagem,
-      // Só em carro: numa motorizada vai sempre uma pessoa.
+      // Só onde se pergunta: numa motorizada vai sempre uma pessoa, e num
+      // Carry não vai nenhuma. Lido da lista de tipos e não com um
+      // `=== 'car'`, que era o que sobrava de quando havia só dois.
       passengers: vehicleType === 'car' ? passengers : null,
+      cargaTipo,
+      cargaVolume,
+      cargaAjuda,
+      cargaNotas,
+      cargaDeclarada: !!cargaDeclarada,
       viajanteNome: nomeOutro || null,
       viajanteTelefone,
       viajanteMenor: !!viajanteMenor,

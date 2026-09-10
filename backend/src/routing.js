@@ -68,7 +68,7 @@ export function duracaoRealista(km, minutosOsrm) {
 // Sem tempo conhecido, estima-se dos quilómetros pela mesma velocidade que o
 // resto da app assume. É melhor do que cobrar zero pela parcela e melhor do
 // que recusar dar preço.
-export function preco(vehicleType, km, min = null, pessoas = null) {
+export function preco(vehicleType, km, min = null, pessoas = null, carga = null) {
   const t = config.tarifas[vehicleType] || config.tarifas.car;
   const minutos = Number.isFinite(Number(min)) && Number(min) > 0 ? Number(min) : estimarMin(km);
   const distancia = Math.max(0, Number(km) || 0);
@@ -82,7 +82,24 @@ export function preco(vehicleType, km, min = null, pessoas = null) {
     t.lugaresGrande != null && Number(pessoas) >= t.lugaresGrande && t.porKmGrande != null;
   const porKm = muitos ? t.porKmGrande : t.porKm;
 
-  const bruto = t.base + porKm * distancia + (t.porMinuto || 0) * minutos;
+  // O VOLUME MULTIPLICA A DISTÂNCIA, A AJUDA SOMA UM VALOR FIXO.
+  //
+  // Carga maior é mais peso em cada quilómetro, por isso entra no que cresce
+  // com a viagem. Ajudar a carregar é tempo parado à porta — custa o mesmo
+  // numa viagem de um quilómetro e numa de vinte —, por isso entra depois,
+  // como parcela fixa.
+  //
+  // Se fosse ao contrário, a mesma cadeira levada ao fim da rua custava
+  // cêntimos de mão-de-obra e levada a Baucau custava dez dólares, pelo mesmo
+  // esforço feito à mesma porta.
+  //
+  // Sem carga, os dois valem o neutro: 1 e 0. Uma viagem de pessoas passa por
+  // aqui sem mudar de preço.
+  const fVolume = (t.volume && carga && t.volume[carga.volume]) || 1;
+  const extraAjuda = (t.ajuda && carga && t.ajuda[carga.ajuda]) || 0;
+
+  const bruto =
+    t.base + porKm * distancia * fVolume + (t.porMinuto || 0) * minutos + extraAjuda;
   return Math.max(t.minimo, aoCentimoPermitido(bruto));
 }
 

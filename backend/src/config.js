@@ -10,6 +10,22 @@ import 'dotenv/config';
 // A ORDEM é a que o passageiro vê: da mais barata para a mais especial.
 export const TIPOS_VEICULO = ['motorbike', 'car', 'carry'];
 
+// O QUE UMA CARGA PODE SER. Lista fechada e não texto livre: assim contam-se,
+// e ao fim de um ano sabe-se o que Díli manda transportar — que é informação,
+// e não uma pilha de frases para ler uma a uma. Quem tiver outra coisa escolhe
+// "outros" e explica nas observações.
+export const TIPOS_CARGA = [
+  'compras',
+  'moveis',
+  'caixas',
+  'eletrodomesticos',
+  'materiais',
+  'mercadorias',
+  'outros',
+];
+export const VOLUMES_CARGA = ['pequeno', 'medio', 'grande'];
+export const AJUDAS_CARGA = ['nenhuma', 'carregar', 'descarregar', 'ambas'];
+
 export const config = {
   // O alojamento define a porta por variável de ambiente
   port: Number(process.env.PORT) || 4000,
@@ -147,6 +163,32 @@ export const config = {
       porKm: Number(process.env.FARE_CARRY_POR_KM) || 0.85,
       porMinuto: Number(process.env.FARE_CARRY_POR_MINUTO) || 0.05,
       minimo: Number(process.env.FARE_CARRY_MINIMO) || 3.0,
+
+      // O VOLUME MULTIPLICA, A AJUDA SOMA. E a diferença não é de gosto.
+      //
+      // Carga maior é mais peso e mais viagem — custa mais em cada
+      // quilómetro, por isso multiplica a distância. Ajudar a carregar é
+      // tempo parado à porta, igual em Becora ou em Manleuana: custa o
+      // mesmo numa viagem de um quilómetro e numa de vinte, por isso soma
+      // um valor fixo em vez de multiplicar.
+      //
+      // Multiplicar a ajuda faria uma cadeira levada ao fim da rua custar
+      // cêntimos de mão-de-obra e a mesma cadeira levada a Baucau custar
+      // dez dólares — pelo mesmo esforço, feito à mesma porta.
+      //
+      // Valores de partida, como o resto do Carry: por confirmar com quem
+      // carrega móveis em Díli.
+      volume: {
+        pequeno: Number(process.env.FARE_CARRY_VOL_PEQUENO) || 1,
+        medio: Number(process.env.FARE_CARRY_VOL_MEDIO) || 1.25,
+        grande: Number(process.env.FARE_CARRY_VOL_GRANDE) || 1.6,
+      },
+      ajuda: {
+        nenhuma: Number(process.env.FARE_CARRY_AJUDA_NENHUMA) || 0,
+        carregar: Number(process.env.FARE_CARRY_AJUDA_CARREGAR) || 1,
+        descarregar: Number(process.env.FARE_CARRY_AJUDA_DESCARREGAR) || 1,
+        ambas: Number(process.env.FARE_CARRY_AJUDA_AMBAS) || 2,
+      },
     },
   },
 

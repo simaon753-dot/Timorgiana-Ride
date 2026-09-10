@@ -488,6 +488,24 @@ export async function initSchema() {
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS privacy_accepted_at TIMESTAMPTZ`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS duration_min INTEGER`);
 
+  // O QUE VAI DENTRO, quando a viagem é de bens.
+  //
+  // Cinco colunas, todas opcionais: uma viagem de pessoas deixa-as a nulo e
+  // nada nela muda. É o mesmo desenho do `viajante_*` — um grupo de campos que
+  // só existe num caso, em vez de uma tabela à parte que obrigaria a juntar
+  // duas linhas para ler um pedido.
+  //
+  // `carga_declarado_em` guarda o INSTANTE e não um "sim", pela mesma razão
+  // que o `consentimento_em`: um "sim" diz que alguém concordou alguma vez; o
+  // instante diz que concordou ANTES daquela viagem, que é o que se pergunta
+  // quando se pergunta. E numa declaração sobre bens legais e seguros, é a
+  // diferença entre ter registo e ter uma caixa marcada.
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_tipo TEXT`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_volume TEXT`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_ajuda TEXT`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_notas TEXT`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_declarado_em TIMESTAMPTZ`);
+
   // O TERCEIRO TIPO DE VEÍCULO: 'carry', para transporte de bens.
   //
   // As duas restrições nasceram com dois tipos e recusariam 'carry' em

@@ -28,6 +28,7 @@ import Mapa from '../components/MapaGoogle.js';
 import PlaceSearch from '../components/PlaceSearch.js';
 import EscolherLugares from '../components/EscolherLugares.js';
 import ParaOutraPessoa from '../components/ParaOutraPessoa.js';
+import CargaDoPedido from '../components/CargaDoPedido.js';
 import NomearLugar from '../components/NomearLugar.js';
 import SegmentedPicker from '../components/SegmentedPicker.js';
 import { LUGARES } from '../dados/veiculos.js';
@@ -142,6 +143,14 @@ export default function RequestRideScreen({ navigation, route }) {
   const [pessoas, setPessoas] = useState(1);
   // Pedir para outra pessoa. Tudo vazio no caso normal, que é a maioria.
   const [paraOutra, setParaOutra] = useState(false);
+  // A carga, só usada quando o veículo não transporta pessoas. Volume e ajuda
+  // já nascem escolhidos — são perguntas com resposta habitual, e obrigar a
+  // tocar nas três antes de ver o preço é atrito sem informação nova.
+  const [cargaTipo, setCargaTipo] = useState(null);
+  const [cargaVolume, setCargaVolume] = useState('medio');
+  const [cargaAjuda, setCargaAjuda] = useState('nenhuma');
+  const [cargaNotas, setCargaNotas] = useState('');
+  const [cargaDeclarado, setCargaDeclarado] = useState(false);
   const [outroNome, setOutroNome] = useState('');
   const [outroTelefone, setOutroTelefone] = useState('');
   const [outroMenor, setOutroMenor] = useState(false);
@@ -594,6 +603,15 @@ export default function RequestRideScreen({ navigation, route }) {
         originLng: origem.lng,
         vehicleType: veiculoAtual,
         ...(veiculo(veiculoAtual).perguntaLugares ? { passengers: pessoas } : {}),
+        ...(!veiculo(veiculoAtual).levaPessoas && cargaTipo
+          ? {
+              cargaTipo,
+              cargaVolume,
+              cargaAjuda,
+              cargaNotas: cargaNotas.trim(),
+              cargaDeclarada: cargaDeclarado,
+            }
+          : {}),
         ...(paraOutra
           ? {
               viajanteNome: outroNome.trim(),
@@ -874,12 +892,18 @@ export default function RequestRideScreen({ navigation, route }) {
   const outroCompleto =
     !paraOutra ||
     (!!outroNome.trim() && !!outroTelefone.trim() && (!outroMenor || outroConsentimento));
+  // Uma viagem de bens precisa de duas respostas que uma de pessoas não tem:
+  // o que é a carga, e a declaração de que é legal e cabe. Sem elas o botão
+  // não avança — a declaração não é um aviso que se ignora.
+  const cargaCompleta = veiculo(veiculoAtual).levaPessoas || (!!cargaTipo && cargaDeclarado);
+
   const podePedir =
     !!origem &&
     !!destino &&
     !aPedir &&
     aNomearDestino === 0 &&
     outroCompleto &&
+    cargaCompleta &&
     coberturaDestino !== false;
 
   return (
@@ -1188,6 +1212,25 @@ export default function RequestRideScreen({ navigation, route }) {
           {/* Aqui e não dentro dos dois ramos acima: a pergunta é a mesma
               haja cotação ou não, e repetida nos dois divergiria ao primeiro
               descuido. */}
+          {/* AS PERGUNTAS DA CARGA, e só quando o veículo não leva pessoas.
+              Aqui e não dentro dos ramos da cotação, pela mesma razão do
+              bloco abaixo: a pergunta é a mesma haja preço calculado ou não,
+              e repetida nos dois divergiria ao primeiro descuido. */}
+          {origem && destino && !veiculo(veiculoAtual).levaPessoas ? (
+            <CargaDoPedido
+              carga={cargaTipo}
+              onCarga={setCargaTipo}
+              volume={cargaVolume}
+              onVolume={setCargaVolume}
+              ajuda={cargaAjuda}
+              onAjuda={setCargaAjuda}
+              notas={cargaNotas}
+              onNotas={setCargaNotas}
+              declarado={cargaDeclarado}
+              onDeclarado={setCargaDeclarado}
+            />
+          ) : null}
+
           {/* Só quando há alguém a viajar. Para bens, "quem recebe" é outra
               coisa — nome e telefone de quem recebe a entrega — e entra com o
               resto do ecrã do Carry, na fase seguinte.
