@@ -59,6 +59,41 @@ export default function DriverHomeScreen({ navigation }) {
   const [assinatura, setAssinatura] = useState(null);
   const [centroMapa, setCentroMapa] = useState(null);
 
+  // O useRides() VEM ANTES de quem o usa, e isso é a correcção de um defeito
+  // que deixou um motorista sem ecrã depois de aceitar uma viagem.
+  //
+  // Estava no fim do bloco, depois de `activeRide` e do efeito que centra o
+  // mapa — os dois a ler valores que ainda não tinham sido criados. Em
+  // JavaScript isso é um erro que rebenta... mas o empacotador do React
+  // Native converte `const` em `var` ao compilar, e aí não rebenta: passa a
+  // valer `undefined`, em silêncio.
+  //
+  // O resultado era que `viagemBruta` valia SEMPRE `undefined` na linha de
+  // baixo, em todos os desenhos do ecrã. Logo `activeRide` era sempre nulo, e
+  // o motorista que aceitava uma viagem via o ecrã de sempre: "Sem pedidos de
+  // momento". Não era intermitente nem dependia da rede — nunca podia
+  // funcionar.
+  //
+  // Nada no ecrã dizia que havia um erro, porque para o JavaScript não
+  // havia: `undefined && ...` é uma expressão perfeitamente válida. Foi
+  // preciso um motorista a sério, a olhar para um ecrã vazio, para aparecer.
+  const {
+    activeRide: viagemBruta,
+    isFinal,
+    requests,
+    acceptRide,
+    advanceStatus,
+    startRide,
+    cancelRide,
+    dismissRide,
+    loading,
+    connected,
+    online,
+    toggleOnline,
+    bloqueio,
+    minhaPosicao,
+  } = useRides();
+
   // Espelho do ecrã do passageiro: aqui só entram viagens que EU conduzo.
   const activeRide = viagemBruta && viagemBruta.driver?.id === user?.id ? viagemBruta : null;
 
@@ -82,22 +117,6 @@ export default function DriverHomeScreen({ navigation }) {
   useEffect(() => {
     if (minhaPosicao && !centroMapa) setCentroMapa(minhaPosicao);
   }, [minhaPosicao, centroMapa]);
-  const {
-    activeRide: viagemBruta,
-    isFinal,
-    requests,
-    acceptRide,
-    advanceStatus,
-    startRide,
-    cancelRide,
-    dismissRide,
-    loading,
-    connected,
-    online,
-    toggleOnline,
-    bloqueio,
-    minhaPosicao,
-  } = useRides();
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
