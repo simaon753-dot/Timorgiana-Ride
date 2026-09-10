@@ -34,8 +34,8 @@ TAMANHO = (30, 45)
 S = 30
 
 COR = {
-    'origem': ('#0E5C54', '#08403A'),
-    'destino': ('#E85531', '#8C2E14'),
+    'origem': ('#05604A', '#04402F'),
+    'destino': ('#E04A16', '#8A2A0C'),
 }
 
 
@@ -165,7 +165,7 @@ def desenhar(fill, risco):
 # — marca quem está a mexer-se.
 CARRO = 40
 FUNDO = '#14201D'
-REALCE = '#FF6B4A'
+REALCE = '#FE5A22'
 
 
 def desenhar_carro():

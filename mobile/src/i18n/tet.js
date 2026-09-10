@@ -92,6 +92,11 @@ export default {
 
   availableRequests: 'Pedidu viajen',
   noRequests: 'Seidauk iha pedidu.',
+  saudacaoMotorista: 'Olá, kondutór!',
+  lemaMotorista: 'Mai ita hamutuk lori Timor-Leste ba oin.',
+  lemaEntrada: 'HAMUTUK IHA DESTINASAUN HOTU-HOTU',
+  prontoTitulo: 'PRONTU',
+  prontoSub: 'Hein pedidu',
   ignoreRequest: 'Husik hela pedidu ne’e',
   youAreHere: 'Ita iha ne’e',
   waitingRequests: 'Pedidu foun sei mosu iha neʼe automatikamente.',

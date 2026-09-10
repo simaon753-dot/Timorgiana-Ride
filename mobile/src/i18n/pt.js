@@ -92,6 +92,11 @@ export default {
 
   availableRequests: 'Pedidos de viagem',
   noRequests: 'Sem pedidos de momento.',
+  saudacaoMotorista: 'Olá, condutor!',
+  lemaMotorista: 'Vamos juntos, movendo Timor-Leste.',
+  lemaEntrada: 'JUNTOS EM CADA DESTINO',
+  prontoTitulo: 'PRONTO',
+  prontoSub: 'À espera de pedidos',
   ignoreRequest: 'Ignorar este pedido',
   youAreHere: 'Está aqui',
   waitingRequests: 'Os novos pedidos aparecem aqui automaticamente.',

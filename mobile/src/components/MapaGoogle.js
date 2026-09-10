@@ -36,8 +36,8 @@ const DILI = { lat: -8.5569, lng: 125.5603 };
 // dois — e este comentário está aqui para que ninguém se esqueça do outro.
 const GOTA = 'M2 18 A16 16 0 1 1 34 18 C34 26 26 32 18 41 C10 32 2 26 2 18 Z';
 const COR = {
-  origem: { fill: '#0E5C54', risco: '#08403A' },
-  destino: { fill: '#E85531', risco: '#8C2E14' },
+  origem: { fill: '#05604A', risco: '#04402F' },
+  destino: { fill: '#E04A16', risco: '#8A2A0C' },
 };
 
 // O pino tem 30x45 no ecrã. O ponto que marca o sítio está em y=50 de 54 no
@@ -176,14 +176,14 @@ function metrosEntre(a, b) {
 function Mira() {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24">
-      <Bola cx={12} cy={12} r={6.5} fill="none" stroke="#0E5C54" strokeWidth={2} />
-      <Bola cx={12} cy={12} r={2} fill="#0E5C54" />
+      <Bola cx={12} cy={12} r={6.5} fill="none" stroke="#05604A" strokeWidth={2} />
+      <Bola cx={12} cy={12} r={2} fill="#05604A" />
       <Line
         x1={12}
         y1={1.5}
         x2={12}
         y2={5}
-        stroke="#0E5C54"
+        stroke="#05604A"
         strokeWidth={2}
         strokeLinecap="round"
       />
@@ -192,7 +192,7 @@ function Mira() {
         y1={19}
         x2={12}
         y2={22.5}
-        stroke="#0E5C54"
+        stroke="#05604A"
         strokeWidth={2}
         strokeLinecap="round"
       />
@@ -201,7 +201,7 @@ function Mira() {
         y1={12}
         x2={5}
         y2={12}
-        stroke="#0E5C54"
+        stroke="#05604A"
         strokeWidth={2}
         strokeLinecap="round"
       />
@@ -210,7 +210,7 @@ function Mira() {
         y1={12}
         x2={22.5}
         y2={12}
-        stroke="#0E5C54"
+        stroke="#05604A"
         strokeWidth={2}
         strokeLinecap="round"
       />
@@ -224,7 +224,7 @@ function Mira() {
 function Agulha() {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24">
-      <Path d="M12 2 L16.5 13 L12 11 Z" fill="#E85531" />
+      <Path d="M12 2 L16.5 13 L12 11 Z" fill="#E04A16" />
       <Path d="M12 22 L7.5 11 L12 13 Z" fill="#7C8A85" />
     </Svg>
   );
@@ -237,7 +237,7 @@ function Agulha() {
 // como o botão de seguir a bússola: é um MODO e não uma acção, e um modo tem
 // de se ver que está a correr.
 function Camadas({ activo }) {
-  const cor = activo ? '#FFFFFF' : '#0E5C54';
+  const cor = activo ? '#FFFFFF' : '#05604A';
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24">
       <Path d="M12 3 L21 8 L12 13 L3 8 Z" fill={cor} />
@@ -265,7 +265,7 @@ function Camadas({ activo }) {
 // figura que o Google usa, e que se distingue da AGULHA da bússola: a agulha
 // diz onde é o norte, esta diz para onde EU estou virado.
 function Seta({ activo }) {
-  const cor = activo ? '#FFFFFF' : '#0E5C54';
+  const cor = activo ? '#FFFFFF' : '#05604A';
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24">
       <Bola cx={12} cy={12} r={9.2} fill="none" stroke={cor} strokeWidth={1.8} />
@@ -962,7 +962,7 @@ export default function MapaGoogle({
           <Polyline
             key="recta"
             coordinates={rota.linha}
-            strokeColor="#0E5C54"
+            strokeColor="#05604A"
             strokeWidth={4}
             strokeOpacity={0.6}
             lineDashPattern={[8, 8]}
@@ -977,7 +977,7 @@ export default function MapaGoogle({
           <Polyline
             key="estrada-contorno"
             coordinates={rota.linha}
-            strokeColor="#0A463F"
+            strokeColor="#04543F"
             strokeWidth={10}
             lineCap="round"
             lineJoin="round"
@@ -995,7 +995,7 @@ export default function MapaGoogle({
           <Polyline
             key="estrada"
             coordinates={rota.linha}
-            strokeColor="#0E5C54"
+            strokeColor="#05604A"
             strokeWidth={6}
             lineCap="round"
             lineJoin="round"
@@ -1316,9 +1316,9 @@ const criarEstilos = () =>
     },
     // Um risco da cor à esquerda, para se saber qual é a recolha e qual é o
     // destino sem ter de olhar para o pino.
-    risco_origem: { borderLeftColor: '#0E5C54' },
-    risco_destino: { borderLeftColor: '#E85531' },
-    cartaoAgora: { backgroundColor: '#14201D', borderLeftColor: '#FF6B4A' },
+    risco_origem: { borderLeftColor: '#05604A' },
+    risco_destino: { borderLeftColor: '#E04A16' },
+    cartaoAgora: { backgroundColor: '#14201D', borderLeftColor: '#FE5A22' },
     cartaoNome: { fontSize: 12.5, fontWeight: '700', color: '#14201D', letterSpacing: -0.1 },
     cartaoNomeAgora: { color: '#EAF2EF' },
     cartaoDetalhe: { fontSize: 11, color: '#6A7671', marginTop: 1 },
@@ -1359,7 +1359,7 @@ const criarEstilos = () =>
     },
     nossoNome: {
       ...tipo.legenda,
-      color: '#0E5C54',
+      color: '#05604A',
       fontWeight: '700',
       textShadowColor: '#FFFFFF',
       textShadowOffset: { width: 0, height: 0 },

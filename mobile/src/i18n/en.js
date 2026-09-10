@@ -92,6 +92,11 @@ export default {
 
   availableRequests: 'Ride requests',
   noRequests: 'No requests right now.',
+  saudacaoMotorista: 'Hello, driver!',
+  lemaMotorista: "Let's move Timor-Leste forward, together.",
+  lemaEntrada: 'TOGETHER IN EVERY DESTINATION',
+  prontoTitulo: 'READY',
+  prontoSub: 'Waiting for requests',
   ignoreRequest: 'Ignore this request',
   youAreHere: 'You are here',
   waitingRequests: 'New requests appear here automatically.',
