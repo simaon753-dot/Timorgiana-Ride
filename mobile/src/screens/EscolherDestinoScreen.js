@@ -105,9 +105,9 @@ export default function EscolherDestinoScreen({ navigation, route }) {
           onPress={() => irPara(null)}
           accessibilityRole="button"
         >
-          <Icone nome="pin" tamanho={20} cor={colors.tealLight} />
+          <View style={styles.pontoPartida} />
           <Text style={styles.barraTexto}>{t('procurarDestino')}</Text>
-          <Icone nome="seta" tamanho={18} cor={colors.textMuted} />
+          <Text style={styles.barraSeta}>›</Text>
         </Pressable>
 
         {/* Casa e trabalho. Um toque leva lá; o lápis muda o sítio.
@@ -123,13 +123,11 @@ export default function EscolherDestinoScreen({ navigation, route }) {
                 onPress={() => (lugar ? irPara(lugar) : setADefinir(f.id))}
                 accessibilityRole="button"
               >
-                <View style={styles.lugarIcone}>
-                  <Icone
-                    nome={f.id === 'casa' ? 'casa' : 'carteira'}
-                    tamanho={20}
-                    cor={colors.teal}
-                  />
-                </View>
+                {/* O ÍCONE VOLTA A SER O EMOJI de `FIXOS`.
+                    Eu tinha-o trocado por desenho — e escolhi uma CARTEIRA
+                    para o Trabalho, que não quer dizer trabalho nenhum. O
+                    emoji 💼 dizia-o desde sempre. */}
+                <Text style={styles.lugarIcone}>{f.icone}</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.lugarNome}>{t(f.chave)}</Text>
                   <Text style={styles.lugarMorada} numberOfLines={1}>
@@ -169,9 +167,7 @@ export default function EscolherDestinoScreen({ navigation, route }) {
                 onPress={() => irPara(r)}
                 accessibilityRole="button"
               >
-                <View style={styles.recenteIcone}>
-                  <Icone nome="relogio" tamanho={18} cor={colors.textMuted} />
-                </View>
+                <Text style={styles.recenteIcone}>🕘</Text>
                 <Text style={styles.recenteTexto} numberOfLines={1}>
                   {r.label}
                 </Text>
@@ -242,66 +238,65 @@ const criarEstilos = () =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.md,
+      marginTop: spacing.xl,
       backgroundColor: colors.white,
+      borderWidth: 1,
+      borderColor: colors.border,
       borderRadius: radius.lg,
       paddingVertical: spacing.md,
       paddingHorizontal: spacing.md,
-      minHeight: 56,
-      ...elevacao.cartao,
+      ...elevacao.plana,
     },
-    barraTexto: { ...tipo.corpo, color: colors.textMuted, flex: 1 },
+    // O ponto é a única coisa coral do ecrã em repouso. Marca onde a viagem
+    // começa, e é o que faz a barra ler-se como um mapa e não como um campo
+    // de texto qualquer.
+    pontoPartida: {
+      width: 11,
+      height: 11,
+      borderRadius: radius.pill,
+      backgroundColor: colors.coral,
+    },
+    barraTexto: { ...tipo.corpoForte, color: colors.text, flex: 1 },
+    barraSeta: { fontSize: 24, color: colors.textMuted, marginTop: -2 },
     premido: { opacity: 0.6 },
 
+    // ---- Lugares guardados e recentes ----
     lugares: { marginTop: spacing.lg, gap: spacing.sm },
     lugar: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.md,
       backgroundColor: colors.white,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
       borderRadius: radius.lg,
-      padding: spacing.md,
-      minHeight: 64,
-      ...elevacao.cartao,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
     },
-    lugarIcone: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: colors.tintaTeal,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    lugarNome: { ...tipo.corpo, color: colors.text, fontWeight: '700' },
-    lugarMorada: { ...tipo.pequeno, color: colors.textMuted, marginTop: 1 },
-    lugarLapis: { fontSize: 17, color: colors.textMuted, paddingHorizontal: 4 },
-
-    recentesTitulo: {
-      ...tipo.etiqueta,
-      color: colors.textMuted,
-      marginTop: spacing.lg,
-      marginBottom: spacing.sm,
-    },
+    // Sem disco de cor por trás: o ícone sozinho.
+    lugarIcone: { fontSize: 20 },
+    lugarNome: { ...tipo.corpoForte, color: colors.text },
+    lugarMorada: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },
+    lugarLapis: { fontSize: 17, color: colors.textMuted },
+    recentesTitulo: { ...tipo.etiqueta, color: colors.textMuted, marginTop: spacing.lg },
     recente: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.md,
-      backgroundColor: colors.white,
-      borderRadius: radius.md,
-      padding: spacing.md,
-      marginBottom: spacing.xs,
-      minHeight: 52,
+      paddingVertical: spacing.sm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
     },
-    recenteIcone: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: colors.paper,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
+    recenteIcone: { fontSize: 15, opacity: 0.7 },
     recenteTexto: { ...tipo.corpo, color: colors.text, flex: 1 },
 
-    pesquisaSobreposta: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.paper },
+    // A pesquisa cobre o ecrã enquanto se define um lugar. Sem isto ficava
+    // atrás do conteúdo e a lista de resultados era inalcançável.
+    pesquisaSobreposta: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: colors.paper,
+      zIndex: 10,
+    },
   });
 
 let styles = criarEstilos();
