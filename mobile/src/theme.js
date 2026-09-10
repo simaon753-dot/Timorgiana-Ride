@@ -11,56 +11,37 @@
 // ecrã branco a 100% no escuro cega quem conduz.
 
 export const PALETAS = {
-  // A PALETA VEIO DAS MAQUETAS, e foi MEDIDA e não escolhida a olho.
-  //
-  // O Simão trouxe quatro maquetas da app e pediu para as seguir com rigor.
-  // Em vez de aproximar as cores por semelhança, li os pixéis dos ficheiros:
-  // o fundo da página, os dois extremos de cada degradé, o verde dos ícones,
-  // as três cores de texto. Os valores abaixo são o que lá está.
-  //
-  // O QUE MUDOU MAIS não foi o verde — foi o FUNDO. Era um creme quente
-  // (#F7F4EF), escolhido quando a app não tinha maquetas; passa a um branco
-  // frio (#F2F6F9). É o que faz os cartões brancos destacarem-se em vez de
-  // se confundirem com a página, e é metade da razão pela qual as maquetas
-  // parecem mais limpas.
-  //
-  // O verde também se afastou do azul: #0E5C54 tinha um toque de turquesa,
-  // #05604A é verde puro. E ganhou um irmão claro (#049455) que a paleta
-  // antiga não tinha — é o verde dos ícones e dos valores em destaque, e sem
-  // ele tudo o que era "verde" tinha de ser o mesmo verde escuro.
   claro: {
-    teal: '#05604A',
-    tealDark: '#04543F',
-    // O VERDE CLARO É PARA ÍCONES, NÃO PARA TEXTO.
+    teal: '#0E5C54',
+    tealDark: '#0A463F',
+    tealLight: '#1C7A70',
+    // BRANCO NUNCA SOBRE ESTE CORAL, nem em texto grande.
     //
-    // Medido nas maquetas, onde pinta os ícones. Como texto sobre branco dá
-    // 3,91:1 — abaixo do mínimo de 4,5 —, e as maquetas até concordam: os
-    // valores em destaque ("1 min · 14:52") lá estão num verde bem mais
-    // escuro (#075942), não neste. Para texto verde usa-se `teal`, que dá
-    // 7,56:1. Um ícone é uma figura e basta-lhe 3:1; uma palavra tem de se
-    // ler.
-    tealLight: '#049455',
-    // BRANCO SOBRE ESTE LARANJA SÓ EM TEXTO GRANDE.
-    //
-    // Dá 3,13:1 — passa a regra do texto grande (>=18,66px a negrito, que é
-    // o caso do botão "Iniciar sessão" das maquetas) e falha a do texto
-    // normal, que exige 4,5. Num rótulo pequeno sobre laranja usa-se texto
-    // escuro, que dá 5,71:1.
-    coral: '#FE5A22',
-    coralDark: '#E04A16',
-    paper: '#F2F6F9',
+    // Dá 2,82:1 — abaixo até do mínimo de 3,0 que o texto grande permite. O
+    // painel de administração já sabia disto (usa texto escuro sobre o
+    // coral); fica escrito aqui para a app não voltar a descobri-lo sozinha.
+    // Texto escuro sobre coral dá 6,5:1.
+    coral: '#FF6B4A',
+    coralDark: '#E85531',
+    paper: '#F7F4EF',
 
     white: '#FFFFFF',
-    text: '#0B1E28',
-    textMuted: '#5D6979',
-    border: '#E4EAEE',
+    text: '#1C2421',
+    // TRÊS TONS MAIS ESCURO, e o cinzento é o mesmo.
+    //
+    // Estava em #6B756F e dava 4,35:1 sobre o creme — abaixo do mínimo de
+    // leitura de 4,5. Não era novo: vinha da paleta original, e passou
+    // despercebido porque 4,35 não parece mal a olho, parece só "cinzento".
+    // Este dá 4,54 e é o menor escurecimento que passa; a matiz não muda.
+    //
+    // Não é uma cor da marca — o teal e o coral ficam como estão. É o
+    // cinzento do texto secundário, e texto tem de se ler.
+    textMuted: '#68726C',
+    border: '#E2DDD4',
     inputBg: '#FFFFFF',
 
-    danger: '#CC2228',
-    // Mais escuro do que o verde dos ícones, pela mesma razão: `success`
-    // aparece quase sempre em PALAVRAS ("aprovado", "documento válido"), e o
-    // #049455 das maquetas não chega ao mínimo de leitura. Este dá 5,4:1.
-    success: '#077A48',
+    danger: '#C0392B',
+    success: '#2E7D5B',
     star: '#F4B400',
 
     onTeal: '#F2F8F6',
@@ -68,11 +49,11 @@ export const PALETAS = {
     // Tintes: painéis coloridos de fundo suave. Estavam escritos à mão
     // em catorze ficheiros, o que fazia deles o único sítio da app que
     // não sabia que existe um segundo tema.
-    tintaTeal: '#F1F7F5',
-    tintaCoral: '#FFF3EC',
-    tintaPerigo: '#FDECEC',
-    contornoCoral: '#F7DCCB',
-    contornoPerigo: '#F3CCCD',
+    tintaTeal: '#F0F5F4',
+    tintaCoral: '#FFF8F0',
+    tintaPerigo: '#FDECEA',
+    contornoCoral: '#F0E2CF',
+    contornoPerigo: '#F0CFCB',
   },
 
   // Escolhida pelo Simão: letras laranja, fundo preto, e o verde da marca
