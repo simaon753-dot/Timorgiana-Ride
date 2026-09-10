@@ -260,7 +260,7 @@ export default {
   procurarDestino: 'Procurar um destino',
   escolherVeiculo: 'Como quer viajar?',
   motoMaisBarato: 'Mais barato e mais rápido no trânsito',
-  carroMaisAbrigado: 'Ao abrigo, e até seis pessoas',
+  carroMaisAbrigado: 'Protegido do sol e da chuva, e leva bagagem',
   pickupPoint: 'Recolha',
   dropoffPoint: 'Destino',
   tapMapToChoose: 'Toque no mapa para escolher o destino',
