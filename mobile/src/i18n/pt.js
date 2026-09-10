@@ -260,6 +260,7 @@ export default {
   payCash: 'Dinheiro',
   confirmRide: 'Pedir por',
   chooseVehicle: 'Escolha o veículo',
+  seuVeiculo: 'Veículo',
   tripInfo: '{km} km · {min} min',
   priceApprox: 'preço aproximado',
   needBothPoints: 'Escolha a recolha e o destino no mapa.',
