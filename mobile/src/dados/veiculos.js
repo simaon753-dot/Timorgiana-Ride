@@ -141,16 +141,25 @@ export const LUGARES = [1, 2, 3, 4, 5, 6];
 // que o serviço deve o nome é literalmente o Suzuki Carry, tão comum aqui que
 // virou o nome da categoria, como "gilete" para lâmina.
 //
-// Precisa de ser corrigida por quem conhece a rua. E há sempre "Outro", com
-// escrita livre: uma lista que não tem o veículo de alguém obriga essa pessoa
-// a mentir ou a desistir do registo.
+// ESTA LISTA VEIO DO SIMÃO, a 11/09/2026, e substituiu a minha.
+//
+// A minha tinha dezoito modelos montados do mercado indonésio — L300, Triton,
+// Dyna, Hiace, Navara, Elf, Traga, Hijet, Luxio, APV, Mega Carry. Plausíveis
+// todos, verificados nenhum: eu não conheço a rua de Díli.
+//
+// A dele tem sete, um por marca, e é o que ele vê a trabalhar. Uma lista curta
+// e certa vale mais do que uma comprida e adivinhada: o registo faz-se uma vez
+// e a pessoa procura o SEU veículo, não uma amostra do mercado.
+//
+// E há sempre "Outro", com escrita livre: uma lista que não tem o veículo de
+// alguém obriga essa pessoa a mentir ou a desistir do registo.
 export const CARGA = [
-  { marca: 'Suzuki', modelos: ['Carry', 'Carry Pick-up', 'APV Pick-up', 'Mega Carry'] },
-  { marca: 'Daihatsu', modelos: ['Gran Max Pick-up', 'Hijet', 'Luxio'] },
-  { marca: 'Mitsubishi', modelos: ['L300', 'Colt Diesel', 'Triton'] },
-  { marca: 'Toyota', modelos: ['Hilux', 'Dyna', 'Hiace'] },
-  { marca: 'Isuzu', modelos: ['Traga', 'Elf', 'D-Max'] },
-  { marca: 'Nissan', modelos: ['Navara'] },
+  { marca: 'Suzuki', modelos: ['Carry'] },
+  { marca: 'Daihatsu', modelos: ['Gran Max Pickup'] },
+  { marca: 'Mitsubishi', modelos: ['Colt L200'] },
+  { marca: 'Toyota', modelos: ['Hilux'] },
+  { marca: 'Isuzu', modelos: ['D-Max'] },
+  { marca: 'Mazda', modelos: ['BT-50'] },
   { marca: 'Ford', modelos: ['Ranger'] },
 ];
 
