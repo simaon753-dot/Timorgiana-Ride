@@ -92,6 +92,8 @@ export default {
 
   availableRequests: 'Ride requests',
   noRequests: 'No requests right now.',
+  ignoreRequest: 'Ignore this request',
+  youAreHere: 'You are here',
   waitingRequests: 'New requests appear here automatically.',
   wantsLabel: 'Wants',
   acceptRide: 'Accept',

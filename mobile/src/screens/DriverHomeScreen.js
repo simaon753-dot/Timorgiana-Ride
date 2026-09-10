@@ -81,6 +81,7 @@ export default function DriverHomeScreen({ navigation }) {
     activeRide: viagemBruta,
     isFinal,
     requests,
+    ignorarPedido,
     acceptRide,
     advanceStatus,
     startRide,
@@ -242,7 +243,17 @@ export default function DriverHomeScreen({ navigation }) {
               </View>
             ) : (
               requests.map((r) => (
-                <RequestCard key={r.id} ride={r} onAccept={(fare) => acceptRide(r.id, fare)} />
+                <RequestCard
+                  key={r.id}
+                  ride={r}
+                  // A POSIÇÃO DELE VAI NO CARTÃO, e é metade do que serve
+                  // para decidir. Ver "recolha na Avenida X" não diz nada a
+                  // quem não sabe de cor onde está; ver os três pontos no
+                  // mesmo mapa diz tudo de uma vez.
+                  minhaPosicao={minhaPosicao}
+                  onAccept={(fare) => acceptRide(r.id, fare)}
+                  onIgnorar={() => ignorarPedido(r.id)}
+                />
               ))
             )}
           </View>
@@ -256,9 +267,20 @@ export default function DriverHomeScreen({ navigation }) {
 }
 
 // ---- Cartão de um pedido por aceitar ----
-function RequestCard({ ride, onAccept }) {
+function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
   const { t } = useI18n();
   const [busy, setBusy] = useState(false);
+  // OS TRÊS PONTOS NO MESMO MAPA, antes de aceitar.
+  //
+  // O cartão dizia os nomes dos sítios — "recolha na Avenida X, destino Y" —
+  // e um nome só serve a quem já sabe onde aquilo fica. O motorista tinha de
+  // decidir sem ver: aceitava e só depois descobria que a recolha era do
+  // outro lado da cidade, ou que o destino o deixava longe de tudo.
+  //
+  // É o MESMO mapa do ecrã do passageiro (MapaExpandivel), e por isso abre em
+  // grande ao tocar. Pequeno no cartão para a lista continuar a ler-se de
+  // relance; inteiro quando a decisão merecer olhar com cuidado.
+  const marcadores = rideMarkers(ride);
 
   const wants =
     ride.vehicleType === 'motorbike'
@@ -298,6 +320,25 @@ function RequestCard({ ride, onAccept }) {
           </Text>
         </View>
       ) : null}
+      {/* O mapa depois dos nomes e ANTES do preço e do botão: a ordem em que
+          a decisão se forma. Primeiro para onde é, depois onde fica, e só
+          então quanto rende e se aceita. */}
+      {marcadores.length ? (
+        <View style={{ marginTop: spacing.md }}>
+          <MapaExpandivel
+            markers={marcadores}
+            // A posição dele entra como marcador vivo — o mesmo lugar onde o
+            // passageiro vê o carro a aproximar-se. Aqui é ele próprio, e é o
+            // ponto que dá sentido aos outros dois.
+            liveMarker={minhaPosicao}
+            liveLabel={t('youAreHere')}
+            height={150}
+            info={
+              ride.distanceKm != null ? { km: ride.distanceKm, min: ride.durationMin } : undefined
+            }
+          />
+        </View>
+      ) : null}
       <View style={styles.metaRow}>
         <Text style={styles.passenger}>🧍 {ride.passenger?.name}</Text>
         <Text style={styles.wants}>
@@ -313,6 +354,19 @@ function RequestCard({ ride, onAccept }) {
         </Text>
       </View>
       <Button title={t('acceptRide')} onPress={accept} loading={busy} />
+      {/* IGNORAR, e não "recusar".
+          A palavra importa: recusar soa a decidir pela viagem, e não é isso
+          que acontece. O pedido continua a ir para os outros motoristas
+          disponíveis do município — só desaparece da lista de quem o pôs de
+          lado.
+          Discreto por baixo do aceitar, e não lado a lado: aceitar é o que se
+          vem fazer aqui, e dois botões do mesmo tamanho fariam da recusa uma
+          escolha tão oferecida como a outra. */}
+      {onIgnorar ? (
+        <Pressable style={styles.ignorar} onPress={onIgnorar} hitSlop={8}>
+          <Text style={styles.ignorarTexto}>{t('ignoreRequest')}</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -568,6 +622,9 @@ const criarEstilos = () =>
       alignItems: 'center',
     },
     callBtnText: { ...tipo.corpoForte, color: colors.onTeal },
+    // Sem fundo nem contorno: um link, não um botão. Ver a nota no cartão.
+    ignorar: { alignSelf: 'center', paddingVertical: spacing.sm, marginTop: spacing.xs },
+    ignorarTexto: { ...tipo.pequeno, color: colors.textMuted },
     precoLinha: {
       flexDirection: 'row',
       alignItems: 'center',

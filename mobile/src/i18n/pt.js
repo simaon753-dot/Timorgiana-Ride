@@ -92,6 +92,8 @@ export default {
 
   availableRequests: 'Pedidos de viagem',
   noRequests: 'Sem pedidos de momento.',
+  ignoreRequest: 'Ignorar este pedido',
+  youAreHere: 'Está aqui',
   waitingRequests: 'Os novos pedidos aparecem aqui automaticamente.',
   wantsLabel: 'Quer',
   acceptRide: 'Aceitar',

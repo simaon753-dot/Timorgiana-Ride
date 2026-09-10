@@ -23,6 +23,25 @@ export function RideProvider({ children }) {
 
   const [activeRide, setActiveRide] = useState(null);
   const [requests, setRequests] = useState([]); // só motoristas
+  // PEDIDOS QUE ESTE MOTORISTA PÔS DE LADO.
+  //
+  // Só deste motorista e só nesta sessão. Ignorar não recusa a viagem a
+  // ninguém: o pedido continua a ir para os outros motoristas disponíveis do
+  // município, e quem o ignorou é que deixa de o ver.
+  //
+  // GUARDADO AQUI e não no ecrã, porque a lista é recarregada do servidor de
+  // cada vez que a ligação volta. Tirado só do ecrã, o pedido reaparecia na
+  // actualização seguinte, e o motorista teria de o ignorar outra vez.
+  //
+  // NÃO VAI PARA O SERVIDOR de propósito. Um pedido sem resposta expira
+  // sozinho em dez minutos, e a app reiniciada é uma app que já não tem
+  // aqueles pedidos. Guardar isto na base de dados seria acrescentar uma
+  // tabela para um esquecimento que o tempo já faz.
+  const [ignorados, setIgnorados] = useState(() => new Set());
+
+  const ignorarPedido = useCallback((id) => {
+    setIgnorados((prev) => new Set(prev).add(id));
+  }, []);
   const [messages, setMessages] = useState([]);
   const [unread, setUnread] = useState(0);
   const [bloqueio, setBloqueio] = useState(null);
@@ -324,12 +343,17 @@ export function RideProvider({ children }) {
 
   const isFinal = activeRide && FINAL.includes(activeRide.status);
 
+  // A filtragem é feita AQUI, à saída, e não em cada ecrã que use a lista.
+  // Um filtro por consumidor divergiria no dia em que houvesse dois.
+  const pedidosVisiveis = requests.filter((r) => !ignorados.has(r.id));
+
   return (
     <RideContext.Provider
       value={{
         activeRide,
         isFinal,
-        requests,
+        requests: pedidosVisiveis,
+        ignorarPedido,
         messages,
         unread,
         rated,
