@@ -23,10 +23,11 @@ export function straightKm(a, b) {
 // e é importante que o PREÇO venha da mesma fonte que o DESENHO. Um preço
 // calculado sobre um caminho e uma linha desenhada sobre outro é um convite a
 // uma discussão que ninguém consegue arbitrar.
-export async function rota(origem, destino) {
-  const url =
-    `https://router.project-osrm.org/route/v1/driving/` +
-    `${origem.lng},${origem.lat};${destino.lng},${destino.lat}?overview=false`;
+export async function rota(origem, destino, intermedios = []) {
+  // Mesma cadeia de coordenadas do `peloOsrm`: o formato do OSRM é uma lista
+  // de N pontos e estava a ser usado com dois.
+  const cadeia = [origem, ...intermedios, destino].map((p) => `${p.lng},${p.lat}`).join(';');
+  const url = `https://router.project-osrm.org/route/v1/driving/${cadeia}?overview=false`;
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 6000);
@@ -38,7 +39,12 @@ export async function rota(origem, destino) {
     const km = Math.round((rt.distance / 1000) * 10) / 10;
     return { km, min: duracaoRealista(km, rt.duration / 60), aproximado: false };
   } catch {
-    const km = Math.round(straightKm(origem, destino) * 1.4 * 10) / 10;
+    // Soma troço a troço, como no `rotaCompleta`: a recta entre as pontas
+    // ignoraria o desvio das paragens, e é o preço que sairia disso.
+    const cadeia = [origem, ...intermedios, destino];
+    let total = 0;
+    for (let i = 1; i < cadeia.length; i++) total += straightKm(cadeia[i - 1], cadeia[i]);
+    const km = Math.round(total * 1.4 * 10) / 10;
     return { km, min: duracaoRealista(km, null), aproximado: true };
   }
 }

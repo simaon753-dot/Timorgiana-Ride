@@ -38,6 +38,10 @@ const GOTA = 'M2 18 A16 16 0 1 1 34 18 C34 26 26 32 18 41 C10 32 2 26 2 18 Z';
 const COR = {
   origem: { fill: '#0E5C54', risco: '#08403A' },
   destino: { fill: '#E85531', risco: '#8C2E14' },
+  // Coral mais claro do que o destino final: uma paragem é uma entrega —
+  // só não é a última. Os mesmos valores estão em scripts/desenhar-pinos.py,
+  // que gera a imagem a partir deste mesmo caminho SVG.
+  paragem: { fill: '#F0855D', risco: '#9C4A28' },
 };
 
 // O pino tem 30x45 no ecrã. O ponto que marca o sítio está em y=50 de 54 no
@@ -69,6 +73,7 @@ const CARTAO_L = 150;
 const IMAGEM = {
   origem: require('../../assets/mapa/pino-origem.png'),
   destino: require('../../assets/mapa/pino-destino.png'),
+  paragem: require('../../assets/mapa/pino-paragem.png'),
 };
 
 // O VEÍCULO TAMBÉM É IMAGEM, e voltou a ser marcador por causa disso.
@@ -368,7 +373,14 @@ export default function MapaGoogle({
           lng: m.lng,
           nome: (partes[0] || '').trim(),
           detalhe: (partes[1] || '').trim(),
-          qual: m.tipo === 'destino' ? 'destino' : 'origem',
+          // TABELA E NÃO TERNÁRIO.
+          //
+          // Era `m.tipo === 'destino' ? 'destino' : 'origem'`, e com dois
+          // tipos estava certo. Ao aparecer a paragem passava a MENTIR: caía
+          // no ramo `else` e desenhava o pino da RECOLHA no meio do percurso
+          // — sem erro nenhum, como todos os ternários de duas vias que este
+          // projecto já teve de substituir.
+          qual: IMAGEM[m.tipo] ? m.tipo : 'origem',
           cartao: !!m.cartao,
           // ONDE SE DESENHA O PINO, quando não é onde o carro pára.
           //
@@ -1318,6 +1330,9 @@ const criarEstilos = () =>
     // destino sem ter de olhar para o pino.
     risco_origem: { borderLeftColor: '#0E5C54' },
     risco_destino: { borderLeftColor: '#E85531' },
+    // Sem esta linha, `styles['risco_paragem']` era `undefined` e o cartão
+    // saía sem risco — nada rebentava, e a paragem ficava sem cor.
+    risco_paragem: { borderLeftColor: '#F0855D' },
     cartaoAgora: { backgroundColor: '#14201D', borderLeftColor: '#FF6B4A' },
     cartaoNome: { fontSize: 12.5, fontWeight: '700', color: '#14201D', letterSpacing: -0.1 },
     cartaoNomeAgora: { color: '#EAF2EF' },

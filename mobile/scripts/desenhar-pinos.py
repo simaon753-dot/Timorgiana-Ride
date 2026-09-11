@@ -36,6 +36,13 @@ S = 30
 COR = {
     'origem': ('#0E5C54', '#08403A'),
     'destino': ('#E85531', '#8C2E14'),
+    # A PARAGEM É CORAL MAIS CLARO, e não uma terceira cor.
+    #
+    # A paleta é teal e coral, por decisao do Simao, e inventar um terceiro
+    # tom para isto seria contraria-la. Um coral claro diz o que e preciso
+    # dizer: isto e uma entrega — mas nao a ultima. O escuro do contorno
+    # mantem-se proximo do destino final, para as duas se lerem como familia.
+    'paragem': ('#F0855D', '#9C4A28'),
 }
 
 

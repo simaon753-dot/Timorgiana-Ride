@@ -84,7 +84,7 @@ function descomprimir(texto) {
   return pontos;
 }
 
-async function peloGoogle(a, b) {
+async function peloGoogle(a, b, intermedios = []) {
   const ctrl = new AbortController();
   const relogio = setTimeout(() => ctrl.abort(), 8000);
   try {
@@ -102,6 +102,21 @@ async function peloGoogle(a, b) {
       body: JSON.stringify({
         origin: { location: { latLng: { latitude: a.lat, longitude: a.lng } } },
         destination: { location: { latLng: { latitude: b.lat, longitude: b.lng } } },
+        // PONTOS DO MEIO. A Routes v2 aceita-os como campo irmão da origem e
+        // do destino, e devolve a distância e o tempo da rota INTEIRA — por
+        // isso o preço não precisa de saber que houve paragens, e a
+        // `FieldMask` acima não muda.
+        //
+        // Uma chamada, e não uma por troço: o contador diário de 300 conta
+        // CHAMADAS, portanto uma viagem com duas paragens custa o mesmo que
+        // uma directa. Era a dúvida que podia ter travado esta fase.
+        ...(intermedios.length
+          ? {
+              intermediates: intermedios.map((p) => ({
+                location: { latLng: { latitude: p.lat, longitude: p.lng } },
+              })),
+            }
+          : {}),
         travelMode: 'DRIVE',
         // Sem trânsito em tempo real de propósito: é um SKU mais caro, e a
         // nossa estimativa de tempo já assume a velocidade real de Díli.
@@ -128,10 +143,14 @@ async function peloGoogle(a, b) {
   }
 }
 
-async function peloOsrm(a, b) {
+async function peloOsrm(a, b, intermedios = []) {
+  // O OSRM já recebia uma LISTA de coordenadas separadas por ponto e vírgula
+  // — só estava a ser usada com dois elementos. Acrescentar paragens é pôr
+  // mais pares na mesma cadeia, e a geometria devolvida cobre tudo.
+  const cadeia = [a, ...intermedios, b].map((p) => `${p.lng},${p.lat}`).join(';');
   const url =
     'https://router.project-osrm.org/route/v1/driving/' +
-    `${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson`;
+    `${cadeia}?overview=full&geometries=geojson`;
   const ctrl = new AbortController();
   const relogio = setTimeout(() => ctrl.abort(), 8000);
   try {
@@ -155,16 +174,32 @@ async function peloOsrm(a, b) {
 
 // A rota com a linha inteira. Google primeiro, OSRM a seguir, linha recta se
 // nenhum responder — nunca devolve nada, para o ecrã ter sempre o que mostrar.
-export async function rotaCompleta(a, b) {
+// `intermedios` é OPCIONAL e por omissão vazio: as três chamadas que já
+// existiam continuam a comportar-se exactamente como antes. Um parâmetro novo
+// que mudasse o comportamento por omissão seria o modo que parte as coisas a
+// ser o modo normal — e isso já custou caro uma vez, no runtimeVersion.
+export async function rotaCompleta(a, b, intermedios = []) {
   if (await podePerguntar()) {
-    const g = await peloGoogle(a, b);
+    const g = await peloGoogle(a, b, intermedios);
     if (g) return g;
   }
-  const o = await peloOsrm(a, b);
+  const o = await peloOsrm(a, b, intermedios);
   if (o) return o;
 
-  const km = Math.round(straightKm(a, b) * 1.4 * 10) / 10;
-  return { km, min: duracaoRealista(km, null), linha: [a, b], fonte: 'recta', aproximado: true };
+  // ÚLTIMO RECURSO: soma troço a troço. Com paragens, a recta entre as pontas
+  // seria muito menos do que o caminho real — uma entrega que vai a Comoro e
+  // volta a Bidau pagaria como se fosse a direito.
+  const cadeia = [a, ...intermedios, b];
+  let total = 0;
+  for (let i = 1; i < cadeia.length; i++) total += straightKm(cadeia[i - 1], cadeia[i]);
+  const km = Math.round(total * 1.4 * 10) / 10;
+  return {
+    km,
+    min: duracaoRealista(km, null),
+    linha: cadeia,
+    fonte: 'recta',
+    aproximado: true,
+  };
 }
 
 export function estadoDasRotas() {

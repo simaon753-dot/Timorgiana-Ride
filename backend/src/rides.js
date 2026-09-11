@@ -1,6 +1,7 @@
 import { query, one } from './db.js';
 import { TIPOS_VEICULO, TIPOS_CARGA, VOLUMES_CARGA, AJUDAS_CARGA } from './config.js';
 import { municipioDe } from './municipios.js';
+import { guardarDestinos } from './destinosDaViagem.js';
 
 // Estados que ainda contam como "viagem a decorrer"
 // Estados em que a viagem AINDA ESTÁ A ACONTECER e tem de aparecer ao
@@ -39,6 +40,20 @@ const RIDE_SELECT = `
          -- dois 404 em cada cartão da lista. Funcionava, e seria desperdício
          -- desenhado de propósito.
          (SELECT COUNT(*) FROM ride_fotos cf WHERE cf.ride_id = r.id)::int AS carga_fotos,
+         -- AS PARAGENS DO MEIO, já pela ordem do percurso.
+         --
+         -- Agregadas aqui e não numa segunda consulta: quem pede uma viagem
+         -- precisa delas — o mapa para os pinos, o motorista para saber
+         -- quantas são. Uma consulta à parte por viagem, numa lista de
+         -- sessenta, seriam sessenta idas à base.
+         --
+         -- NULL quando não há nenhuma, e não um array vazio: é isso que
+         -- deixa o toPublicRide omitir o campo nas viagens directas, que
+         -- são quase todas. (Sem crases: isto vive dentro de um template
+         -- literal, e uma crase aqui fecha a string a meio do SQL.)
+         (SELECT json_agg(json_build_object('label', rd.label, 'lat', rd.lat, 'lng', rd.lng)
+                          ORDER BY rd.ordem)
+            FROM ride_destinos rd WHERE rd.ride_id = r.id) AS destinos_meio,
   FROM rides r
   JOIN users p ON p.id = r.passenger_id
   LEFT JOIN users d ON d.id = r.driver_id
@@ -157,6 +172,9 @@ export function toPublicRide(row, opcoes = {}) {
           },
         }
       : {}),
+    // AS PARAGENS, quando as há. Omitido nas viagens directas em vez de ir
+    // um array vazio em cada resposta.
+    ...(row.destinos_meio ? { destinos: row.destinos_meio } : {}),
     // A carga, quando a há. Mesmo molde do `viajante`: um grupo que só existe
     // num caso, em vez de cinco campos a nulo em todas as outras viagens.
     ...(row.carga_tipo
@@ -209,6 +227,9 @@ export async function createRide({
   distanceKm = null,
   durationMin = null,
   passengers = null,
+  // Pontos do meio. Vazio no caso normal — e é o caso normal que manda: uma
+  // viagem sem paragens comporta-se exactamente como se comportava antes.
+  destinos = [],
   // Quem viaja, quando não é quem pede. Tudo nulo no caso normal.
   viajanteNome = null,
   viajanteTelefone = null,
@@ -303,6 +324,16 @@ export async function createRide({
       tipoCarga && cargaDeclarada ? new Date() : null,
     ]
   );
+  // AS PARAGENS, agora que a viagem tem id: a chave estrangeira aponta para
+  // `rides(id)` e esse número só existe depois do INSERT. Mesma ordem das
+  // fotografias da carga, pela mesma razão.
+  //
+  // Aqui o erro NÃO é engolido, ao contrário do que a app faz com as
+  // fotografias. Uma viagem que nasce sem as paragens pedidas nasce com o
+  // preço errado, porque o preço foi calculado COM elas — e falhar alto é o
+  // que impede uma entrega de ser cobrada a mais e feita a menos.
+  await guardarDestinos(inserted.id, destinos);
+
   return getRideById(inserted.id);
 }
 

@@ -4,6 +4,7 @@ import { criarAlerta, cancelamentosRecentes } from '../sos.js';
 import { ultimaFotoDeTurno } from '../turnos.js';
 import { getOwnDocument } from '../documents.js';
 import { guardarFotoDaCarga, fotoDaCarga } from '../fotosDaCarga.js';
+import { limparDestinos } from '../destinosDaViagem.js';
 import { requireAuth, requireRole, requireApprovedDriver } from '../auth.js';
 import {
   createRide,
@@ -114,6 +115,7 @@ ridesRouter.post(
       cargaAjuda,
       cargaNotas,
       cargaDeclarada,
+      destinos,
     } = req.body || {};
     if (!destLabel || !destLabel.trim()) {
       return res.status(400).json({ error: 'Indica o destino.' });
@@ -208,6 +210,17 @@ ridesRouter.post(
     // bastaria alterar a distância no telemóvel para pagar sempre o
     // mínimo. Sem coordenadas (destino escrito à mão) aceita-se o valor
     // proposto, que nesse caso volta a ser combinado entre as pessoas.
+    // PARAGENS SÓ NO CARRY.
+    //
+    // Não é uma limitação da rota — os três níveis aceitam N pontos. É uma
+    // decisão de âmbito: o caso real que justifica isto é a entrega de bens
+    // (recolher na loja, largar em dois sítios), e alargá-lo às viagens de
+    // pessoas obrigaria a mexer no ecrã do pedido, onde `destino` aparece em
+    // oitenta sítios — a guarda contra a corrida do GPS, a dependência da
+    // cotação, a máquina de toques no mapa. Assim isto é aditivo: quem não
+    // pede Carry não nota diferença nenhuma, porque não há nenhuma.
+    const paragens = vehicleType === 'carry' ? limparDestinos(destinos) : [];
+
     let precoFinal = fareUsd;
     let kmViagem = null;
     let minViagem = null;
@@ -215,7 +228,11 @@ ridesRouter.post(
     if (temCoords) {
       const viagem = await rota(
         { lat: Number(originLat), lng: Number(originLng) },
-        { lat: Number(destLat), lng: Number(destLng) }
+        { lat: Number(destLat), lng: Number(destLng) },
+        // Os desvios entram na distância, e é dessa distância que sai o
+        // preço. Calcular sem eles e conduzir com eles seria o motorista a
+        // pagar o desvio do seu bolso.
+        paragens
       );
       // O TIPO VEM DA LISTA, e não de um ternário de dois.
       //
@@ -267,6 +284,7 @@ ridesRouter.post(
       viajanteNome: nomeOutro || null,
       viajanteTelefone,
       viajanteMenor: !!viajanteMenor,
+      destinos: paragens,
     });
     // Quem criou a viagem é o passageiro: leva o código.
     const ride = toPublicRide(row, { paraPassageiro: true });
