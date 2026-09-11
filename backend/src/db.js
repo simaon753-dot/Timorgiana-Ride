@@ -488,6 +488,32 @@ export async function initSchema() {
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS privacy_accepted_at TIMESTAMPTZ`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS duration_min INTEGER`);
 
+  // FOTOGRAFIAS DOS BENS, quando quem pede as tira.
+  //
+  // Pertencem à VIAGEM e não a quem pede: descrevem aquela carga, uma vez. A
+  // mesma pessoa manda um sofá hoje e caixas amanhã, e as fotografias de uma
+  // não dizem nada sobre a outra.
+  //
+  // Guardadas na própria base, como os documentos e as fotografias de turno.
+  // Para um piloto com poucos pedidos chega, e evita depender de mais um
+  // serviço externo. Se crescer, esta tabela é o único sítio a mudar — a
+  // mesma nota que já está na dos documentos, e continua a valer.
+  //
+  // SEM `UNIQUE` de utilizador: aqui há VÁRIAS por viagem, ao contrário da
+  // fotografia de turno, que é uma por dia. O tecto de quantas é do servidor
+  // e não da base — três é uma decisão de produto, não uma regra de dados.
+  await query(`
+    CREATE TABLE IF NOT EXISTS ride_fotos (
+      id         SERIAL PRIMARY KEY,
+      ride_id    INTEGER NOT NULL REFERENCES rides(id),
+      mime       TEXT NOT NULL,
+      bytes      BYTEA NOT NULL,
+      size_bytes INTEGER NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await query('CREATE INDEX IF NOT EXISTS idx_ride_fotos ON ride_fotos(ride_id)');
+
   // O QUE VAI DENTRO, quando a viagem é de bens.
   //
   // Cinco colunas, todas opcionais: uma viagem de pessoas deixa-as a nulo e

@@ -29,6 +29,16 @@ const RIDE_SELECT = `
          d.name  AS d_name,  d.phone AS d_phone,
          d.vehicle_type AS d_vtype, d.vehicle_model AS d_vmodel,
          d.vehicle_plate AS d_vplate, d.vehicle_color AS d_vcolor
+         -- QUANTAS FOTOGRAFIAS DA CARGA, sem trazer um único byte.
+         --
+         -- O cartão do motorista precisa de saber que ELAS EXISTEM para
+         -- desenhar as miniaturas; os bytes vêm depois, num pedido por
+         -- fotografia, e só para quem abre o cartão.
+         --
+         -- Sem isto a app teria de adivinhar: pedir a 0, a 1 e a 2 e apanhar
+         -- dois 404 em cada cartão da lista. Funcionava, e seria desperdício
+         -- desenhado de propósito.
+         (SELECT COUNT(*) FROM ride_fotos cf WHERE cf.ride_id = r.id)::int AS carga_fotos,
   FROM rides r
   JOIN users p ON p.id = r.passenger_id
   LEFT JOIN users d ON d.id = r.driver_id
@@ -156,6 +166,7 @@ export function toPublicRide(row, opcoes = {}) {
             volume: row.carga_volume || null,
             ajuda: row.carga_ajuda || null,
             notas: row.carga_notas || null,
+            fotos: Number(row.carga_fotos) || 0,
             // O INSTANTE da declaração, e não um "sim". Ver a nota em db.js.
             declaradoEm: row.carga_declarado_em || null,
           },
