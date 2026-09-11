@@ -53,6 +53,11 @@ export default {
   cargaNotasExemplo: 'Ex.: foti iha loja · entrega iha andar 2 · sasán frájil',
   cargaDeclaracao:
     "Ha'u konfirma katak sasán sira legál, seguru no tama iha veíkulu nia kapasidade.",
+  cargaFotosTitulo: 'Foto sasán nian',
+  cargaFotosNota: "Ajuda motorista atu hatene karik tama. To'o 3.",
+  cargaFotoTirar: 'Foti foto',
+  cargaFotoRemover: 'Hasai',
+  cargaFotosDoPedido: 'Foto sira',
   errCargaTipo: 'Hili saida mak ita sei lori.',
   errCargaDeclaracao: 'Konfirma deklarasaun molok husu.',
   vehicleMotorbike: 'Motorizada',

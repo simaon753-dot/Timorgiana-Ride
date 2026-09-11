@@ -92,6 +92,10 @@ export const api = {
   quote: (token, body) => request('/quote', { method: 'POST', body, token }),
 
   createRide: (token, body) => request('/rides', { method: 'POST', body, token }),
+  // Uma fotografia dos bens, enviada DEPOIS da viagem existir: a fotografia
+  // agarra-se a um `id`, e antes de criar a viagem esse `id` não existe.
+  enviarFotoDaCarga: (token, id, { mime, base64 }) =>
+    request(`/rides/${id}/carga-foto`, { method: 'POST', body: { mime, base64 }, token }),
   activeRide: (token) => request('/rides/active', { token }),
   // Uma viagem concreta, terminada ou não. Serve para a app se pôr em dia
   // depois de perder a ligação: `activeRide` exclui as terminadas e não

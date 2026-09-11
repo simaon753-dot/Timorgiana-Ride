@@ -33,6 +33,7 @@ import { useRides } from '../context/RideContext.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 import BarraEstado from '../design/BarraEstado.js';
+import ImagemProtegida from '../design/ImagemProtegida.js';
 
 // O nome de cada documento, para o aviso poder dizer "Cartão de inspeção"
 // em vez de "inspection". Num mapa e não construído letra a letra: uma chave
@@ -376,6 +377,28 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
             <Text style={styles.cargaAjuda}>{t(CHAVE_AJUDA[ride.carga.ajuda])}</Text>
           ) : null}
           {ride.carga.notas ? <Text style={styles.cargaNotas}>{ride.carga.notas}</Text> : null}
+          {/* AS FOTOGRAFIAS DOS BENS, se quem pediu as tirou.
+              É a informação mais honesta do cartão. "Móveis · Grande" é uma
+              escala que nós inventámos e que cada um lê à sua maneira; a
+              fotografia mostra a cómoda, e o motorista sabe num segundo se
+              ela lhe entra na caixa — coisa que nenhuma lista de volumes lhe
+              ia dizer.
+              Vêm em último dentro do bloco e não em primeiro: quem passa a
+              lista a correr lê as palavras de relance, e só pára a olhar para
+              o pedido que lhe interessa.
+              O número vem no pedido; os bytes só são pedidos aqui, uma
+              chamada por fotografia e só para os cartões que aparecem. */}
+          {ride.carga.fotos > 0 ? (
+            <View style={styles.cargaFotos}>
+              {Array.from({ length: ride.carga.fotos }).map((_, i) => (
+                <ImagemProtegida
+                  key={`${ride.id}-${i}`}
+                  caminho={`/rides/${ride.id}/carga-foto/${i}`}
+                  style={styles.cargaFoto}
+                />
+              ))}
+            </View>
+          ) : null}
         </View>
       ) : null}
       <View style={styles.metaRow}>
@@ -674,6 +697,13 @@ const criarEstilos = () =>
     cargaLinha: { ...tipo.corpoForte, color: colors.teal },
     cargaAjuda: { ...tipo.pequeno, color: colors.teal, marginTop: 1 },
     cargaNotas: { ...tipo.pequeno, color: colors.textMuted, marginTop: 3 },
+    cargaFotos: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+    cargaFoto: {
+      width: 64,
+      height: 64,
+      borderRadius: radius.md,
+      backgroundColor: colors.border,
+    },
     precoLinha: {
       flexDirection: 'row',
       alignItems: 'center',

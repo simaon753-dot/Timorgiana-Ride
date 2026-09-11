@@ -151,6 +151,7 @@ export default function RequestRideScreen({ navigation, route }) {
   const [cargaAjuda, setCargaAjuda] = useState('nenhuma');
   const [cargaNotas, setCargaNotas] = useState('');
   const [cargaDeclarado, setCargaDeclarado] = useState(false);
+  const [cargaFotos, setCargaFotos] = useState([]);
   const [outroNome, setOutroNome] = useState('');
   const [outroTelefone, setOutroTelefone] = useState('');
   const [outroMenor, setOutroMenor] = useState(false);
@@ -594,7 +595,7 @@ export default function RequestRideScreen({ navigation, route }) {
     if (!origem || !destino) return setErro(t('needBothPoints'));
     setAPedir(true);
     try {
-      await requestRide({
+      const criada = await requestRide({
         destLabel: destino.label,
         destLat: destino.lat,
         destLng: destino.lng,
@@ -621,6 +622,29 @@ export default function RequestRideScreen({ navigation, route }) {
             }
           : {}),
       });
+      // AS FOTOGRAFIAS SOBEM AGORA, e o erro delas é engolido de propósito.
+      //
+      // Só há `id` depois da viagem existir — a chave estrangeira obriga a
+      // esta ordem. E a ordem traz um risco que não havia: chegado aqui, a
+      // VIAGEM JÁ FOI PEDIDA. Se eu mostrasse um erro de envio, a pessoa
+      // carregava outra vez em "pedir" e ficavam duas viagens à procura de
+      // motorista — um estrago muito maior do que o que se estava a evitar.
+      //
+      // Uma a uma e não em paralelo: são três no máximo, e três envios ao
+      // mesmo tempo numa rede de Díli acabam a falhar os três.
+      if (criada?.id && cargaFotos.length) {
+        for (const f of cargaFotos) {
+          try {
+            await api.enviarFotoDaCarga(token, criada.id, {
+              mime: 'image/jpeg',
+              base64: f.base64,
+            });
+          } catch {
+            // De propósito: ver a nota acima. A viagem seguiu.
+          }
+        }
+      }
+
       // VOLTA AO INÍCIO, e não um passo atrás.
       //
       // Era `goBack()`, e chegava enquanto a pilha tinha dois ecrãs: Início e
@@ -1228,6 +1252,8 @@ export default function RequestRideScreen({ navigation, route }) {
               onNotas={setCargaNotas}
               declarado={cargaDeclarado}
               onDeclarado={setCargaDeclarado}
+              fotos={cargaFotos}
+              onFotos={setCargaFotos}
             />
           ) : null}
 

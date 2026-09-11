@@ -3,6 +3,7 @@ import { TIPOS_CARGA, TIPOS_VEICULO } from '../config.js';
 import { criarAlerta, cancelamentosRecentes } from '../sos.js';
 import { ultimaFotoDeTurno } from '../turnos.js';
 import { getOwnDocument } from '../documents.js';
+import { guardarFotoDaCarga, fotoDaCarga } from '../fotosDaCarga.js';
 import { requireAuth, requireRole, requireApprovedDriver } from '../auth.js';
 import {
   createRide,
@@ -762,6 +763,88 @@ ridesRouter.get(
 
     const turno = await ultimaFotoDeTurno(ride.driver_id);
     const foto = turno || (await getOwnDocument(ride.driver_id, 'photo'));
+    if (!foto) return res.status(404).json({ error: 'Sem fotografia.' });
+
+    res.setHeader('Cache-Control', 'private, no-cache');
+    res.setHeader('Content-Type', foto.mime);
+    res.send(foto.bytes);
+  })
+);
+
+// POST /api/rides/:id/carga-foto — as fotografias dos bens
+//
+// SÓ QUEM PEDIU. A carga é dele, e mais ninguém tem o que fotografar ali.
+//
+// ATÉ A VIAGEM TERMINAR, e não só enquanto está à espera de motorista. Servem
+// duas coisas diferentes e ambas contam: antes de ser aceite, ajudam o
+// motorista a decidir; na recolha, ficam a dizer em que estado os bens
+// saíram. Fechar a porta cedo demais deitava fora a segunda.
+//
+// 404 e não 403 a quem não é o dono: um 403 confirmaria que a viagem existe.
+ridesRouter.post(
+  '/:id/carga-foto',
+  wrap(async (req, res) => {
+    const { mime, base64 } = req.body || {};
+    if (!base64) return res.status(400).json({ error: 'Fotografia em falta.' });
+
+    const ride = await getRideById(Number(req.params.id));
+    if (!ride || ride.passenger_id !== req.user.id) {
+      return res.status(404).json({ error: 'Viagem não encontrada.' });
+    }
+    if (ride.status === 'completed' || ride.status === 'cancelled') {
+      return res.status(409).json({ error: 'A viagem já terminou.' });
+    }
+
+    try {
+      const r = await guardarFotoDaCarga({ rideId: ride.id, mime, base64 });
+      return res.status(201).json({ ok: true, total: r.total });
+    } catch (e) {
+      return res.status(400).json({ error: e.message });
+    }
+  })
+);
+
+// GET /api/rides/:id/carga-foto/:n — uma das fotografias, pelo seu lugar
+//
+// QUEM PODE VER. Aqui a regra do `/retrato` NÃO serve, e percebê-lo é a
+// diferença entre esta funcionalidade existir e nascer inútil.
+//
+// O retrato mostra-se "às duas pessoas da viagem". Se as fotografias da carga
+// seguissem essa regra, o motorista só as via DEPOIS de aceitar — ou seja,
+// depois de já se ter comprometido a levar aquilo. Exactamente o momento em
+// que saber já não muda nada.
+//
+// Por isso são TRÊS portas:
+//   · quem pediu — são os bens dele;
+//   · o motorista da viagem — precisa delas até entregar;
+//   · qualquer motorista APROVADO, mas só enquanto a viagem não tem dono.
+//
+// A terceira é a que faz sentido à fase inteira e também a única que deixa
+// alguém de fora ver: fica travada pelas três condições ao mesmo tempo, e
+// fecha-se sozinha no instante em que alguém aceita. É a mesma porta por onde
+// o pedido já lhe apareceu na lista — `getAvailableRidesForDriver` filtra por
+// `status = 'requested' AND driver_id IS NULL`. Não estou a abrir nada novo;
+// estou a deixar ver o que já lhe foi mostrado.
+//
+// ACABADA A VIAGEM, ACABAM AS FOTOGRAFIAS — a mesma regra dos telefones e do
+// retrato. Continuam na base sete dias, para uma queixa poder ser respondida,
+// mas deixam de se mostrar a ninguém no histórico.
+ridesRouter.get(
+  '/:id/carga-foto/:n',
+  wrap(async (req, res) => {
+    const ride = await getRideById(Number(req.params.id));
+    if (!ride) return res.status(404).json({ error: 'Sem fotografia.' });
+
+    const terminada = ride.status === 'completed' || ride.status === 'cancelled';
+    const meu = ride.passenger_id === req.user.id || ride.driver_id === req.user.id;
+    const porAceitar = ride.status === 'requested' && !ride.driver_id;
+    const motoristaAprovado = req.user.driver_status === 'approved';
+
+    if (terminada || !(meu || (porAceitar && motoristaAprovado))) {
+      return res.status(404).json({ error: 'Sem fotografia.' });
+    }
+
+    const foto = await fotoDaCarga(ride.id, req.params.n);
     if (!foto) return res.status(404).json({ error: 'Sem fotografia.' });
 
     res.setHeader('Cache-Control', 'private, no-cache');
