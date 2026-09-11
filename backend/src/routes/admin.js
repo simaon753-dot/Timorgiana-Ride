@@ -13,6 +13,8 @@ import { etiquetaOsm } from '../tiposDeLugar.js';
 import { googleConhece } from '../lugares.js';
 import { linhasOsm } from '../etiquetasOsm.js';
 import { emitirCodigo } from '../recuperacao.js';
+import { TIPOS_VEICULO } from '../config.js';
+import { fotoDaCarga } from '../fotosDaCarga.js';
 
 export const adminRouter = Router();
 adminRouter.use(requireAuth);
@@ -206,7 +208,17 @@ adminRouter.get(
         -- da empresa, o contrário do que os termos afirmam.
         (SELECT COALESCE(SUM(fare_usd),0) FROM rides
           WHERE status='completed' AND created_at > NOW() - INTERVAL '24 hours')::float8
-          AS "tarifas24h"
+          AS "tarifas24h",
+        -- O CARRY À PARTE. Misturado com as viagens de pessoas, um serviço
+        -- que começa agora fica invisível: dez pedidos de bens entre
+        -- trezentas viagens não mudam número nenhum, e não se saberia se
+        -- pegou ou não.
+        (SELECT COUNT(*) FROM users
+          WHERE role='driver' AND driver_status='approved' AND vehicle_type='carry')::int
+          AS "carryMotoristas",
+        (SELECT COUNT(*) FROM rides
+          WHERE vehicle_type='carry' AND created_at > NOW() - INTERVAL '24 hours')::int
+          AS "carry24h"
     `);
     res.json({ resumo: n });
   })
@@ -284,6 +296,38 @@ adminRouter.get(
   })
 );
 
+// GET /api/admin/viagens/:id/foto/:n — as fotografias dos bens, para o painel
+//
+// PORQUE EXISTE UM SEGUNDO ENDEREÇO para a mesma fotografia. A regra do
+// `/api/rides/:id/carga-foto/:n` deixa passar três pessoas: quem pediu, o
+// motorista da viagem, e um motorista aprovado enquanto ninguém aceitou. O
+// administrador não é nenhuma das três — e não deve ser, porque alargar
+// aquela regra para o incluir abria-a também no dia em que ela fosse
+// mudada por outro motivo.
+//
+// Aqui a porta é outra e mais simples: `requireAuth` mais a guarda de
+// `is_admin` que este router aplica a tudo. Duas portas separadas para dois
+// motivos separados, e cada uma pode mudar sem mexer na outra.
+//
+// SEM LIMITE DE TEMPO, ao contrário do lado dos utilizadores: a viagem
+// terminada esconde as fotografias a quem participou, mas é justamente
+// depois de terminar que uma queixa chega ao painel. Deixam de existir ao
+// sétimo dia, quando a limpeza as apaga.
+//
+// Sem `registarAcesso`, como em `/turnos/:id/foto` e ao contrário de
+// `/documents/:id`: o registo foi feito para os documentos de identidade.
+// Uma linha basta para o mudar, se um dia fizer falta.
+adminRouter.get(
+  '/viagens/:id/foto/:n',
+  wrap(async (req, res) => {
+    const f = await fotoDaCarga(Number(req.params.id), req.params.n);
+    if (!f) return res.status(404).json({ error: 'Fotografia não encontrada.' });
+    res.setHeader('Cache-Control', 'private, no-cache');
+    res.setHeader('Content-Type', f.mime);
+    res.send(f.bytes);
+  })
+);
+
 // GET /api/admin/turnos/:id/foto
 adminRouter.get(
   '/turnos/:id/foto',
@@ -303,10 +347,16 @@ adminRouter.get(
   '/viagens',
   wrap(async (req, res) => {
     const horas = Math.min(168, Math.max(1, Number(req.query.horas) || 24));
+    // O FILTRO POR VEÍCULO existe para uma pergunta que não se podia fazer:
+    // "como estão a correr os Carry?". Sem ele, os pedidos de bens ficam
+    // misturados com as centenas de viagens de pessoas e não se contam.
+    const veiculo = TIPOS_VEICULO.includes(req.query.veiculo) ? req.query.veiculo : 'todos';
     const rows = await query(
       `SELECT r.id, r.status, r.dest_label, r.origin_label, r.fare_usd,
               r.distance_km, r.duration_min, r.passengers, r.cancel_reason,
-              r.created_at, r.started_at,
+              r.created_at, r.started_at, r.vehicle_type,
+              r.carga_tipo, r.carga_volume, r.carga_ajuda, r.carga_notas,
+              (SELECT COUNT(*) FROM ride_fotos f WHERE f.ride_id = r.id)::int AS n_fotos,
               p.name AS passageiro, p.phone AS tel_passageiro,
               d.name AS motorista, d.phone AS tel_motorista,
               r.cancelled_by = r.passenger_id AS cancelou_passageiro
@@ -314,9 +364,10 @@ adminRouter.get(
        JOIN users p ON p.id = r.passenger_id
        LEFT JOIN users d ON d.id = r.driver_id
        WHERE r.created_at > NOW() - ($1 || ' hours')::interval
+         AND ($2 = 'todos' OR r.vehicle_type = $2)
        ORDER BY r.id DESC
        LIMIT 60`,
-      [String(horas)]
+      [String(horas), veiculo]
     );
     res.json({
       viagens: rows.map((r) => ({
@@ -330,6 +381,18 @@ adminRouter.get(
         pessoas: r.passengers,
         motivoCancelamento: r.cancel_reason,
         canceladoPeloPassageiro: r.cancelou_passageiro,
+        veiculo: r.vehicle_type,
+        // A carga só existe quando há tipo — o mesmo molde do `toPublicRide`.
+        // Um grupo vazio no painel seria uma linha a dizer "nada".
+        carga: r.carga_tipo
+          ? {
+              tipo: r.carga_tipo,
+              volume: r.carga_volume,
+              ajuda: r.carga_ajuda,
+              notas: r.carga_notas,
+              fotos: r.n_fotos,
+            }
+          : null,
         passageiro: r.passageiro,
         telPassageiro: r.tel_passageiro,
         motorista: r.motorista,
@@ -618,6 +681,10 @@ adminRouter.get(
     // código foi errado, nem a que horas cada coisa aconteceu. Era o suficiente
     // para o painel e insuficiente para responder a uma queixa.
     const eventos = await historicoDe(id);
+    const { n: nFotos } = await one(
+      'SELECT COUNT(*)::int AS n FROM ride_fotos WHERE ride_id = $1',
+      [id]
+    );
 
     res.json({
       // Por ordem de acontecimento, com hora, quem e onde. É o que permite
@@ -643,6 +710,20 @@ adminRouter.get(
         min: r.duration_min,
         veiculo: r.vehicle_type,
         pessoas: r.passengers,
+        // A CARGA no detalhe. As colunas já vinham no `SELECT r.*`; faltava
+        // só passá-las para fora. `declaradoEm` é a hora a que a pessoa
+        // aceitou a declaração — não um "sim", a hora. É o que responde a
+        // "ela chegou a declarar que aquilo era legal?".
+        carga: r.carga_tipo
+          ? {
+              tipo: r.carga_tipo,
+              volume: r.carga_volume,
+              ajuda: r.carga_ajuda,
+              notas: r.carga_notas,
+              declaradoEm: r.carga_declarado_em,
+              fotos: nFotos,
+            }
+          : null,
         // O código de recolha só faz sentido enquanto a viagem não começou;
         // depois disso é um segredo gasto que não precisa de ser mostrado.
         codigoRecolha: ['requested', 'accepted', 'arriving'].includes(r.status)
