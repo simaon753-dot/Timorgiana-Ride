@@ -92,6 +92,10 @@ export default function CargaDoPedido({
   onDeclarado,
   fotos = [],
   onFotos,
+  paragens = [],
+  onRemoverParagem,
+  onAdicionarParagem,
+  maxParagens = 2,
 }) {
   const { t } = useI18n();
   const [aTirar, setATirar] = useState(false);
@@ -156,6 +160,45 @@ export default function CargaDoPedido({
 
       <Text style={styles.seccao}>{t('cargaAjudaTitulo')}</Text>
       <Fichas opcoes={AJUDAS} valor={ajuda} onEscolher={onAjuda} t={t} />
+
+      {/* AS PARAGENS, depois das tres perguntas de decisao e antes do
+          detalhe. O que e, quanto e e que ajuda leva decidem se o motorista
+          aceita; onde passa pelo caminho decide quanto tempo lhe custa — e e
+          por isso que vem logo a seguir, e nao no fim com as observacoes.
+
+          Escolhem-se por PESQUISA e nao por toque no mapa. O ecra ja tem uma
+          maquina de toques que decide entre recolha e destino e que recusa
+          tocar em mais nada depois dos dois postos — foi uma correcao de um
+          defeito real, em que um toque solto substituia o destino. Um
+          terceiro alvo naquela maquina reabria essa porta. */}
+      <Text style={styles.seccao}>{t('paragensTitulo')}</Text>
+      <Text style={styles.fotosNota}>{t('paragensNota')}</Text>
+      {paragens.map((p, i) => (
+        <View key={`${p.lat},${p.lng},${i}`} style={styles.paragem}>
+          <Text style={styles.paragemNumero}>{i + 1}</Text>
+          <Text style={styles.paragemNome} numberOfLines={1}>
+            {p.label}
+          </Text>
+          <Pressable
+            onPress={() => onRemoverParagem?.(i)}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={t('paragemRemover')}
+          >
+            <Text style={styles.paragemX}>✕</Text>
+          </Pressable>
+        </View>
+      ))}
+      {paragens.length < maxParagens ? (
+        <Pressable
+          style={styles.paragemAdd}
+          onPress={() => onAdicionarParagem?.()}
+          accessibilityRole="button"
+          accessibilityLabel={t('paragemAdicionar')}
+        >
+          <Text style={styles.paragemAddTexto}>+ {t('paragemAdicionar')}</Text>
+        </Pressable>
+      ) : null}
 
       <Text style={styles.seccao}>{t('cargaNotasTitulo')}</Text>
       <TextField
@@ -267,6 +310,60 @@ const criarEstilos = () =>
     volumeNome: { ...tipo.corpoForte, color: colors.text },
     volumeNomeActivo: { color: colors.teal },
     volumeNota: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },
+
+    paragem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.white,
+      borderRadius: radius.md,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      marginBottom: spacing.sm,
+      minHeight: 48,
+    },
+    // O NÚMERO É TEAL E NÃO CORAL, e a razão não é estética.
+    //
+    // Escrevi um token `onCoral` por simetria com o `onTeal` que uso aqui ao
+    // lado. Não existe — e o verificador disse o que isso daria: número
+    // transparente dentro de um círculo coral. Uma bolinha vazia.
+    //
+    // Não inventei um token novo. O tema diz que sobre coral o texto tem de
+    // ser ESCURO (6,5:1, nota na linha 23), e em modo escuro o token `white`
+    // vale #1C1C1E — ou seja, qualquer escolha minha acertava num modo e
+    // falhava no outro, e eu não tenho como ver os dois.
+    //
+    // O par teal/onTeal já está definido para ambos e já é usado nas fichas
+    // deste ficheiro. O pino no mapa continua coral: essa é a paleta do
+    // mapa, esta é a da interface.
+    paragemNumero: {
+      ...tipo.pequeno,
+      color: colors.onTeal,
+      backgroundColor: colors.teal,
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      textAlign: 'center',
+      lineHeight: 22,
+      fontWeight: '700',
+      overflow: 'hidden',
+    },
+    paragemNome: { ...tipo.pequeno, color: colors.text, flex: 1 },
+    paragemX: { ...tipo.pequeno, color: colors.textMuted },
+    paragemAdd: {
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: colors.teal,
+      backgroundColor: colors.tintaTeal,
+      borderRadius: radius.md,
+      paddingVertical: spacing.sm,
+      alignItems: 'center',
+      minHeight: 44,
+      justifyContent: 'center',
+    },
+    paragemAddTexto: { ...tipo.pequeno, color: colors.teal, fontWeight: '700' },
 
     fotosNota: {
       ...tipo.legenda,

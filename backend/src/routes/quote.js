@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth } from '../auth.js';
 import { preco, etaMinutos, straightKm } from '../routing.js';
 import { rotaCompleta } from '../rotas.js';
+import { limparDestinos } from '../destinosDaViagem.js';
 import { paragensQueCobrem } from '../paradas.js';
 import { nearestDrivers } from '../drivers.js';
 import { taxasPara } from '../taxasDeEntrada.js';
@@ -49,13 +50,32 @@ quoteRouter.post(
     // havia forma de mostrar por onde é que o preço tinha passado.
     //
     // Agora é uma só, e vai também a linha na resposta.
-    const viagem = await rotaCompleta({ lat: oLat, lng: oLng }, { lat: dLat, lng: dLng });
+    // As paragens entram na MESMA chamada: a Routes v2 leva-as como
+    // `intermediates` e devolve os totais da rota inteira, por uma só
+    // chamada ao contador diário.
+    const paragens = limparDestinos(req.body?.destinos);
+    const viagem = await rotaCompleta(
+      { lat: oLat, lng: oLng },
+      { lat: dLat, lng: dLng },
+      paragens
+    );
 
     // Para cada tipo de veículo: preço e quanto falta até chegar o mais
     // próximo. Sem motoristas disponíveis, a opção aparece indisponível
     // em vez de desaparecer — o passageiro percebe porque não pode pedir.
+    // COM PARAGENS, SÓ O CARRY.
+    //
+    // Esta cotação calcula UM `km` e reparte-o pelos três veículos. Com
+    // desvios pelo meio, esse km traz os desvios dentro — e o preço de carro
+    // e motorizada apareceria inflacionado por caminhos que não vão fazer.
+    //
+    // Mostrar um preço e cobrar outro é a única coisa que esta app não pode
+    // fazer: é dinheiro em mão, sem recibo e sem estorno. Havendo paragens, a
+    // resposta traz a opção que corresponde ao que foi calculado, e mais
+    // nenhuma.
+    const tiposPossiveis = paragens.length ? ['carry'] : TIPOS_VEICULO;
     const opcoes = await Promise.all(
-      TIPOS_VEICULO.map(async (tipo) => {
+      tiposPossiveis.map(async (tipo) => {
         const perto = await nearestDrivers({
           lat: oLat,
           lng: oLng,
@@ -111,7 +131,14 @@ quoteRouter.post(
     if (oLat == null || oLng == null || dLat == null || dLng == null) {
       return res.status(400).json({ error: 'Faltam coordenadas.' });
     }
-    const v = await rotaCompleta({ lat: oLat, lng: oLng }, { lat: dLat, lng: dLng });
+    // Também aqui: a linha desenhada durante a viagem tem de passar pelas
+    // paragens. Sem isto, o mapa mostrava um caminho directo enquanto o
+    // preço cobrado incluía os desvios.
+    const v = await rotaCompleta(
+      { lat: oLat, lng: oLng },
+      { lat: dLat, lng: dLng },
+      limparDestinos(req.body?.destinos)
+    );
     return res.json({ linha: v.linha, km: v.km, min: v.min, fonte: v.fonte });
   })
 );

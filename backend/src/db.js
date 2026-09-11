@@ -488,6 +488,37 @@ export async function initSchema() {
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS privacy_accepted_at TIMESTAMPTZ`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS duration_min INTEGER`);
 
+  // PARAGENS PELO CAMINHO, quando a viagem tem mais do que um sítio.
+  //
+  // NÃO SE CHAMA `ride_paragens` DE PROPÓSITO. Neste projecto "paragem" já
+  // quer dizer outra coisa: a tabela `paradas` e o `/quote/paragem` guardam
+  // ONDE O CARRO ENCOSTA para um dado lugar — no Cristo Rei larga-se em
+  // baixo, no Dolok Oan. Isso é uma propriedade do LUGAR. Isto aqui é um
+  // troço do PERCURSO. Dois sentidos para a mesma palavra, lado a lado na
+  // mesma base, seriam uma confusão permanente para quem vier a seguir.
+  //
+  // SÓ OS PONTOS DO MEIO. A origem e o destino continuam nas colunas da
+  // `rides`, intocados. É o que faz esta fase ser aditiva: o ecrã do pedido
+  // usa `destino` em oitenta sítios — a guarda contra a corrida do GPS, a
+  // dependência da cotação, a máquina de toques no mapa — e transformá-lo
+  // numa lista tocava em todos eles. Assim, quem não usa paragens não nota
+  // diferença nenhuma, porque não há diferença nenhuma.
+  //
+  // `ordem` e não a ordem de inserção: a fila é a do percurso, e tem de
+  // sobreviver a apagar o segundo ponto de três.
+  await query(`
+    CREATE TABLE IF NOT EXISTS ride_destinos (
+      id       SERIAL PRIMARY KEY,
+      ride_id  INTEGER NOT NULL REFERENCES rides(id),
+      ordem    INTEGER NOT NULL,
+      label    TEXT NOT NULL,
+      lat      DOUBLE PRECISION NOT NULL,
+      lng      DOUBLE PRECISION NOT NULL,
+      UNIQUE (ride_id, ordem)
+    )
+  `);
+  await query('CREATE INDEX IF NOT EXISTS idx_ride_destinos ON ride_destinos(ride_id)');
+
   // FOTOGRAFIAS DOS BENS, quando quem pede as tira.
   //
   // Pertencem à VIAGEM e não a quem pede: descrevem aquela carga, uma vez. A

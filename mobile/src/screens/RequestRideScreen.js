@@ -152,6 +152,9 @@ export default function RequestRideScreen({ navigation, route }) {
   const [cargaNotas, setCargaNotas] = useState('');
   const [cargaDeclarado, setCargaDeclarado] = useState(false);
   const [cargaFotos, setCargaFotos] = useState([]);
+  // Paragens pelo caminho, só no Carry. Ver a nota em `paragensActivas`.
+  const [cargaDestinos, setCargaDestinos] = useState([]);
+  const [aEscolherParagem, setAEscolherParagem] = useState(false);
   const [outroNome, setOutroNome] = useState('');
   const [outroTelefone, setOutroTelefone] = useState('');
   const [outroMenor, setOutroMenor] = useState(false);
@@ -217,6 +220,22 @@ export default function RequestRideScreen({ navigation, route }) {
   // Descobrir que não há serviço depois de decidir é descobrir tarde de mais.
   const [coberturaDestino, setCoberturaDestino] = useState(null);
 
+  // AS PARAGENS SÓ CONTAM NO CARRY.
+  //
+  // Trocar de veículo não apaga o que já foi escolhido — apaga-lhe o efeito.
+  // Sem isto, quem punha duas paragens e voltava para carro levava-as na
+  // cotação: o servidor, vendo paragens, devolve só a opção Carry, e a
+  // pessoa ficava sem preço de carro sem perceber porquê.
+  const paragensActivas = veiculo(veiculoAtual).levaPessoas ? [] : cargaDestinos;
+
+  // A CHAVE É SÓ DE COORDENADAS, e não o objecto inteiro.
+  //
+  // O nome de um lugar chega DEPOIS das coordenadas (vem do geocodificador).
+  // Com o objecto inteiro nas dependências, a chegada do nome refazia a
+  // cotação sem nada de relevante ter mudado — uma chamada paga ao Google por
+  // cada nome que aterra.
+  const chaveParagens = paragensActivas.map((x) => `${x.lat},${x.lng}`).join(';');
+
   // Assim que houver os dois pontos, o servidor devolve rota, preços e
   // tempo de chegada num só pedido — é ele que fixa o preço.
   useEffect(() => {
@@ -229,6 +248,10 @@ export default function RequestRideScreen({ navigation, route }) {
         originLng: origem.lng,
         destLat: destino.lat,
         destLng: destino.lng,
+        // Os desvios entram na distância, e é dessa distância que sai o preço
+        // mostrado no ecrã. Calcular sem eles aqui e com eles no pedido era
+        // mostrar um valor e cobrar outro.
+        destinos: paragensActivas,
         // QUANTAS PESSOAS VÃO, porque a partir de cinco o quilómetro do carro
         // é outro — só um carro grande as leva, e custa mais ao motorista.
         // Ver a nota em config.js do servidor.
@@ -246,7 +269,11 @@ export default function RequestRideScreen({ navigation, route }) {
     // continuava a mostrar o preço de quatro e a viagem nascia com o de
     // cinco. O passageiro aceitava um preço e pagava outro — e o preço do
     // ecrã é o que ele aceitou.
-  }, [token, origem?.lat, origem?.lng, destino?.lat, destino?.lng, pessoas]);
+    //
+    // `chaveParagens` entra pela MESMA razão que `pessoas`, e o defeito seria
+    // idêntico: juntar uma paragem sem refazer a cotação deixava no ecrã o
+    // preço do percurso curto, e a viagem nascia com o do percurso longo.
+  }, [token, origem?.lat, origem?.lng, destino?.lat, destino?.lng, pessoas, chaveParagens]);
 
   useEffect(() => {
     origemRef.current = origem;
@@ -611,6 +638,11 @@ export default function RequestRideScreen({ navigation, route }) {
               cargaAjuda,
               cargaNotas: cargaNotas.trim(),
               cargaDeclarada: cargaDeclarado,
+              // O servidor volta a filtrar: só aceita paragens no Carry, e só
+              // duas. Mandar daqui o que já está filtrado aqui é cinto e
+              // suspensórios de propósito — um telemóvel modificado manda o
+              // que quiser, e o preço é calculado do lado de lá.
+              destinos: paragensActivas,
             }
           : {}),
         ...(paraOutra
@@ -882,6 +914,16 @@ export default function RequestRideScreen({ navigation, route }) {
       tipo: 'origem',
       cartao: origem.desenhar === true,
     });
+  // Pela ordem do percurso: recolha, paragens, entrega. É a ordem por que o
+  // motorista lê o mapa de cima para baixo.
+  for (const pa of paragensActivas)
+    marcadores.push({
+      lat: pa.lat,
+      lng: pa.lng,
+      label: pa.label,
+      tipo: 'paragem',
+      cartao: false,
+    });
   if (destino)
     marcadores.push({
       lat: destino.lat,
@@ -1054,6 +1096,30 @@ export default function RequestRideScreen({ navigation, route }) {
             <Text style={styles.barraCancelar}>{t('cancel')}</Text>
           </Pressable>
         </View>
+      ) : aEscolherParagem ? (
+        /* A SEGUNDA PESQUISA, e não um terceiro alvo na primeira.
+           O ecrã já tem uma máquina que decide entre recolha e destino: o
+           toque no mapa, o arrasto do pino, a pesquisa aberta por um dos dois
+           campos. Ela ramifica em `'origem' | 'destino'` em quatro sítios, e
+           recusa-se a mudar seja o que for depois de ambos postos — o que foi
+           a correcção de um defeito real, em que um toque solto substituía o
+           destino e mudava a tarifa sem ninguém perguntar nada.
+           Montar uma instância própria custa estas dez linhas e não toca em
+           nenhum desses quatro sítios. Estendê-la tocaria nos quatro.
+           SEM `onEscolherNoMapa`, de propósito: o componente protege a prop
+           com `&&` e a linha não aparece. Uma paragem é uma morada — diz-se
+           pelo nome, não apontando ao mapa por cima de uma viagem já
+           definida. */
+        <PlaceSearch
+          placeholder={t('paragemAdicionar')}
+          onEscolher={(lugar) => {
+            setCargaDestinos((lista) =>
+              [...lista, { label: lugar.label, lat: lugar.lat, lng: lugar.lng }].slice(0, 2)
+            );
+            setAEscolherParagem(false);
+          }}
+          onFechar={() => setAEscolherParagem(false)}
+        />
       ) : pesquisa ? (
         <PlaceSearch
           placeholder={t('searchPlaceholder')}
@@ -1088,7 +1154,12 @@ export default function RequestRideScreen({ navigation, route }) {
           recolha: a barra ficava fora de alcance.
           O comentário lá em cima já dizia que a barra "substitui a folha".
           Dizia-o e não era verdade. */}
-      <View style={[styles.painel, (pesquisa || aEscolherNoMapa) && styles.escondido]}>
+      <View
+        style={[
+          styles.painel,
+          (pesquisa || aEscolherNoMapa || aEscolherParagem) && styles.escondido,
+        ]}
+      >
         <View style={styles.puxador} />
         {/* O indicador de deslize é mostrado de propósito. Escondido, o
             painel cortava a meio — a pergunta "quantas pessoas?" ficava
@@ -1254,6 +1325,9 @@ export default function RequestRideScreen({ navigation, route }) {
               onDeclarado={setCargaDeclarado}
               fotos={cargaFotos}
               onFotos={setCargaFotos}
+              paragens={cargaDestinos}
+              onRemoverParagem={(i) => setCargaDestinos((lista) => lista.filter((_, j) => j !== i))}
+              onAdicionarParagem={() => setAEscolherParagem(true)}
             />
           ) : null}
 

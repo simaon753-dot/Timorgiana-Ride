@@ -401,6 +401,19 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
           ) : null}
         </View>
       ) : null}
+      {/* AS PARAGENS, ditas por extenso antes de aceitar.
+          Os pinos ja estao no mapa acima, mas um mapa pequeno nao diz quantas
+          sao nem por que ordem. Duas entregas em vez de uma mudam o tempo do
+          trabalho, e isso tem de caber numa linha que se le de relance. */}
+      {ride.destinos?.length ? (
+        <View style={styles.paragens}>
+          {ride.destinos.map((p, i) => (
+            <Text key={`${p.lat},${p.lng},${i}`} style={styles.paragemLinha} numberOfLines={1}>
+              {i + 1}. {p.label}
+            </Text>
+          ))}
+        </View>
+      ) : null}
       <View style={styles.metaRow}>
         <Text style={styles.passenger}>🧍 {ride.passenger?.name}</Text>
         <Text style={styles.wants}>
@@ -698,6 +711,14 @@ const criarEstilos = () =>
     cargaAjuda: { ...tipo.pequeno, color: colors.teal, marginTop: 1 },
     cargaNotas: { ...tipo.pequeno, color: colors.textMuted, marginTop: 3 },
     cargaFotos: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+    paragens: {
+      marginTop: spacing.sm,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.coral,
+      paddingLeft: spacing.md,
+      gap: 2,
+    },
+    paragemLinha: { ...tipo.pequeno, color: colors.text },
     cargaFoto: {
       width: 64,
       height: 64,
