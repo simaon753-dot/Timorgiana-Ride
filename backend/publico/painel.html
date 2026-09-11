@@ -96,6 +96,25 @@
   @media (max-width: 900px) { .conta { grid-template-columns: 1fr; } }
   .conta h3 { margin: 0 0 2px; font-size: 17px; }
   .meta { color: var(--suave); font-size: 13px; }
+  /* OS NÚMEROS QUE NINGUÉM VIA. Ver a nota no mostrarResumo. */
+  .resumo { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .numero { background: var(--branco); border: 1px solid var(--borda);
+    border-radius: 10px; padding: 8px 12px; min-width: 96px; }
+  .numero b { display: block; font-size: 20px; color: var(--teal); line-height: 1.2; }
+  .numero span { color: var(--suave); font-size: 12px; }
+  /* A CARGA DE UM CARRY, dentro da linha da viagem.
+     Sem fundo próprio: a linha já é uma caixa branca, e uma segunda caixa
+     branca lá dentro não se via. Uma barra teal à esquerda separa sem
+     acrescentar mais uma moldura. */
+  .caixaCarga { border-left: 3px solid var(--teal); padding: 2px 0 2px 10px;
+    margin-top: 8px; font-size: 14px; }
+  .fotosCarga { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  /* O MESMO TAMANHO DOS DOCUMENTOS (116x88). Numa lista de sessenta viagens
+     o que importa é reconhecer a carga de relance; uma fotografia ao tamanho
+     natural são três megabytes a empurrar a linha seguinte para fora do ecrã.
+     O fundo cinzento é o que se vê enquanto o observador não a foi buscar. */
+  .fotoCarga { width: 116px; height: 88px; object-fit: cover; border-radius: 8px;
+    background: var(--borda); }
   .docs { display: flex; gap: 10px; flex-wrap: wrap; }
   .doc { width: 116px; }
   .doc img { width: 116px; height: 88px; object-fit: cover; border-radius: 8px;
@@ -202,6 +221,7 @@
     <div class="separadores">
       <button data-sec="aprovacoes" aria-pressed="true">Aprovações</button>
       <button data-sec="contas" aria-pressed="false">Contas e acessos</button>
+      <button data-sec="viagens" aria-pressed="false">Viagens</button>
       <button data-sec="paragens" aria-pressed="false">Paragens</button>
       <button data-sec="dados" aria-pressed="false">Dados</button>
     </div>
@@ -225,6 +245,23 @@
       <label class="soLeitor" for="procura">Procurar por nome ou número de telemóvel</label>
       <input id="procura" type="search" placeholder="Nome ou número de telemóvel" />
       <div id="pessoas"></div>
+    </div>
+
+    <div id="secViagens" hidden>
+      <p class="explica">
+        O que aconteceu nas últimas 48 horas: quem pediu, quem levou, quanto custou
+        e o que correu mal. Os <b>Carry</b> mostram também o que ia dentro e as
+        fotografias que quem pediu tirou — é com elas que se responde a uma queixa
+        sobre bens danificados.
+      </p>
+      <div class="filtros" id="filtroVeiculo">
+        <button data-veiculo="todos" aria-pressed="true">Todas</button>
+        <button data-veiculo="carry" aria-pressed="false">Carry</button>
+        <button data-veiculo="car" aria-pressed="false">Carro</button>
+        <button data-veiculo="motorbike" aria-pressed="false">Motorizada</button>
+      </div>
+      <div id="resumoViagens" class="resumo"></div>
+      <div id="listaViagens"></div>
     </div>
 
     <div id="secParagens" hidden>
@@ -364,6 +401,36 @@ const ESTADOS = {
   suspended: 'suspenso',
 };
 
+// O NOME DO VEÍCULO, numa tabela e não num ternário.
+//
+// Estava aqui um `type === 'motorbike' ? 'Motorizada' : 'Carro'`, e com dois
+// tipos funcionava. Ao aparecer o Carry passou a MENTIR: um motorista de
+// Carry era mostrado como "Carro", no ecrã onde se decide aprová-lo.
+//
+// Foi o último sobrevivente de uma família de ~32 ternários iguais que já
+// tinham sido substituídos por uma tabela do lado da app — este escapou
+// porque vive em HTML e não no código da app, e nenhuma busca por ficheiros
+// .js lhe tocou. É a lição da fase 1 outra vez: uma pergunta de duas vias
+// escrita à mão só está certa enquanto houver duas respostas.
+const VEICULOS = {
+  motorbike: 'Motorizada',
+  car: 'Carro',
+  carry: 'Carry / Pickup',
+};
+const nomeVeiculo = (t) => VEICULOS[t] || '—';
+
+// As palavras da carga, para o painel não mostrar os códigos crus da base.
+const CARGA = {
+  compras: 'Compras', moveis: 'Móveis', caixas: 'Caixas',
+  eletrodomesticos: 'Eletrodomésticos', materiais: 'Materiais',
+  mercadorias: 'Mercadorias', outros: 'Outros',
+};
+const VOLUME = { pequeno: 'Pequeno', medio: 'Médio', grande: 'Grande' };
+const AJUDA = {
+  nenhuma: 'Só transporte', carregar: 'Ajudar a carregar',
+  descarregar: 'Ajudar a descarregar', ambas: 'Carregar e descarregar',
+};
+
 const MAX_DIAS = { inspection: 400, licence: 5500, vehicle: 5500 };
 
 let token = localStorage.getItem('tr_token') || '';
@@ -399,15 +466,21 @@ async function api(caminho, opcoes = {}) {
 // consegue mandar cabeçalhos. Buscar o ficheiro por fetch, transformá-lo em
 // blob e apontar a imagem para esse blob resolve — sem abrir os documentos
 // de identificação a quem tenha só o endereço.
-async function imagemDoDocumento(id) {
-  if (porUrl.has(id)) return porUrl.get(id);
-  const r = await fetch('/api/admin/documents/' + id, {
-    headers: { Authorization: 'Bearer ' + token },
-  });
+// Generalizada quando as fotografias da carga passaram a precisar do mesmo:
+// a mecânica — cabeçalho, blob, cache — é idêntica e só o endereço muda. Um
+// segundo par de função e cache ao lado deste seria a mesma coisa escrita
+// duas vezes, e é assim que duas coisas iguais começam a divergir.
+async function imagemDeCaminho(caminho) {
+  if (porUrl.has(caminho)) return porUrl.get(caminho);
+  const r = await fetch(caminho, { headers: { Authorization: 'Bearer ' + token } });
   if (!r.ok) return null;
   const url = URL.createObjectURL(await r.blob());
-  porUrl.set(id, url);
+  porUrl.set(caminho, url);
   return url;
+}
+
+async function imagemDoDocumento(id) {
+  return imagemDeCaminho('/api/admin/documents/' + id);
 }
 
 function diasAte(iso) {
@@ -489,7 +562,11 @@ const observador = new IntersectionObserver(
       if (!e.isIntersecting) continue;
       const img = e.target;
       observador.unobserve(img);
-      imagemDoDocumento(img.dataset.doc).then((u) => u && (img.src = u));
+      // `data-src` é o caminho já feito (fotografias da carga); `data-doc`
+      // continua a ser o id de um documento. Os cartões de aprovação não
+      // mudaram uma linha.
+      const onde = img.dataset.src || '/api/admin/documents/' + img.dataset.doc;
+      imagemDeCaminho(onde).then((u) => u && (img.src = u));
     }
   },
   { rootMargin: '300px' }
@@ -546,7 +623,7 @@ async function desenhar() {
       <div>
         <h3>${escapar(d.name)}</h3>
         <div class="meta">${escapar(d.phone || '')}</div>
-        <div class="meta">${d.vehicle?.type === 'motorbike' ? 'Motorizada' : 'Carro'}
+        <div class="meta">${nomeVeiculo(d.vehicle?.type)}
           ${escapar(d.vehicle?.model || '')} ${escapar(d.vehicle?.plate || '')}</div>
         <div class="meta">${d.viagens || 0} viagens · ${escapar(ESTADOS[d.driverStatus] || d.driverStatus || '')}</div>
       </div>
@@ -765,18 +842,20 @@ for (const b of document.querySelectorAll('.separadores button')) {
     }
     $('secAprovacoes').hidden = b.dataset.sec !== 'aprovacoes';
     $('secContas').hidden = b.dataset.sec !== 'contas';
+    $('secViagens').hidden = b.dataset.sec !== 'viagens';
     $('secParagens').hidden = b.dataset.sec !== 'paragens';
     $('secDados').hidden = b.dataset.sec !== 'dados';
     if (b.dataset.sec === 'contas') $('procura').focus();
     if (b.dataset.sec === 'dados') mostrarRetencao();
     if (b.dataset.sec === 'paragens') mostrarParagens();
+    if (b.dataset.sec === 'viagens') mostrarViagens();
   };
 }
 
-for (const b of document.querySelectorAll('.filtros button')) {
+for (const b of document.querySelectorAll('#secAprovacoes .filtros button')) {
   b.onclick = async () => {
     estado = b.dataset.estado;
-    for (const o of document.querySelectorAll('.filtros button')) {
+    for (const o of document.querySelectorAll('#secAprovacoes .filtros button')) {
       o.setAttribute('aria-pressed', String(o === b));
     }
     try {
@@ -871,6 +950,142 @@ let transferido = null;
 function lerCoordenadas(texto) {
   const n = String(texto || '').trim().split(/[,\s]+/).map(Number).filter(Number.isFinite);
   return n.length === 2 ? n : null;
+}
+
+// ── Viagens ─────────────────────────────────────────────────────────
+//
+// Os endpoints `/admin/viagens` e `/admin/viagens/:id` existiam desde sempre
+// e NÃO ERAM CHAMADOS POR NINGUÉM — nem pelo painel, nem pela app. Todo o
+// trabalho de reconstituir uma viagem para responder a uma queixa estava
+// feito no servidor e não se via em lado nenhum.
+//
+// Esta secção é sobretudo isso: pôr à vista o que já existia. O que é
+// mesmo novo é o filtro por veículo e a carga — sem eles, dez pedidos de
+// bens no meio de trezentas viagens de pessoas não se encontram.
+let veiculoFiltro = 'todos';
+
+const ESTADO_VIAGEM = {
+  requested: 'à espera', accepted: 'aceite', arriving: 'a caminho',
+  in_progress: 'a decorrer', completed: 'concluída', cancelled: 'cancelada',
+};
+
+function blocoCarga(v) {
+  if (!v.carga) return '';
+  const linha = [CARGA[v.carga.tipo] || 'Outros', VOLUME[v.carga.volume]]
+    .filter(Boolean)
+    .join(' · ');
+  const ajuda =
+    v.carga.ajuda && v.carga.ajuda !== 'nenhuma'
+      ? `<br><span class="explica">${escapar(AJUDA[v.carga.ajuda] || '')}</span>`
+      : '';
+  const notas = v.carga.notas
+    ? `<br><span class="explica">${escapar(v.carga.notas)}</span>`
+    : '';
+  // As fotografias entram vazias e o observador enche-as quando aparecem no
+  // ecrã — o mesmo caminho dos documentos. Numa lista de sessenta viagens,
+  // buscar todas de uma vez seria puxar dezenas de megabytes que ninguém
+  // chegaria a ver.
+  const fotos = Array.from({ length: v.carga.fotos || 0 })
+    .map(
+      (_, i) =>
+        `<img class="fotoCarga" data-src="/api/admin/viagens/${v.id}/foto/${i}" alt="Bens" />`
+    )
+    .join('');
+  return (
+    `<div class="caixaCarga"><b>${escapar(linha)}</b>${ajuda}${notas}` +
+    (fotos ? `<div class="fotosCarga">${fotos}</div>` : '') +
+    '</div>'
+  );
+}
+
+// TUDO ESCAPADO, e não por hábito. Os nomes das paragens são escritos pelo
+// administrador; os destinos e as observações da carga são escritos por
+// PASSAGEIROS. Concatená-los em innerHTML sem escapar punha texto de
+// estranhos a correr dentro do painel de quem aprova motoristas.
+function linhaDeViagem(v) {
+  const cancel = v.motivoCancelamento
+    ? `<br><span class="explica">cancelada pelo ${
+        v.canceladoPeloPassageiro ? 'passageiro' : 'motorista'
+      } — ${escapar(v.motivoCancelamento)}</span>`
+    : '';
+  const preco = v.preco != null ? '$' + Number(v.preco).toFixed(2) : 'sem preço';
+  return (
+    '<div class="caixaDados">' +
+    `<b>#${v.id} · ${escapar(nomeVeiculo(v.veiculo))} · ${
+      ESTADO_VIAGEM[v.estado] || escapar(v.estado)
+    }</b><br>` +
+    `<span class="explica">${escapar(v.origem || '—')} → ${escapar(v.destino || '—')}</span><br>` +
+    `<span class="explica">${preco}${v.km != null ? ' · ' + v.km + ' km' : ''} · ` +
+    `${escapar(v.passageiro || '—')} → ${escapar(v.motorista || 'sem motorista')}</span>` +
+    cancel +
+    blocoCarga(v) +
+    '</div>'
+  );
+}
+
+// OS NÚMEROS ESTAVAM TÃO ÓRFÃOS COMO AS VIAGENS.
+//
+// O `/admin/resumo` calcula oito contagens a cada pedido — viagens de 24h,
+// canceladas, quem está à espera, quantos veículos em serviço — e NINGUÉM o
+// chamava: nem o painel, nem a app. Trabalho feito e invisível, como os
+// endpoints de viagens.
+//
+// Acrescentei-lhe os dois contadores de Carry e dei por mim a fazer o mesmo:
+// números novos sem sítio nenhum onde aparecer. Pô-los aqui custa menos do
+// que os tirar, e traz os outros seis com eles.
+//
+// A tira NÃO É ESPERADA pela lista: se o resumo falhar ou demorar, as
+// viagens aparecem à mesma. Um número em falta não vale um ecrã vazio.
+async function mostrarResumo() {
+  const alvo = $('resumoViagens');
+  try {
+    const { resumo: n } = await api('/admin/resumo');
+    const cartao = (rotulo, valor) =>
+      `<div class="numero"><b>${valor}</b><span>${rotulo}</span></div>`;
+    alvo.innerHTML =
+      cartao('viagens 24h', n.viagens24h) +
+      cartao('canceladas 24h', n.canceladas24h) +
+      cartao('à espera agora', n.esperando) +
+      cartao('em serviço', n.veiculosServico) +
+      cartao('motoristas Carry', n.carryMotoristas) +
+      cartao('Carry 24h', n.carry24h);
+  } catch {
+    // A tira é um extra. Falhar em silêncio é melhor do que uma mensagem
+    // de erro por cima da lista de viagens, que essa sim é o que se veio ver.
+    alvo.innerHTML = '';
+  }
+}
+
+async function mostrarViagens() {
+  mostrarResumo();
+  const alvo = $('listaViagens');
+  alvo.textContent = 'A carregar…';
+  try {
+    const r = await api(
+      '/admin/viagens?horas=48&veiculo=' + encodeURIComponent(veiculoFiltro)
+    );
+    if (!r.viagens.length) {
+      alvo.innerHTML =
+        '<p class="explica">Nenhuma viagem nas últimas 48 horas' +
+        (veiculoFiltro === 'todos' ? '.' : ' com este veículo.') +
+        '</p>';
+      return;
+    }
+    alvo.innerHTML = r.viagens.map(linhaDeViagem).join('');
+    for (const img of alvo.querySelectorAll('img[data-src]')) observador.observe(img);
+  } catch (e) {
+    alvo.textContent = 'Não foi possível ler: ' + e.message;
+  }
+}
+
+for (const b of document.querySelectorAll('#filtroVeiculo button')) {
+  b.onclick = () => {
+    veiculoFiltro = b.dataset.veiculo;
+    for (const o of document.querySelectorAll('#filtroVeiculo button')) {
+      o.setAttribute('aria-pressed', String(o === b));
+    }
+    mostrarViagens();
+  };
 }
 
 async function mostrarParagens() {
