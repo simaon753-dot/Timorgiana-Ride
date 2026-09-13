@@ -356,7 +356,7 @@ adminRouter.get(
       `SELECT r.id, r.status, r.dest_label, r.origin_label, r.fare_usd,
               r.distance_km, r.duration_min, r.passengers, r.cancel_reason,
               r.created_at, r.started_at, r.vehicle_type,
-              r.carga_tipo, r.carga_volume, r.carga_ajuda, r.carga_notas,
+              r.carga_tipo, r.carga_volume, r.carga_ajuda, r.carga_notas, r.carga_outro,
               (SELECT COUNT(*) FROM ride_fotos f WHERE f.ride_id = r.id)::int AS n_fotos,
               -- As paragens pelo caminho, pela ordem do percurso. Sem elas,
               -- um Carry com duas entregas aparecia aqui como origem e
@@ -397,6 +397,7 @@ adminRouter.get(
               volume: r.carga_volume,
               ajuda: r.carga_ajuda,
               notas: r.carga_notas,
+              outro: r.carga_outro,
               fotos: r.n_fotos,
             }
           : null,
@@ -731,6 +732,7 @@ adminRouter.get(
               volume: r.carga_volume,
               ajuda: r.carga_ajuda,
               notas: r.carga_notas,
+              outro: r.carga_outro,
               declaradoEm: r.carga_declarado_em,
               fotos: nFotos,
             }

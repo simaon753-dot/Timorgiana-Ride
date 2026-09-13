@@ -89,17 +89,20 @@ const ficheiros = [];
 })(raiz);
 
 let total = 0;
+let contadas = 0;
 const problemas = [];
 for (const f of ficheiros) {
   const ast = babel.parse(readFileSync(f, 'utf8'), { sourceType: 'module' });
   const consts = {};
   const nos = [];
+  const chamadas = [];
   (function visitar(n) {
     if (!n || typeof n.type !== 'string') return;
     if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier' && n.init?.type === 'TemplateLiteral') {
       consts[n.id.name] = variantes(n.init, consts)[0];
     }
     if (n.type === 'TemplateLiteral' || n.type === 'StringLiteral') nos.push(n);
+    if (n.type === 'CallExpression') chamadas.push(n);
     for (const k of Object.keys(n)) {
       const v = n[k];
       if (Array.isArray(v)) v.forEach(visitar);
@@ -123,6 +126,30 @@ for (const f of ficheiros) {
     }
     if (!alguma) problemas.push(`${relative(raiz, f)}:${n.loc.start.line} — ${primeiro}`);
   }
+
+  // QUANTOS $n E QUANTOS VALORES. Uma consulta com 24 marcadores e 23 valores
+  // analisa sem erro e só rebenta quando corre ("bind message supplies 23
+  // parameters"). Já me aconteceu num INSERT desta tabela na fase 2 do Carry.
+  // Só se compara quando os valores são uma lista escrita ali mesmo, sem
+  // `...` nem `$${…}` — de resto a conta faz-se em tempo de execução.
+  for (const c of chamadas) {
+    const [sqlNo, valores] = c.arguments;
+    if (!sqlNo || valores?.type !== 'ArrayExpression') continue;
+    if (valores.elements.some((e) => !e || e.type === 'SpreadElement')) continue;
+    if (sqlNo.type !== 'TemplateLiteral' && sqlNo.type !== 'StringLiteral') continue;
+    if (sqlNo.type === 'TemplateLiteral' && sqlNo.quasis.some((q, i) => i < sqlNo.expressions.length && q.value.cooked.endsWith('$'))) continue;
+    const sql = sqlNo.type === 'StringLiteral' ? sqlNo.value : variantes(sqlNo, consts)[0];
+    if (!EH_SQL.test(sql)) continue;
+    // Sem comentários nem texto entre plicas: um "$50" num comentário SQL não é
+    // um marcador, e contá-lo acusava uma consulta certa (13/09/26).
+    const limpo = sql.replace(/--[^\n]*/g, '').replace(/'(?:[^']|'')*'/g, "''");
+    const marcas = [...limpo.matchAll(/\$(\d+)/g)].map((m) => Number(m[1]));
+    const maior = marcas.length ? Math.max(...marcas) : 0;
+    contadas++;
+    if (maior !== valores.elements.length) {
+      problemas.push(`${relative(raiz, f)}:${c.loc.start.line} — usa $1…$${maior} e recebe ${valores.elements.length} valor(es)`);
+    }
+  }
 }
 
 if (problemas.length) {
@@ -130,4 +157,6 @@ if (problemas.length) {
   for (const p of problemas) console.error('     ' + p);
   process.exit(1);
 }
-console.log(`  ✓ ${total} consultas SQL analisam com o analisador do próprio Postgres`);
+console.log(
+  `  ✓ ${total} consultas SQL analisam com o analisador do próprio Postgres; ${contadas} com marcadores e valores contados`
+);

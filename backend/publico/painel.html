@@ -421,9 +421,9 @@ const nomeVeiculo = (t) => VEICULOS[t] || '—';
 
 // As palavras da carga, para o painel não mostrar os códigos crus da base.
 const CARGA = {
-  compras: 'Compras', moveis: 'Móveis', caixas: 'Caixas',
+  compras: 'Compras', caixas: 'Caixas/Encomendas', moveis: 'Móveis', mudanca: 'Mudança',
   eletrodomesticos: 'Eletrodomésticos', materiais: 'Materiais',
-  mercadorias: 'Mercadorias', outros: 'Outros',
+  mercadorias: 'Mercadorias', outros: 'Outro',
 };
 const VOLUME = { pequeno: 'Pequeno', medio: 'Médio', grande: 'Grande' };
 const AJUDA = {
@@ -971,7 +971,9 @@ const ESTADO_VIAGEM = {
 
 function blocoCarga(v) {
   if (!v.carga) return '';
-  const linha = [CARGA[v.carga.tipo] || 'Outros', VOLUME[v.carga.volume]]
+  const nomeCarga =
+    v.carga.tipo === 'outros' && v.carga.outro ? 'Outro: ' + v.carga.outro : CARGA[v.carga.tipo] || 'Outro';
+  const linha = [nomeCarga, VOLUME[v.carga.volume]]
     .filter(Boolean)
     .join(' · ');
   const ajuda =

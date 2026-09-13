@@ -199,6 +199,7 @@ export function toPublicRide(row, opcoes = {}) {
             volume: row.carga_volume || null,
             ajuda: row.carga_ajuda || null,
             notas: row.carga_notas || null,
+            outro: row.carga_outro || null,
             fotos: Number(row.carga_fotos) || 0,
             // O INSTANTE da declaração, e não um "sim". Ver a nota em db.js.
             declaradoEm: row.carga_declarado_em || null,
@@ -255,6 +256,8 @@ export async function createRide({
   cargaAjuda = null,
   cargaNotas = null,
   cargaDeclarada = false,
+  // O que é, quando o tipo é "outros". Ignorado para qualquer outro tipo.
+  cargaOutro = null,
 }) {
   // Quatro dígitos, com zeros à frente. Não é um segredo criptográfico —
   // é uma senha dita em voz alta à porta do carro, e vive uns minutos.
@@ -290,15 +293,20 @@ export async function createRide({
         .trim()
         .slice(0, 400) || null
     : null;
+  // "OUTRO" OBRIGA A DIZER O QUÊ. Um motorista que lê "Outros" e mais nada
+  // está a decidir às cegas — é para isso que a lista existe.
+  const outroCarga =
+    tipoCarga === 'outros' ? String(cargaOutro || '').trim().slice(0, 80) || null : null;
   const inserted = await one(
     `INSERT INTO rides
        (passenger_id, dest_label, dest_lat, dest_lng, origin_label, origin_lat, origin_lng,
         vehicle_type, fare_usd, distance_km, duration_min, passengers,
         pickup_code, municipio,
         viajante_nome, viajante_telefone, viajante_menor, consentimento_em,
-        carga_tipo, carga_volume, carga_ajuda, carga_notas, carga_declarado_em, status)
+        carga_tipo, carga_volume, carga_ajuda, carga_notas, carga_declarado_em, carga_outro,
+        status)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,
-             $19,$20,$21,$22,$23,'requested')
+             $19,$20,$21,$22,$23,$24,'requested')
      RETURNING id`,
     [
       passengerId,
@@ -341,6 +349,7 @@ export async function createRide({
       // pessoas seria guardar a declaração de uma coisa que ninguém declarou.
       // Um registo que diz mais do que aconteceu vale menos, não mais.
       tipoCarga && cargaDeclarada ? new Date() : null,
+      outroCarga,
     ]
   );
   // AS PARAGENS, agora que a viagem tem id: a chave estrangeira aponta para

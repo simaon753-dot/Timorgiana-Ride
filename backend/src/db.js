@@ -562,6 +562,8 @@ export async function initSchema() {
   // quando se pergunta. E numa declaração sobre bens legais e seguros, é a
   // diferença entre ter registo e ter uma caixa marcada.
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_tipo TEXT`);
+  // O que é, quando o tipo é "outros" — escrito por quem pede (13/09/26).
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_outro TEXT`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_volume TEXT`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_ajuda TEXT`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_notas TEXT`);

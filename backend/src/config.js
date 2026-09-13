@@ -19,10 +19,15 @@ export const MAX_PESSOAS_CARRY = 15;
 // e ao fim de um ano sabe-se o que Díli manda transportar — que é informação,
 // e não uma pilha de frases para ler uma a uma. Quem tiver outra coisa escolhe
 // "outros" e explica nas observações.
+// Pela ordem do ecrã, definida pelo Simão (13/09/26). 'mudanca' é nova; o texto
+// livre de 'outros' vai em rides.carga_outro. A MESMA lista está na app
+// (CargaDoPedido), no cartão do motorista e no painel — o verificar-tipos da
+// app confere que as quatro coincidem.
 export const TIPOS_CARGA = [
   'compras',
-  'moveis',
   'caixas',
+  'moveis',
+  'mudanca',
   'eletrodomesticos',
   'materiais',
   'mercadorias',
