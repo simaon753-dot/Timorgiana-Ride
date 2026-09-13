@@ -38,6 +38,12 @@ import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
 import { colors, spacing, radius, elevacao, registarEstilos, paletaEmUso } from '../theme.js';
 
+// A COSTA DE DÍLI COM O CRISTO REI, recortada da referência do Simão
+// (13/09/26). Ele escolheu-a em vez de uma gerada, que parecia o Rio de
+// Janeiro. WebP com transparência: desvanece à esquerda e em cima para
+// assentar sobre qualquer fundo, e pesa uma fracção do PNG na actualização.
+const DILI = require('../../assets/entrada/dili.webp');
+
 export default function PassengerHomeScreen({ navigation }) {
   const { t } = useI18n();
   const { user, token, logout } = useAuth();
@@ -360,8 +366,20 @@ export default function PassengerHomeScreen({ navigation }) {
               </View>
             ) : null}
 
-            <Text style={styles.saudacao}>{t('homeHello', { name: user?.name || '' })}</Text>
-            <Text style={styles.convite}>{t('escolherVeiculo')}</Text>
+            {/* O CABEÇALHO DAS REFERÊNCIAS TGA: "Olá," numa linha e o nome em
+                teal grande na seguinte, com Díli por trás, encostada à direita.
+                A imagem vem PRIMEIRO para ficar por baixo do texto. */}
+            <View style={styles.heroi}>
+              <Image
+                source={DILI}
+                style={styles.dili}
+                resizeMode="contain"
+                accessibilityIgnoresInvertColors
+              />
+              <Text style={styles.saudacao}>{t('saudacaoOla')}</Text>
+              {user?.name ? <Text style={styles.saudacaoNome}>{user.name}!</Text> : null}
+              <Text style={styles.convite}>{t('escolherVeiculo')}</Text>
+            </View>
 
             {/* O VEÍCULO É O PRIMEIRO PASSO, e não o último.
                 Antes escolhia-se o destino aqui e o veículo três ecrãs à
@@ -375,7 +393,12 @@ export default function PassengerHomeScreen({ navigation }) {
               {TIPOS_VEICULO.map((id) => VEICULOS[id]).map((v) => (
                 <Pressable
                   key={v.id}
-                  style={({ pressed }) => [styles.veiculo, pressed && styles.premido]}
+                  style={({ pressed }) => [
+                    styles.veiculo,
+                    // A tinta de cada veículo vem da tabela (dados/tiposDeVeiculo.js).
+                    { backgroundColor: colors[v.tinta] || colors.white },
+                    pressed && styles.premido,
+                  ]}
                   onPress={() => navigation.navigate('EscolherDestino', { veiculo: v.id })}
                   accessibilityRole="button"
                   accessibilityLabel={t(v.chaveNome)}
@@ -388,10 +411,19 @@ export default function PassengerHomeScreen({ navigation }) {
                     />
                   </View>
                   <View style={styles.veiculoTextos}>
-                    <Text style={styles.veiculoNome}>{t(v.chaveNome)}</Text>
+                    <View style={styles.veiculoTopo}>
+                      <View style={[styles.veiculoIcone, { backgroundColor: colors[v.acento] }]}>
+                        <Icone nome={v.icone} tamanho={18} cor={colors.onAcento} />
+                      </View>
+                      <Text style={styles.veiculoNome} numberOfLines={1}>
+                        {t(v.chaveNome)}
+                      </Text>
+                    </View>
                     <Text style={styles.veiculoNota}>{t(v.chaveNota)}</Text>
                   </View>
-                  <Icone nome="seta" tamanho={20} cor={colors.textMuted} />
+                  <View style={styles.veiculoSeta}>
+                    <Icone nome="seta" tamanho={18} cor={colors[v.acento]} traco={2.5} />
+                  </View>
                 </Pressable>
               ))}
             </View>
@@ -433,15 +465,33 @@ const criarEstilos = () =>
     // estreita, o carro é baixo e largo, e sem altura fixa um cartão
     // ficava maior do que o outro sem razão nenhuma.
     veiculos: { gap: spacing.md, marginTop: spacing.lg },
+    // Era `...elevacao.cartao`, que não existe no tema (só há plana,
+    // flutuante e painel): os cartões nunca tiveram sombra, sem erro nenhum.
     veiculo: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.md,
+      borderRadius: radius.xl,
+      padding: spacing.sm,
+      paddingRight: spacing.md,
+      minHeight: 124,
+      ...elevacao.plana,
+    },
+    veiculoTopo: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    veiculoIcone: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    veiculoSeta: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
       backgroundColor: colors.white,
-      borderRadius: radius.lg,
-      padding: spacing.md,
-      minHeight: 104,
-      ...elevacao.cartao,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     // A IMAGEM DENTRO DE UM QUADRADO DA COR DO FUNDO DELA.
     //
@@ -452,17 +502,29 @@ const criarEstilos = () =>
     // foi o que estragou o Carry anterior. As cores são as dos FICHEIROS e
     // não do tema, por isso estão escritas aqui e não em theme.js.
     veiculoFotoCaixa: {
-      width: 104,
-      height: 78,
-      borderRadius: radius.md,
+      width: 120,
+      height: 92,
+      borderRadius: radius.xl,
       overflow: 'hidden',
       backgroundColor: paletaEmUso() === 'escuro' ? '#000000' : '#FFFFFF',
     },
-    veiculoFoto: { width: 104, height: 78 },
+    veiculoFoto: { width: 120, height: 92 },
     veiculoTextos: { flex: 1 },
-    veiculoNome: { ...tipo.subtitulo, color: colors.text },
+    veiculoNome: { ...tipo.titulo, color: colors.text, flex: 1 },
     veiculoNota: { ...tipo.pequeno, color: colors.textMuted, marginTop: 2 },
+    heroi: { minHeight: 176, justifyContent: 'flex-end', marginBottom: spacing.xs },
+    // No escuro o céu claro da ilustração destacava-se como um rectângulo
+    // sobre o preto; mais transparente, fica paisagem de fundo.
+    dili: {
+      position: 'absolute',
+      top: -spacing.lg,
+      right: -spacing.lg,
+      width: '80%',
+      aspectRatio: 914 / 506,
+      opacity: paletaEmUso() === 'escuro' ? 0.5 : 1,
+    },
     saudacao: { ...tipo.display, color: colors.text },
+    saudacaoNome: { ...tipo.display, color: colors.teal },
     convite: { ...tipo.corpo, color: colors.textMuted, marginTop: spacing.xs },
     premido: { opacity: 0.92, transform: [{ scale: 0.995 }] },
 

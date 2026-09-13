@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -12,29 +12,60 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BarraEstado from '../design/BarraEstado.js';
 import Aviso from '../design/Aviso.js';
 import { tipo } from '../design/tipografia.js';
-import Logo from '../components/Logo.js';
+import CabecalhoRegisto from '../design/CabecalhoRegisto.js';
+import Etapas from '../design/Etapas.js';
+import CartaoSeccao from '../design/CartaoSeccao.js';
+import SeletorConta from '../design/SeletorConta.js';
+import EscolherTipoVeiculo from '../design/EscolherTipoVeiculo.js';
+import EscolherMarcaModelo from '../design/EscolherMarcaModelo.js';
 import Button from '../components/Button.js';
 import TextField from '../components/TextField.js';
-import CampoTelefone from '../components/CampoTelefone.js';
-import RoleSelector from '../components/RoleSelector.js';
-import SegmentedPicker from '../components/SegmentedPicker.js';
-import LanguageToggle from '../components/LanguageToggle.js';
+import CampoTelefone, { telefoneValido } from '../components/CampoTelefone.js';
 import { useI18n } from '../i18n/index.js';
 import AceitarTermos from '../components/AceitarTermos.js';
-import EscolherModelo from '../components/EscolherModelo.js';
 import EscolherCor from '../components/EscolherCor.js';
 import EscolherLugares from '../components/EscolherLugares.js';
 import { LUGARES } from '../dados/veiculos.js';
-import { TIPOS_VEICULO, VEICULOS } from '../dados/tiposDeVeiculo.js';
+import { VEICULOS } from '../dados/tiposDeVeiculo.js';
 import { VERSAO_TERMOS } from '../termos/index.js';
 import { VERSAO_PRIVACIDADE } from '../termos/versao.js';
 import { useAuth } from '../context/AuthContext.js';
 import { colors, spacing, radius, registarEstilos } from '../theme.js';
 
+// A COSTA DE DÍLI COM O CRISTO REI, recortada da referência do Simão
+// (13/09/26). Ele escolheu-a em vez de uma gerada, que parecia o Rio de
+// Janeiro. WebP com transparência: desvanece à esquerda e em cima para
+// assentar sobre qualquer fundo, e pesa uma fracção do PNG na actualização.
+const DILI = require('../../assets/entrada/dili.webp');
+
+// O REGISTO EM ETAPAS — sistema de design TGA (13/09/26).
+//
+// A LÓGICA DA CONTA, tal como o Simão a fixou:
+//   Pasajeiru: Dadus Pessoal → Reviza Dadus → Konfirma
+//   Motorista: Dadus Pessoal → Dadus Veíkulu → Konfirma
+// Um passageiro NUNCA vê perguntas sobre veículo, e o pedido de registo dele
+// nunca leva o bloco `vehicle` — mesmo que alguém tenha começado como
+// motorista, preenchido o veículo e mudado de ideias.
+//
+// AS ETAPAS FICAM TODAS MONTADAS, e só a actual se vê. Cada componente guarda
+// o seu estado — o seletor de marca sabe a marca que se escolheu —, e
+// desmontá-lo ao avançar fazia quem voltasse atrás encontrar a marca em
+// branco, embora ela continuasse guardada. Voltar tem de devolver o que se
+// deixou.
+//
+// OS TERMOS NÃO SE ACEITAM "AO CONTINUAR". A referência tinha "Hakarak kria
+// konta, ita konkorda ho Termus…" por baixo do primeiro botão; aqui os termos
+// e a privacidade têm cada um a sua caixa, marcada à mão, na última etapa.
+// Consentir o contrato e consentir o tratamento de dados são actos distintos,
+// e nenhum se presume por se ter carregado noutro botão.
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function RegisterScreen({ navigation, route }) {
   const { t } = useI18n();
   const { register } = useAuth();
+  const scrollRef = useRef(null);
 
+  const [etapa, setEtapa] = useState(0);
   const [role, setRole] = useState(route?.params?.role || 'passenger');
   // Declaração de cidadania, só para quem se inscreve como motorista.
   const [cidadaoTL, setCidadaoTL] = useState(false);
@@ -47,7 +78,8 @@ export default function RegisterScreen({ navigation, route }) {
   // tenta entrar, sem forma de saber o que escreveu da primeira vez.
   const [password2, setPassword2] = useState('');
   const [aceitouPrivacidade, setAceitouPrivacidade] = useState(false);
-  const [vType, setVType] = useState('car'); // 'car' | 'motorbike'
+  const [aceitou, setAceitou] = useState(false);
+  const [vType, setVType] = useState('car');
   const [vModel, setVModel] = useState('');
   const [vPlate, setVPlate] = useState('');
   const [vColor, setVColor] = useState('');
@@ -55,28 +87,58 @@ export default function RegisterScreen({ navigation, route }) {
 
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [aceitou, setAceitou] = useState(false);
+
+  const motorista = role === 'driver';
+  const etapas = motorista
+    ? [t('etapaPessoal'), t('etapaVeiculo'), t('etapaKonfirma')]
+    : [t('etapaPessoal'), t('etapaReviza'), t('etapaKonfirma')];
+  const ultima = etapa === etapas.length - 1;
+  const emailCerto = EMAIL.test(email.trim());
+
+  function validarPessoal() {
+    if (!name.trim()) return t('errNameRequired');
+    if (!telefoneValido(phone)) return t('errTelefoneTL');
+    if (!emailCerto) return t('errEmailInvalido');
+    if (password.length < 6) return t('errPasswordShort');
+    if (password !== password2) return t('errPasswordMismatch');
+    return null;
+  }
+
+  function validarVeiculo() {
+    if (!vModel.trim()) return t('errMarcaModelo');
+    if (!vPlate.trim()) return t('errPlateRequired');
+    if (VEICULOS[vType]?.perguntaLugares && !vSeats) return t('errSeatsRequired');
+    // A COR É OBRIGATÓRIA: é o que o passageiro vê primeiro. A matrícula só
+    // se lê a três metros; ao fundo da rua o que identifica um veículo é a cor.
+    if (!vColor) return t('errColorRequired');
+    return null;
+  }
+
+  function irPara(n) {
+    setError(null);
+    setEtapa(n);
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }
+
+  function avancar() {
+    const erro =
+      etapa === 0 ? validarPessoal() : motorista && etapa === 1 ? validarVeiculo() : null;
+    if (erro) return setError(erro);
+    irPara(etapa + 1);
+  }
+
+  function voltar() {
+    if (etapa > 0) return irPara(etapa - 1);
+    navigation.goBack();
+  }
 
   async function onSubmit() {
     setError(null);
-    if (!name.trim()) return setError(t('errNameRequired'));
-    if (phone.replace(/[\s()-]/g, '').length < 7) return setError(t('errPhoneRequired'));
-    if (password.length < 6) return setError(t('errPasswordShort'));
-    if (password !== password2) return setError(t('errPasswordMismatch'));
-    if (role === 'driver' && !vPlate.trim()) return setError(t('errPlateRequired'));
-    if (role === 'driver' && VEICULOS[vType]?.perguntaLugares && !vSeats)
-      return setError(t('errSeatsRequired'));
-    // A COR É OBRIGATÓRIA, e não era.
-    //
-    // É o que o passageiro vê primeiro. A matrícula só se lê a três metros;
-    // ao fundo da rua o que identifica um veículo é a cor. Sem ela, quem
-    // espera fica a olhar para todos os carros que passam.
-    //
-    // O campo já cá estava e já aparecia no ecrã — só nunca foi exigido. Um
-    // motorista que não lhe tocasse ficava sem cor para sempre, e ninguém
-    // dava por isso até um passageiro estar na rua à espera.
-    if (role === 'driver' && !vColor) return setError(t('errColorRequired'));
-    if (role === 'driver' && !cidadaoTL) return setError(t('errCidadaoTL'));
+    // As etapas já validaram, mas volta-se a validar: quem chega aqui por um
+    // caminho que não se previu não pode criar uma conta incompleta.
+    const erro = validarPessoal() || (motorista ? validarVeiculo() : null);
+    if (erro) return setError(erro);
+    if (motorista && !cidadaoTL) return setError(t('errCidadaoTL'));
     if (!aceitou) return setError(t('errTermsRequired'));
     if (!aceitouPrivacidade) return setError(t('errPrivacyRequired'));
 
@@ -88,15 +150,16 @@ export default function RegisterScreen({ navigation, route }) {
       role,
       termsVersion: VERSAO_TERMOS,
       privacyVersion: VERSAO_PRIVACIDADE,
-      ...(role === 'driver' ? { cidadaoTL: true } : {}),
-      ...(role === 'driver'
+      ...(motorista ? { cidadaoTL: true } : {}),
+      // Só o motorista leva veículo. Ver a nota no topo do ficheiro.
+      ...(motorista
         ? {
             vehicle: {
               type: vType,
               model: vModel,
               plate: vPlate.trim().toUpperCase(),
               color: vColor,
-              ...(vType === 'car' && vSeats ? { seats: vSeats } : {}),
+              ...(VEICULOS[vType]?.perguntaLugares && vSeats ? { seats: vSeats } : {}),
             },
           }
         : {}),
@@ -113,6 +176,86 @@ export default function RegisterScreen({ navigation, route }) {
     }
   }
 
+  const telefoneMostrado = phone.startsWith('+') ? phone : phone ? `+670 ${phone}` : '—';
+  const linhasRevisao = [
+    { rotulo: t('accountType'), valor: motorista ? t('driver') : t('passenger'), ir: 0 },
+    { rotulo: t('name'), valor: name.trim() || '—', ir: 0 },
+    { rotulo: t('phone'), valor: telefoneMostrado, ir: 0 },
+    { rotulo: t('email'), valor: email.trim() || '—', ir: 0 },
+    ...(motorista
+      ? [
+          { rotulo: t('vehicleType'), valor: t(VEICULOS[vType]?.chaveNome), ir: 1 },
+          { rotulo: t('vehicleModel'), valor: vModel || '—', ir: 1 },
+          { rotulo: t('vehiclePlate'), valor: vPlate.trim().toUpperCase() || '—', ir: 1 },
+          ...(VEICULOS[vType]?.perguntaLugares
+            ? [{ rotulo: t('vehicleSeats'), valor: vSeats ? String(vSeats) : '—', ir: 1 }]
+            : []),
+          { rotulo: t('vehicleColor'), valor: vColor ? t(`cor_${vColor}`) : '—', ir: 1 },
+        ]
+      : []),
+  ];
+
+  const revisao = (
+    <CartaoSeccao icone="documento" titulo={t('seccaoReviza')} subtitulo={t('seccaoRevizaSub')}>
+      {linhasRevisao.map((l) => (
+        <View key={l.rotulo} style={styles.revLinha}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.revRotulo}>{l.rotulo}</Text>
+            <Text style={styles.revValor}>{l.valor}</Text>
+          </View>
+          <Pressable
+            onPress={() => irPara(l.ir)}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={`${t('edita')} ${l.rotulo}`}
+          >
+            <Text style={styles.revEditar}>{t('edita')}</Text>
+          </Pressable>
+        </View>
+      ))}
+    </CartaoSeccao>
+  );
+
+  const confirmacao = (
+    <CartaoSeccao
+      icone="visto"
+      titulo={t('seccaoKonfirma')}
+      subtitulo={t('seccaoKonfirmaSub')}
+      obrigatorio={t('obrigatoriu')}
+    >
+      {/* CIDADANIA, DECLARADA E NÃO VERIFICADA. A app não consegue provar a
+          nacionalidade de ninguém — o que consegue é fazer a pergunta antes
+          de haver conta, guardar a resposta com a hora, e pôr o documento à
+          frente de quem aprova. */}
+      {motorista ? (
+        <Pressable
+          style={styles.declaracao}
+          onPress={() => setCidadaoTL((v) => !v)}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: cidadaoTL }}
+        >
+          <View style={[styles.quadrado, cidadaoTL && styles.quadradoMarcado]}>
+            {cidadaoTL ? <Text style={styles.visto}>✓</Text> : null}
+          </View>
+          <Text style={styles.declaracaoTexto}>{t('driverDeclaraCidadao')}</Text>
+        </Pressable>
+      ) : null}
+      <AceitarTermos
+        aceite={aceitou}
+        onMudar={setAceitou}
+        quem={role}
+        onAbrir={() => navigation.navigate('Termos', { quem: role })}
+      />
+      <View style={{ height: spacing.sm }} />
+      <AceitarTermos
+        aceite={aceitouPrivacidade}
+        onMudar={setAceitouPrivacidade}
+        documento="privacidade"
+        onAbrir={() => navigation.navigate('Termos', { documento: 'privacidade' })}
+      />
+    </CartaoSeccao>
+  );
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <BarraEstado />
@@ -120,111 +263,111 @@ export default function RegisterScreen({ navigation, route }) {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <View style={styles.topBar}>
-            <Pressable onPress={() => navigation.goBack()} hitSlop={10}>
-              <Text style={styles.back}>‹ {t('back')}</Text>
-            </Pressable>
-            <LanguageToggle />
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+        >
+          <CabecalhoRegisto
+            onVoltar={voltar}
+            titulo={t('registerTitle')}
+            subtitulo={t('registoSub')}
+            ilustracao={DILI}
+          />
+          <Etapas etapas={etapas} actual={etapa} />
+
+          {/* ── ETAPA 1: DADUS PESSOAL ─────────────────────────────── */}
+          <View style={etapa !== 0 && styles.escondida}>
+            <CartaoSeccao
+              icone="pessoa"
+              titulo={t('seccaoPessoal')}
+              subtitulo={t('seccaoPessoalSub')}
+              obrigatorio={t('obrigatoriu')}
+            >
+              <Text style={styles.rotulo}>
+                {t('accountType')}
+                <Text style={styles.asterisco}> *</Text>
+              </Text>
+              <SeletorConta valor={role} onMudar={setRole} />
+              <TextField
+                label={t('name')}
+                value={name}
+                onChangeText={setName}
+                hint={t('nameHint')}
+                autoCapitalize="words"
+                icone="pessoa"
+                obrigatorio
+              />
+              <CampoTelefone
+                label={t('phone')}
+                valor={phone}
+                onChange={setPhone}
+                // Conduzir é para cidadãos de Timor-Leste, e um número
+                // timorense é a única parte disso que a app consegue verificar.
+                soTimor={motorista}
+                hint={t('driverSoTimorTel')}
+                obrigatorio
+              />
+              <TextField
+                label={t('email')}
+                value={email}
+                onChangeText={setEmail}
+                hint={t('emailPorque')}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                icone="email"
+                obrigatorio
+                sucesso={emailCerto}
+              />
+              <TextField
+                label={t('password')}
+                value={password}
+                onChangeText={setPassword}
+                hint={t('passwordHint')}
+                secureTextEntry
+                autoCapitalize="none"
+                icone="cadeado"
+                obrigatorio
+              />
+              {/* O aviso de senhas diferentes aparece no próprio campo, e só
+                  depois de a segunda ter sido escrita — a meio da escrita,
+                  todas as senhas são diferentes. */}
+              <TextField
+                label={t('passwordConfirm')}
+                value={password2}
+                onChangeText={setPassword2}
+                hint={t('passwordConfirmHint')}
+                secureTextEntry
+                autoCapitalize="none"
+                icone="cadeado"
+                obrigatorio
+                error={
+                  password2.length > 0 && password !== password2 ? t('errPasswordMismatch') : null
+                }
+              />
+            </CartaoSeccao>
           </View>
 
-          <View style={styles.brand}>
-            <Logo size="sm" />
-          </View>
-
-          <Text style={styles.title}>{t('registerTitle')}</Text>
-
-          <Text style={styles.sectionLabel}>{t('accountType')}</Text>
-          <RoleSelector value={role} onChange={setRole} />
-
-          <View style={styles.form}>
-            {/* Nome OFICIAL, e a explicação por baixo do campo.
-                O nome tem de bater certo com a carta de condução e com o
-                documento de identificação, senão a aprovação do motorista
-                fica presa numa dúvida que ninguém consegue resolver. */}
-            <TextField
-              label={t('name')}
-              value={name}
-              onChangeText={setName}
-              hint={t('nameHint')}
-              autoCapitalize="words"
-            />
-            {/* O país escolhe-se ao lado do número, e vem com o
-                Timor-Leste já escolhido. Quase ninguém lhe vai tocar — é por
-                isso que é pequeno e fica encostado, em vez de ser mais um
-                campo a preencher. */}
-            <CampoTelefone
-              label={t('phone')}
-              valor={phone}
-              onChange={setPhone}
-              // Conduzir é para cidadãos de Timor-Leste, e um número
-              // timorense é a única parte disso que a app consegue verificar
-              // sozinha. Quem prova a cidadania é o documento, no painel.
-              soTimor={role === 'driver'}
-              hint={role === 'driver' ? t('driverSoTimorTel') : undefined}
-            />
-            {/* O EMAIL DEIXOU DE SER OPCIONAL.
-                Não serve para entrar — entra-se com o telemóvel e a senha,
-                que é o que se sabe de cor. Serve para o dia em que a senha se
-                perde: sem endereço, a única recuperação é telefonar a alguém.
-                A dica diz para que é. Um campo obrigatório sem razão à vista
-                parece um capricho, e as pessoas escrevem qualquer coisa. */}
-            <TextField
-              label={t('email')}
-              value={email}
-              onChangeText={setEmail}
-              hint={t('emailPorque')}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            <TextField
-              label={t('password')}
-              value={password}
-              onChangeText={setPassword}
-              hint={t('passwordHint')}
-              secureTextEntry
-              autoCapitalize="none"
-            />
-            {/* O aviso de senhas diferentes aparece no próprio campo, e
-                não junto ao botão: é ali que se corrige, e é ali que os
-                olhos estão. Só depois de a segunda ter sido escrita — a
-                meio da escrita, todas as senhas são diferentes. */}
-            <TextField
-              label={t('passwordConfirm')}
-              value={password2}
-              onChangeText={setPassword2}
-              secureTextEntry
-              autoCapitalize="none"
-              error={
-                password2.length > 0 && password !== password2 ? t('errPasswordMismatch') : null
-              }
-            />
-
-            {role === 'driver' ? (
-              <View style={styles.vehicleBox}>
-                <Text style={styles.vehicleTitle}>{t('vehicleSection')}</Text>
-
-                <Text style={styles.vehicleTypeLabel}>{t('vehicleType')}</Text>
-                <SegmentedPicker
-                  value={vType}
-                  onChange={setVType}
-                  options={TIPOS_VEICULO.map((id) => ({
-                    value: id,
-                    label: t(VEICULOS[id].chaveNome),
-                    icon: VEICULOS[id].emoji,
-                  }))}
-                />
-                <View style={{ height: spacing.md }} />
-
-                <Text style={styles.rotulo}>{t('vehicleModel')}</Text>
-                <EscolherModelo tipo={vType} valor={vModel} onEscolher={setVModel} />
-
-                {/* Só a matrícula se escreve à mão: é única por veículo e
-                    não há lista possível.
-                    O formato difere entre carro e motorizada — cinco
-                    dígitos com ponto contra quatro. Mostrar o exemplo
-                    errado leva a pessoa a escrever a matrícula errada. */}
-                <View style={{ height: spacing.md }} />
+          {/* ── ETAPA 2: DADUS VEÍKULU (só motorista) ou REVIZA (passageiro) ── */}
+          {motorista ? (
+            <View style={etapa !== 1 && styles.escondida}>
+              <CartaoSeccao
+                icone="carro"
+                titulo={t('seccaoVeiculo')}
+                subtitulo={t('seccaoVeiculoSub')}
+                obrigatorio={t('obrigatoriu')}
+              >
+                <Text style={styles.rotulo}>
+                  {t('vehicleType')}
+                  <Text style={styles.asterisco}> *</Text>
+                </Text>
+                <EscolherTipoVeiculo valor={vType} onEscolher={setVType} />
+                {vType === 'carry' ? (
+                  <View style={styles.notaCarry}>
+                    <Text style={styles.notaCarryTexto}>🛻 {t('carryNota')}</Text>
+                  </View>
+                ) : null}
+                <EscolherMarcaModelo tipo={vType} onEscolher={setVModel} />
                 <TextField
                   label={t('vehiclePlate')}
                   value={vPlate}
@@ -232,80 +375,52 @@ export default function RegisterScreen({ navigation, route }) {
                   placeholder={t(VEICULOS[vType]?.chaveMatricula || 'vehiclePlatePlaceholderCar')}
                   hint={t('vehiclePlateHint')}
                   autoCapitalize="characters"
+                  icone="documento"
+                  obrigatorio
                 />
-
                 {VEICULOS[vType]?.perguntaLugares ? (
                   <>
-                    <Text style={styles.rotulo}>{t('vehicleSeats')}</Text>
+                    <Text style={styles.rotulo}>
+                      {t('vehicleSeats')}?<Text style={styles.asterisco}> *</Text>
+                    </Text>
                     <Text style={styles.ajuda}>{t('vehicleSeatsHelp')}</Text>
                     <EscolherLugares opcoes={LUGARES} valor={vSeats} onEscolher={setVSeats} />
                     <View style={{ height: spacing.md }} />
                   </>
                 ) : null}
-
-                <Text style={styles.rotulo}>{t('vehicleColor')}</Text>
+                <Text style={styles.rotulo}>
+                  {t('vehicleColor')}
+                  <Text style={styles.asterisco}> *</Text>
+                </Text>
                 <EscolherCor valor={vColor} onEscolher={setVColor} />
-              </View>
-            ) : null}
-
-            <Aviso texto={error} style={styles.erro} />
-
-            {/* CIDADANIA, DECLARADA E NÃO VERIFICADA.
-                A app não consegue provar a nacionalidade de ninguém — o que
-                consegue é fazer a pergunta antes de haver conta, guardar a
-                resposta com a hora, e pôr o documento à frente de quem
-                aprova. Uma declaração falsa passa a ser uma declaração
-                falsa, e os termos já preveem suspensão para isso. */}
-            {role === 'driver' ? (
-              <Pressable
-                style={styles.declaracao}
-                onPress={() => setCidadaoTL((v) => !v)}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: cidadaoTL }}
-              >
-                <View style={[styles.quadrado, cidadaoTL && styles.quadradoMarcado]}>
-                  {cidadaoTL ? <Text style={styles.visto}>✓</Text> : null}
-                </View>
-                <Text style={styles.declaracaoTexto}>{t('driverDeclaraCidadao')}</Text>
-              </Pressable>
-            ) : null}
-
-            <View style={{ marginBottom: spacing.md }}>
-              <AceitarTermos
-                aceite={aceitou}
-                onMudar={setAceitou}
-                quem={role}
-                onAbrir={() => navigation.navigate('Termos', { quem: role })}
-              />
-              {/* DUAS CAIXAS E NÃO UMA, e a razão é jurídica.
-                  Antes havia uma caixa para os termos e a privacidade era
-                  uma ligação ao lado — quem se registava aceitava os termos
-                  e nunca dizia nada sobre o tratamento dos seus dados.
-                  Consentir o contrato e consentir o tratamento de dados são
-                  actos distintos, e cada um guarda a sua própria versão. */}
-              <View style={{ height: spacing.sm }} />
-              <AceitarTermos
-                aceite={aceitouPrivacidade}
-                onMudar={setAceitouPrivacidade}
-                documento="privacidade"
-                onAbrir={() => navigation.navigate('Termos', { documento: 'privacidade' })}
-              />
+              </CartaoSeccao>
             </View>
+          ) : (
+            <View style={etapa !== 1 && styles.escondida}>{revisao}</View>
+          )}
 
-            <Button
-              title={t('createAccountButton')}
-              onPress={onSubmit}
-              loading={loading}
-              tamanho="grande"
-              style={{ marginTop: spacing.sm }}
-            />
+          {/* ── ETAPA 3: KONFIRMA ─────────────────────────────────── */}
+          <View style={etapa !== 2 && styles.escondida}>
+            {motorista ? revisao : null}
+            {confirmacao}
+          </View>
 
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>{t('haveAccountQuestion')} </Text>
-              <Pressable onPress={() => navigation.navigate('Login')} hitSlop={8}>
-                <Text style={styles.footerLink}>{t('signInLink')}</Text>
-              </Pressable>
-            </View>
+          <Aviso texto={error} style={styles.erro} />
+
+          <Button
+            title={ultima ? t('createAccountButton') : t('kontinua')}
+            onPress={ultima ? onSubmit : avancar}
+            loading={loading}
+            variant="marca"
+            tamanho="grande"
+            iconeDireita={ultima ? undefined : '→'}
+          />
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>{t('haveAccountQuestion')} </Text>
+            <Pressable onPress={() => navigation.navigate('Login')} hitSlop={8}>
+              <Text style={styles.footerLink}>{t('signInLink')}</Text>
+            </Pressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -315,8 +430,33 @@ export default function RegisterScreen({ navigation, route }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-    // A mesma forma da caixa de aceitar os termos, logo abaixo. São dois
-    // actos da mesma natureza — declarar e consentir — e devem parecer-se.
+    safe: { flex: 1, backgroundColor: colors.paper },
+    scroll: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
+    escondida: { display: 'none' },
+    rotulo: { ...tipo.corpoForte, color: colors.text, marginBottom: spacing.xs },
+    asterisco: { color: colors.danger },
+    ajuda: { ...tipo.legenda, color: colors.textMuted, marginBottom: spacing.sm },
+    notaCarry: {
+      backgroundColor: colors.tintaCarry,
+      borderRadius: radius.md,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      marginTop: -spacing.xs,
+      marginBottom: spacing.md,
+    },
+    notaCarryTexto: { ...tipo.pequeno, color: colors.text },
+    revLinha: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: spacing.sm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    revRotulo: { ...tipo.legenda, color: colors.textMuted },
+    revValor: { ...tipo.corpoForte, color: colors.text, marginTop: 1 },
+    revEditar: { ...tipo.corpoForte, color: colors.teal },
+    // A mesma forma da caixa de aceitar os termos, logo abaixo: declarar e
+    // consentir são actos da mesma natureza e devem parecer-se.
     declaracao: {
       flexDirection: 'row',
       alignItems: 'flex-start',
@@ -336,75 +476,10 @@ const criarEstilos = () =>
     quadradoMarcado: { backgroundColor: colors.teal, borderColor: colors.teal },
     visto: { color: colors.onTeal, fontSize: 14, fontWeight: '700', lineHeight: 16 },
     declaracaoTexto: { ...tipo.corpo, color: colors.text, flex: 1 },
-    // Estas duas tinham a cor escrita à mão (#1C2421 e #6B756F). Liam-se
-    // bem, porque a caixa do veículo era creme fixo — mas as três cores
-    // fixas juntas faziam com que este bloco fosse o único sítio da app que
-    // ignorava o tema. No tema escuro era um rectângulo creme dentro de um
-    // ecrã preto.
-    rotulo: {
-      ...tipo.corpoForte,
-      color: colors.text,
-      marginBottom: 6,
-      marginTop: 4,
-    },
-    ajuda: { ...tipo.legenda, color: colors.textMuted, marginBottom: 8 },
-    safe: { flex: 1, backgroundColor: colors.paper },
-    scroll: {
-      flexGrow: 1,
-      paddingHorizontal: spacing.lg,
-      paddingBottom: spacing.xl,
-    },
-    topBar: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingTop: spacing.sm,
-    },
-    back: { ...tipo.corpoForte, color: colors.teal },
-    brand: { marginTop: spacing.lg, marginBottom: spacing.md },
-    title: {
-      ...tipo.displayPequeno,
-      color: colors.text,
-      marginBottom: spacing.md,
-    },
-    sectionLabel: {
-      ...tipo.etiqueta,
-      color: colors.textMuted,
-      marginBottom: spacing.sm,
-    },
-    form: { marginTop: spacing.lg },
-    vehicleBox: {
-      backgroundColor: colors.white,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border,
-      borderRadius: radius.lg,
-      padding: spacing.md,
-      marginBottom: spacing.sm,
-    },
-    vehicleTitle: {
-      ...tipo.subtitulo,
-      color: colors.teal,
-      marginBottom: spacing.md,
-    },
-    vehicleTypeLabel: {
-      ...tipo.etiqueta,
-      color: colors.textMuted,
-      marginBottom: spacing.sm,
-    },
     erro: { marginBottom: spacing.sm },
-    footer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      marginTop: spacing.lg,
-    },
+    footer: { flexDirection: 'row', justifyContent: 'center', marginTop: spacing.lg },
     footerText: { ...tipo.corpo, color: colors.textMuted },
-    linkPrivacidade: {
-      ...tipo.pequeno,
-      color: colors.teal,
-      textDecorationLine: 'underline',
-      marginTop: spacing.sm,
-    },
-    footerLink: { ...tipo.corpoForte, color: colors.coral },
+    footerLink: { ...tipo.corpoForte, color: colors.coralDark },
   });
 
 let styles = criarEstilos();

@@ -1,4 +1,5 @@
 import React from 'react';
+import Degrade from '../design/Degrade.js';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, spacing, elevacao, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
@@ -24,6 +25,16 @@ function variantes() {
     outline: { fundo: 'transparent', tinta: colors.teal, contorno: colors.teal },
     ghost: { fundo: 'transparent', tinta: colors.teal, contorno: 'transparent' },
     perigo: { fundo: colors.danger, tinta: colors.onDanger, contorno: colors.danger, elevar: true },
+    // O botão principal das referências TGA: teal em degradé, texto claro.
+    // Desenhado com o Degrade (react-native-svg, que já está no binário) e
+    // não com o expo-linear-gradient, que é nativo e obrigaria a APK novo.
+    marca: {
+      fundo: 'transparent',
+      tinta: colors.onDegrade,
+      contorno: 'transparent',
+      elevar: true,
+      degrade: [colors.degradeDe, colors.degradePara],
+    },
   };
 }
 
@@ -36,6 +47,8 @@ export default function Button({
   // 'grande' para o CTA principal de um ecrã; 'normal' para o resto.
   tamanho = 'normal',
   icone,
+  // Seta ou ícone depois do texto ("Kontinua →").
+  iconeDireita,
   style,
 }) {
   const inactivo = disabled || loading;
@@ -53,12 +66,21 @@ export default function Button({
         // sombra parece um erro de desenho, não uma elevação.
         v.elevar && !inactivo && elevacao.plana,
         pressed && !inactivo && styles.premido,
+        v.degrade && styles.comDegrade,
         inactivo && styles.inactivo,
         style,
       ]}
       accessibilityRole="button"
       accessibilityState={{ disabled: inactivo, busy: loading }}
     >
+      {v.degrade ? (
+        <Degrade
+          de={v.degrade[0]}
+          para={v.degrade[1]}
+          diagonal={false}
+          estilo={StyleSheet.absoluteFill}
+        />
+      ) : null}
       {loading ? (
         <ActivityIndicator color={v.tinta} />
       ) : (
@@ -67,6 +89,11 @@ export default function Button({
           <Text style={[styles.rotulo, { color: v.tinta }]} numberOfLines={1}>
             {title}
           </Text>
+          {iconeDireita ? (
+            <Text style={[styles.icone, styles.iconeDireita, { color: v.tinta }]}>
+              {iconeDireita}
+            </Text>
+          ) : null}
         </View>
       )}
     </Pressable>
@@ -75,6 +102,8 @@ export default function Button({
 
 const criarEstilos = () =>
   StyleSheet.create({
+    comDegrade: { overflow: 'hidden', borderWidth: 0 },
+    iconeDireita: { marginRight: 0, marginLeft: 8 },
     base: {
       minHeight: 52,
       borderRadius: radius.lg,

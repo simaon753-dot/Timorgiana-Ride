@@ -165,6 +165,44 @@ function desenho(nome, p, cheio, preenchido, c) {
           <Path d="M10.2 19.5a2 2 0 0 0 3.6 0" {...p} />
         </>
       );
+    // Acrescentados com o sistema TGA (13/09/26): o olho da senha, o
+    // envelope do email e o volante do motorista — os três que ainda eram
+    // emoji no registo.
+    case 'olho':
+      return (
+        <>
+          <Path
+            d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12s-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"
+            {...p}
+          />
+          <Circle cx="12" cy="12" r="3" {...p} />
+        </>
+      );
+    case 'olhoFechado':
+      return (
+        <>
+          <Path
+            d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12s-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"
+            {...p}
+          />
+          <Line x1="4" y1="4" x2="20" y2="20" {...p} />
+        </>
+      );
+    case 'email':
+      return (
+        <>
+          <Rect x="3" y="5.5" width="18" height="13" rx="2.5" {...p} />
+          <Polyline points="3.8,7.2 12,13 20.2,7.2" {...p} />
+        </>
+      );
+    case 'volante':
+      return (
+        <>
+          <Circle cx="12" cy="12" r="9" {...p} />
+          <Circle cx="12" cy="12" r="2.4" {...p} />
+          <Path d="M3.4 10.6h6.3M14.3 10.6h6.3M12 14.4V21" {...p} />
+        </>
+      );
     case 'pessoa':
       return (
         <>

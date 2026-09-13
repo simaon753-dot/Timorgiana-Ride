@@ -56,6 +56,21 @@ export const PALETAS = {
     tintaPerigo: '#FDECEA',
     contornoCoral: '#F0E2CF',
     contornoPerigo: '#F0CFCB',
+
+    // SISTEMA TGA (13/09/26). Uma tinta e um acento por veículo — o
+    // ecrã inicial e o registo lêem-nos da tabela VEICULOS, e não os
+    // escrevem. O acento leva ícones BRANCOS (onAcento), por isso tem de dar
+    // pelo menos 3:1 contra branco. O degradé é o do botão principal.
+    tintaMota: '#E6F5EF',
+    tintaCarro: '#FFF0E7',
+    tintaCarry: '#E8F2FC',
+    acentoMota: '#1A8F74',
+    acentoCarro: '#E85531',
+    acentoCarry: '#2B7FD1',
+    onAcento: '#FFFFFF',
+    degradeDe: '#12806B',
+    degradePara: '#0A463F',
+    onDegrade: '#FFFFFF',
   },
 
   // Escolhida pelo Simão: letras laranja, fundo preto, e o verde da marca
@@ -123,6 +138,21 @@ export const PALETAS = {
     tintaPerigo: '#2A1413',
     contornoCoral: '#4A3324',
     contornoPerigo: '#5A2A26',
+
+    // SISTEMA TGA (13/09/26). Uma tinta e um acento por veículo — o
+    // ecrã inicial e o registo lêem-nos da tabela VEICULOS, e não os
+    // escrevem. O acento leva ícones BRANCOS (onAcento), por isso tem de dar
+    // pelo menos 3:1 contra branco. O degradé é o do botão principal.
+    tintaMota: '#0F2420',
+    tintaCarro: '#2A1A12',
+    tintaCarry: '#0E1C2B',
+    acentoMota: '#2E9E7E',
+    acentoCarro: '#E85531',
+    acentoCarry: '#3B8FD9',
+    onAcento: '#FFFFFF',
+    degradeDe: '#3DBA96',
+    degradePara: '#2E9E7E',
+    onDegrade: '#04120E',
   },
 };
 

@@ -4,9 +4,27 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PAISES, PAIS_POR_OMISSAO, OUTRO_PAIS } from '../dados/paises.js';
 import { colors, spacing, radius, fontSize, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
+import Icone from '../design/Icone.js';
 import { useI18n } from '../i18n/index.js';
 
-// O campo do telemóvel, com escolha de país.
+// UM NÚMERO DE TIMOR-LESTE TEM 8 DÍGITOS E COMEÇA POR 7.
+//
+// Regra dada pelo Simão (13/09/26), com a frase exacta a mostrar: "Númeru
+// telefone tenke iha díjitu 8 no hahú ho 7." É exportada para o registo a
+// usar ao passar de etapa — a mesma regra no campo e no botão, e não duas
+// que um dia discordam.
+//
+// Um número estrangeiro chega com o indicativo à frente (+…) e não passa por
+// esta regra: basta ter entre 8 e 15 dígitos, o tamanho de um número
+// internacional.
+export function telefoneValido(numero) {
+  const s = String(numero || '');
+  const digitos = s.replace(/\D/g, '');
+  if (s.startsWith('+')) return digitos.length >= 8 && digitos.length <= 15;
+  return /^7\d{7}$/.test(digitos);
+}
+
+// O campo do telemóvel, com escolha de país — sistema de design TGA.
 //
 // O TIMOR-LESTE VEM ESCOLHIDO, e está em primeiro na lista. Noventa e nove
 // por cento de quem se inscreve não vai tocar neste selector — e é por isso
@@ -17,14 +35,26 @@ import { useI18n } from '../i18n/index.js';
 // já existem, e é assim que toda a gente escreve o seu número. Com outro
 // país, leva o indicativo à frente.
 //
-// Parece inconsistente e é deliberado: mudar o formato dos números locais
-// obrigava a migrar as contas existentes e a ensinar toda a gente a escrever
-// quatro dígitos que nunca escreveu.
-export default function CampoTelefone({ label, valor, onChange, hint, soTimor = false }) {
+// A FORMA É A DAS REFERÊNCIAS: ícone do telefone num bloco, a bandeira e o
+// +670 noutro, e os dígitos a seguir — 🇹🇱 +670 | 77123456.
+//
+// O ERRO SÓ APARECE DEPOIS DE SAIR DO CAMPO. A meio da escrita todos os
+// números estão errados, e um aviso vermelho ao primeiro dígito castiga quem
+// ainda nem acabou.
+export default function CampoTelefone({
+  label,
+  valor,
+  onChange,
+  hint,
+  soTimor = false,
+  obrigatorio = false,
+  erro,
+}) {
   const { t } = useI18n();
   const [pais, setPais] = useState(PAIS_POR_OMISSAO);
   const [aberto, setAberto] = useState(false);
   const [focado, setFocado] = useState(false);
+  const [tocado, setTocado] = useState(false);
   const [procura, setProcura] = useState('');
 
   function montar(digitos, p) {
@@ -53,10 +83,33 @@ export default function CampoTelefone({ label, valor, onChange, hint, soTimor = 
     .replace(/^\+\d+/, '')
     .replace(/[^\d]/g, '');
 
+  const erroMostrado =
+    erro || (tocado && !focado && digitos && !telefoneValido(valor) ? t('errTelefoneTL') : null);
+  const certo = !erroMostrado && digitos && telefoneValido(valor);
+
   return (
     <View style={styles.bloco}>
-      {label ? <Text style={styles.rotulo}>{label}</Text> : null}
-      <View style={[styles.linha, focado && styles.linhaFocada]}>
+      {label ? (
+        <Text style={styles.rotulo}>
+          {label}
+          {obrigatorio ? <Text style={styles.asterisco}> *</Text> : null}
+        </Text>
+      ) : null}
+      <View
+        style={[
+          styles.linha,
+          focado && styles.linhaFocada,
+          certo && styles.linhaFocada,
+          erroMostrado && styles.linhaErro,
+        ]}
+      >
+        <View style={styles.iconeCaixa}>
+          <Icone
+            nome="telefone"
+            tamanho={20}
+            cor={erroMostrado ? colors.danger : focado ? colors.teal : colors.textMuted}
+          />
+        </View>
         {/* TRANCADO PARA MOTORISTAS. Conduzir na TimorgianaRide é para
             cidadãos de Timor-Leste, por isso o selector deixa de ser uma
             escolha — e mostrar uma escolha que não é escolha seria pior do
@@ -66,6 +119,8 @@ export default function CampoTelefone({ label, valor, onChange, hint, soTimor = 
           onPress={() => !soTimor && setAberto(true)}
           hitSlop={6}
           disabled={soTimor}
+          accessibilityRole="button"
+          accessibilityLabel={`${pais.nome} ${pais.indicativo}`}
         >
           <Text style={styles.bandeira}>{pais.bandeira}</Text>
           <Text style={styles.indicativo}>{pais.indicativo}</Text>
@@ -76,17 +131,31 @@ export default function CampoTelefone({ label, valor, onChange, hint, soTimor = 
           value={digitos}
           onChangeText={(d) => onChange(montar(d, pais))}
           onFocus={() => setFocado(true)}
-          onBlur={() => setFocado(false)}
+          onBlur={() => {
+            setFocado(false);
+            setTocado(true);
+          }}
           keyboardType="phone-pad"
           autoCapitalize="none"
+          maxLength={pais.codigo === 'TL' ? 8 : 15}
           placeholder={
             pais.codigo === 'TL' ? '77123456' : pais.codigo === 'XX' ? '351912345678' : ''
           }
           placeholderTextColor={colors.textMuted}
         />
+        {certo ? (
+          <View style={styles.visto}>
+            <Icone nome="visto" tamanho={18} cor={colors.teal} traco={2.5} />
+          </View>
+        ) : null}
       </View>
-      {pais.codigo === 'XX' ? <Text style={styles.dica}>{t('paisOutroDica')}</Text> : null}
-      {hint ? <Text style={styles.dica}>{hint}</Text> : null}
+      {erroMostrado ? (
+        <Text style={styles.erro}>{erroMostrado}</Text>
+      ) : pais.codigo === 'XX' ? (
+        <Text style={styles.dica}>{t('paisOutroDica')}</Text>
+      ) : hint ? (
+        <Text style={styles.dica}>{hint}</Text>
+      ) : null}
 
       <Modal visible={aberto} animationType="slide" onRequestClose={() => setAberto(false)}>
         <SafeAreaView style={styles.cheio} edges={['top', 'bottom']}>
@@ -133,21 +202,32 @@ export default function CampoTelefone({ label, valor, onChange, hint, soTimor = 
 const criarEstilos = () =>
   StyleSheet.create({
     bloco: { marginBottom: spacing.md },
-    rotulo: { ...tipo.etiqueta, color: colors.textMuted, marginBottom: spacing.xs },
+    rotulo: { ...tipo.corpoForte, color: colors.text, marginBottom: spacing.xs },
+    asterisco: { color: colors.danger },
     linha: {
       flexDirection: 'row',
       alignItems: 'center',
+      minHeight: 54,
       backgroundColor: colors.inputBg,
-      borderWidth: 1,
+      borderWidth: 1.5,
       borderColor: colors.border,
-      borderRadius: radius.md,
+      borderRadius: radius.lg,
     },
     linhaFocada: { borderColor: colors.teal },
+    linhaErro: { borderColor: colors.danger },
+    iconeCaixa: {
+      width: 50,
+      alignSelf: 'stretch',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRightWidth: 1,
+      borderRightColor: colors.border,
+    },
     pais: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: spacing.sm,
-      paddingVertical: spacing.md,
+      alignSelf: 'stretch',
+      paddingHorizontal: spacing.md,
       borderRightWidth: 1,
       borderRightColor: colors.border,
     },
@@ -164,17 +244,19 @@ const criarEstilos = () =>
       fontSize: fontSize.md,
     },
     semPais: { ...tipo.corpo, color: colors.textMuted, padding: spacing.lg, textAlign: 'center' },
-    bandeira: { fontSize: fontSize.lg, marginRight: 4 },
+    bandeira: { fontSize: fontSize.lg, marginRight: 6 },
     indicativo: { ...tipo.corpoForte, color: colors.text },
-    seta: { ...tipo.legenda, color: colors.textMuted, marginLeft: 3 },
+    seta: { ...tipo.legenda, color: colors.textMuted, marginLeft: 4 },
     campo: {
       flex: 1,
+      ...tipo.corpo,
       paddingHorizontal: spacing.md,
-      paddingVertical: spacing.md,
-      fontSize: fontSize.md,
+      paddingVertical: 14,
       color: colors.text,
     },
+    visto: { paddingRight: spacing.md },
     dica: { ...tipo.legenda, color: colors.textMuted, marginTop: spacing.xs },
+    erro: { ...tipo.legenda, color: colors.danger, marginTop: spacing.xs },
 
     cheio: { flex: 1, backgroundColor: colors.paper },
     topo: {

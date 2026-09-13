@@ -27,6 +27,11 @@ export default function AvisoTeste() {
   if (!EM_TESTE) return null;
   return (
     <View style={styles.faixa}>
+      {/* O círculo com "!" é o da referência TGA: diz "atenção" sem ser o
+          vermelho de erro, que fazia cada abertura da app parecer uma avaria. */}
+      <View style={styles.icone}>
+        <Text style={styles.iconeTexto}>!</Text>
+      </View>
       <Text style={styles.texto}>{t('avisoTeste')}</Text>
     </View>
   );
@@ -37,13 +42,26 @@ const criarEstilos = () =>
     // Discreto de propósito. Não é um erro nem um perigo — é uma condição do
     // serviço. Com a cor de perigo, cada abertura da app parecia uma avaria.
     faixa: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
       backgroundColor: colors.tintaPerigo,
-      borderRadius: radius.sm,
-      paddingVertical: 6,
+      borderRadius: radius.pill,
+      paddingVertical: spacing.sm,
       paddingHorizontal: spacing.md,
-      marginBottom: spacing.sm,
+      marginBottom: spacing.md,
     },
-    texto: { ...tipo.legenda, color: colors.text, textAlign: 'center' },
+    icone: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      borderWidth: 2,
+      borderColor: colors.danger,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    iconeTexto: { ...tipo.corpoForte, fontSize: 13, lineHeight: 16, color: colors.danger },
+    texto: { ...tipo.pequeno, color: colors.text, flex: 1 },
   });
 
 let styles = criarEstilos();

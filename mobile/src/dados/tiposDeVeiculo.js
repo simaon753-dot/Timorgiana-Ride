@@ -20,6 +20,9 @@ export const TIPOS_VEICULO = ['motorbike', 'car', 'carry'];
 export const VEICULOS = {
   motorbike: {
     id: 'motorbike',
+    // Cores do sistema TGA — nomes de token, definidos em theme.js.
+    tinta: 'tintaMota',
+    acento: 'acentoMota',
     chaveNome: 'vehicleMotorbike',
     chaveNota: 'motoMaisBarato',
     chaveMatricula: 'vehiclePlatePlaceholderMoto',
@@ -37,6 +40,9 @@ export const VEICULOS = {
   },
   car: {
     id: 'car',
+    // Cores do sistema TGA — nomes de token, definidos em theme.js.
+    tinta: 'tintaCarro',
+    acento: 'acentoCarro',
     chaveNome: 'vehicleCar',
     chaveNota: 'carroMaisAbrigado',
     chaveMatricula: 'vehiclePlatePlaceholderCar',
@@ -53,6 +59,9 @@ export const VEICULOS = {
   },
   carry: {
     id: 'carry',
+    // Cores do sistema TGA — nomes de token, definidos em theme.js.
+    tinta: 'tintaCarry',
+    acento: 'acentoCarry',
     chaveNome: 'vehicleCarry',
     chaveNota: 'carryNota',
     chaveMatricula: 'vehiclePlatePlaceholderCar',

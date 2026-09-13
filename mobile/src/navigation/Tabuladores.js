@@ -5,7 +5,8 @@ import PassengerHomeScreen from '../screens/PassengerHomeScreen.js';
 import DriverHomeScreen from '../screens/DriverHomeScreen.js';
 import HistoryScreen from '../screens/HistoryScreen.js';
 import GanhosScreen from '../screens/GanhosScreen.js';
-import { colors, fontSize } from '../theme.js';
+import { colors, fontSize, elevacao } from '../theme.js';
+import { FAMILIAS } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 import { useModo } from '../context/ModoContext.js';
 import { useRides } from '../context/RideContext.js';
@@ -41,8 +42,18 @@ export default function Tabuladores() {
         headerShown: false,
         tabBarActiveTintColor: colors.teal,
         tabBarInactiveTintColor: colors.textMuted,
-        tabBarStyle: { backgroundColor: colors.white, borderTopColor: colors.border },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
+        // A BARRA DE BAIXO DO SISTEMA TGA: branca, sem o traço duro por cima,
+        // com uma sombra suave a separá-la do conteúdo — como nas referências.
+        // A ALTURA NÃO SE FIXA: a biblioteca soma sozinha a margem do
+        // indicador de início (iPhone) e da barra de gestos (Android), e uma
+        // altura escrita à mão cortava-a.
+        tabBarStyle: {
+          backgroundColor: colors.white,
+          borderTopWidth: 0,
+          paddingTop: 6,
+          ...elevacao.painel,
+        },
+        tabBarLabelStyle: { fontFamily: FAMILIAS.forte, fontSize: 12 },
       }}
     >
       <Tab.Screen
