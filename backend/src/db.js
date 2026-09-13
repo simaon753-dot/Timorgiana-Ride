@@ -568,6 +568,9 @@ export async function initSchema() {
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_tipo TEXT`);
   // O que é, quando o tipo é "outros" — escrito por quem pede (13/09/26).
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_outro TEXT`);
+  // Os outros tipos de carga, quando se escolheu mais do que um (14/09/26).
+  // Separados por vírgula; o principal continua em carga_tipo.
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_extra TEXT`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_volume TEXT`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_ajuda TEXT`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_notas TEXT`);

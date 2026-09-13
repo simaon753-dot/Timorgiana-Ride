@@ -132,6 +132,7 @@ ridesRouter.post(
       destinos,
       carryModo,
       cargaOutro,
+      cargaTipos,
     } = req.body || {};
     if (!destLabel || !destLabel.trim()) {
       return res.status(400).json({ error: 'Indica o destino.' });
@@ -305,6 +306,7 @@ ridesRouter.post(
       cargaNotas,
       cargaDeclarada: !!cargaDeclarada,
       cargaOutro,
+      cargaTipos: carryPessoas ? [] : cargaTipos,
       viajanteNome: nomeOutro || null,
       viajanteTelefone,
       viajanteMenor: !!viajanteMenor,

@@ -147,7 +147,29 @@ transparência (43 KB). No escuro vai a 50 % de opacidade.
 
 ---
 
-## 5. Lógica da conta (registo)
+## 5. Fluxo do Carry (14/09/2026)
+
+```
+Início → Carry → "O que pretende transportar?" (EscolherCarryScreen)
+   ├─ Transportar bens    → Para onde vai? → Confirmar: recolha/destino → tipo(s) de carga
+   │                        → tamanho → ajuda → paragens (até 2) → indicações → fotografias
+   │                        (câmara ou galeria, até 3) → declaração (+ bens proibidos)
+   │                        → RESUMO → "Pedir Carry · $X"
+   └─ Transportar pessoas → Para onde vai? → Confirmar: recolha/destino → quantas pessoas
+                            → preço → pedir. Nenhuma pergunta de carga.
+```
+
+- O primeiro passo vem da tabela `VEICULOS` (`primeiroPasso: 'EscolherCarry'`), não de um
+  ternário no ecrã inicial. O texto do botão também (`chaveBotaoPedir`).
+- Com `modoCarry` vindo do primeiro passo, o selector bens/pessoas desaparece do ecrã de
+  confirmar: o fluxo está fechado.
+- Vários tipos de carga: o primeiro escolhido é o principal (`carga_tipo`), os outros vão em
+  `carga_extra`; a saída pública tem `carga.tipos`.
+- Sem motoristas por perto, o botão diz "Procurar motorista · $X" e um aviso diz o preço
+  estimado e que o pedido fica aberto 10 minutos — nunca "Pedir por $X" como se já houvesse
+  quem aceitasse.
+
+## 6. Lógica da conta (registo)
 
 ```
 Pasajeiru:  Dadus Pessoal → Reviza Dadus → Konfirma

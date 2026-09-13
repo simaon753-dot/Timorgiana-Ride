@@ -145,7 +145,9 @@ export default function PassengerHomeScreen({ navigation }) {
                     { backgroundColor: colors[v.tinta] || colors.white },
                     pressed && styles.premido,
                   ]}
-                  onPress={() => navigation.navigate('EscolherDestino', { veiculo: v.id })}
+                  onPress={() =>
+                    navigation.navigate(v.primeiroPasso || 'EscolherDestino', { veiculo: v.id })
+                  }
                   accessibilityRole="button"
                   accessibilityLabel={t(v.chaveNome)}
                 >

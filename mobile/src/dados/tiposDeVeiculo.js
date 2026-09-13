@@ -64,6 +64,11 @@ export const VEICULOS = {
     acento: 'acentoCarry',
     chaveNome: 'vehicleCarry',
     chaveNota: 'carryNota',
+    // O PRIMEIRO PASSO DO CARRY é perguntar o que vai (bens ou pessoas), e só
+    // depois o destino — pedido do Simão (14/09/26). Os outros dois tipos não
+    // têm este campo e vão directos ao "Para onde vai?".
+    primeiroPasso: 'EscolherCarry',
+    chaveBotaoPedir: 'pedirCarryPreco',
     chaveMatricula: 'vehiclePlatePlaceholderCar',
     icone: 'carry',
     emoji: '🛻',

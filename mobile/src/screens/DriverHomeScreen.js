@@ -432,7 +432,9 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
       {ride.carga ? (
         <View style={styles.carga}>
           <Text style={styles.cargaLinha}>
-            {t(CHAVE_CARGA[ride.carga.tipo] || 'cargaOutros')}
+            {(ride.carga.tipos || [ride.carga.tipo])
+              .map((x) => t(CHAVE_CARGA[x] || 'cargaOutros'))
+              .join(' · ')}
             {ride.carga.outro ? `: ${ride.carga.outro}` : ''}
             {ride.carga.volume ? ` · ${t(CHAVE_VOLUME[ride.carga.volume])}` : ''}
           </Text>

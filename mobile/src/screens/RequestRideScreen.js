@@ -29,7 +29,12 @@ import Mapa from '../components/MapaGoogle.js';
 import PlaceSearch from '../components/PlaceSearch.js';
 import EscolherLugares from '../components/EscolherLugares.js';
 import ParaOutraPessoa from '../components/ParaOutraPessoa.js';
-import CargaDoPedido from '../components/CargaDoPedido.js';
+import CargaDoPedido, {
+  TIPOS_CARGA_LISTA,
+  AJUDAS_CARGA_LISTA,
+} from '../components/CargaDoPedido.js';
+import Cartao from '../design/Cartao.js';
+import { LinhaInfo } from '../design/LinhaMenu.js';
 import NomearLugar from '../components/NomearLugar.js';
 import SegmentedPicker from '../components/SegmentedPicker.js';
 import { LUGARES, LUGARES_CARRY } from '../dados/veiculos.js';
@@ -147,7 +152,10 @@ export default function RequestRideScreen({ navigation, route }) {
   // A carga, só usada quando o veículo não transporta pessoas. Volume e ajuda
   // já nascem escolhidos — são perguntas com resposta habitual, e obrigar a
   // tocar nas três antes de ver o preço é atrito sem informação nova.
-  const [cargaTipo, setCargaTipo] = useState(null);
+  // Um OU MAIS tipos de carga (14/09/26). O primeiro escolhido é o principal
+  // — é o que as listas e as estatísticas lêem.
+  const [cargaTipos, setCargaTipos] = useState([]);
+  const cargaTipo = cargaTipos[0] || null;
   const [cargaVolume, setCargaVolume] = useState('medio');
   const [cargaAjuda, setCargaAjuda] = useState('nenhuma');
   const [cargaNotas, setCargaNotas] = useState('');
@@ -159,7 +167,11 @@ export default function RequestRideScreen({ navigation, route }) {
   const [aEscolherParagem, setAEscolherParagem] = useState(false);
   // Carry: bens OU pessoas, decidido pelo Simão (13/09/26). Um pedido é uma
   // coisa ou outra; o servidor recebe o modo explícito e não o adivinha.
-  const [modoCarry, setModoCarry] = useState('bens');
+  const [modoCarry, setModoCarry] = useState(route?.params?.modoCarry || 'bens');
+  // Quando o passo "O que pretende transportar?" já escolheu, o fluxo fica
+  // fechado: bens e pessoas são dois pedidos diferentes, e trocar aqui a meio
+  // voltava a misturar as perguntas de um com as do outro.
+  const modoFixo = !!route?.params?.modoCarry;
   const [outroNome, setOutroNome] = useState('');
   const [outroTelefone, setOutroTelefone] = useState('');
   const [outroMenor, setOutroMenor] = useState(false);
@@ -663,6 +675,7 @@ export default function RequestRideScreen({ navigation, route }) {
         ...(!veiculo(veiculoAtual).levaPessoas && !carryPessoas && cargaTipo
           ? {
               cargaTipo,
+              cargaTipos,
               cargaVolume,
               cargaAjuda,
               cargaNotas: cargaNotas.trim(),
@@ -995,7 +1008,7 @@ export default function RequestRideScreen({ navigation, route }) {
     veiculo(veiculoAtual).levaPessoas ||
     carryPessoas ||
     // "Outro" obriga a dizer o quê: o motorista não decide sobre "Outro".
-    (!!cargaTipo && cargaDeclarado && (cargaTipo !== 'outros' || !!cargaOutro.trim()));
+    (!!cargaTipo && cargaDeclarado && (!cargaTipos.includes('outros') || !!cargaOutro.trim()));
 
   // A VERDADE SOBRE A DISPONIBILIDADE, para o botão e para o aviso.
   const semMotorista = !!opcao && !opcao.available;
@@ -1017,7 +1030,9 @@ export default function RequestRideScreen({ navigation, route }) {
     : opcao
       ? semMotorista
         ? t('procurarMotoristaPreco', { preco: precoTexto })
-        : `${t('confirmRide')} ${precoTexto}`
+        : veiculo(veiculoAtual).chaveBotaoPedir
+          ? t(veiculo(veiculoAtual).chaveBotaoPedir, { preco: precoTexto })
+          : `${t('confirmRide')} ${precoTexto}`
       : podePedir
         ? `${t('confirmRide')} · ${t('fareToAgree')}`
         : t('whereTo');
@@ -1400,15 +1415,19 @@ export default function RequestRideScreen({ navigation, route }) {
               coisa ou outra. Uma condição só, com o comentário cá fora. */}
           {origem && destino && veiculoAtual === 'carry' ? (
             <View>
-              <Text style={styles.seccao}>{t('carryModoTitulo')}</Text>
-              <SegmentedPicker
-                options={[
-                  { value: 'bens', icon: '📦', label: t('carryModoBens') },
-                  { value: 'pessoas', icon: '👥', label: t('carryModoPessoas') },
-                ]}
-                value={modoCarry}
-                onChange={setModoCarry}
-              />
+              {modoFixo ? null : (
+                <>
+                  <Text style={styles.seccao}>{t('carryModoTitulo')}</Text>
+                  <SegmentedPicker
+                    options={[
+                      { value: 'bens', icon: '📦', label: t('carryModoBens') },
+                      { value: 'pessoas', icon: '👥', label: t('carryModoPessoas') },
+                    ]}
+                    value={modoCarry}
+                    onChange={setModoCarry}
+                  />
+                </>
+              )}
               {carryPessoas ? (
                 <>
                   <Text style={styles.seccao}>{t('howManyPeople')}</Text>
@@ -1424,8 +1443,10 @@ export default function RequestRideScreen({ navigation, route }) {
               e repetida nos dois divergiria ao primeiro descuido. */}
           {origem && destino && !veiculo(veiculoAtual).levaPessoas && !carryPessoas ? (
             <CargaDoPedido
-              carga={cargaTipo}
-              onCarga={setCargaTipo}
+              carga={cargaTipos}
+              onCarga={(id) =>
+                setCargaTipos((l) => (l.includes(id) ? l.filter((x) => x !== id) : [...l, id]))
+              }
               volume={cargaVolume}
               onVolume={setCargaVolume}
               ajuda={cargaAjuda}
@@ -1441,6 +1462,24 @@ export default function RequestRideScreen({ navigation, route }) {
               paragens={cargaDestinos}
               onRemoverParagem={(i) => setCargaDestinos((lista) => lista.filter((_, j) => j !== i))}
               onAdicionarParagem={() => setAEscolherParagem(true)}
+            />
+          ) : null}
+
+          {/* O RESUMO ANTES DE PEDIR, só no Carry de bens: é o pedido com mais
+              respostas, e a última coisa antes do botão tem de ser tudo o que
+              se vai pedir, lido de uma vez — incluindo o que ainda falta. */}
+          {origem && destino && !veiculo(veiculoAtual).levaPessoas && !carryPessoas ? (
+            <ResumoCarry
+              t={t}
+              origem={origem}
+              destino={destino}
+              tipos={cargaTipos}
+              volume={cargaVolume}
+              ajuda={cargaAjuda}
+              paragens={cargaDestinos.length}
+              fotos={cargaFotos.length}
+              preco={precoTexto}
+              declarado={cargaDeclarado}
             />
           ) : null}
 
@@ -1665,6 +1704,64 @@ function Pagamento({ t }) {
     </View>
   );
 }
+
+// O resumo do pedido de Carry: tudo o que vai ser pedido, numa lista.
+function ResumoCarry({
+  t,
+  origem,
+  destino,
+  tipos,
+  volume,
+  ajuda,
+  paragens,
+  fotos,
+  preco,
+  declarado,
+}) {
+  const nomes = tipos.map((x) => t(CHAVE_TIPO[x] || 'cargaOutros')).join(', ');
+  return (
+    <View style={styles.resumo}>
+      <Cartao icone="documento" titulo={t('resumoTitulo')} lista>
+        <LinhaInfo icone="pin" rotulo={t('pickupPoint')} valor={origem?.label} />
+        <LinhaInfo icone="pin" rotulo={t('dropoffPoint')} valor={destino?.label} />
+        <LinhaInfo
+          icone="carry"
+          rotulo={t('resumoServico')}
+          valor={`${t('vehicleCarry')} · ${t('carryModoBens')}`}
+        />
+        <LinhaInfo icone="caixa" rotulo={t('resumoCarga')} valor={nomes || '—'} mau={!nomes} />
+        <LinhaInfo
+          icone="grafico"
+          rotulo={t('resumoTamanho')}
+          valor={t(CHAVE_VOLUME[volume] || 'cargaVolMedio')}
+        />
+        <LinhaInfo
+          icone="pessoa"
+          rotulo={t('resumoAssistencia')}
+          valor={t(CHAVE_AJUDA[ajuda] || 'cargaAjudaNenhuma')}
+        />
+        <LinhaInfo icone="rota" rotulo={t('resumoParagens')} valor={String(paragens)} />
+        <LinhaInfo icone="camera" rotulo={t('resumoFotos')} valor={String(fotos)} />
+        <LinhaInfo
+          icone="carteira"
+          rotulo={t('resumoPreco')}
+          valor={preco || t('fareToAgree')}
+          forte
+        />
+        <LinhaInfo
+          icone="escudo"
+          rotulo={t('resumoSeguranca')}
+          valor={declarado ? t('resumoConfirmado') : t('resumoPorConfirmar')}
+          mau={!declarado}
+          ultimo
+        />
+      </Cartao>
+    </View>
+  );
+}
+
+const CHAVE_TIPO = Object.fromEntries(TIPOS_CARGA_LISTA.map((o) => [o.id, o.chave]));
+const CHAVE_AJUDA = Object.fromEntries(AJUDAS_CARGA_LISTA.map((o) => [o.id, o.chave]));
 
 const CHAVE_VOLUME = {
   pequeno: 'cargaVolPequeno',
@@ -1943,6 +2040,7 @@ const criarEstilos = () =>
       marginTop: spacing.md,
     },
     botaoInativo: { backgroundColor: colors.border },
+    resumo: { marginTop: spacing.lg },
     // O botão principal da referência: coral a toda a largura, com o ícone do
     // veículo à esquerda e a seta à direita. O texto é ESCURO — branco sobre
     // coral fica a 2,8:1, abaixo do mínimo (ver SISTEMA.md).

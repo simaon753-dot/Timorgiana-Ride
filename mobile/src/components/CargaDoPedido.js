@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Image, Alert } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Image, Alert, Modal, ScrollView } from 'react-native';
+import Icone from '../design/Icone.js';
+import Button from './Button.js';
 import * as ImagePicker from 'expo-image-picker';
 import TextField from './TextField.js';
 import { colors, radius, spacing, registarEstilos } from '../theme.js';
@@ -85,19 +87,22 @@ function Fichas({ opcoes, valor, onEscolher, t }) {
 
 // OS TIPOS EM MOSAICO, com o emoji grande. Pedido do Simão: "aumentar os
 // ícones". Duas colunas: oito tipos em fichas de texto obrigavam a ler cada
-// palavra; com o desenho grande reconhece-se o tipo de relance. Um só tipo por
-// pedido — a "Mudança" existe justamente para quando vai de tudo.
-function TiposCarga({ valor, onEscolher, t }) {
+// palavra; com o desenho grande reconhece-se o tipo de relance.
+//
+// UM OU MAIS (14/09/26): uma ida à loja traz compras E um electrodoméstico.
+// `valor` é a lista; tocar num tipo junta-o ou tira-o. O primeiro escolhido é
+// o principal, e é esse que o servidor guarda em `carga_tipo`.
+function TiposCarga({ valor = [], onEscolher, t }) {
   return (
     <View style={styles.tiposCarga}>
       {TIPOS.map((o) => {
-        const activo = valor === o.id;
+        const activo = valor.includes(o.id);
         return (
           <Pressable
             key={o.id}
             style={[styles.tipoCarga, activo && styles.tipoCargaActivo]}
             onPress={() => onEscolher(o.id)}
-            accessibilityRole="radio"
+            accessibilityRole="checkbox"
             accessibilityState={{ selected: activo }}
             accessibilityLabel={t(o.chave)}
           >
@@ -116,7 +121,7 @@ function TiposCarga({ valor, onEscolher, t }) {
 }
 
 export default function CargaDoPedido({
-  carga,
+  carga = [],
   onCarga,
   volume,
   onVolume,
@@ -137,6 +142,7 @@ export default function CargaDoPedido({
 }) {
   const { t } = useI18n();
   const [aTirar, setATirar] = useState(false);
+  const [verProibidos, setVerProibidos] = useState(false);
 
   // A CÂMARA DE TRÁS, e não a da frente.
   //
@@ -144,18 +150,25 @@ export default function CargaDoPedido({
   // `CameraType.front` porque é um retrato de quem conduz. Copiar essa linha
   // para aqui punha a pessoa a fotografar a própria cara em vez dos móveis.
   // Omitir o campo dá a câmara de trás, que é a que aponta para o mundo.
-  async function tirarFoto() {
+  //
+  // DA GALERIA TAMBÉM (14/09/26): quem está na loja tira a fotografia na
+  // hora, mas quem pede a mudança de casa já tem as fotografias dos móveis.
+  // O mesmo pacote (expo-image-picker) faz as duas coisas — não há nada novo
+  // para compilar. A galeria não pede autorização: o sistema abre o seu
+  // próprio selector e só entrega a fotografia escolhida.
+  async function tirarFoto(daGaleria = false) {
     if (fotos.length >= MAX_FOTOS) return;
-    const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!perm.granted) return Alert.alert(t('errCameraPermission'));
+    if (!daGaleria) {
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (!perm.granted) return Alert.alert(t('errCameraPermission'));
+    }
 
     setATirar(true);
     try {
-      const r = await ImagePicker.launchCameraAsync({
-        quality: 0.55,
-        base64: true,
-        allowsEditing: false,
-      });
+      const opcoes = { quality: 0.55, base64: true, allowsEditing: false };
+      const r = daGaleria
+        ? await ImagePicker.launchImageLibraryAsync({ ...opcoes, mediaTypes: ['images'] })
+        : await ImagePicker.launchCameraAsync(opcoes);
       if (r.canceled || !r.assets?.[0]?.base64) return;
       const a = r.assets[0];
       // Guardadas EM MEMÓRIA e não enviadas já: a viagem ainda não existe, e
@@ -168,10 +181,11 @@ export default function CargaDoPedido({
 
   return (
     <View>
-      <Text style={styles.seccao}>{t('cargaTitulo')}</Text>
+      <Text style={styles.seccao}>{t('cargaTiposTitulo')}</Text>
+      <Text style={styles.fotosNota}>{t('cargaTiposNota')}</Text>
       <TiposCarga valor={carga} onEscolher={onCarga} t={t} />
       {/* "Outro" obriga a escrever o quê — o botão de pedir espera por isso. */}
-      {carga === 'outros' ? (
+      {carga.includes('outros') ? (
         <View style={{ marginTop: spacing.sm }}>
           <TextField
             label={t('cargaOutroTitulo')}
@@ -292,15 +306,28 @@ export default function CargaDoPedido({
           </View>
         ))}
         {fotos.length < MAX_FOTOS ? (
-          <Pressable
-            style={styles.fotoAdd}
-            onPress={tirarFoto}
-            disabled={aTirar}
-            accessibilityRole="button"
-            accessibilityLabel={t('cargaFotoTirar')}
-          >
-            <Text style={styles.fotoAddIcone}>📷</Text>
-          </Pressable>
+          <>
+            <Pressable
+              style={styles.fotoAdd}
+              onPress={() => tirarFoto(false)}
+              disabled={aTirar}
+              accessibilityRole="button"
+              accessibilityLabel={t('cargaFotoCamera')}
+            >
+              <Icone nome="camera" tamanho={26} cor={colors.teal} />
+              <Text style={styles.fotoAddTexto}>{t('cargaFotoCamera')}</Text>
+            </Pressable>
+            <Pressable
+              style={styles.fotoAdd}
+              onPress={() => tirarFoto(true)}
+              disabled={aTirar}
+              accessibilityRole="button"
+              accessibilityLabel={t('cargaFotoGaleria')}
+            >
+              <Icone nome="galeria" tamanho={26} cor={colors.teal} />
+              <Text style={styles.fotoAddTexto}>{t('cargaFotoGaleria')}</Text>
+            </Pressable>
+          </>
         ) : null}
       </View>
 
@@ -316,9 +343,66 @@ export default function CargaDoPedido({
         </View>
         <Text style={styles.declaracaoTexto}>{t('cargaDeclaracao')}</Text>
       </Pressable>
+      {/* A LISTA DO QUE NÃO SE LEVA, à distância de um toque da declaração.
+          Declarar que os bens são "legais e seguros" sem dizer o que isso
+          exclui é pedir uma assinatura em branco. */}
+      <Pressable
+        onPress={() => setVerProibidos(true)}
+        hitSlop={8}
+        style={styles.proibidosLigacao}
+        accessibilityRole="button"
+      >
+        <Icone nome="proibido" tamanho={18} cor={colors.teal} />
+        <Text style={styles.proibidosLigacaoTexto}>{t('verBensProibidos')}</Text>
+      </Pressable>
+
+      <Modal
+        visible={verProibidos}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setVerProibidos(false)}
+      >
+        <Pressable style={styles.proibidosFundo} onPress={() => setVerProibidos(false)} />
+        <View style={styles.proibidosFolha}>
+          <View style={styles.proibidosPega} />
+          <Text style={styles.proibidosTitulo}>{t('bensProibidosTitulo')}</Text>
+          <ScrollView style={{ maxHeight: 380 }}>
+            {PROIBIDOS.map((k) => (
+              <View key={k} style={styles.proibidoLinha}>
+                <Icone nome="proibido" tamanho={20} cor={colors.danger} />
+                <Text style={styles.proibidoTexto}>{t(k)}</Text>
+              </View>
+            ))}
+            <Text style={styles.proibidosNota}>{t('bensProibidosNota')}</Text>
+          </ScrollView>
+          <Button
+            title={t('admFechar')}
+            variant="secondary"
+            onPress={() => setVerProibidos(false)}
+          />
+        </View>
+      </Modal>
     </View>
   );
 }
+
+// O que não se transporta. A lista é um rascunho para o Simão rever — não
+// proíbe animais de propósito: levar porcos ou galinhas numa caixa de Carry é
+// uma das coisas para que o Carry serve em Timor.
+const PROIBIDOS = [
+  'bensProibidos1',
+  'bensProibidos2',
+  'bensProibidos3',
+  'bensProibidos4',
+  'bensProibidos5',
+  'bensProibidos6',
+  'bensProibidos7',
+];
+
+// As listas, para o resumo do pedido as poder nomear sem as repetir.
+export const TIPOS_CARGA_LISTA = TIPOS;
+export const AJUDAS_CARGA_LISTA = AJUDAS;
+export const VOLUMES_CARGA_LISTA = VOLUMES;
 
 const criarEstilos = () =>
   StyleSheet.create({
@@ -454,8 +538,9 @@ const criarEstilos = () =>
     },
     fotoRemoverTexto: { color: colors.white, fontSize: 13, lineHeight: 15 },
     fotoAdd: {
-      width: 78,
+      width: 96,
       height: 78,
+      gap: 2,
       borderRadius: radius.md,
       borderWidth: 1,
       borderStyle: 'dashed',
@@ -464,7 +549,45 @@ const criarEstilos = () =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    fotoAddIcone: { fontSize: 26 },
+    fotoAddTexto: { ...tipo.legenda, fontSize: 11, color: colors.teal, textAlign: 'center' },
+    proibidosLigacao: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      alignSelf: 'flex-start',
+      minHeight: 40,
+      marginTop: spacing.xs,
+    },
+    proibidosLigacaoTexto: { ...tipo.corpoForte, fontSize: 14, color: colors.teal },
+    proibidosFundo: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
+    proibidosFolha: {
+      backgroundColor: colors.paper,
+      borderTopLeftRadius: radius.xl,
+      borderTopRightRadius: radius.xl,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.xl,
+      gap: spacing.sm,
+    },
+    proibidosPega: {
+      alignSelf: 'center',
+      width: 36,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.border,
+      marginBottom: spacing.sm,
+    },
+    proibidosTitulo: { ...tipo.titulo, color: colors.text, marginBottom: spacing.xs },
+    proibidoLinha: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: spacing.sm,
+      paddingVertical: spacing.sm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    proibidoTexto: { ...tipo.corpo, color: colors.text, flex: 1 },
+    proibidosNota: { ...tipo.pequeno, color: colors.textMuted, marginTop: spacing.sm },
 
     declaracao: {
       flexDirection: 'row',

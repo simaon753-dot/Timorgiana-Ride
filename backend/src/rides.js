@@ -203,6 +203,8 @@ export function toPublicRide(row, opcoes = {}) {
       ? {
           carga: {
             tipo: row.carga_tipo,
+            // Todos os tipos, o principal primeiro. Uma viagem antiga tem só um.
+            tipos: [row.carga_tipo, ...(row.carga_extra ? row.carga_extra.split(',') : [])],
             volume: row.carga_volume || null,
             ajuda: row.carga_ajuda || null,
             notas: row.carga_notas || null,
@@ -266,6 +268,10 @@ export async function createRide({
   cargaDeclarada = false,
   // O que é, quando o tipo é "outros". Ignorado para qualquer outro tipo.
   cargaOutro = null,
+  // Os OUTROS tipos, quando se escolheu mais do que um (14/09/26). O primeiro
+  // continua em `cargaTipo`: é o que as listas, o painel e as estatísticas
+  // lêem, e assim nada do que já existe muda de sentido.
+  cargaTipos = [],
 }) {
   // Quatro dígitos, com zeros à frente. Não é um segredo criptográfico —
   // é uma senha dita em voz alta à porta do carro, e vive uns minutos.
@@ -303,8 +309,18 @@ export async function createRide({
     : null;
   // "OUTRO" OBRIGA A DIZER O QUÊ. Um motorista que lê "Outros" e mais nada
   // está a decidir às cegas — é para isso que a lista existe.
-  const outroCarga =
-    tipoCarga === 'outros' ? String(cargaOutro || '').trim().slice(0, 80) || null : null;
+  const extrasCarga = tipoCarga
+    ? [
+        ...new Set(
+          (Array.isArray(cargaTipos) ? cargaTipos : []).filter(
+            (x) => TIPOS_CARGA.includes(x) && x !== tipoCarga
+          )
+        ),
+      ]
+    : [];
+  // "Outros" pode vir como segundo tipo: o texto do quê conta na mesma.
+  const temOutros = tipoCarga === 'outros' || extrasCarga.includes('outros');
+  const outroCarga = temOutros ? String(cargaOutro || '').trim().slice(0, 80) || null : null;
   const inserted = await one(
     `INSERT INTO rides
        (passenger_id, dest_label, dest_lat, dest_lng, origin_label, origin_lat, origin_lng,
@@ -312,9 +328,9 @@ export async function createRide({
         pickup_code, municipio,
         viajante_nome, viajante_telefone, viajante_menor, consentimento_em,
         carga_tipo, carga_volume, carga_ajuda, carga_notas, carga_declarado_em, carga_outro,
-        status)
+        carga_extra, status)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,
-             $19,$20,$21,$22,$23,$24,'requested')
+             $19,$20,$21,$22,$23,$24,$25,'requested')
      RETURNING id`,
     [
       passengerId,
@@ -358,6 +374,7 @@ export async function createRide({
       // Um registo que diz mais do que aconteceu vale menos, não mais.
       tipoCarga && cargaDeclarada ? new Date() : null,
       outroCarga,
+      extrasCarga.length ? extrasCarga.join(',') : null,
     ]
   );
   // AS PARAGENS, agora que a viagem tem id: a chave estrangeira aponta para

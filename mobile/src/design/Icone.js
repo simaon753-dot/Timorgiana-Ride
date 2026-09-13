@@ -326,6 +326,14 @@ function desenho(nome, p, cheio, preenchido, c) {
           <Circle cx="12" cy="12" r="2.6" {...p} />
         </>
       );
+    case 'galeria':
+      return (
+        <>
+          <Rect x="3.5" y="4.5" width="17" height="15" rx="2" {...p} />
+          <Circle cx="9" cy="9.5" r="1.8" {...p} />
+          <Path d="M3.5 17l5-5 4 4 3-3 5 5" {...p} />
+        </>
+      );
     case 'escudo':
       return (
         <>
