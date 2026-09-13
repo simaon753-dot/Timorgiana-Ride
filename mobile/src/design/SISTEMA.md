@@ -84,6 +84,15 @@ baixo, folhas). Três e não mais. Não existe `elevacao.cartao`.
 | **Cartão de veículo do início** | `screens/PassengerHomeScreen.js` | tinta do veículo, ilustração num quadrado arredondado, círculo do acento com o ícone, seta num círculo. |
 | **Faixa de teste** | `components/AvisoTeste.js` | pastilha rosada com "!" — atenção, não erro. |
 | **Barra de baixo** | `navigation/Tabuladores.js` | branca, sem traço, sombra `painel`. **Altura não fixa** (a biblioteca soma a margem do indicador de início). |
+| **Barra do topo** | `components/BarraTopo.js` | logótipo + círculo do perfil; com `motoristaOnline` mostra a pastilha "Motorista · Online" com o ponto verde. |
+| **Ligar/desligar** | `components/BotaoPower.js` | volante num anel com halo (120 px, alvo que se acerta sem olhar). A cor está no **anel**, não no preenchimento. |
+| **Etapas da viagem** | `design/EtapasViagem.js` | 4 etapas com a hora de cada. As horas vêm **do servidor** (`createdAt`, `acceptedAt`, `startedAt`, conclusão), nunca do relógio do telemóvel; `--:--` onde não há. |
+| **Três números** | `design/NumerosViagem.js` | Distánsia · Tempu · Folin. **Um só componente nos dois lados**, para o motorista e o passageiro nunca verem o preço arredondado de maneiras diferentes. `semPreco` para "a combinar". |
+| **Percurso** | `design/PercursoPontos.js` | partida → paragens → destino, pinos ligados por traço **contínuo** (o Android não desenha tracejado num só lado). |
+| **Viagem do passageiro** | `components/ViagemPassageiro.js` | título por estado → etapas → mapa → percurso → motorista → veículo → números → aviso → Partilhar · SOS · Kansela. |
+| **Cartão do pedido** | `screens/DriverHomeScreen.js` (`RequestCard`) | quem pede + média → percurso → mapa → números → carga → Recusa (`perigoSuave`) e Simu (`secondary`) lado a lado. |
+
+`Button` tem também **`perigoSuave`** (fundo `tintaPerigo`, texto `danger`): recusar sem gritar ao lado de um botão cheio.
 
 ### Imagens de veículos
 `assets/veiculos/{mota,carro,carry}-{claro,escuro}.jpg` — fundo branco puro de
@@ -117,6 +126,10 @@ transparência (43 KB). No escuro vai a 50 % de opacidade.
 - **Nada de comentários `{/* */}` dentro de um ramo de ternário no JSX** — ficam fora.
 - **Nada de ternários de duas vias sobre o tipo de veículo** — pergunta-se à tabela `VEICULOS`.
 - **Uma cor escrita à mão não muda com o tema.** Se tem de ser fixa (a cor do fundo de um ficheiro), diz-se porquê num comentário.
+- **Ícones decorativos sem disco por trás** (o escudo do aviso, o ícone de um cartão). O círculo fica só onde é o próprio botão (Ligar, Mensajen) ou uma marca (as etapas, o avatar).
+- **Estrelas: só a média**, sem o número de avaliações. Quem ainda não foi avaliado não mostra estrelas — o servidor manda `null`, e um "0.0" diria "péssimo".
+- **Antes de aceitar, o motorista não vê o telefone de quem pede** nem tem botão de mensagem: a lista de pedidos vai para todos os motoristas do município.
+- **As chaves da tabela `VEICULOS` são `motorbike`, `car`, `carry`** — não "mota". Um `VEICULOS.mota` não dá erro no verificador, dá `undefined` no telemóvel.
 
 ---
 
