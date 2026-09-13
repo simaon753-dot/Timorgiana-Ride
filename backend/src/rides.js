@@ -29,7 +29,16 @@ const RIDE_SELECT = `
          p.name  AS p_name,  p.phone AS p_phone,
          d.name  AS d_name,  d.phone AS d_phone,
          d.vehicle_type AS d_vtype, d.vehicle_model AS d_vmodel,
-         d.vehicle_plate AS d_vplate, d.vehicle_color AS d_vcolor
+         d.vehicle_plate AS d_vplate, d.vehicle_color AS d_vcolor,
+         -- A VÍRGULA AQUI EM CIMA faltou durante dois dias (11 a 13/09/26). A
+         -- linha do d_vcolor era a ÚLTIMA da lista; acrescentei colunas a
+         -- seguir sem lhe pôr vírgula, e deixei uma a mais antes do FROM. O
+         -- SQL ficou inválido e TODAS as viagens deram erro: criar, a activa,
+         -- o histórico, a lista dos motoristas. O /api/health não usa esta
+         -- consulta e continuou verde.
+         --
+         -- Nenhum verificador o apanhou: aqui o SQL é texto dentro de um
+         -- template literal, e o node --check só vê o JavaScript à volta.
          -- QUANTAS FOTOGRAFIAS DA CARGA, sem trazer um único byte.
          --
          -- O cartão do motorista precisa de saber que ELAS EXISTEM para
@@ -53,7 +62,7 @@ const RIDE_SELECT = `
          -- literal, e uma crase aqui fecha a string a meio do SQL.)
          (SELECT json_agg(json_build_object('label', rd.label, 'lat', rd.lat, 'lng', rd.lng)
                           ORDER BY rd.ordem)
-            FROM ride_destinos rd WHERE rd.ride_id = r.id) AS destinos_meio,
+            FROM ride_destinos rd WHERE rd.ride_id = r.id) AS destinos_meio
   FROM rides r
   JOIN users p ON p.id = r.passenger_id
   LEFT JOIN users d ON d.id = r.driver_id
