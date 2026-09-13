@@ -1,6 +1,7 @@
 import http from 'node:http';
 import express from 'express';
 import cors from 'cors';
+import { corsPorPedido } from './corsApi.js';
 import { Server as SocketServer } from 'socket.io';
 
 import { config } from './config.js';
@@ -43,7 +44,10 @@ const app = express();
 // cabeçalho escreve-se à mão — quem quisesse contornar o travão inventava um
 // endereço novo em cada tentativa.
 app.set('trust proxy', 1);
-app.use(cors());
+// Depois do `trust proxy` e não antes: a regra calcula a origem do próprio
+// servidor a partir de `req.protocol`, que só é fiável com ele ligado. Ver
+// corsApi.js — incluindo porque o socket.io, mais abaixo, fica como está.
+app.use(cors(corsPorPedido));
 // Limite maior: os documentos dos motoristas viajam em base64
 app.use(express.json({ limit: '6mb' }));
 
