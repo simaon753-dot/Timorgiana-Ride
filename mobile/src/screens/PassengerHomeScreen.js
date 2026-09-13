@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   ScrollView,
   ActivityIndicator,
@@ -35,7 +36,7 @@ import { nomeDaCor, hexDaCor } from '../lib/corVeiculo.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
-import { colors, spacing, radius, elevacao, registarEstilos } from '../theme.js';
+import { colors, spacing, radius, elevacao, registarEstilos, paletaEmUso } from '../theme.js';
 
 export default function PassengerHomeScreen({ navigation }) {
   const { t } = useI18n();
@@ -379,7 +380,13 @@ export default function PassengerHomeScreen({ navigation }) {
                   accessibilityRole="button"
                   accessibilityLabel={t(v.chaveNome)}
                 >
-                  <Text style={styles.veiculoEmoji}>{v.emoji}</Text>
+                  <View style={styles.veiculoFotoCaixa}>
+                    <Image
+                      source={v.imagens[paletaEmUso()] || v.imagens.claro}
+                      style={styles.veiculoFoto}
+                      resizeMode="contain"
+                    />
+                  </View>
                   <View style={styles.veiculoTextos}>
                     <Text style={styles.veiculoNome}>{t(v.chaveNome)}</Text>
                     <Text style={styles.veiculoNota}>{t(v.chaveNota)}</Text>
@@ -436,10 +443,22 @@ const criarEstilos = () =>
       minHeight: 104,
       ...elevacao.cartao,
     },
-    // EMOJI E NÃO FOTOGRAFIA, a pedido do Simão (13/09/26): "o ícone para o
-    // anterior". As fotografias tinham recortes que se viam no modo escuro
-    // (salpicos brancos à volta do Carry); o emoji é igual de dia e de noite.
-    veiculoEmoji: { fontSize: 44, lineHeight: 56, width: 72, textAlign: 'center' },
+    // A IMAGEM DENTRO DE UM QUADRADO DA COR DO FUNDO DELA.
+    //
+    // As ilustrações do Simão vêm com fundo branco puro (dia) e preto puro
+    // (noite). De dia o quadrado é branco sobre o cartão branco e não se vê;
+    // de noite é preto dentro do cartão cinzento-escuro, e lê-se como moldura.
+    // Tirar o fundo às imagens automaticamente arriscava contornos sujos —
+    // foi o que estragou o Carry anterior. As cores são as dos FICHEIROS e
+    // não do tema, por isso estão escritas aqui e não em theme.js.
+    veiculoFotoCaixa: {
+      width: 104,
+      height: 78,
+      borderRadius: radius.md,
+      overflow: 'hidden',
+      backgroundColor: paletaEmUso() === 'escuro' ? '#000000' : '#FFFFFF',
+    },
+    veiculoFoto: { width: 104, height: 78 },
     veiculoTextos: { flex: 1 },
     veiculoNome: { ...tipo.subtitulo, color: colors.text },
     veiculoNota: { ...tipo.pequeno, color: colors.textMuted, marginTop: 2 },

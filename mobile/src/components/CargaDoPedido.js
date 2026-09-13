@@ -26,14 +26,18 @@ import { useI18n } from '../i18n/index.js';
 // leu; uma caixa que trava o pedido regista que aquela pessoa, naquele
 // instante, declarou aquilo — e o servidor guarda a HORA, não um "sim".
 
+// A lista, a ordem e os emoji são do Simão (13/09/26). A MESMA lista está no
+// servidor (TIPOS_CARGA), no cartão do motorista e no painel — o
+// verificar-tipos confere que as quatro coincidem.
 const TIPOS = [
-  { id: 'compras', chave: 'cargaCompras' },
-  { id: 'moveis', chave: 'cargaMoveis' },
-  { id: 'caixas', chave: 'cargaCaixas' },
-  { id: 'eletrodomesticos', chave: 'cargaEletrodomesticos' },
-  { id: 'materiais', chave: 'cargaMateriais' },
-  { id: 'mercadorias', chave: 'cargaMercadorias' },
-  { id: 'outros', chave: 'cargaOutros' },
+  { id: 'compras', chave: 'cargaCompras', emoji: '🛒' },
+  { id: 'caixas', chave: 'cargaCaixas', emoji: '📦' },
+  { id: 'moveis', chave: 'cargaMoveis', emoji: '🪑' },
+  { id: 'mudanca', chave: 'cargaMudanca', emoji: '🏠' },
+  { id: 'eletrodomesticos', chave: 'cargaEletrodomesticos', emoji: '🧊' },
+  { id: 'materiais', chave: 'cargaMateriais', emoji: '🔨' },
+  { id: 'mercadorias', chave: 'cargaMercadorias', emoji: '🏪' },
+  { id: 'outros', chave: 'cargaOutros', emoji: '📦' },
 ];
 
 const VOLUMES = [
@@ -79,6 +83,38 @@ function Fichas({ opcoes, valor, onEscolher, t }) {
   );
 }
 
+// OS TIPOS EM MOSAICO, com o emoji grande. Pedido do Simão: "aumentar os
+// ícones". Duas colunas: oito tipos em fichas de texto obrigavam a ler cada
+// palavra; com o desenho grande reconhece-se o tipo de relance. Um só tipo por
+// pedido — a "Mudança" existe justamente para quando vai de tudo.
+function TiposCarga({ valor, onEscolher, t }) {
+  return (
+    <View style={styles.tiposCarga}>
+      {TIPOS.map((o) => {
+        const activo = valor === o.id;
+        return (
+          <Pressable
+            key={o.id}
+            style={[styles.tipoCarga, activo && styles.tipoCargaActivo]}
+            onPress={() => onEscolher(o.id)}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: activo }}
+            accessibilityLabel={t(o.chave)}
+          >
+            <Text style={styles.tipoCargaEmoji}>{o.emoji}</Text>
+            <Text
+              style={[styles.tipoCargaNome, activo && styles.tipoCargaNomeActivo]}
+              numberOfLines={2}
+            >
+              {t(o.chave)}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 export default function CargaDoPedido({
   carga,
   onCarga,
@@ -96,6 +132,8 @@ export default function CargaDoPedido({
   onRemoverParagem,
   onAdicionarParagem,
   maxParagens = 2,
+  outro = '',
+  onOutro,
 }) {
   const { t } = useI18n();
   const [aTirar, setATirar] = useState(false);
@@ -131,7 +169,18 @@ export default function CargaDoPedido({
   return (
     <View>
       <Text style={styles.seccao}>{t('cargaTitulo')}</Text>
-      <Fichas opcoes={TIPOS} valor={carga} onEscolher={onCarga} t={t} />
+      <TiposCarga valor={carga} onEscolher={onCarga} t={t} />
+      {/* "Outro" obriga a escrever o quê — o botão de pedir espera por isso. */}
+      {carga === 'outros' ? (
+        <View style={{ marginTop: spacing.sm }}>
+          <TextField
+            label={t('cargaOutroTitulo')}
+            value={outro}
+            onChangeText={onOutro}
+            placeholder={t('cargaOutroExemplo')}
+          />
+        </View>
+      ) : null}
 
       <Text style={styles.seccao}>{t('cargaVolumeTitulo')}</Text>
       {/* O volume tem uma NOTA por baixo de cada opção, e os outros não.
@@ -295,6 +344,24 @@ const criarEstilos = () =>
     fichaTexto: { ...tipo.pequeno, color: colors.text },
     fichaTextoActivo: { color: colors.onTeal, fontWeight: '700' },
 
+    tiposCarga: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+    tipoCarga: {
+      width: '48.5%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      minHeight: 60,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.lg,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      backgroundColor: colors.white,
+    },
+    tipoCargaActivo: { borderColor: colors.teal, backgroundColor: colors.tintaTeal },
+    tipoCargaEmoji: { fontSize: 30, lineHeight: 38 },
+    tipoCargaNome: { ...tipo.pequeno, color: colors.text, flex: 1 },
+    tipoCargaNomeActivo: { ...tipo.corpoForte, fontSize: 13.5, color: colors.teal },
     volumes: { gap: spacing.sm },
     volume: {
       borderWidth: 1,

@@ -25,6 +25,12 @@ export const VEICULOS = {
     chaveMatricula: 'vehiclePlatePlaceholderMoto',
     icone: 'mota',
     emoji: '🏍️',
+    // As ilustrações do Simão (13/09/26), uma por tema: fundo branco puro de
+    // dia, preto puro de noite. Ver veiculoFotoCaixa no ecrã inicial.
+    imagens: {
+      claro: require('../../assets/veiculos/mota-claro.jpg'),
+      escuro: require('../../assets/veiculos/mota-escuro.jpg'),
+    },
     // Numa motorizada vai sempre uma pessoa: não se pergunta quantas são.
     perguntaLugares: false,
     levaPessoas: true,
@@ -36,6 +42,12 @@ export const VEICULOS = {
     chaveMatricula: 'vehiclePlatePlaceholderCar',
     icone: 'carro',
     emoji: '🚗',
+    // As ilustrações do Simão (13/09/26), uma por tema: fundo branco puro de
+    // dia, preto puro de noite. Ver veiculoFotoCaixa no ecrã inicial.
+    imagens: {
+      claro: require('../../assets/veiculos/carro-claro.jpg'),
+      escuro: require('../../assets/veiculos/carro-escuro.jpg'),
+    },
     perguntaLugares: true,
     levaPessoas: true,
   },
@@ -46,6 +58,12 @@ export const VEICULOS = {
     chaveMatricula: 'vehiclePlatePlaceholderCar',
     icone: 'carry',
     emoji: '🛻',
+    // As ilustrações do Simão (13/09/26), uma por tema: fundo branco puro de
+    // dia, preto puro de noite. Ver veiculoFotoCaixa no ecrã inicial.
+    imagens: {
+      claro: require('../../assets/veiculos/carry-claro.jpg'),
+      escuro: require('../../assets/veiculos/carry-escuro.jpg'),
+    },
     perguntaLugares: false,
     // O QUE SEPARA O CARRY DOS OUTROS DOIS, e é a única diferença que os
     // ecrãs precisam de consultar: este não transporta pessoas, transporta

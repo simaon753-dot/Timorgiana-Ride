@@ -41,8 +41,9 @@ import ImagemProtegida from '../design/ImagemProtegida.js';
 // assim que os tipos de lugar quase saíram sem tétum.
 const CHAVE_CARGA = {
   compras: 'cargaCompras',
-  moveis: 'cargaMoveis',
   caixas: 'cargaCaixas',
+  moveis: 'cargaMoveis',
+  mudanca: 'cargaMudanca',
   eletrodomesticos: 'cargaEletrodomesticos',
   materiais: 'cargaMateriais',
   mercadorias: 'cargaMercadorias',
@@ -371,6 +372,7 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
         <View style={styles.carga}>
           <Text style={styles.cargaLinha}>
             {t(CHAVE_CARGA[ride.carga.tipo] || 'cargaOutros')}
+            {ride.carga.outro ? `: ${ride.carga.outro}` : ''}
             {ride.carga.volume ? ` · ${t(CHAVE_VOLUME[ride.carga.volume])}` : ''}
           </Text>
           {ride.carga.ajuda && ride.carga.ajuda !== 'nenhuma' ? (

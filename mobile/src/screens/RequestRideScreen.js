@@ -3,6 +3,7 @@ import {
   Alert,
   View,
   Text,
+  Image,
   StyleSheet,
   Pressable,
   ActivityIndicator,
@@ -39,7 +40,7 @@ import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
 import { api } from '../api/client.js';
-import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { colors, spacing, fontSize, radius, registarEstilos, paletaEmUso } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 import Icone from '../design/Icone.js';
 import { TIPOS_VEICULO, VEICULOS, nomeDoVeiculo, veiculo } from '../dados/tiposDeVeiculo.js';
@@ -150,6 +151,7 @@ export default function RequestRideScreen({ navigation, route }) {
   const [cargaVolume, setCargaVolume] = useState('medio');
   const [cargaAjuda, setCargaAjuda] = useState('nenhuma');
   const [cargaNotas, setCargaNotas] = useState('');
+  const [cargaOutro, setCargaOutro] = useState('');
   const [cargaDeclarado, setCargaDeclarado] = useState(false);
   const [cargaFotos, setCargaFotos] = useState([]);
   // Paragens pelo caminho, só no Carry. Ver a nota em `paragensActivas`.
@@ -664,6 +666,7 @@ export default function RequestRideScreen({ navigation, route }) {
               cargaVolume,
               cargaAjuda,
               cargaNotas: cargaNotas.trim(),
+              cargaOutro: cargaOutro.trim(),
               cargaDeclarada: cargaDeclarado,
               // O servidor volta a filtrar: só aceita paragens no Carry, e só
               // duas. Mandar daqui o que já está filtrado aqui é cinto e
@@ -989,7 +992,10 @@ export default function RequestRideScreen({ navigation, route }) {
   // o que é a carga, e a declaração de que é legal e cabe. Sem elas o botão
   // não avança — a declaração não é um aviso que se ignora.
   const cargaCompleta =
-    veiculo(veiculoAtual).levaPessoas || carryPessoas || (!!cargaTipo && cargaDeclarado);
+    veiculo(veiculoAtual).levaPessoas ||
+    carryPessoas ||
+    // "Outro" obriga a dizer o quê: o motorista não decide sobre "Outro".
+    (!!cargaTipo && cargaDeclarado && (cargaTipo !== 'outros' || !!cargaOutro.trim()));
 
   const podePedir =
     !!origem &&
@@ -1300,7 +1306,16 @@ export default function RequestRideScreen({ navigation, route }) {
               <Text style={styles.seccao}>{t(veiculoFixo ? 'seuVeiculo' : 'chooseVehicle')}</Text>
               {veiculoFixo ? (
                 <View style={styles.veiculoFixo}>
-                  <Text style={styles.veiculoFixoEmoji}>{veiculo(veiculoFixo).emoji}</Text>
+                  <View style={styles.veiculoFixoFotoCaixa}>
+                    <Image
+                      source={
+                        veiculo(veiculoFixo).imagens[paletaEmUso()] ||
+                        veiculo(veiculoFixo).imagens.claro
+                      }
+                      style={styles.veiculoFixoFoto}
+                      resizeMode="contain"
+                    />
+                  </View>
                   <Text style={styles.veiculoFixoTexto}>{nomeDoVeiculo(t, veiculoFixo)}</Text>
                 </View>
               ) : (
@@ -1372,6 +1387,8 @@ export default function RequestRideScreen({ navigation, route }) {
               onAjuda={setCargaAjuda}
               notas={cargaNotas}
               onNotas={setCargaNotas}
+              outro={cargaOutro}
+              onOutro={setCargaOutro}
               declarado={cargaDeclarado}
               onDeclarado={setCargaDeclarado}
               fotos={cargaFotos}
@@ -1647,7 +1664,15 @@ const criarEstilos = () =>
       paddingHorizontal: spacing.md,
     },
 
-    veiculoFixoEmoji: { fontSize: 22 },
+    // A mesma moldura do ecrã inicial, em pequeno. Ver PassengerHomeScreen.
+    veiculoFixoFotoCaixa: {
+      width: 56,
+      height: 42,
+      borderRadius: radius.sm,
+      overflow: 'hidden',
+      backgroundColor: paletaEmUso() === 'escuro' ? '#000000' : '#FFFFFF',
+    },
+    veiculoFixoFoto: { width: 56, height: 42 },
     // corpoForte e não corpo + fontWeight '700': pedir negrito a uma família
     // que não o tem faz o Android cair numa letra de substituição — foi a
     // letra "manuscrita" do Motorizada na captura do Simão (13/09/26).

@@ -111,6 +111,43 @@ for (const x of naAppMotivos) {
   if (faltam.length) problemas.push(`${chave} — falta em ${faltam.join(', ')}`);
 }
 
+// ── e os tipos de carga, pela quarta vez ──
+//
+// Vivem em QUATRO sítios: o servidor (config.js), o ecrã do pedido
+// (CargaDoPedido), o cartão do motorista (CHAVE_CARGA) e o painel (CARGA). A
+// "Mudança" entrou nos quatro a 13/09/26. Se um dia entrar só num, o servidor
+// recusa-a em silêncio ou o motorista lê "Outro" — e o `t(o.chave)` dos
+// mosaicos é invisível ao verificar-traducoes, como os tipos de lugar.
+function chavesDe(caminho, marcador) {
+  const texto = readFileSync(caminho, 'utf8');
+  const bloco = texto.slice(texto.indexOf(marcador));
+  return [...bloco.slice(0, bloco.indexOf('};')).matchAll(/([a-z]+):\s*'/g)].map((m) => m[1]);
+}
+const noServidorCarga = idsDe('../backend/src/config.js', 'export const TIPOS_CARGA = [');
+const textoCarga = readFileSync('src/components/CargaDoPedido.js', 'utf8');
+const blocoCarga = textoCarga.slice(textoCarga.indexOf('const TIPOS = ['));
+const blocoCargaFim = blocoCarga.slice(0, blocoCarga.indexOf('];'));
+const naAppCarga = [...blocoCargaFim.matchAll(/id: '([a-z]+)'/g)].map((m) => m[1]);
+const chavesCarga = [...blocoCargaFim.matchAll(/chave: '(\w+)'/g)].map((m) => m[1]);
+const listasCarga = {
+  'ecrã do pedido': naAppCarga,
+  'cartão do motorista': chavesDe('src/screens/DriverHomeScreen.js', 'const CHAVE_CARGA = {'),
+  painel: chavesDe('../backend/publico/painel.html', 'const CARGA = {'),
+};
+if (!noServidorCarga.length || !naAppCarga.length) problemas.push('não encontrei as listas de tipos de carga');
+for (const [onde, lista] of Object.entries(listasCarga)) {
+  for (const x of noServidorCarga.filter((y) => !lista.includes(y))) {
+    problemas.push(`carga '${x}' está no servidor mas não no ${onde}`);
+  }
+  for (const x of lista.filter((y) => !noServidorCarga.includes(y))) {
+    problemas.push(`carga '${x}' está no ${onde} mas o servidor recusa-a`);
+  }
+}
+for (const chave of chavesCarga) {
+  const faltam = LINGUAS.filter((l) => dicionarios[l][chave] == null);
+  if (faltam.length) problemas.push(`${chave} — falta em ${faltam.join(', ')}`);
+}
+
 if (problemas.length) {
   console.error('  ✗ tipos de lugar:\n');
   for (const p of problemas) console.error('    ' + p);
@@ -118,5 +155,5 @@ if (problemas.length) {
 }
 console.log(
   `  ✓ ${naApp.length} tipos de lugar, ${naAppDocs.length} documentos e ` +
-    `${naAppMotivos.length} motivos, traduzidos e iguais nos dois lados`
+    `${naAppMotivos.length} motivos e ${naAppCarga.length} tipos de carga, traduzidos e iguais nos dois lados`
 );
