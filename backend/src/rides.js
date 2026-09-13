@@ -1,5 +1,11 @@
 import { query, one } from './db.js';
-import { TIPOS_VEICULO, TIPOS_CARGA, VOLUMES_CARGA, AJUDAS_CARGA } from './config.js';
+import {
+  TIPOS_VEICULO,
+  TIPOS_CARGA,
+  VOLUMES_CARGA,
+  AJUDAS_CARGA,
+  MAX_PESSOAS_CARRY,
+} from './config.js';
 import { municipioDe } from './municipios.js';
 import { guardarDestinos } from './destinosDaViagem.js';
 
@@ -306,7 +312,11 @@ export async function createRide({
       num(fareUsd),
       num(distanceKm),
       durationMin != null ? Math.round(Number(durationMin)) : null,
-      passengers != null ? Math.max(1, Math.min(8, Number(passengers))) : null,
+      // O 8 é do carro. Num Carry com pessoas o limite é outro, e cortar um
+      // grupo de 15 em 8 era mandar metade da família a pé sem ninguém saber.
+      passengers != null
+        ? Math.max(1, Math.min(vehicleType === 'carry' ? MAX_PESSOAS_CARRY : 8, Number(passengers)))
+        : null,
       codigo,
       // O município é o da RECOLHA, não o do destino. É de onde o passageiro
       // está à espera que interessa a quem o vai buscar: uma viagem de Díli

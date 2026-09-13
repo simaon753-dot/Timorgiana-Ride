@@ -54,6 +54,8 @@ quoteRouter.post(
     // `intermediates` e devolve os totais da rota inteira, por uma só
     // chamada ao contador diário.
     const paragens = limparDestinos(req.body?.destinos);
+    // O modo do Carry, explícito — ver a nota em routes/rides.js.
+    const carryPessoas = req.body?.carryModo === 'pessoas';
     const viagem = await rotaCompleta(
       { lat: oLat, lng: oLng },
       { lat: dLat, lng: dLng },
@@ -86,7 +88,13 @@ quoteRouter.post(
         const maisPerto = perto[0];
         return {
           type: tipo,
-          fareUsd: preco(tipo, viagem.km, viagem.min, tipo === 'car' ? pessoas : null, carga),
+          fareUsd: preco(
+            tipo,
+            viagem.km,
+            viagem.min,
+            tipo === 'car' || (tipo === 'carry' && carryPessoas) ? pessoas : null,
+            tipo === 'carry' && carryPessoas ? null : carga
+          ),
           etaMin: maisPerto ? etaMinutos(maisPerto.km) : null,
           available: !!maisPerto,
         };

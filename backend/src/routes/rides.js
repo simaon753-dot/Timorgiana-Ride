@@ -83,6 +83,20 @@ function notify(io, ride, event) {
   if (ride.driver_id) io.to(`user:${ride.driver_id}`).emit(event, toPublicRide(ride));
 }
 
+// OS LUGARES DA CABINE NÃO CONTAM NUM CARRY.
+//
+// O filtro "a viagem cabe no veículo" existe para o carro: seis pessoas não
+// entram num carro de quatro. Num Carry as pessoas vão na CAIXA, e os dois
+// lugares da cabine não dizem nada sobre quantas cabem. Sem isto, um
+// motorista de Carry com lugares registados deixava de ver os grupos — o
+// único pedido de pessoas para que o Carry serve.
+//
+// Resolvido aqui e não no SQL: `null` já faz as consultas deixarem passar
+// tudo — é o mesmo caminho de quem não tem lugares registados.
+function lugaresQueContam(user) {
+  return user?.vehicle_type === 'carry' ? null : (user?.vehicle_seats ?? null);
+}
+
 async function rideForParticipant(rideId, userId) {
   const row = await getRideById(rideId);
   if (!row) return null;
@@ -116,6 +130,7 @@ ridesRouter.post(
       cargaNotas,
       cargaDeclarada,
       destinos,
+      carryModo,
     } = req.body || {};
     if (!destLabel || !destLabel.trim()) {
       return res.status(400).json({ error: 'Indica o destino.' });
@@ -221,6 +236,12 @@ ridesRouter.post(
     // pede Carry não nota diferença nenhuma, porque não há nenhuma.
     const paragens = vehicleType === 'carry' ? limparDestinos(destinos) : [];
 
+    // CARRY COM PESSOAS: o modo vem EXPLÍCITO da app, não se deduz. A app
+    // manda sempre um número de pessoas (o ecrã começa em 1); lido sem o modo,
+    // um Carry de bens contaria como pessoas e apanhava o mínimo de $5.
+    const carryPessoas = vehicleType === 'carry' && carryModo === 'pessoas';
+    const pessoasContam = vehicleType === 'car' || carryPessoas;
+
     let precoFinal = fareUsd;
     let kmViagem = null;
     let minViagem = null;
@@ -253,8 +274,8 @@ ridesRouter.post(
         // O MESMO NÚMERO QUE A COTAÇÃO VIU. Se aqui se ignorasse, o passageiro
         // via um preço no ecrã e a viagem nascia com outro — e o do ecrã é o
         // que ele aceitou.
-        vehicleType === 'car' ? passengers : null,
-        { volume: cargaVolume, ajuda: cargaAjuda }
+        pessoasContam ? passengers : null,
+        carryPessoas ? null : { volume: cargaVolume, ajuda: cargaAjuda }
       );
       kmViagem = viagem.km;
       minViagem = viagem.min;
@@ -275,8 +296,9 @@ ridesRouter.post(
       // Só onde se pergunta: numa motorizada vai sempre uma pessoa, e num
       // Carry não vai nenhuma. Lido da lista de tipos e não com um
       // `=== 'car'`, que era o que sobrava de quando havia só dois.
-      passengers: vehicleType === 'car' ? passengers : null,
-      cargaTipo,
+      passengers: pessoasContam ? passengers : null,
+      // Um pedido é de bens OU de pessoas. Com pessoas, a carga não entra.
+      cargaTipo: carryPessoas ? null : cargaTipo,
       cargaVolume,
       cargaAjuda,
       cargaNotas,
@@ -357,7 +379,7 @@ ridesRouter.get(
       req.user.vehicle_type || 'car',
       req.user.last_lat,
       req.user.last_lng,
-      req.user.vehicle_seats
+      lugaresQueContam(req.user)
     );
     return res.json({ rides: rows.map((r) => toPublicRide(r)) });
   })
@@ -375,7 +397,7 @@ ridesRouter.post(
       return res.status(400).json({ error: 'Tarifa inválida.' });
     }
 
-    const row = await acceptRide(rideId, req.user.id, fare, req.user.vehicle_seats);
+    const row = await acceptRide(rideId, req.user.id, fare, lugaresQueContam(req.user));
     if (!row) {
       // Duas causas possíveis; distingui-las poupa uma chamada de telefone
       // ao motorista a perguntar porque é que não conseguiu aceitar.
@@ -383,8 +405,8 @@ ridesRouter.post(
       if (
         atual?.status === 'requested' &&
         atual.passengers != null &&
-        req.user.vehicle_seats != null &&
-        atual.passengers > req.user.vehicle_seats
+        lugaresQueContam(req.user) != null &&
+        atual.passengers > lugaresQueContam(req.user)
       ) {
         return res.status(409).json({
           error: `Esta viagem é para ${atual.passengers} pessoas e o teu carro leva ${req.user.vehicle_seats}.`,

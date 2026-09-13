@@ -10,6 +10,11 @@ import 'dotenv/config';
 // A ORDEM é a que o passageiro vê: da mais barata para a mais especial.
 export const TIPOS_VEICULO = ['motorbike', 'car', 'carry'];
 
+// CARRY COM PESSOAS: até 15, decidido pelo Simão (13/09/26). As pessoas vão na
+// caixa; é para grupos que não cabem num carro. O número de 15 é dele — é o
+// que uma caixa de Carry leva em Díli sem ser perigoso, e isso sabe-se da rua.
+export const MAX_PESSOAS_CARRY = 15;
+
 // O QUE UMA CARGA PODE SER. Lista fechada e não texto livre: assim contam-se,
 // e ao fim de um ano sabe-se o que Díli manda transportar — que é informação,
 // e não uma pilha de frases para ler uma a uma. Quem tiver outra coisa escolhe
@@ -163,6 +168,10 @@ export const config = {
       porKm: Number(process.env.FARE_CARRY_POR_KM) || 0.85,
       porMinuto: Number(process.env.FARE_CARRY_POR_MINUTO) || 0.05,
       minimo: Number(process.env.FARE_CARRY_MINIMO) || 3.0,
+      // COM PESSOAS o preço é por viagem (não por cabeça), com mínimo de $5 —
+      // decisão do Simão. Os bens mantêm os $3: foi sobre as pessoas que se
+      // perguntou, e mudar o mínimo dos bens seria decidir por ele.
+      minimoPessoas: Number(process.env.FARE_CARRY_MINIMO_PESSOAS) || 5.0,
 
       // O VOLUME MULTIPLICA, A AJUDA SOMA. E a diferença não é de gosto.
       //
