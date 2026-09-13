@@ -305,6 +305,27 @@ function desenho(nome, p, cheio, preenchido, c) {
       );
     case 'lua':
       return <Path d="M19.5 14.5A8 8 0 1 1 9.5 4.5a6.4 6.4 0 0 0 10 10z" {...p} />;
+    case 'lapis':
+      return (
+        <>
+          <Path d="M4 20h4L19 9l-4-4L4 16z" {...p} />
+          <Line x1="13.5" y1="6.5" x2="17.5" y2="10.5" {...p} />
+        </>
+      );
+    case 'caixa':
+      return (
+        <>
+          <Path d="M4 7.5L12 4l8 3.5v9L12 20l-8-3.5z" {...p} />
+          <Path d="M4 7.5l8 3.5 8-3.5M12 11v9" {...p} />
+        </>
+      );
+    case 'dinheiro':
+      return (
+        <>
+          <Rect x="3" y="6.5" width="18" height="11" rx="2" {...p} />
+          <Circle cx="12" cy="12" r="2.6" {...p} />
+        </>
+      );
     case 'escudo':
       return (
         <>

@@ -91,6 +91,23 @@ export async function esconderRecente(label) {
   }
 }
 
+// "LIMPAR TUDO" ESCONDE O HISTÓRICO INTEIRO, e não só os três que estão à
+// vista. A lista mostra os três mais recentes; esconder só esses fazia
+// aparecer os três seguintes da próxima vez — um "limpar tudo" que não limpa.
+export async function esconderTodosRecentes(token) {
+  try {
+    const r = await api.rideHistory(token);
+    const escondidos = await recentesEscondidos();
+    for (const v of r.rides || []) {
+      const chave = chaveDoRecente(v.destLabel);
+      if (chave) escondidos.add(chave);
+    }
+    await AsyncStorage.setItem(CHAVE_ESCONDIDOS, JSON.stringify([...escondidos]));
+  } catch {
+    /* sem rede: não se esconde nada, e a lista fica como estava */
+  }
+}
+
 export async function destinosRecentes(token, quantos = 3) {
   try {
     const r = await api.rideHistory(token);

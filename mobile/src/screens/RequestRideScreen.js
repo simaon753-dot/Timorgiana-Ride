@@ -997,6 +997,12 @@ export default function RequestRideScreen({ navigation, route }) {
     // "Outro" obriga a dizer o quê: o motorista não decide sobre "Outro".
     (!!cargaTipo && cargaDeclarado && (cargaTipo !== 'outros' || !!cargaOutro.trim()));
 
+  // A VERDADE SOBRE A DISPONIBILIDADE, para o botão e para o aviso.
+  const semMotorista = !!opcao && !opcao.available;
+  // Texto escuro sobre o coral, como no resto da app: branco fica a 2,8:1.
+  const corBotao = colors.text;
+  const precoTexto = opcao ? `$${opcao.fareUsd.toFixed(2)}` : null;
+
   const podePedir =
     !!origem &&
     !!destino &&
@@ -1005,6 +1011,16 @@ export default function RequestRideScreen({ navigation, route }) {
     outroCompleto &&
     cargaCompleta &&
     coberturaDestino !== false;
+
+  const rotuloBotao = !(origem && destino)
+    ? t('whereTo')
+    : opcao
+      ? semMotorista
+        ? t('procurarMotoristaPreco', { preco: precoTexto })
+        : `${t('confirmRide')} ${precoTexto}`
+      : podePedir
+        ? `${t('confirmRide')} · ${t('fareToAgree')}`
+        : t('whereTo');
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -1042,12 +1058,19 @@ export default function RequestRideScreen({ navigation, route }) {
           onCentro={centroMudou}
         />
         {!pesquisa && !aEscolherNoMapa ? (
-          <Pressable style={styles.voltar} onPress={() => navigation.goBack()} hitSlop={10}>
-            <Text style={styles.voltarTexto}>‹</Text>
+          <Pressable
+            style={styles.voltar}
+            onPress={() => navigation.goBack()}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={t('back')}
+          >
+            <Icone nome="voltar" tamanho={22} cor={colors.teal} traco={2.4} />
           </Pressable>
         ) : null}
         {orcamento && !pesquisa && !aEscolherNoMapa ? (
           <View style={styles.rotaBadge}>
+            <Icone nome="relogio" tamanho={18} cor={colors.onTeal} />
             <Text style={styles.rotaTexto}>
               {t('tripInfo', { km: orcamento.distanceKm, min: orcamento.durationMin })}
               {orcamento.approximate ? ` · ${t('priceApprox')}` : ''}
@@ -1200,34 +1223,52 @@ export default function RequestRideScreen({ navigation, route }) {
             visível e as respostas por baixo da dobra, sem nada a dizer
             que havia mais. Parecia avariado, e não estava. */}
         <ScrollView>
-          {/* O ! aparece nos dois campos. Quem está PARADO num sítio é quem
-              melhor sabe como ele se chama — muito mais do que quem vai a
-              caminho —, por isso a recolha é, das duas, a melhor fonte. */}
-          <Ponto
-            cor={colors.teal}
-            rotulo={t('pickupPoint')}
-            valor={origem?.label}
-            vazio={gps ? t('gettingLocation') : t('useMyLocation')}
-            onPress={() => setPesquisa('origem')}
-            onCorrigir={
-              origem && !origem.provisorio
-                ? () => perguntarNome({ ponto: origem, qual: 'origem' })
-                : undefined
-            }
-          />
-          {/* A dica de arrastar, e SÓ enquanto o ponto vier do GPS.
-              Depois de o arrastar, o ponto está onde a pessoa o pôs e a dica
-              deixa de fazer sentido — repeti-la seria pedir para corrigir uma
-              coisa que já está certa.
-              Diz também de quanto é o erro: "mais ou menos 40 m" explica
-              porque é que o pino não está exactamente na porta, e transforma
-              um defeito aparente numa informação. */}
+          {/* O TÍTULO DA FOLHA diz em que passo se está: enquanto falta um
+              ponto, a pergunta; com os dois postos, "confirme" — a partir
+              daqui já não se escolhe o percurso, verifica-se. */}
+          <Text style={styles.folhaTitulo}>
+            {origem && destino ? t('confirmaTitulo') : t('whereTo')}
+          </Text>
+          {origem && destino ? <Text style={styles.folhaSub}>{t('confirmaSub')}</Text> : null}
+
+          {/* RECOLHA E DESTINO NUM CARTÃO, como na referência: são as duas
+              pontas de uma coisa só, e lidas juntas. O ! aparece nos dois
+              campos — quem está PARADO num sítio é quem melhor sabe como ele
+              se chama, por isso a recolha é, das duas, a melhor fonte. */}
+          <View style={styles.rotaCartao}>
+            <Ponto
+              cor={colors.teal}
+              rotulo={t('pickupPoint')}
+              valor={origem?.label}
+              vazio={gps ? t('gettingLocation') : t('useMyLocation')}
+              onPress={() => setPesquisa('origem')}
+              onCorrigir={
+                origem && !origem.provisorio
+                  ? () => perguntarNome({ ponto: origem, qual: 'origem' })
+                  : undefined
+              }
+            />
+            <View style={styles.linha} />
+            <Ponto
+              cor={colors.coral}
+              rotulo={t('dropoffPoint')}
+              valor={destino?.label}
+              vazio={t('searchOrTap')}
+              onPress={() => setPesquisa('destino')}
+              onCorrigir={
+                destino && !destino.provisorio
+                  ? () => perguntarNome({ ponto: destino, qual: 'destino' })
+                  : undefined
+              }
+            />
+          </View>
+          {/* A dica, por baixo do cartão: o nome a caminho, os pontos
+              fixados, ou — SÓ enquanto o ponto vier do GPS — o convite a
+              arrastar com o erro em metros, que explica porque é que o pino
+              não está exactamente na porta. */}
           {aNomearDestino > 0 ? (
-            // ENQUANTO O NOME VEM A CAMINHO.
-            //
-            // O botão de pedir fica à espera, e um botão que não responde sem
-            // dizer porquê parece avariado. Esta linha é a diferença entre
-            // "está a carregar" e "está partido".
+            // ENQUANTO O NOME VEM A CAMINHO. O botão de pedir fica à espera, e
+            // um botão que não responde sem dizer porquê parece avariado.
             <Text style={styles.dicaArrastar}>{t('aObterNome')}</Text>
           ) : origem && destino ? (
             // Fixados. Dizê-lo evita o pior caso: alguém tentar arrastar,
@@ -1238,19 +1279,6 @@ export default function RequestRideScreen({ navigation, route }) {
               {t('arrastarPino')} · ±{Math.round(precisao)} m
             </Text>
           ) : null}
-          <View style={styles.linha} />
-          <Ponto
-            cor={colors.coral}
-            rotulo={t('dropoffPoint')}
-            valor={destino?.label}
-            vazio={t('searchOrTap')}
-            onPress={() => setPesquisa('destino')}
-            onCorrigir={
-              destino && !destino.provisorio
-                ? () => perguntarNome({ ponto: destino, qual: 'destino' })
-                : undefined
-            }
-          />
 
           {aCalcular ? (
             <ActivityIndicator color={colors.teal} style={{ marginVertical: spacing.lg }} />
@@ -1273,6 +1301,27 @@ export default function RequestRideScreen({ navigation, route }) {
                     t={t}
                   />
                 ))}
+              {/* OS TRÊS NÚMEROS DA REFERÊNCIA: tempo, distância, e o que o
+                  veículo leva — pessoas, ou o tamanho da carga no Carry de
+                  bens. O preço já está no cartão do veículo, ao lado do nome. */}
+              <Estatisticas
+                t={t}
+                min={orcamento.durationMin}
+                km={orcamento.distanceKm}
+                terceiro={
+                  veiculo(veiculoAtual).levaPessoas || carryPessoas
+                    ? {
+                        icone: 'pessoa',
+                        valor: t('nPessoas', { n: pessoas }),
+                        rotulo: t('capacidadeRotulo'),
+                      }
+                    : {
+                        icone: 'caixa',
+                        valor: t(CHAVE_VOLUME[cargaVolume] || 'cargaVolMedio'),
+                        rotulo: t('tamanhoRotulo'),
+                      }
+                }
+              />
               {/* Taxas de entrada, logo a seguir à escolha do veículo.
                   Aqui e não antes, porque no Timor Plaza só o carro paga —
                   o aviso muda conforme o que se escolhe. */}
@@ -1294,9 +1343,7 @@ export default function RequestRideScreen({ navigation, route }) {
                 </>
               ) : null}
 
-              <View style={styles.pagamento}>
-                <Text style={styles.pagamentoTexto}>💵 {t('payCash')}</Text>
-              </View>
+              <Pagamento t={t} />
             </>
           ) : origem && destino ? (
             // Sem cotação — a rede não respondeu. A viagem continua a
@@ -1341,9 +1388,7 @@ export default function RequestRideScreen({ navigation, route }) {
                   <View style={{ height: spacing.md }} />
                 </>
               ) : null}
-              <View style={styles.pagamento}>
-                <Text style={styles.pagamentoTexto}>💵 {t('payCash')}</Text>
-              </View>
+              <Pagamento t={t} />
             </>
           ) : null}
 
@@ -1434,23 +1479,45 @@ export default function RequestRideScreen({ navigation, route }) {
           {erro ? <Text style={styles.erro}>{erro}</Text> : null}
         </ScrollView>
 
+        {/* SEM MOTORISTAS POR PERTO, dito ANTES de pedir e não depois.
+            Um botão "Pedir por $3.25" com ninguém por perto promete o que o
+            sistema não pode cumprir. Aqui diz-se a verdade — o preço é o
+            estimado, e o pedido fica aberto dez minutos para o primeiro que
+            aceitar — e o botão passa a dizer "Procurar motorista". */}
+        {semMotorista && podePedir ? (
+          <View style={styles.semMotoristaAviso}>
+            <Icone nome="info" tamanho={22} cor={colors.coralDark} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.semMotoristaTitulo}>{t('semMotoristaTitulo')}</Text>
+              <Text style={styles.semMotoristaTexto}>
+                {t('semMotoristaTexto', { preco: `$${opcao.fareUsd.toFixed(2)}` })}
+              </Text>
+            </View>
+          </View>
+        ) : null}
         <Pressable
-          style={[styles.botao, !podePedir && styles.botaoInativo]}
+          style={[styles.botaoPedir, !podePedir && styles.botaoInativo]}
           onPress={pedir}
           disabled={!podePedir}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !podePedir }}
         >
           {aPedir ? (
-            <ActivityIndicator color={colors.white} />
+            <ActivityIndicator color={corBotao} />
           ) : (
-            <Text style={styles.botaoTexto}>
-              {opcao
-                ? `${t('confirmRide')} $${opcao.fareUsd.toFixed(2)}`
-                : podePedir
-                  ? `${t('confirmRide')} · ${t('fareToAgree')}`
-                  : t('whereTo')}
-            </Text>
+            <>
+              <Icone nome={veiculo(veiculoAtual).icone} tamanho={24} cor={corBotao} />
+              <Text style={[styles.botaoPedirTexto, { color: corBotao }]} numberOfLines={1}>
+                {rotuloBotao}
+              </Text>
+              <Icone nome="seta" tamanho={22} cor={corBotao} traco={2.5} />
+            </>
           )}
         </Pressable>
+        <View style={styles.seguro}>
+          <Icone nome="escudo" tamanho={16} cor={colors.textMuted} />
+          <Text style={styles.seguroTexto}>{t('viagemSegura')}</Text>
+        </View>
       </View>
 
       {/* Dar nome a um sítio.
@@ -1488,7 +1555,7 @@ export default function RequestRideScreen({ navigation, route }) {
 function Ponto({ cor, rotulo, valor, vazio, onPress, onCorrigir }) {
   return (
     <Pressable style={styles.ponto} onPress={onPress}>
-      <View style={[styles.bolinha, { backgroundColor: cor }]} />
+      <View style={[styles.bolinha, { borderColor: cor }]} />
       <View style={{ flex: 1 }}>
         <Text style={styles.pontoRotulo}>{rotulo}</Text>
         {/* SELECCIONÁVEL, para as coordenadas se poderem copiar.
@@ -1530,27 +1597,80 @@ function Ponto({ cor, rotulo, valor, vazio, onPress, onCorrigir }) {
 
 function CartaoVeiculo({ opcao, ativo, onPress, t }) {
   const nome = nomeDoVeiculo(t, opcao.type);
-  const icone = veiculo(opcao.type).emoji;
+  const v = veiculo(opcao.type);
   return (
     <Pressable
-      style={[
-        styles.veiculo,
-        ativo && styles.veiculoAtivo,
-        !opcao.available && styles.veiculoIndisp,
-      ]}
+      style={[styles.veiculo, ativo && styles.veiculoAtivo]}
       onPress={onPress}
+      disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
     >
-      <Text style={styles.veiculoIcone}>{icone}</Text>
+      {/* A ilustração do tipo, num quadrado da cor do fundo DELA — ver
+          SISTEMA.md. É a mesma do ecrã inicial: a pessoa reconhece o que
+          escolheu há dois ecrãs. */}
+      <View style={styles.veiculoFotoCaixa}>
+        <Image
+          source={v.imagens[paletaEmUso()] || v.imagens.claro}
+          style={styles.veiculoFoto}
+          resizeMode="contain"
+        />
+      </View>
       <View style={{ flex: 1 }}>
         <Text style={styles.veiculoNome}>{nome}</Text>
-        <Text style={styles.veiculoEta}>
-          {opcao.available ? t('minAway', { min: opcao.etaMin }) : t('noDriverNearby')}
+        <Text style={[styles.veiculoEta, !opcao.available && styles.veiculoEtaSem]}>
+          {opcao.available ? t('motoristaAMin', { min: opcao.etaMin }) : t('noDriverNearby')}
         </Text>
       </View>
       <Text style={styles.veiculoPreco}>${opcao.fareUsd.toFixed(2)}</Text>
     </Pressable>
   );
 }
+
+// Os três números por baixo do veículo: tempo, distância e capacidade.
+function Estatisticas({ t, min, km, terceiro }) {
+  const itens = [
+    { icone: 'relogio', valor: min != null ? `${min} min` : '—', rotulo: t('tempuEstimadu') },
+    { icone: 'rota', valor: km != null ? `${km} km` : '—', rotulo: t('distancia') },
+    terceiro,
+  ];
+  return (
+    <View style={styles.estatisticas}>
+      {itens.map((i) => (
+        <View key={i.icone} style={styles.estatistica}>
+          <Icone nome={i.icone} tamanho={22} cor={colors.teal} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.estatValor} numberOfLines={1}>
+              {i.valor}
+            </Text>
+            <Text style={styles.estatRotulo} numberOfLines={1}>
+              {i.rotulo}
+            </Text>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+// O pagamento: dinheiro, ao motorista. É a única forma que existe, e dizê-lo
+// com o "a quem" evita a pergunta à porta do carro.
+function Pagamento({ t }) {
+  return (
+    <View style={styles.pagamento}>
+      <Icone nome="dinheiro" tamanho={26} cor={colors.teal} />
+      <View style={{ flex: 1 }}>
+        <Text style={styles.pagamentoTexto}>{t('payCash')}</Text>
+        <Text style={styles.pagamentoNota}>{t('pagarMotorista')}</Text>
+      </View>
+    </View>
+  );
+}
+
+const CHAVE_VOLUME = {
+  pequeno: 'cargaVolPequeno',
+  medio: 'cargaVolMedio',
+  grande: 'cargaVolGrande',
+};
 
 const criarEstilos = () =>
   StyleSheet.create({
@@ -1563,25 +1683,37 @@ const criarEstilos = () =>
       position: 'absolute',
       top: spacing.md,
       left: spacing.md,
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 46,
+      height: 46,
+      borderRadius: 23,
       backgroundColor: colors.white,
       alignItems: 'center',
       justifyContent: 'center',
       elevation: 3,
     },
-    voltarTexto: { fontSize: 26, color: colors.teal, fontWeight: '800', marginTop: -4 },
     rotaBadge: {
       position: 'absolute',
       top: spacing.md,
       alignSelf: 'center',
       backgroundColor: colors.teal,
       paddingHorizontal: spacing.md,
-      paddingVertical: 7,
+      paddingVertical: 9,
       borderRadius: radius.pill,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
     },
-    rotaTexto: { ...tipo.corpoForte, color: colors.onTeal },
+    rotaTexto: { ...tipo.corpoForte, fontSize: 16, color: colors.onTeal },
+    folhaTitulo: { ...tipo.displayPequeno, color: colors.text },
+    folhaSub: { ...tipo.pequeno, color: colors.textMuted, marginTop: 2 },
+    rotaCartao: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      borderRadius: radius.xl,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.xs,
+      marginTop: spacing.md,
+    },
 
     barraEscolha: {
       backgroundColor: colors.paper,
@@ -1641,7 +1773,14 @@ const criarEstilos = () =>
       marginBottom: spacing.md,
     },
     ponto: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm },
-    bolinha: { width: 10, height: 10, borderRadius: 5, marginRight: spacing.md },
+    bolinha: {
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+      borderWidth: 3.5,
+      backgroundColor: colors.white,
+      marginRight: spacing.md,
+    },
     pontoRotulo: { ...tipo.etiqueta, color: colors.textMuted },
     pontoValor: { ...tipo.subtitulo, color: colors.text },
     pontoVazio: { color: colors.textMuted, fontWeight: '400' },
@@ -1687,26 +1826,56 @@ const criarEstilos = () =>
     veiculo: {
       flexDirection: 'row',
       alignItems: 'center',
+      gap: spacing.md,
       borderWidth: 1.5,
       borderColor: colors.border,
-      borderRadius: radius.md,
-      padding: spacing.md,
+      borderRadius: radius.xl,
+      padding: spacing.sm,
+      paddingRight: spacing.md,
       marginBottom: spacing.sm,
     },
     veiculoAtivo: { borderColor: colors.teal, backgroundColor: colors.tintaTeal },
-    veiculoIndisp: { opacity: 0.55 },
-    veiculoIcone: { fontSize: 26, marginRight: spacing.md },
+    // A imagem num quadrado da cor do fundo DELA (branco/preto): as cores
+    // são as dos ficheiros e não do tema — ver SISTEMA.md.
+    veiculoFotoCaixa: {
+      width: 84,
+      height: 60,
+      borderRadius: radius.lg,
+      overflow: 'hidden',
+      backgroundColor: paletaEmUso() === 'escuro' ? '#000000' : '#FFFFFF',
+    },
+    veiculoFoto: { width: 84, height: 60 },
     veiculoNome: { ...tipo.subtitulo, color: colors.text },
-    veiculoEta: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },
-    veiculoPreco: { ...tipo.titulo, color: colors.teal },
+    veiculoEta: { ...tipo.pequeno, color: colors.teal, marginTop: 1 },
+    veiculoEtaSem: { color: colors.coralDark },
+    veiculoPreco: { ...tipo.titulo, fontSize: 24, color: colors.teal },
+    estatisticas: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+    estatistica: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: colors.paper,
+      borderRadius: radius.lg,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.sm,
+    },
+    estatValor: { ...tipo.corpoForte, color: colors.text },
+    estatRotulo: { ...tipo.legenda, fontSize: 11, color: colors.textMuted },
 
     pagamento: {
       flexDirection: 'row',
       alignItems: 'center',
+      gap: spacing.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      borderRadius: radius.xl,
       paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
       marginTop: spacing.xs,
     },
-    pagamentoTexto: { ...tipo.subtitulo, color: colors.text },
+    pagamentoTexto: { ...tipo.corpoForte, color: colors.text },
+    pagamentoNota: { ...tipo.legenda, color: colors.textMuted },
 
     // O "!" ao lado do nome.
     //
@@ -1774,6 +1943,39 @@ const criarEstilos = () =>
       marginTop: spacing.md,
     },
     botaoInativo: { backgroundColor: colors.border },
+    // O botão principal da referência: coral a toda a largura, com o ícone do
+    // veículo à esquerda e a seta à direita. O texto é ESCURO — branco sobre
+    // coral fica a 2,8:1, abaixo do mínimo (ver SISTEMA.md).
+    botaoPedir: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: spacing.sm,
+      backgroundColor: colors.coral,
+      borderRadius: radius.lg,
+      minHeight: 58,
+      paddingHorizontal: spacing.lg,
+      marginTop: spacing.sm,
+    },
+    botaoPedirTexto: { ...tipo.subtitulo, fontSize: 18, flex: 1, textAlign: 'center' },
+    seguro: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      marginTop: spacing.sm,
+    },
+    seguroTexto: { ...tipo.legenda, color: colors.textMuted },
+    semMotoristaAviso: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      backgroundColor: colors.tintaCoral,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      marginTop: spacing.sm,
+    },
+    semMotoristaTitulo: { ...tipo.corpoForte, color: colors.coralDark },
+    semMotoristaTexto: { ...tipo.pequeno, color: colors.text, marginTop: 2 },
     botaoTexto: { ...tipo.subtitulo, color: colors.white },
   });
 
