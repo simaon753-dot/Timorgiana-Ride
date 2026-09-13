@@ -173,7 +173,9 @@ export function RideProvider({ children }) {
         .catch(() => {});
     });
     socket.on('message:new', (msg) => {
-      if (msg.rideId !== rideIdRef.current) return;
+      // Comparados como números: um id que viesse como texto numa das pontas
+      // descartava a mensagem sem aviso.
+      if (Number(msg.rideId) !== Number(rideIdRef.current)) return;
       setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
       setUnread((n) => n + 1);
     });
@@ -316,7 +318,8 @@ export function RideProvider({ children }) {
       // apanha uma excepção, e aqui não havia nenhuma para apanhar.
       if (!activeId) throw new Error('SEM_VIAGEM');
       const { message } = await api.sendMessage(token, activeId, body);
-      setMessages((prev) => [...prev, message]);
+      // Sem repetir: a consulta periódica do ecrã do chat pode já a ter trazido.
+      setMessages((prev) => (prev.some((m) => m.id === message.id) ? prev : [...prev, message]));
       return message;
     },
     [token, activeId]
@@ -347,6 +350,35 @@ export function RideProvider({ children }) {
   );
 
   const markChatRead = useCallback(() => setUnread(0), []);
+
+  // A CONVERSA NÃO DEPENDE SÓ DO SOCKET (13/09/26).
+  //
+  // O Simão viu a primeira mensagem aparecer e as seguintes não, embora
+  // fossem enviadas com sucesso. O servidor grava-as (o envio devolve-as);
+  // o que falhava era a entrega ao vivo. Não consegui reproduzir a causa
+  // exacta — precisava de duas contas —, e há mais de uma que dá este
+  // sintoma: o socket fecha e reabre quando o objecto do utilizador muda, e
+  // numa rede de Díli uma ligação que cai perde o que chega entretanto.
+  //
+  // Em vez de adivinhar qual, a conversa passa a ter duas vias: o socket, que
+  // é o caminho rápido, e o servidor, que é a verdade. O ecrã do chat pede a
+  // lista enquanto está aberto e JUNTA por id — o que o socket já trouxe não
+  // se repete, o que ele perdeu aparece.
+  const refreshMessages = useCallback(async () => {
+    if (!activeId || !token) return;
+    try {
+      const { messages: doServidor } = await api.listMessages(token, activeId);
+      setMessages((prev) => {
+        const porId = new Map();
+        for (const m of [...prev, ...(doServidor || [])]) porId.set(m.id, m);
+        const juntas = [...porId.values()].sort((a, b) => a.id - b.id);
+        // Mesma lista, mesmo objecto: sem isto cada volta redesenhava o ecrã.
+        return juntas.length === prev.length ? prev : juntas;
+      });
+    } catch {
+      // Sem rede: fica o que já havia; a próxima volta tenta outra vez.
+    }
+  }, [token, activeId]);
 
   const rateRide = useCallback(
     async (id, stars) => {
@@ -408,6 +440,7 @@ export function RideProvider({ children }) {
         updateFare,
         cancelRide,
         sendMessage,
+        refreshMessages,
         markChatRead,
         rateRide,
         dismissRide,

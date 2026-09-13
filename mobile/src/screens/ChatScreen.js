@@ -20,7 +20,7 @@ import BarraEstado from '../design/BarraEstado.js';
 export default function ChatScreen({ navigation }) {
   const { t } = useI18n();
   const { user } = useAuth();
-  const { activeRide, messages, sendMessage, markChatRead } = useRides();
+  const { activeRide, messages, sendMessage, markChatRead, refreshMessages } = useRides();
   const [text, setText] = useState('');
   const scrollRef = useRef(null);
 
@@ -34,6 +34,15 @@ export default function ChatScreen({ navigation }) {
   useEffect(() => {
     markChatRead();
   }, [markChatRead, messages.length]);
+
+  // ENQUANTO A CONVERSA ESTÁ ABERTA, pergunta-se ao servidor a cada 3 s.
+  // Ver a nota em refreshMessages (RideContext): o socket é o caminho rápido,
+  // isto é a garantia de que nenhuma mensagem fica por mostrar.
+  useEffect(() => {
+    refreshMessages();
+    const id = setInterval(refreshMessages, 3000);
+    return () => clearInterval(id);
+  }, [refreshMessages]);
 
   // Rolar para o fim quando chega/envia uma mensagem
   useEffect(() => {
