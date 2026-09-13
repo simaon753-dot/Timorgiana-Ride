@@ -278,8 +278,6 @@ export async function initSchema() {
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS email_codigo_tentativas INTEGER NOT NULL DEFAULT 0`
   );
 
-  await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS google_conhece BOOLEAN`);
-
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS viajante_nome TEXT`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS viajante_telefone TEXT`);
   await query(
@@ -319,6 +317,12 @@ export async function initSchema() {
     'CREATE INDEX IF NOT EXISTS idx_propostos_estado ON lugares_propostos(estado, id DESC)'
   );
   await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS tipo TEXT`);
+  // Estava 26 linhas ACIMA do CREATE TABLE desta tabela, sem try/catch à
+  // volta. Em produção passava porque a tabela já existia de arranques
+  // anteriores; numa base de dados NOVA o initSchema rebentava aqui e o
+  // servidor não arrancava — e as bases gratuitas do Render são recriadas
+  // quando expiram. Encontrado a montar o esquema de raiz no PGlite (13/09/26).
+  await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS google_conhece BOOLEAN`);
 
   // A morada, como o OpenStreetMap a quer.
   //
