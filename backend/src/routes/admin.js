@@ -15,6 +15,7 @@ import { linhasOsm } from '../etiquetasOsm.js';
 import { emitirCodigo } from '../recuperacao.js';
 import { TIPOS_VEICULO } from '../config.js';
 import { fotoDaCarga } from '../fotosDaCarga.js';
+import { destinosDaViagem } from '../destinosDaViagem.js';
 
 export const adminRouter = Router();
 adminRouter.use(requireAuth);
@@ -357,6 +358,11 @@ adminRouter.get(
               r.created_at, r.started_at, r.vehicle_type,
               r.carga_tipo, r.carga_volume, r.carga_ajuda, r.carga_notas,
               (SELECT COUNT(*) FROM ride_fotos f WHERE f.ride_id = r.id)::int AS n_fotos,
+              -- As paragens pelo caminho, pela ordem do percurso. Sem elas,
+              -- um Carry com duas entregas aparecia aqui como origem e
+              -- destino: metade do percurso que foi cobrado.
+              (SELECT json_agg(rd.label ORDER BY rd.ordem)
+                 FROM ride_destinos rd WHERE rd.ride_id = r.id) AS paragens_meio,
               p.name AS passageiro, p.phone AS tel_passageiro,
               d.name AS motorista, d.phone AS tel_motorista,
               r.cancelled_by = r.passenger_id AS cancelou_passageiro
@@ -382,6 +388,7 @@ adminRouter.get(
         motivoCancelamento: r.cancel_reason,
         canceladoPeloPassageiro: r.cancelou_passageiro,
         veiculo: r.vehicle_type,
+        paragens: r.paragens_meio || [],
         // A carga só existe quando há tipo — o mesmo molde do `toPublicRide`.
         // Um grupo vazio no painel seria uma linha a dizer "nada".
         carga: r.carga_tipo
@@ -681,6 +688,9 @@ adminRouter.get(
     // código foi errado, nem a que horas cada coisa aconteceu. Era o suficiente
     // para o painel e insuficiente para responder a uma queixa.
     const eventos = await historicoDe(id);
+    // As paragens COM coordenadas: o detalhe é onde se responde a "o
+    // motorista não passou onde devia", e para isso é preciso saber onde era.
+    const paragens = await destinosDaViagem(id);
     const { n: nFotos } = await one(
       'SELECT COUNT(*)::int AS n FROM ride_fotos WHERE ride_id = $1',
       [id]
@@ -710,6 +720,7 @@ adminRouter.get(
         min: r.duration_min,
         veiculo: r.vehicle_type,
         pessoas: r.passengers,
+        paragens: paragens.map((pa) => ({ nome: pa.label, lat: pa.lat, lng: pa.lng })),
         // A CARGA no detalhe. As colunas já vinham no `SELECT r.*`; faltava
         // só passá-las para fora. `declaradoEm` é a hora a que a pessoa
         // aceitou a declaração — não um "sim", a hora. É o que responde a

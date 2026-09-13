@@ -1014,7 +1014,11 @@ function linhaDeViagem(v) {
     `<b>#${v.id} · ${escapar(nomeVeiculo(v.veiculo))} · ${
       ESTADO_VIAGEM[v.estado] || escapar(v.estado)
     }</b><br>` +
-    `<span class="explica">${escapar(v.origem || '—')} → ${escapar(v.destino || '—')}</span><br>` +
+    // O PERCURSO INTEIRO, paragens incluídas — e cada troço escapado, porque
+    // os nomes das paragens vêm da pesquisa de quem pediu.
+    `<span class="explica">${[v.origem || '—', ...(v.paragens || []), v.destino || '—']
+      .map(escapar)
+      .join(' → ')}</span><br>` +
     `<span class="explica">${preco}${v.km != null ? ' · ' + v.km + ' km' : ''} · ` +
     `${escapar(v.passageiro || '—')} → ${escapar(v.motorista || 'sem motorista')}</span>` +
     cancel +
