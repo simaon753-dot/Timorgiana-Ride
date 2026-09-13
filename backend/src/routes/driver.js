@@ -1,4 +1,6 @@
 import { Router } from 'express';
+// Faltava: a lista era usada sem ser importada (ver scripts/verificar-nomes.mjs).
+import { TIPOS_VEICULO } from '../config.js';
 import { one, query } from '../db.js';
 import { requireAuth } from '../auth.js';
 import {

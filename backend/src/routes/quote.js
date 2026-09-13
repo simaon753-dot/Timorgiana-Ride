@@ -6,6 +6,11 @@ import { limparDestinos } from '../destinosDaViagem.js';
 import { paragensQueCobrem } from '../paradas.js';
 import { nearestDrivers } from '../drivers.js';
 import { taxasPara } from '../taxasDeEntrada.js';
+// A LISTA DOS TIPOS, que faltava desde a fase 1 do Carry. Sem ela cada
+// cotação rebentava com ReferenceError e a app ficava sem preço — só o pedido
+// (routes/rides.js, que a importa) calculava o valor. Ver
+// scripts/verificar-nomes.mjs, que nasceu disto.
+import { TIPOS_VEICULO } from '../config.js';
 
 export const quoteRouter = Router();
 quoteRouter.use(requireAuth);
