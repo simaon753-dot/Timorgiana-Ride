@@ -132,6 +132,10 @@ export const CORES = [
 // motorizada vai sempre uma pessoa.
 export const LUGARES = [1, 2, 3, 4, 5, 6];
 
+// Carry com pessoas: até 15, decisão do Simão (13/09/26). O MESMO número de
+// MAX_PESSOAS_CARRY em backend/src/config.js — se um mudar, o outro também.
+export const LUGARES_CARRY = Array.from({ length: 15 }, (_, i) => i + 1);
+
 // Lista plana para a pesquisa, com a marca à frente do modelo: escrever
 // "avanza" ou "toyota" tem de encontrar a mesma coisa.
 // VEÍCULOS DE CARGA que circulam em Díli.

@@ -5,20 +5,24 @@ import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 
 // Mapa estado -> aparência
+//
+// Os fundos eram pastéis ESCRITOS À MÃO (#FFF1E8, #E9F2F0…). De dia não se
+// notava; de noite eram pastilhas claras a brilhar sobre o preto, porque não
+// sabiam que existe um segundo tema. Passaram às tintas do tema.
 export function statusMeta(status) {
   switch (status) {
     case 'requested':
-      return { key: 'statusRequested', bg: '#FFF1E8', fg: colors.coralDark, icon: '⏳' };
+      return { key: 'statusRequested', bg: colors.tintaCoral, fg: colors.coralDark, icon: '⏳' };
     case 'accepted':
-      return { key: 'statusAccepted', bg: '#E9F2F0', fg: colors.teal, icon: '🚗' };
+      return { key: 'statusAccepted', bg: colors.tintaTeal, fg: colors.teal, icon: '🚗' };
     case 'arriving':
-      return { key: 'statusArriving', bg: '#E9F2F0', fg: colors.teal, icon: '📍' };
+      return { key: 'statusArriving', bg: colors.tintaTeal, fg: colors.teal, icon: '📍' };
     case 'in_progress':
-      return { key: 'statusInProgress', bg: '#E9F2F0', fg: colors.teal, icon: '🛣️' };
+      return { key: 'statusInProgress', bg: colors.tintaTeal, fg: colors.teal, icon: '🛣️' };
     case 'completed':
-      return { key: 'statusCompleted', bg: '#E4F1EA', fg: colors.success, icon: '✓' };
+      return { key: 'statusCompleted', bg: colors.tintaTeal, fg: colors.success, icon: '✓' };
     case 'cancelled':
-      return { key: 'statusCancelled', bg: '#FBEAE8', fg: colors.danger, icon: '✕' };
+      return { key: 'statusCancelled', bg: colors.tintaPerigo, fg: colors.danger, icon: '✕' };
     default:
       return { key: 'statusRequested', bg: colors.border, fg: colors.text, icon: '•' };
   }

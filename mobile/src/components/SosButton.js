@@ -181,7 +181,7 @@ const criarEstilos = () =>
     // único que não o fazia, e por isso era o único que dependia da sorte.
     texto: {
       fontFamily: FAMILIAS.extra,
-      color: '#fff',
+      color: colors.onDanger,
       fontSize: 16,
       lineHeight: 22,
       letterSpacing: 0.5,

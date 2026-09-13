@@ -31,7 +31,7 @@ import ParaOutraPessoa from '../components/ParaOutraPessoa.js';
 import CargaDoPedido from '../components/CargaDoPedido.js';
 import NomearLugar from '../components/NomearLugar.js';
 import SegmentedPicker from '../components/SegmentedPicker.js';
-import { LUGARES } from '../dados/veiculos.js';
+import { LUGARES, LUGARES_CARRY } from '../dados/veiculos.js';
 import { nomeDoLugar, rotuloCoordenadas } from '../lib/geocode.js';
 import { seguirPosicao } from '../lib/posicao.js';
 import { pontoNaEstrada } from '../lib/estrada.js';
@@ -155,6 +155,9 @@ export default function RequestRideScreen({ navigation, route }) {
   // Paragens pelo caminho, só no Carry. Ver a nota em `paragensActivas`.
   const [cargaDestinos, setCargaDestinos] = useState([]);
   const [aEscolherParagem, setAEscolherParagem] = useState(false);
+  // Carry: bens OU pessoas, decidido pelo Simão (13/09/26). Um pedido é uma
+  // coisa ou outra; o servidor recebe o modo explícito e não o adivinha.
+  const [modoCarry, setModoCarry] = useState('bens');
   const [outroNome, setOutroNome] = useState('');
   const [outroTelefone, setOutroTelefone] = useState('');
   const [outroMenor, setOutroMenor] = useState(false);
@@ -226,7 +229,8 @@ export default function RequestRideScreen({ navigation, route }) {
   // Sem isto, quem punha duas paragens e voltava para carro levava-as na
   // cotação: o servidor, vendo paragens, devolve só a opção Carry, e a
   // pessoa ficava sem preço de carro sem perceber porquê.
-  const paragensActivas = veiculo(veiculoAtual).levaPessoas ? [] : cargaDestinos;
+  const carryPessoas = veiculoAtual === 'carry' && modoCarry === 'pessoas';
+  const paragensActivas = veiculo(veiculoAtual).levaPessoas || carryPessoas ? [] : cargaDestinos;
 
   // A CHAVE É SÓ DE COORDENADAS, e não o objecto inteiro.
   //
@@ -256,6 +260,16 @@ export default function RequestRideScreen({ navigation, route }) {
         // é outro — só um carro grande as leva, e custa mais ao motorista.
         // Ver a nota em config.js do servidor.
         passengers: pessoas,
+        // O MODO E A CARGA TAMBÉM ENTRAM NA COTAÇÃO. O volume e a ajuda iam só
+        // no pedido: um Carry "Grande" com ajuda mostrava no ecrã o preço de
+        // um pequeno sem ajuda, e era cobrado pelo verdadeiro. Estava assim
+        // desde a fase 2 — mostrar um preço e cobrar outro.
+        ...(veiculoAtual === 'carry'
+          ? {
+              carryModo: modoCarry,
+              ...(modoCarry === 'bens' ? { cargaVolume, cargaAjuda } : {}),
+            }
+          : {}),
       })
       .then((q) => !cancelado && setOrcamento(q))
       .catch(() => !cancelado && setOrcamento(null))
@@ -273,7 +287,19 @@ export default function RequestRideScreen({ navigation, route }) {
     // `chaveParagens` entra pela MESMA razão que `pessoas`, e o defeito seria
     // idêntico: juntar uma paragem sem refazer a cotação deixava no ecrã o
     // preço do percurso curto, e a viagem nascia com o do percurso longo.
-  }, [token, origem?.lat, origem?.lng, destino?.lat, destino?.lng, pessoas, chaveParagens]);
+  }, [
+    token,
+    origem?.lat,
+    origem?.lng,
+    destino?.lat,
+    destino?.lng,
+    pessoas,
+    chaveParagens,
+    veiculoAtual,
+    modoCarry,
+    cargaVolume,
+    cargaAjuda,
+  ]);
 
   useEffect(() => {
     origemRef.current = origem;
@@ -630,8 +656,9 @@ export default function RequestRideScreen({ navigation, route }) {
         originLat: origem.lat,
         originLng: origem.lng,
         vehicleType: veiculoAtual,
-        ...(veiculo(veiculoAtual).perguntaLugares ? { passengers: pessoas } : {}),
-        ...(!veiculo(veiculoAtual).levaPessoas && cargaTipo
+        ...(veiculo(veiculoAtual).perguntaLugares || carryPessoas ? { passengers: pessoas } : {}),
+        ...(veiculoAtual === 'carry' ? { carryModo: modoCarry } : {}),
+        ...(!veiculo(veiculoAtual).levaPessoas && !carryPessoas && cargaTipo
           ? {
               cargaTipo,
               cargaVolume,
@@ -664,7 +691,7 @@ export default function RequestRideScreen({ navigation, route }) {
       //
       // Uma a uma e não em paralelo: são três no máximo, e três envios ao
       // mesmo tempo numa rede de Díli acabam a falhar os três.
-      if (criada?.id && cargaFotos.length) {
+      if (criada?.id && cargaFotos.length && !carryPessoas) {
         for (const f of cargaFotos) {
           try {
             await api.enviarFotoDaCarga(token, criada.id, {
@@ -961,7 +988,8 @@ export default function RequestRideScreen({ navigation, route }) {
   // Uma viagem de bens precisa de duas respostas que uma de pessoas não tem:
   // o que é a carga, e a declaração de que é legal e cabe. Sem elas o botão
   // não avança — a declaração não é um aviso que se ignora.
-  const cargaCompleta = veiculo(veiculoAtual).levaPessoas || (!!cargaTipo && cargaDeclarado);
+  const cargaCompleta =
+    veiculo(veiculoAtual).levaPessoas || carryPessoas || (!!cargaTipo && cargaDeclarado);
 
   const podePedir =
     !!origem &&
@@ -1272,7 +1300,7 @@ export default function RequestRideScreen({ navigation, route }) {
               <Text style={styles.seccao}>{t(veiculoFixo ? 'seuVeiculo' : 'chooseVehicle')}</Text>
               {veiculoFixo ? (
                 <View style={styles.veiculoFixo}>
-                  <Icone nome={veiculo(veiculoFixo).icone} tamanho={22} cor={colors.teal} />
+                  <Text style={styles.veiculoFixoEmoji}>{veiculo(veiculoFixo).emoji}</Text>
                   <Text style={styles.veiculoFixoTexto}>{nomeDoVeiculo(t, veiculoFixo)}</Text>
                 </View>
               ) : (
@@ -1307,11 +1335,34 @@ export default function RequestRideScreen({ navigation, route }) {
           {/* Aqui e não dentro dos dois ramos acima: a pergunta é a mesma
               haja cotação ou não, e repetida nos dois divergiria ao primeiro
               descuido. */}
+          {/* CARRY: BENS OU PESSOAS. Com pessoas, pergunta quantas (até 15) e
+              não mostra carga, fotografias nem paragens — um pedido é uma
+              coisa ou outra. Uma condição só, com o comentário cá fora. */}
+          {origem && destino && veiculoAtual === 'carry' ? (
+            <View>
+              <Text style={styles.seccao}>{t('carryModoTitulo')}</Text>
+              <SegmentedPicker
+                options={[
+                  { value: 'bens', icon: '📦', label: t('carryModoBens') },
+                  { value: 'pessoas', icon: '👥', label: t('carryModoPessoas') },
+                ]}
+                value={modoCarry}
+                onChange={setModoCarry}
+              />
+              {carryPessoas ? (
+                <>
+                  <Text style={styles.seccao}>{t('howManyPeople')}</Text>
+                  <EscolherLugares opcoes={LUGARES_CARRY} valor={pessoas} onEscolher={setPessoas} />
+                </>
+              ) : null}
+            </View>
+          ) : null}
+
           {/* AS PERGUNTAS DA CARGA, e só quando o veículo não leva pessoas.
               Aqui e não dentro dos ramos da cotação, pela mesma razão do
               bloco abaixo: a pergunta é a mesma haja preço calculado ou não,
               e repetida nos dois divergiria ao primeiro descuido. */}
-          {origem && destino && !veiculo(veiculoAtual).levaPessoas ? (
+          {origem && destino && !veiculo(veiculoAtual).levaPessoas && !carryPessoas ? (
             <CargaDoPedido
               carga={cargaTipo}
               onCarga={setCargaTipo}
@@ -1596,7 +1647,11 @@ const criarEstilos = () =>
       paddingHorizontal: spacing.md,
     },
 
-    veiculoFixoTexto: { ...tipo.corpo, color: colors.teal, fontWeight: '700' },
+    veiculoFixoEmoji: { fontSize: 22 },
+    // corpoForte e não corpo + fontWeight '700': pedir negrito a uma família
+    // que não o tem faz o Android cair numa letra de substituição — foi a
+    // letra "manuscrita" do Motorizada na captura do Simão (13/09/26).
+    veiculoFixoTexto: { ...tipo.corpoForte, color: colors.teal },
 
     seccao: {
       ...tipo.etiqueta,

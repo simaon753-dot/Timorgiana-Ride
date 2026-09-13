@@ -41,6 +41,8 @@ export const PALETAS = {
     inputBg: '#FFFFFF',
 
     danger: '#C0392B',
+    // Texto sobre o vermelho. Branco de dia (5,4:1).
+    onDanger: '#FFFFFF',
     success: '#2E7D5B',
     star: '#F4B400',
 
@@ -102,6 +104,9 @@ export const PALETAS = {
     // Vermelho afastado do laranja, senão o perigo confunde-se com texto
     // normal — que é o pior sítio para uma confusão.
     danger: '#FF5252',
+    // De noite o vermelho clareia para se ver sobre preto, e o branco por
+    // cima deixava de se ler (3,2:1). Texto escuro, como sobre o coral.
+    onDanger: '#22100A',
     success: '#4FD4AC',
     star: '#F4B400',
 

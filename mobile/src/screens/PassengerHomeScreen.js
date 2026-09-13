@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   Linking,
   Pressable,
-  Image,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -380,7 +379,7 @@ export default function PassengerHomeScreen({ navigation }) {
                   accessibilityRole="button"
                   accessibilityLabel={t(v.chaveNome)}
                 >
-                  <Image source={v.imagem} style={styles.veiculoFoto} resizeMode="contain" />
+                  <Text style={styles.veiculoEmoji}>{v.emoji}</Text>
                   <View style={styles.veiculoTextos}>
                     <Text style={styles.veiculoNome}>{t(v.chaveNome)}</Text>
                     <Text style={styles.veiculoNota}>{t(v.chaveNota)}</Text>
@@ -437,7 +436,10 @@ const criarEstilos = () =>
       minHeight: 104,
       ...elevacao.cartao,
     },
-    veiculoFoto: { width: 104, height: 76 },
+    // EMOJI E NÃO FOTOGRAFIA, a pedido do Simão (13/09/26): "o ícone para o
+    // anterior". As fotografias tinham recortes que se viam no modo escuro
+    // (salpicos brancos à volta do Carry); o emoji é igual de dia e de noite.
+    veiculoEmoji: { fontSize: 44, lineHeight: 56, width: 72, textAlign: 'center' },
     veiculoTextos: { flex: 1 },
     veiculoNome: { ...tipo.subtitulo, color: colors.text },
     veiculoNota: { ...tipo.pequeno, color: colors.textMuted, marginTop: 2 },

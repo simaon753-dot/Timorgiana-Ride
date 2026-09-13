@@ -405,6 +405,15 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
           Os pinos ja estao no mapa acima, mas um mapa pequeno nao diz quantas
           sao nem por que ordem. Duas entregas em vez de uma mudam o tempo do
           trabalho, e isso tem de caber numa linha que se le de relance. */}
+      {/* CARRY COM PESSOAS: quantas, antes de aceitar. Um grupo de doze na
+          caixa é outra decisão do que uma máquina de lavar. */}
+      {ride.vehicleType === 'carry' && !ride.carga && ride.passengers ? (
+        <View style={styles.carga}>
+          <Text style={styles.cargaLinha}>
+            👥 {ride.passengers} · {t('carryModoPessoas')}
+          </Text>
+        </View>
+      ) : null}
       {ride.destinos?.length ? (
         <View style={styles.paragens}>
           {ride.destinos.map((p, i) => (

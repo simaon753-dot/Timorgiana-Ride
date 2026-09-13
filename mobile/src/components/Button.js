@@ -23,7 +23,7 @@ function variantes() {
     secondary: { fundo: colors.teal, tinta: colors.onTeal, contorno: colors.teal, elevar: true },
     outline: { fundo: 'transparent', tinta: colors.teal, contorno: colors.teal },
     ghost: { fundo: 'transparent', tinta: colors.teal, contorno: 'transparent' },
-    perigo: { fundo: colors.danger, tinta: '#FFFFFF', contorno: colors.danger, elevar: true },
+    perigo: { fundo: colors.danger, tinta: colors.onDanger, contorno: colors.danger, elevar: true },
   };
 }
 

@@ -15,12 +15,6 @@
 //
 // A ORDEM é a que o passageiro vê na Home: do mais barato ao mais especial.
 
-const IMG = {
-  motorbike: require('../../assets/veiculos/mota.png'),
-  car: require('../../assets/veiculos/carro.png'),
-  carry: require('../../assets/veiculos/carry.png'),
-};
-
 export const TIPOS_VEICULO = ['motorbike', 'car', 'carry'];
 
 export const VEICULOS = {
@@ -31,7 +25,6 @@ export const VEICULOS = {
     chaveMatricula: 'vehiclePlatePlaceholderMoto',
     icone: 'mota',
     emoji: '🏍️',
-    imagem: IMG.motorbike,
     // Numa motorizada vai sempre uma pessoa: não se pergunta quantas são.
     perguntaLugares: false,
     levaPessoas: true,
@@ -43,7 +36,6 @@ export const VEICULOS = {
     chaveMatricula: 'vehiclePlatePlaceholderCar',
     icone: 'carro',
     emoji: '🚗',
-    imagem: IMG.car,
     perguntaLugares: true,
     levaPessoas: true,
   },
@@ -54,7 +46,6 @@ export const VEICULOS = {
     chaveMatricula: 'vehiclePlatePlaceholderCar',
     icone: 'carry',
     emoji: '🛻',
-    imagem: IMG.carry,
     perguntaLugares: false,
     // O QUE SEPARA O CARRY DOS OUTROS DOIS, e é a única diferença que os
     // ecrãs precisam de consultar: este não transporta pessoas, transporta
