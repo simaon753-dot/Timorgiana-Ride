@@ -168,6 +168,24 @@ function desenho(nome, p, cheio, preenchido, c) {
     // Acrescentados com o sistema TGA (13/09/26): o olho da senha, o
     // envelope do email e o volante do motorista — os três que ainda eram
     // emoji no registo.
+    case 'fechar':
+      return <Path d="M6.5 6.5l11 11M17.5 6.5l-11 11" {...p} />;
+    case 'escudo':
+      return (
+        <>
+          <Path d="M12 3l7.5 3v5.5c0 4.6-3.2 8.4-7.5 9.5-4.3-1.1-7.5-4.9-7.5-9.5V6L12 3z" {...p} />
+          <Polyline points="8.8,12.2 11.2,14.6 15.4,10.2" {...p} />
+        </>
+      );
+    // A estrela vai CHEIA: é uma nota, não um contorno de botão.
+    case 'estrela':
+      return (
+        <Path
+          d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-2.9-5.4 2.9 1.1-6-4.5-4.2 6.1-.8z"
+          {...p}
+          fill={c}
+        />
+      );
     case 'olho':
       return (
         <>

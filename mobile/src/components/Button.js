@@ -25,6 +25,9 @@ function variantes() {
     outline: { fundo: 'transparent', tinta: colors.teal, contorno: colors.teal },
     ghost: { fundo: 'transparent', tinta: colors.teal, contorno: 'transparent' },
     perigo: { fundo: colors.danger, tinta: colors.onDanger, contorno: colors.danger, elevar: true },
+    // Recusar sem gritar ("Recusa pedidu"): o vermelho fica no texto e o
+    // fundo é só tinta. Ao lado de um botão cheio, o peso fica do lado certo.
+    perigoSuave: { fundo: colors.tintaPerigo, tinta: colors.danger, contorno: colors.tintaPerigo },
     // O botão principal das referências TGA: teal em degradé, texto claro.
     // Desenhado com o Degrade (react-native-svg, que já está no binário) e
     // não com o expo-linear-gradient, que é nativo e obrigaria a APK novo.

@@ -396,6 +396,10 @@ export async function initSchema() {
   // viagens que não fez.
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS pickup_code TEXT`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ`);
+  // A hora em que um motorista aceitou (14/09/26). A app mostra-a no indicador
+  // de etapas do passageiro ("Motorista iha dalan 21:55"); as viagens antigas
+  // ficam sem ela e mostram --:--, que é a verdade.
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS accepted_at TIMESTAMPTZ`);
   // A restrição original não conhecia 'in_progress'. Substituí-la em vez
   // de a apagar: uma coluna de estado sem restrição aceita erros de
   // escrita para sempre e só se descobre quando a app não sabe desenhar

@@ -11,7 +11,7 @@ import { linkMapa } from '../lib/mapaLink.js';
 //
 // Usa a folha de partilha do sistema, por isso serve WhatsApp, SMS ou o
 // que a pessoa tiver — não obrigamos ninguém a instalar nada.
-export default function ShareTripButton({ ride, driverLocation, driverPlace }) {
+export default function ShareTripButton({ ride, driverLocation, driverPlace, compacto = false }) {
   const { t } = useI18n();
 
   async function partilhar() {
@@ -46,8 +46,12 @@ export default function ShareTripButton({ ride, driverLocation, driverPlace }) {
   }
 
   return (
-    <TouchableOpacity style={styles.botao} onPress={partilhar} accessibilityRole="button">
-      <Text style={styles.texto}>
+    <TouchableOpacity
+      style={[styles.botao, compacto && styles.compacto]}
+      onPress={partilhar}
+      accessibilityRole="button"
+    >
+      <Text style={[styles.texto, compacto && styles.textoCompacto]} numberOfLines={1}>
         {'📍  '}
         {t('shareTrip')}
       </Text>
@@ -57,6 +61,9 @@ export default function ShareTripButton({ ride, driverLocation, driverPlace }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
+    // Na fila de três da viagem (Partilhar · Emergência · Kansela).
+    compacto: { flex: 1, paddingHorizontal: 6, minHeight: 52, justifyContent: 'center' },
+    textoCompacto: { fontSize: 13 },
     botao: {
       borderWidth: 1.5,
       borderColor: colors.teal,

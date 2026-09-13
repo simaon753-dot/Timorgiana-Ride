@@ -34,6 +34,10 @@ const RIDE_SELECT = `
   SELECT r.*,
          p.name  AS p_name,  p.phone AS p_phone,
          d.name  AS d_name,  d.phone AS d_phone,
+         -- As médias das estrelas, para o cartão do motorista (visto pelo
+         -- passageiro) e do passageiro (visto pelo motorista). Só a média,
+         -- como o Simão pediu; o número de avaliações não sai.
+         p.rating_avg AS p_rating, d.rating_avg AS d_rating,
          d.vehicle_type AS d_vtype, d.vehicle_model AS d_vmodel,
          d.vehicle_plate AS d_vplate, d.vehicle_color AS d_vcolor,
          -- A VÍRGULA AQUI EM CIMA faltou durante dois dias (11 a 13/09/26). A
@@ -122,6 +126,7 @@ export function toPublicRide(row, opcoes = {}) {
     vehicleType: row.vehicle_type || null,
     passengers: row.passengers ?? null,
     startedAt: row.started_at ?? null,
+    acceptedAt: row.accepted_at ?? null,
     fareUsd: row.fare_usd ?? null,
     distanceKm: row.distance_km ?? null,
     durationMin: row.duration_min ?? null,
@@ -151,6 +156,8 @@ export function toPublicRide(row, opcoes = {}) {
     passenger: {
       id: row.passenger_id,
       name: row.p_name,
+      // Zero quer dizer "ainda ninguém avaliou", não "péssimo": sai como nulo.
+      rating: row.p_rating > 0 ? Math.round(row.p_rating * 10) / 10 : null,
       ...(podeVerTelefones && (paraPassageiro || row.driver_id) ? { phone: row.p_phone } : {}),
     },
     // ── Quem viaja, quando não é quem pede ──────────────────────────
@@ -210,6 +217,7 @@ export function toPublicRide(row, opcoes = {}) {
       ? {
           id: row.driver_id,
           name: row.d_name,
+          rating: row.d_rating > 0 ? Math.round(row.d_rating * 10) / 10 : null,
           ...(podeVerTelefones ? { phone: row.d_phone } : {}),
           vehicle: {
             type: row.d_vtype || 'car',
@@ -487,7 +495,7 @@ export async function acceptRide(rideId, driverId, fareUsd, driverSeats) {
          -- caso do destino escrito à mão: aí não há rota, não há distância, e
          -- o preço volta a ser combinado entre as duas pessoas.
          fare_usd = CASE WHEN distance_km IS NULL THEN COALESCE($2, fare_usd) ELSE fare_usd END,
-         status = 'accepted', updated_at = NOW()
+         status = 'accepted', accepted_at = NOW(), updated_at = NOW()
      WHERE id = $3 AND status = 'requested' AND driver_id IS NULL
        AND (passengers IS NULL OR $4::int IS NULL OR passengers <= $4::int)
        -- UM MOTORISTA, UMA VIAGEM DE CADA VEZ.

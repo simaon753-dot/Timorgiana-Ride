@@ -1,0 +1,492 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  Pressable,
+  Linking,
+  Alert,
+  ActivityIndicator,
+  StyleSheet,
+} from 'react-native';
+import Retrato from '../design/Retrato.js';
+import Icone from '../design/Icone.js';
+import EtapasViagem from '../design/EtapasViagem.js';
+import NumerosViagem from '../design/NumerosViagem.js';
+import PercursoPontos from '../design/PercursoPontos.js';
+import { tipo } from '../design/tipografia.js';
+import Button from './Button.js';
+import MapaExpandivel from './MapaExpandivel.js';
+import SosButton from './SosButton.js';
+import CodigoRecolha from './CodigoRecolha.js';
+import MotivoCancelamento from './MotivoCancelamento.js';
+import ShareTripButton from './ShareTripButton.js';
+import RatingPanel from './RatingPanel.js';
+import { statusMeta } from './StatusBadge.js';
+import { VEICULOS, nomeDoVeiculo } from '../dados/tiposDeVeiculo.js';
+import { rideMarkers } from '../lib/rideMarkers.js';
+import { minutosAte, horaDeChegada } from '../lib/estimativa.js';
+import { nomeDaCor, hexDaCor } from '../lib/corVeiculo.js';
+import { useI18n } from '../i18n/index.js';
+import { useRides } from '../context/RideContext.js';
+import { colors, spacing, radius, elevacao, registarEstilos, paletaEmUso } from '../theme.js';
+
+// A VIAGEM DO PASSAGEIRO, da espera até à chegada — sistema de design TGA
+// (14/09/26), desenhado a partir da referência "Ecrã do passageiro com pedido
+// aceitado".
+//
+// Saiu do ecrã inicial, onde era um bloco de duzentas linhas no meio do
+// "Olá, <nome>". O ecrã inicial decide QUAL dos dois estados mostra; este
+// componente é um deles.
+//
+// A ORDEM É A DA CABEÇA DE QUEM ESPERA NA RUA:
+//   1. em que ponto está (título + as quatro etapas com hora);
+//   2. onde vem o motorista (mapa);
+//   3. QUEM vem — rosto, nome, estrelas — e como lhe falar;
+//   4. em QUE vem — matrícula, cor, modelo — para o reconhecer na rua;
+//   5. quanto custa e quanto demora;
+//   6. o que fazer se algo correr mal (partilhar, emergência, cancelar).
+
+const SUBTITULO = {
+  requested: 'subRequested',
+  accepted: 'subAccepted',
+  arriving: 'subAccepted',
+  in_progress: 'subInProgress',
+};
+
+export default function ViagemPassageiro({ ride, navigation }) {
+  const { t } = useI18n();
+  const { isFinal, cancelRide, dismissRide, driverLocation, driverPlace, unread } = useRides();
+  const [aCancelar, setACancelar] = useState(false);
+
+  const markers = rideMarkers(ride);
+  const withDriver = !!ride.driver && ['accepted', 'arriving', 'in_progress'].includes(ride.status);
+  const aCaminho = ride.status === 'accepted' || ride.status === 'arriving';
+  // O motorista ainda vem a caminho: quanto falta até estar à porta.
+  const minChegada = aCaminho
+    ? minutosAte(driverLocation, { lat: ride.originLat, lng: ride.originLng })
+    : null;
+  const veiculo = ride.driver?.vehicle;
+  const tipoV = VEICULOS[veiculo?.type];
+
+  // Cancelar depois de o motorista aceitar não é a mesma coisa que cancelar
+  // enquanto ainda se procura. O texto diz-lhe qual dos dois é — sem impedir
+  // nada: às vezes cancelar é mesmo o que faz falta.
+  async function cancelarComMotivo(motivo) {
+    setACancelar(false);
+    const r = await cancelRide(ride.id, motivo);
+    if (r?.aviso === 'demasiados') {
+      Alert.alert(t('cancelTooMany', { n: r.cancelamentos }), t('cancelTooManyExplain'));
+    }
+  }
+
+  return (
+    <View>
+      <View style={styles.cabeca}>
+        {ride.status === 'requested' ? <ActivityIndicator color={colors.coral} /> : null}
+        <Text style={styles.titulo}>{t(statusMeta(ride.status).key)}</Text>
+      </View>
+      {SUBTITULO[ride.status] ? (
+        <Text style={styles.subtitulo}>{t(SUBTITULO[ride.status])}</Text>
+      ) : null}
+
+      {ride.status !== 'cancelled' ? <EtapasViagem ride={ride} /> : null}
+
+      {markers.length > 0 ? (
+        <View style={styles.mapa}>
+          <MapaExpandivel
+            markers={markers}
+            height={220}
+            liveMarker={driverLocation}
+            liveLabel={driverPlace}
+            info={{ km: ride.distanceKm, min: ride.durationMin }}
+            aviso={minChegada != null ? t('etaArrivalShort', { min: minChegada }) : null}
+          />
+          {driverLocation ? (
+            <Text style={styles.driverMoving}>
+              {driverPlace ? t('nowOnStreet', { rua: driverPlace }) : t('driverOnMap')}
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
+
+      <View style={styles.cartao}>
+        <PercursoPontos
+          partida={ride.originLabel}
+          destino={ride.destLabel}
+          paragens={ride.destinos || []}
+        />
+      </View>
+
+      {/* O ROSTO AO LADO DO NOME, e não um nome sozinho.
+          A política de segurança manda confirmar "a matrícula, o modelo do
+          veículo e o nome/fotografia do motorista" antes de entrar. Junto do
+          nome de propósito: quem espera na rua olha uma vez para o ecrã e uma
+          vez para a pessoa. Separados eram duas verificações; juntos, é uma.
+          AS ESTRELAS SÃO SÓ A MÉDIA, sem o número de avaliações (pedido do
+          Simão). Quem ainda não foi avaliado não mostra estrelas nenhumas — um
+          "0.0" diria "péssimo" a quem só ainda não teve viagens. */}
+      {withDriver ? (
+        <View style={styles.cartao}>
+          <View style={styles.motoristaLinha}>
+            <Retrato tamanho={56} caminho={`/rides/${ride.id}/retrato`} />
+            <View style={styles.motoristaTextos}>
+              <Text style={styles.motoristaNome} numberOfLines={2}>
+                {ride.driver.name}
+              </Text>
+              {ride.driver.rating ? (
+                <View style={styles.estrelas}>
+                  <Icone nome="estrela" tamanho={15} cor={colors.coral} />
+                  <Text style={styles.estrelasTexto}>{ride.driver.rating.toFixed(1)}</Text>
+                </View>
+              ) : null}
+              {minChegada != null ? (
+                <Text style={styles.chegada}>
+                  {t('etaMinutes', { min: minChegada, hora: horaDeChegada(minChegada) })}
+                </Text>
+              ) : null}
+            </View>
+            {ride.driver.phone ? (
+              <AcaoRedonda
+                icone="telefone"
+                rotulo={t('acaoLiga')}
+                onPress={() => Linking.openURL(`tel:${ride.driver.phone}`)}
+              />
+            ) : null}
+            <AcaoRedonda
+              icone="mensagem"
+              rotulo={t('acaoMensajen')}
+              contagem={unread}
+              onPress={() => navigation.navigate('Chat')}
+            />
+          </View>
+        </View>
+      ) : null}
+
+      {/* EM QUE VEM, em cartão próprio. Quem espera na rua faz sempre a mesma
+          sequência: vê a COR e a forma ao longe, confirma a MATRÍCULA de perto.
+          A ilustração é a do tipo de veículo — não uma fotografia do carro dele
+          —, e serve para o olho procurar a forma certa na rua. */}
+      {withDriver && veiculo ? (
+        <View style={styles.cartao}>
+          <View style={styles.cartaoCabeca}>
+            <Icone nome={tipoV?.icone || 'carro'} tamanho={20} cor={colors.teal} />
+            <Text style={styles.cartaoTitulo}>{t('cartaoVeiculoTitulo')}</Text>
+          </View>
+          <View style={styles.veiculoLinha}>
+            {tipoV ? (
+              <View style={styles.veiculoFotoCaixa}>
+                <Image
+                  source={tipoV.imagens[paletaEmUso()] || tipoV.imagens.claro}
+                  style={styles.veiculoFoto}
+                  resizeMode="contain"
+                />
+              </View>
+            ) : null}
+            {veiculo.plate ? (
+              <View style={styles.matriculaCaixa}>
+                <Text style={styles.dadoRotulo}>{t('vehiclePlate')}</Text>
+                <Text style={styles.matricula}>{veiculo.plate}</Text>
+              </View>
+            ) : null}
+          </View>
+          <View style={styles.dadosLinha}>
+            <Dado rotulo={t('vehicleType')} valor={nomeDoVeiculo(t, veiculo.type)} />
+            <Dado rotulo={t('vehicleModel')} valor={veiculo.model} />
+            {veiculo.color ? (
+              <View style={styles.dado}>
+                <Text style={styles.dadoRotulo}>{t('rotuloCor')}</Text>
+                <View style={styles.corLinha}>
+                  {hexDaCor(veiculo.color) ? (
+                    <View
+                      style={[styles.corAmostra, { backgroundColor: hexDaCor(veiculo.color) }]}
+                    />
+                  ) : null}
+                  <Text style={styles.dadoValor} numberOfLines={1}>
+                    {nomeDaCor(veiculo.color, t)}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+          </View>
+        </View>
+      ) : null}
+
+      <NumerosViagem
+        km={ride.distanceKm}
+        min={ride.durationMin}
+        preco={ride.fareUsd}
+        semPreco={t('fareToAgree')}
+      />
+
+      {aCaminho ? (
+        <View style={styles.aviso}>
+          <Icone nome="escudo" tamanho={28} cor={colors.teal} />
+          <View style={styles.avisoTextos}>
+            <Text style={styles.avisoTitulo}>{t('avisoChegaTitulo')}</Text>
+            <Text style={styles.avisoTexto}>{t('avisoChegaTexto')}</Text>
+          </View>
+        </View>
+      ) : null}
+
+      {/* O código só até a viagem começar: depois de estar no carro já não
+          serve para nada e só ocupa o ecrã. */}
+      {ride.pickupCode && ride.status !== 'in_progress' && !isFinal ? (
+        <View style={styles.bloco}>
+          <CodigoRecolha codigo={ride.pickupCode} />
+        </View>
+      ) : null}
+
+      {/* PARTILHAR · EMERGÊNCIA · CANCELAR, numa fila, como na referência.
+          A EMERGÊNCIA APARECE DESDE QUE HÁ VIAGEM, e não só depois de um
+          motorista aceitar: quem pediu já disse à aplicação onde está, e pode
+          precisar de ajuda antes de alguém aceitar — à espera na rua, de noite,
+          é quando se está mais sozinho. Partilhar só com motorista, que é
+          quando há alguém a seguir.
+          O SOS é o círculo vermelho do meio, e não um terço da fila: é o
+          mesmo botão redondo que o motorista vê, e um círculo vermelho lê-se
+          como emergência antes de se ler a palavra. */}
+      {!isFinal ? (
+        <View style={styles.acoes}>
+          {withDriver ? (
+            <ShareTripButton
+              ride={ride}
+              driverLocation={driverLocation}
+              driverPlace={driverPlace}
+              compacto
+            />
+          ) : null}
+          <SosButton rideId={ride.id} compact />
+          <Pressable
+            style={({ pressed }) => [styles.kansela, pressed && styles.premido]}
+            onPress={() => setACancelar(true)}
+            accessibilityRole="button"
+          >
+            <Icone nome="fechar" tamanho={18} cor={colors.danger} traco={2.5} />
+            <Text style={styles.kanselaTexto} numberOfLines={2}>
+              {t('cancelRide')}
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
+
+      <MotivoCancelamento
+        visivel={aCancelar}
+        papel="passenger"
+        aCaminho={withDriver}
+        onFechar={() => setACancelar(false)}
+        onConfirmar={cancelarComMotivo}
+      />
+
+      {ride.status === 'completed' ? <RatingPanel ride={ride} role="passenger" /> : null}
+
+      {/* NINGUÉM RESPONDEU. Ao fim de dez minutos o pedido fecha-se sozinho no
+          servidor; sem esta linha a viagem desaparecia sem explicação, e isso
+          lê-se como avaria da app, não como "não havia motoristas". */}
+      {ride.cancelReason === 'sem_motorista' ? (
+        <View style={styles.semMotorista}>
+          <Text style={styles.semMotoristaTexto}>{t('noDriverFound')}</Text>
+        </View>
+      ) : null}
+
+      {isFinal ? (
+        <View style={styles.bloco}>
+          <Button title={t('newRide')} onPress={dismissRide} />
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+// Ligar e Mensajen: um círculo que é o próprio botão (48 px, o toque mínimo
+// com folga), com o nome por baixo. A contagem das mensagens por ler fica no
+// canto, em coral, como em qualquer aplicação de mensagens.
+function AcaoRedonda({ icone, rotulo, contagem, onPress }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.acaoRedonda, pressed && styles.premido]}
+      hitSlop={4}
+      accessibilityRole="button"
+      accessibilityLabel={rotulo}
+    >
+      <View style={styles.acaoCirculo}>
+        <Icone nome={icone} tamanho={22} cor={colors.teal} />
+        {contagem > 0 ? (
+          <View style={styles.contagem}>
+            <Text style={styles.contagemTexto}>{contagem}</Text>
+          </View>
+        ) : null}
+      </View>
+      <Text style={styles.acaoRotulo} numberOfLines={1}>
+        {rotulo}
+      </Text>
+    </Pressable>
+  );
+}
+
+function Dado({ rotulo, valor }) {
+  if (!valor) return null;
+  return (
+    <View style={styles.dado}>
+      <Text style={styles.dadoRotulo}>{rotulo}</Text>
+      <Text style={styles.dadoValor} numberOfLines={1}>
+        {valor}
+      </Text>
+    </View>
+  );
+}
+
+const criarEstilos = () =>
+  StyleSheet.create({
+    cabeca: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.sm,
+      marginTop: spacing.xs,
+    },
+    titulo: { ...tipo.displayPequeno, color: colors.text, textAlign: 'center', flexShrink: 1 },
+    subtitulo: { ...tipo.corpo, color: colors.textMuted, textAlign: 'center', marginTop: 2 },
+    mapa: { marginTop: spacing.xs },
+    driverMoving: {
+      ...tipo.legenda,
+      color: colors.teal,
+      textAlign: 'center',
+      marginTop: spacing.xs,
+    },
+    bloco: { marginTop: spacing.md },
+    cartao: {
+      backgroundColor: colors.white,
+      borderRadius: radius.xl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      padding: spacing.md,
+      marginTop: spacing.md,
+      ...elevacao.plana,
+    },
+    motoristaLinha: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    motoristaTextos: { flex: 1 },
+    motoristaNome: { ...tipo.subtitulo, color: colors.text },
+    estrelas: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+    estrelasTexto: { ...tipo.corpoForte, color: colors.text },
+    chegada: { ...tipo.legenda, color: colors.teal, marginTop: 2 },
+    acaoRedonda: { alignItems: 'center', width: 64 },
+    acaoCirculo: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.tintaTeal,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    acaoRotulo: { ...tipo.legenda, color: colors.teal, marginTop: 3 },
+    contagem: {
+      position: 'absolute',
+      top: -4,
+      right: -4,
+      minWidth: 20,
+      height: 20,
+      borderRadius: 10,
+      paddingHorizontal: 5,
+      backgroundColor: colors.coral,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    // Texto escuro sobre o coral: branco sobre coral fica a 2,8:1.
+    contagemTexto: { ...tipo.legenda, color: '#22100A' },
+    cartaoCabeca: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    cartaoTitulo: { ...tipo.corpoForte, color: colors.teal },
+    veiculoLinha: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      marginTop: spacing.sm,
+    },
+    // A imagem num quadrado da cor do fundo DELA (branco/preto): as cores
+    // são as dos ficheiros e não do tema — ver SISTEMA.md.
+    veiculoFotoCaixa: {
+      width: 108,
+      height: 76,
+      borderRadius: radius.lg,
+      overflow: 'hidden',
+      backgroundColor: paletaEmUso() === 'escuro' ? '#000000' : '#FFFFFF',
+    },
+    veiculoFoto: { width: 108, height: 76 },
+    matriculaCaixa: {
+      flex: 1,
+      borderWidth: 1.5,
+      borderColor: colors.teal,
+      borderRadius: radius.md,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      backgroundColor: colors.paper,
+    },
+    // Espaçamento largo: uma matrícula lê-se carácter a carácter, e é assim
+    // que se compara com o carro que está à frente.
+    matricula: { ...tipo.titulo, color: colors.text, letterSpacing: 1.5 },
+    dadosLinha: {
+      flexDirection: 'row',
+      marginTop: spacing.md,
+      paddingTop: spacing.sm,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+    },
+    dado: { flex: 1, paddingRight: spacing.xs },
+    dadoRotulo: { ...tipo.legenda, color: colors.textMuted },
+    dadoValor: { ...tipo.corpoForte, color: colors.text },
+    corLinha: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    // A amostra identifica-se de longe; a palavra "Metan" tem primeiro de
+    // ser lida.
+    corAmostra: {
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    aviso: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      backgroundColor: colors.tintaTeal,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+    },
+    avisoTextos: { flex: 1 },
+    avisoTitulo: { ...tipo.corpoForte, color: colors.teal },
+    avisoTexto: { ...tipo.pequeno, color: colors.text, marginTop: 1 },
+    acoes: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      marginTop: spacing.md,
+    },
+    kansela: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      minHeight: 52,
+      paddingHorizontal: 6,
+      borderWidth: 1.5,
+      borderColor: colors.danger,
+      borderRadius: radius.md,
+      backgroundColor: colors.white,
+    },
+    kanselaTexto: { ...tipo.corpoForte, fontSize: 13, color: colors.danger, flexShrink: 1 },
+    premido: { opacity: 0.7 },
+    semMotorista: {
+      backgroundColor: colors.tintaPerigo,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginTop: spacing.md,
+    },
+    semMotoristaTexto: { ...tipo.corpoForte, color: colors.danger, textAlign: 'center' },
+  });
+
+let styles = criarEstilos();
+registarEstilos(() => {
+  styles = criarEstilos();
+});

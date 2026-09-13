@@ -7,12 +7,12 @@ import {
   ActivityIndicator,
   Linking,
   Pressable,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Logo from '../components/Logo.js';
 import AvisoTeste from '../components/AvisoTeste.js';
 import Button from '../components/Button.js';
-import TextField from '../components/TextField.js';
 import BarraTopo from '../components/BarraTopo.js';
 import StatusBadge from '../components/StatusBadge.js';
 import MapaExpandivel from '../components/MapaExpandivel.js';
@@ -30,7 +30,10 @@ import { VEICULOS, nomeDoVeiculo } from '../dados/tiposDeVeiculo.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
-import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { colors, spacing, radius, registarEstilos, paletaEmUso } from '../theme.js';
+import Icone from '../design/Icone.js';
+import NumerosViagem from '../design/NumerosViagem.js';
+import PercursoPontos from '../design/PercursoPontos.js';
 import { tipo } from '../design/tipografia.js';
 import BarraEstado from '../design/BarraEstado.js';
 import ImagemProtegida from '../design/ImagemProtegida.js';
@@ -148,7 +151,7 @@ export default function DriverHomeScreen({ navigation }) {
       <BarraEstado />
       <ScrollView contentContainerStyle={styles.scroll}>
         <AvisoTeste />
-        <BarraTopo navigation={navigation} />
+        <BarraTopo navigation={navigation} motoristaOnline={!!online} />
 
         {/* A fotografia do dia vem ANTES do interruptor: sem ela o
             interruptor não funciona, e um botão que recusa sem explicar
@@ -229,7 +232,10 @@ export default function DriverHomeScreen({ navigation }) {
             sítio de recolha mas não onde fica em relação a si. Com viagem
             mostra recolha e destino; sem viagem mostra só onde ele está,
             que já chega para se situar. */}
-        {minhaPosicao || activeRide ? (
+        {/* Com pedidos na lista, este mapa sai: cada cartão traz o seu, com
+            a posição dele lá dentro, e um mapa a mais em cima empurrava o
+            primeiro pedido para fora do ecrã. */}
+        {activeRide || (minhaPosicao && !requests.length) ? (
           <View style={{ marginBottom: spacing.md }}>
             <MapaExpandivel
               markers={activeRide ? rideMarkers(activeRide) : []}
@@ -259,9 +265,28 @@ export default function DriverHomeScreen({ navigation }) {
           />
         ) : (
           <View>
-            <Text style={styles.heading}>{t('availableRequests')}</Text>
+            <View style={styles.cabecalhoLista}>
+              <Text style={styles.heading}>{t('availableRequests')}</Text>
+              {requests.length ? (
+                <View style={styles.novoPastilha}>
+                  <Text style={styles.novoTexto}>{t('pedidoNovo')}</Text>
+                </View>
+              ) : null}
+            </View>
+            {/* O VAZIO COM DESENHO, como na referência: a mota a andar diz
+                "está tudo a funcionar, só ainda não há ninguém" melhor do que
+                uma caixa de texto — que se lê como "a lista não carregou". */}
             {requests.length === 0 ? (
               <View style={styles.empty}>
+                <View style={styles.vazioImagemCaixa}>
+                  <Image
+                    source={
+                      VEICULOS.motorbike.imagens[paletaEmUso()] || VEICULOS.motorbike.imagens.claro
+                    }
+                    style={styles.vazioImagem}
+                    resizeMode="contain"
+                  />
+                </View>
                 <Text style={styles.emptyTitle}>{t('noRequests')}</Text>
                 <Text style={styles.emptyHint}>{t('waitingRequests')}</Text>
               </View>
@@ -322,12 +347,34 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.destValue}>{ride.destLabel}</Text>
-      {ride.originLabel ? (
-        <Text style={styles.origin}>
-          {t('originField')}: {ride.originLabel}
-        </Text>
-      ) : null}
+      {/* QUEM PEDE, com a média das estrelas — e SEM telefone nem mensagem.
+          A referência tinha os dois botões aqui, mas antes de aceitar o
+          motorista não tem nada a dizer ao passageiro, e a lista de pedidos
+          vai para todos os motoristas disponíveis do município: o número de
+          alguém não pode andar por dezenas de telemóveis só porque pediu
+          uma viagem. O telefone aparece depois de aceitar, e só durante a
+          viagem. */}
+      <View style={styles.pedidoCabeca}>
+        <View style={styles.pedidoAvatar}>
+          <Icone nome="pessoa" tamanho={26} cor={colors.teal} />
+        </View>
+        <View style={styles.pedidoQuem}>
+          <Text style={styles.pedidoNome} numberOfLines={1}>
+            {ride.passenger?.name}
+          </Text>
+          <View style={styles.pedidoMetaLinha}>
+            {ride.passenger?.rating ? (
+              <View style={styles.pedidoEstrelas}>
+                <Icone nome="estrela" tamanho={14} cor={colors.coral} />
+                <Text style={styles.pedidoMeta}>{ride.passenger.rating.toFixed(1)} ·</Text>
+              </View>
+            ) : null}
+            <Text style={styles.pedidoMeta} numberOfLines={1}>
+              {wants}
+            </Text>
+          </View>
+        </View>
+      </View>
       {/* PARA OUTRA PESSOA, dito antes de aceitar.
           É aqui que o consentimento do motorista acontece de facto: se ele
           só soubesse depois de aceitar, já não estaria a escolher — estaria
@@ -342,6 +389,12 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
           </Text>
         </View>
       ) : null}
+      <PercursoPontos
+        partida={ride.originLabel}
+        destino={ride.destLabel}
+        paragens={ride.destinos || []}
+        notaPartida={ride.pickupKm != null ? t('pickupDistance', { km: ride.pickupKm }) : null}
+      />
       {/* O mapa depois dos nomes e ANTES do preço e do botão: a ordem em que
           a decisão se forma. Primeiro para onde é, depois onde fica, e só
           então quanto rende e se aceita. */}
@@ -361,6 +414,12 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
           />
         </View>
       ) : null}
+      <NumerosViagem
+        km={ride.distanceKm}
+        min={ride.durationMin}
+        preco={ride.fareUsd}
+        semPreco={t('fareToAgree')}
+      />
       {/* A CARGA, ANTES DE ACEITAR — e é a razão de existir metade da fase 2.
           Um motorista que aceita sem saber o que vai levar chega, olha para um
           sofá que não lhe cabe na caixa, e vai-se embora: a viagem perde-se
@@ -403,10 +462,6 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
           ) : null}
         </View>
       ) : null}
-      {/* AS PARAGENS, ditas por extenso antes de aceitar.
-          Os pinos ja estao no mapa acima, mas um mapa pequeno nao diz quantas
-          sao nem por que ordem. Duas entregas em vez de uma mudam o tempo do
-          trabalho, e isso tem de caber numa linha que se le de relance. */}
       {/* CARRY COM PESSOAS: quantas, antes de aceitar. Um grupo de doze na
           caixa é outra decisão do que uma máquina de lavar. */}
       {ride.vehicleType === 'carry' && !ride.carga && ride.passengers ? (
@@ -416,43 +471,28 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
           </Text>
         </View>
       ) : null}
-      {ride.destinos?.length ? (
-        <View style={styles.paragens}>
-          {ride.destinos.map((p, i) => (
-            <Text key={`${p.lat},${p.lng},${i}`} style={styles.paragemLinha} numberOfLines={1}>
-              {i + 1}. {p.label}
-            </Text>
-          ))}
+      {/* RECUSAR E ACEITAR LADO A LADO, como na referência (14/09/26).
+          O mesmo tamanho, mas não o mesmo peso: o "Simu" é cheio, o "Recusa"
+          é só tinta — a hierarquia está na cor, não no tamanho.
+          "Recusa" faz o que o antigo "ignorar" fazia: o pedido continua a ir
+          para os outros motoristas disponíveis do município, e só sai da
+          lista de quem o pôs de lado. Ninguém fica sem viagem por isto. */}
+      <View style={styles.pedidoBotoes}>
+        {onIgnorar ? (
+          <View style={styles.pedidoBotao}>
+            <Button title={t('recusaPedidu')} icone="✕" variant="perigoSuave" onPress={onIgnorar} />
+          </View>
+        ) : null}
+        <View style={styles.pedidoBotao}>
+          <Button
+            title={t('simuPedidu')}
+            icone="✓"
+            variant="secondary"
+            onPress={accept}
+            loading={busy}
+          />
         </View>
-      ) : null}
-      <View style={styles.metaRow}>
-        <Text style={styles.passenger}>🧍 {ride.passenger?.name}</Text>
-        <Text style={styles.wants}>
-          {ride.pickupKm != null
-            ? `📍 ${t('pickupDistance', { km: ride.pickupKm })}`
-            : `${t('wantsLabel')}: ${wants}`}
-        </Text>
       </View>
-      <View style={styles.precoLinha}>
-        <Text style={styles.precoRotulo}>{t('fareLabel')}</Text>
-        <Text style={styles.precoValor}>
-          {ride.fareUsd != null ? `$${ride.fareUsd.toFixed(2)}` : t('fareToAgree')}
-        </Text>
-      </View>
-      <Button title={t('acceptRide')} onPress={accept} loading={busy} />
-      {/* IGNORAR, e não "recusar".
-          A palavra importa: recusar soa a decidir pela viagem, e não é isso
-          que acontece. O pedido continua a ir para os outros motoristas
-          disponíveis do município — só desaparece da lista de quem o pôs de
-          lado.
-          Discreto por baixo do aceitar, e não lado a lado: aceitar é o que se
-          vem fazer aqui, e dois botões do mesmo tamanho fariam da recusa uma
-          escolha tão oferecida como a outra. */}
-      {onIgnorar ? (
-        <Pressable style={styles.ignorar} onPress={onIgnorar} hitSlop={8}>
-          <Text style={styles.ignorarTexto}>{t('ignoreRequest')}</Text>
-        </Pressable>
-      ) : null}
     </View>
   );
 }
@@ -634,21 +674,60 @@ const criarEstilos = () =>
     avisoValidadeTitulo: { ...tipo.corpoForte, color: colors.coralDark },
     avisoValidadeTexto: { ...tipo.pequeno, color: colors.coralDark },
     scroll: { flexGrow: 1, padding: spacing.lg },
-    topBar: {
+    heading: { ...tipo.titulo, color: colors.text },
+    cabecalhoLista: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: spacing.lg,
+      marginTop: spacing.xs,
+      marginBottom: spacing.md,
     },
-    heading: { ...tipo.titulo, color: colors.text, marginBottom: spacing.md },
+    novoPastilha: {
+      backgroundColor: colors.teal,
+      borderRadius: radius.pill,
+      paddingVertical: 4,
+      paddingHorizontal: spacing.md,
+    },
+    novoTexto: { ...tipo.corpoForte, color: colors.onTeal },
     empty: {
       backgroundColor: colors.white,
-      borderRadius: radius.lg,
+      borderRadius: radius.xl,
       borderWidth: 1,
       borderColor: colors.border,
       padding: spacing.lg,
       alignItems: 'center',
     },
+    // A ilustração num quadrado da cor do fundo DELA — ver SISTEMA.md.
+    vazioImagemCaixa: {
+      width: 150,
+      height: 104,
+      borderRadius: radius.xl,
+      overflow: 'hidden',
+      marginBottom: spacing.md,
+      backgroundColor: paletaEmUso() === 'escuro' ? '#000000' : '#FFFFFF',
+    },
+    vazioImagem: { width: 150, height: 104 },
+    pedidoCabeca: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      marginBottom: spacing.xs,
+    },
+    pedidoAvatar: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      backgroundColor: colors.tintaTeal,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    pedidoQuem: { flex: 1 },
+    pedidoNome: { ...tipo.subtitulo, color: colors.text },
+    pedidoMetaLinha: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 1 },
+    pedidoEstrelas: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+    pedidoMeta: { ...tipo.pequeno, color: colors.textMuted, flexShrink: 1 },
+    pedidoBotoes: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+    pedidoBotao: { flex: 1 },
     emptyTitle: { ...tipo.subtitulo, color: colors.text },
     emptyHint: {
       ...tipo.pequeno,
@@ -667,14 +746,6 @@ const criarEstilos = () =>
     destLabel: { ...tipo.etiqueta, color: colors.textMuted, marginTop: spacing.md },
     destValue: { ...tipo.titulo, color: colors.text },
     origin: { ...tipo.pequeno, color: colors.textMuted, marginTop: spacing.xs },
-    metaRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: spacing.sm,
-      marginBottom: spacing.md,
-    },
-    passenger: { ...tipo.corpoForte, color: colors.text },
-    wants: { ...tipo.corpoForte, color: colors.teal },
     passengerBox: {
       marginTop: spacing.lg,
       backgroundColor: colors.tintaTeal,
@@ -708,9 +779,6 @@ const criarEstilos = () =>
       alignItems: 'center',
     },
     callBtnText: { ...tipo.corpoForte, color: colors.onTeal },
-    // Sem fundo nem contorno: um link, não um botão. Ver a nota no cartão.
-    ignorar: { alignSelf: 'center', paddingVertical: spacing.sm, marginTop: spacing.xs },
-    ignorarTexto: { ...tipo.pequeno, color: colors.textMuted },
     carga: {
       backgroundColor: colors.tintaTeal,
       borderRadius: radius.md,
@@ -722,36 +790,12 @@ const criarEstilos = () =>
     cargaAjuda: { ...tipo.pequeno, color: colors.teal, marginTop: 1 },
     cargaNotas: { ...tipo.pequeno, color: colors.textMuted, marginTop: 3 },
     cargaFotos: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
-    paragens: {
-      marginTop: spacing.sm,
-      borderLeftWidth: 3,
-      borderLeftColor: colors.coral,
-      paddingLeft: spacing.md,
-      gap: 2,
-    },
-    paragemLinha: { ...tipo.pequeno, color: colors.text },
     cargaFoto: {
       width: 64,
       height: 64,
       borderRadius: radius.md,
       backgroundColor: colors.border,
     },
-    precoLinha: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: spacing.sm,
-      marginBottom: spacing.sm,
-    },
-    precoRotulo: { ...tipo.pequeno, color: colors.textMuted },
-    precoValor: { ...tipo.displayPequeno, color: colors.teal },
-    fareEditor: {
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-      gap: spacing.sm,
-      marginTop: spacing.md,
-    },
-    fareSaveBtn: { paddingHorizontal: spacing.lg, marginBottom: spacing.md },
     offline: {
       ...tipo.legenda,
       textAlign: 'center',
@@ -780,6 +824,7 @@ function FaixaAssinatura({ a, bloqueio, navigation }) {
 
   const bloqueado = bloqueio?.motivo === 'sem_saldo' || (!a.gratuito && (a.dias ?? 0) <= 0);
   if (!a.gratuito && !bloqueado) return null;
+  const tinta = bloqueado ? colors.onDanger : colors.onTeal;
 
   // "2027-04-30" lê-se mal numa faixa. O nome do mês lê-se de relance — e
   // é assim que o Simão o diz em voz alta. O tétum não é uma língua que o
@@ -799,12 +844,23 @@ function FaixaAssinatura({ a, bloqueio, navigation }) {
   return (
     <Pressable
       onPress={() => navigation.navigate('Assinatura')}
-      style={[estilosFaixa.faixa, bloqueado && estilosFaixa.faixaMau]}
+      style={({ pressed }) => [
+        estilosFaixa.faixa,
+        bloqueado && estilosFaixa.faixaMau,
+        pressed && estilosFaixa.premida,
+      ]}
+      accessibilityRole="button"
     >
-      <Text style={estilosFaixa.titulo}>
-        {bloqueado ? t('assinBloqueado') : t('assinGratuitaAte', { ate: quando })}
-      </Text>
-      <Text style={estilosFaixa.nota}>{bloqueado ? t('assinSemSaldo') : t('assinVer')}</Text>
+      <Icone nome={bloqueado ? 'carteira' : 'documento'} tamanho={28} cor={tinta} />
+      <View style={estilosFaixa.textos}>
+        <Text style={[estilosFaixa.titulo, { color: tinta }]}>
+          {bloqueado ? t('assinBloqueado') : t('assinGratuitaAte', { ate: quando })}
+        </Text>
+        <Text style={[estilosFaixa.nota, { color: tinta }]}>
+          {bloqueado ? t('assinSemSaldo') : t('assinVer')}
+        </Text>
+      </View>
+      <Icone nome="seta" tamanho={20} cor={tinta} traco={2.5} />
     </Pressable>
   );
 }
@@ -812,16 +868,21 @@ function FaixaAssinatura({ a, bloqueio, navigation }) {
 const criarEstilosFaixa = () =>
   StyleSheet.create({
     faixa: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
       backgroundColor: colors.teal,
-      borderRadius: radius.md,
+      borderRadius: radius.xl,
       paddingVertical: spacing.md,
       paddingHorizontal: spacing.md,
       marginBottom: spacing.md,
-      gap: 2,
+      minHeight: 72,
     },
     faixaMau: { backgroundColor: colors.danger },
-    titulo: { ...tipo.corpoForte, color: colors.onTeal },
-    nota: { ...tipo.pequeno, color: colors.onTeal, opacity: 0.9 },
+    premida: { opacity: 0.85 },
+    textos: { flex: 1, gap: 2 },
+    titulo: { ...tipo.corpoForte },
+    nota: { ...tipo.pequeno, opacity: 0.9 },
   });
 
 let estilosFaixa = criarEstilosFaixa();
