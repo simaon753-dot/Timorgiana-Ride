@@ -1,24 +1,27 @@
 import React from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { colors, spacing, radius, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
-import { nomeDoVeiculo } from '../dados/tiposDeVeiculo.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useModo } from '../context/ModoContext.js';
-import { nomeDaCor, hexDaCor } from '../lib/corVeiculo.js';
-import Voltar from '../components/Voltar.js';
 import ConfirmarEmail from '../components/ConfirmarEmail.js';
 import Retrato from '../design/Retrato.js';
 import BarraEstado from '../design/BarraEstado.js';
+import Icone from '../design/Icone.js';
+import CabecalhoEcra from '../design/CabecalhoEcra.js';
+import Cartao from '../design/Cartao.js';
+import CartaoVeiculo from '../design/CartaoVeiculo.js';
+import { LinhaMenu, LinhaInfo } from '../design/LinhaMenu.js';
+import RodapeMarca from '../design/RodapeMarca.js';
 
-// Perfil: quem eu sou e o que conduzo. Só isso.
+// Perfil: quem eu sou e o que conduzo. Só isso — sistema de design TGA
+// (14/09/26), com as mesmas peças do detalhe de conta do painel: o cartão com
+// o rosto, o cartão do veículo e as linhas com ícone.
 //
-// As definições saíram daqui para um ecrã próprio, atrás da roda dentada no
-// canto. A razão: idioma, servidor e termos não são "quem eu sou" — são
-// como a aplicação se comporta. Misturá-los obrigava a passar por cima
-// deles para chegar ao que interessa.
+// As definições ficam atrás da roda dentada, no canto: idioma, servidor e
+// termos não são "quem eu sou", são como a aplicação se comporta.
 export default function PerfilScreen({ navigation }) {
   const { t } = useI18n();
   const { user, logout } = useAuth();
@@ -26,6 +29,7 @@ export default function PerfilScreen({ navigation }) {
 
   const podeConduzir = !!user?.podeConduzir;
   const pediuParaConduzir = !!user?.driverStatus;
+  const aprovado = user?.driverStatus === 'approved';
   const veiculo = user?.vehicle;
 
   function sair() {
@@ -35,22 +39,22 @@ export default function PerfilScreen({ navigation }) {
     ]);
   }
 
+  const estadoConducao = !pediuParaConduzir
+    ? t('wantToDrive')
+    : user.driverStatus === 'approved'
+      ? t('driverApplicationOk')
+      : user.driverStatus === 'rejected'
+        ? t('driverApplicationRejected')
+        : t('driverApplicationPending');
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <BarraEstado />
-      <ScrollView contentContainerStyle={styles.conteudo}>
-        {/* Em cima de tudo, e não numa secção lá em baixo. Quem abre o perfil
-            tem de a ver sem procurar — é a única coisa neste ecrã que fica
-            por resolver, e a única que custa a conta no dia em que a senha se
-            perder. Desaparece sozinha quando confirmar. */}
-        <ConfirmarEmail />
-        {/* A roda dentada fica ao lado do perfil, como pediste: as
-            definições pertencem-lhe, mas não lhe ocupam o espaço. */}
-        {/* Voltou a ser um ecrã empilhado quando saiu da barra de baixo,
-            por isso volta a precisar de saída visível — no iPhone não há
-            botão de sistema. */}
-        <View style={styles.topo}>
-          <Voltar navigation={navigation} />
+      <CabecalhoEcra
+        navigation={navigation}
+        titulo={t('perfilTitulo')}
+        subtitulo="TimorgianaRide · Díli"
+        direita={
           <Pressable
             onPress={() => navigation.navigate('Opcoes')}
             hitSlop={12}
@@ -58,193 +62,132 @@ export default function PerfilScreen({ navigation }) {
             accessibilityRole="button"
             accessibilityLabel={t('settingsTitle')}
           >
-            <Text style={styles.engrenagemIcone}>⚙</Text>
+            <Icone nome="engrenagem" tamanho={24} cor={colors.teal} />
           </Pressable>
+        }
+      />
+      <ScrollView contentContainerStyle={styles.conteudo}>
+        {/* Em cima de tudo: é a única coisa neste ecrã que fica por resolver,
+            e a única que custa a conta no dia em que a senha se perder.
+            Desaparece sozinha quando se confirma. */}
+        <ConfirmarEmail />
+
+        <View style={styles.cartaoPerfil}>
+          {/* A fotografia mais recente do motorista; quem não tem continua a
+              ver a silhueta — é o servidor que responde 404 e o componente
+              que trata disso. */}
+          <Retrato tamanho={84} />
+          <View style={styles.perfilTextos}>
+            <Text style={styles.nome} numberOfLines={2}>
+              {user?.name}
+            </Text>
+            {/* O PAPEL em pastilhas, com o selo de verificação: diz que alguém
+                olhou para os documentos desta pessoa e os aceitou. */}
+            <View style={styles.papeis}>
+              <View style={styles.papel}>
+                <Icone nome={aprovado ? 'volante' : 'pessoa'} tamanho={15} cor={colors.teal} />
+                <Text style={styles.papelTexto}>{aprovado ? t('driver') : t('passenger')}</Text>
+              </View>
+              {aprovado ? (
+                <View style={styles.papel}>
+                  <Icone nome="visto" tamanho={15} cor={colors.teal} traco={2.5} />
+                  <Text style={styles.papelTexto}>{t('perfilVerificadoSo')}</Text>
+                </View>
+              ) : null}
+              {user?.isAdmin ? (
+                <View style={styles.papel}>
+                  <Icone nome="coroa" tamanho={15} cor={colors.teal} />
+                  <Text style={styles.papelTexto}>{t('admPapelAdmin')}</Text>
+                </View>
+              ) : null}
+            </View>
+            {/* SÓ A MÉDIA, sem quantas pessoas avaliaram — decisão do Simão:
+                num serviço a começar, "5,0 · 2" lê-se como pouca coisa quando
+                é tudo o que houve até agora. */}
+            {user?.ratingAvg ? (
+              <View style={styles.estrelas}>
+                <Icone nome="estrela" tamanho={16} cor={colors.coral} />
+                <Text style={styles.estrelasTexto}>{Number(user.ratingAvg).toFixed(1)}</Text>
+              </View>
+            ) : null}
+          </View>
         </View>
 
-        <View style={styles.cabecalho}>
-          {/* A fotografia mais recente do motorista. Quem não é motorista
-              — ou ainda não enviou nenhuma — continua a ver o 👤: é o
-              servidor que responde 404 e o componente que trata disso. */}
-          <Retrato tamanho={86} />
-          <Text style={styles.nome}>{user?.name}</Text>
-          <Text style={styles.telefone}>{user?.phone}</Text>
-          {/* O selo de verificação.
-              Diz que alguém olhou para os documentos desta pessoa e os
-              aceitou. Fica ao lado do nome e do número porque é isso que
-              qualifica: não é decoração, é o que distingue uma conta
-              verificada de uma que ainda não passou por ninguém. */}
-          {user?.driverStatus === 'approved' ? (
-            <Text style={styles.verificado}>{t('perfilVerificado')}</Text>
-          ) : null}
-          {/* SÓ A MÉDIA, sem quantas pessoas avaliaram.
-              O número de avaliações estava lá para dar contexto — uma média
-              de 5,0 feita por doze pessoas vale mais do que a mesma feita por
-              uma. Mas num serviço a começar esse contexto joga sempre contra:
-              os primeiros motoristas têm duas ou três avaliações, e "5,0 · 2"
-              lê-se como pouca coisa quando na verdade é tudo o que houve até
-              agora.
-              Decisão do Simão. Fica a média, que é o que se quer saber.
+        <Cartao icone="pessoa" titulo={t('perfilInfo')} lista>
+          <LinhaInfo icone="telefone" rotulo={t('phone')} valor={user?.phone} forte />
+          <LinhaInfo icone="email" rotulo={t('email')} valor={user?.email} ultimo />
+        </Cartao>
 
-              O comentário fica AQUI FORA e não dentro dos parênteses do
-              ternário: ali o JavaScript lê um comentário de JSX como um
-              objecto literal, e o ficheiro deixa de compilar. */}
-          {user?.ratingAvg ? (
-            <Text style={styles.estrelas}>⭐ {Number(user.ratingAvg).toFixed(1)}</Text>
-          ) : null}
-        </View>
-
-        {/* Veículo em secção própria, com a cor à vista: é por ela que o
-            passageiro encontra o carro na rua. */}
+        {/* O veículo com a ilustração do tipo e a matrícula em caixa — o mesmo
+            cartão que o passageiro vê na viagem. Assim o motorista sabe
+            exactamente o que o passageiro vai procurar na rua. */}
         {veiculo?.plate ? (
-          <Seccao titulo={t('profileVehicle')}>
-            <Linha rotulo={t('vehicleType')} valor={nomeDoVeiculo(t, veiculo.type)} />
-            {veiculo.model ? <Linha rotulo={t('vehicleModel')} valor={veiculo.model} /> : null}
-            <Linha rotulo={t('vehiclePlate')} valor={veiculo.plate} forte />
-            {veiculo.color ? (
-              <Linha
-                rotulo={t('vehicleColor')}
-                valor={nomeDaCor(veiculo.color, t)}
-                amostra={hexDaCor(veiculo.color)}
-              />
-            ) : null}
-            {veiculo.seats ? (
-              <Linha rotulo={t('vehicleSeats')} valor={String(veiculo.seats)} />
-            ) : null}
-          </Seccao>
+          <View style={styles.bloco}>
+            <CartaoVeiculo veiculo={veiculo} titulo={t('profileVehicle')} />
+          </View>
         ) : null}
 
-        {podeConduzir ? (
-          <Seccao titulo={t('modeRide')}>
-            <Item
-              texto={t('requestIfNeeded')}
+        <Cartao lista style={styles.bloco}>
+          {podeConduzir ? (
+            <LinhaMenu
+              icone="pin"
+              titulo={t('requestIfNeeded')}
               onPress={() => {
                 setModo('passageiro');
                 navigation.navigate('RequestRide');
               }}
             />
-          </Seccao>
-        ) : null}
-
-        <Seccao titulo={t('modeDrive')}>
-          <Item
-            texto={
-              !pediuParaConduzir
-                ? t('wantToDrive')
-                : user.driverStatus === 'approved'
-                  ? t('driverApplicationOk')
-                  : user.driverStatus === 'rejected'
-                    ? t('driverApplicationRejected')
-                    : t('driverApplicationPending')
-            }
+          ) : null}
+          <LinhaMenu
+            icone="volante"
+            titulo={estadoConducao}
             onPress={() => navigation.navigate('DriverPending')}
           />
-        </Seccao>
+          <LinhaMenu
+            icone="engrenagem"
+            titulo={t('settingsTitle')}
+            onPress={() => navigation.navigate('Opcoes')}
+          />
+          <LinhaMenu icone="sair" titulo={t('logout')} perigo onPress={sair} ultimo />
+        </Cartao>
 
-        <Pressable style={styles.sair} onPress={sair}>
-          <Text style={styles.sairTexto}>{t('logout')}</Text>
-        </Pressable>
+        <RodapeMarca />
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function Seccao({ titulo, children }) {
-  return (
-    <View style={styles.seccao}>
-      <Text style={styles.seccaoTitulo}>{titulo}</Text>
-      <View style={styles.caixa}>{children}</View>
-    </View>
-  );
-}
-
-function Item({ texto, onPress }) {
-  return (
-    <Pressable style={styles.item} onPress={onPress}>
-      <Text style={styles.itemTexto}>{texto}</Text>
-      <Text style={styles.seta}>›</Text>
-    </Pressable>
-  );
-}
-
-function Linha({ rotulo, valor, forte, amostra }) {
-  return (
-    <View style={styles.item}>
-      <Text style={styles.linhaRotulo}>{rotulo}</Text>
-      <View style={styles.linhaValor}>
-        {amostra ? <View style={[styles.amostra, { backgroundColor: amostra }]} /> : null}
-        <Text style={[styles.itemTexto, forte && styles.itemForte]}>{valor}</Text>
-      </View>
-    </View>
   );
 }
 
 const criarEstilos = () =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.paper },
-    conteudo: { padding: spacing.lg, paddingBottom: spacing.xxl },
-    topo: {
+    conteudo: { paddingHorizontal: spacing.lg, paddingBottom: spacing.lg },
+    engrenagem: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+    cartaoPerfil: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    engrenagem: {
-      width: 38,
-      height: 38,
-      borderRadius: 19,
-      backgroundColor: colors.white,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    engrenagemIcone: { fontSize: 19, color: colors.teal },
-
-    cabecalho: { alignItems: 'center', paddingBottom: spacing.lg },
-    // Sem círculo, pela mesma razão da barra de cima: a silhueta é clara e
-    // sobre o teal escuro perdia-se.
-    nome: { ...tipo.titulo, color: colors.text, marginTop: spacing.md },
-    telefone: { ...tipo.pequeno, color: colors.textMuted, marginTop: 2 },
-    verificado: {
-      ...tipo.legenda,
-      color: colors.teal,
-      marginTop: 4,
-    },
-    estrelas: { ...tipo.corpoForte, color: colors.teal, marginTop: spacing.sm },
-
-    seccao: { marginBottom: spacing.lg },
-    seccaoTitulo: { ...tipo.etiqueta, color: colors.textMuted, marginBottom: spacing.sm },
-    caixa: {
-      backgroundColor: colors.white,
-      borderRadius: radius.md,
-      overflow: 'hidden',
-    },
-    item: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: spacing.md,
-      paddingHorizontal: spacing.md,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
-    },
-    itemTexto: { ...tipo.corpo, color: colors.text },
-    itemForte: { fontWeight: '800' },
-    seta: { fontSize: 22, color: colors.textMuted },
-    linhaRotulo: { ...tipo.pequeno, color: colors.textMuted },
-    linhaValor: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-    amostra: {
-      width: 18,
-      height: 18,
-      borderRadius: 9,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-
-    sair: {
-      alignItems: 'center',
-      paddingVertical: spacing.md,
+      gap: spacing.md,
+      backgroundColor: colors.tintaTeal,
+      borderRadius: radius.xl,
+      padding: spacing.md,
       marginTop: spacing.sm,
+      marginBottom: spacing.md,
     },
-    sairTexto: { ...tipo.subtitulo, color: colors.danger },
+    perfilTextos: { flex: 1 },
+    nome: { ...tipo.titulo, color: colors.text },
+    papeis: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.xs },
+    papel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: colors.white,
+      borderRadius: radius.pill,
+      paddingVertical: 3,
+      paddingHorizontal: spacing.sm,
+    },
+    papelTexto: { ...tipo.legenda, color: colors.teal },
+    estrelas: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.xs },
+    estrelasTexto: { ...tipo.corpoForte, color: colors.text },
+    bloco: { marginTop: spacing.xs },
   });
 
 let styles = criarEstilos();

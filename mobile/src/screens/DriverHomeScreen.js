@@ -14,7 +14,10 @@ import Logo from '../components/Logo.js';
 import AvisoTeste from '../components/AvisoTeste.js';
 import Button from '../components/Button.js';
 import BarraTopo from '../components/BarraTopo.js';
-import StatusBadge from '../components/StatusBadge.js';
+import { statusMeta } from '../components/StatusBadge.js';
+import Avatar from '../design/Avatar.js';
+import BotaoAccao from '../design/BotaoAccao.js';
+import { abrirNoMapa } from '../lib/mapaLink.js';
 import MapaExpandivel from '../components/MapaExpandivel.js';
 import MotivoCancelamento from '../components/MotivoCancelamento.js';
 import PedirCodigo from '../components/PedirCodigo.js';
@@ -22,7 +25,6 @@ import FotoDeTurno from '../components/FotoDeTurno.js';
 import BotaoPower from '../components/BotaoPower.js';
 import { api } from '../api/client.js';
 import { paraMostrar } from '../lib/datas.js';
-import ChatButton from '../components/ChatButton.js';
 import SosButton from '../components/SosButton.js';
 import RatingPanel from '../components/RatingPanel.js';
 import { rideMarkers } from '../lib/rideMarkers.js';
@@ -30,7 +32,7 @@ import { VEICULOS, nomeDoVeiculo } from '../dados/tiposDeVeiculo.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useRides } from '../context/RideContext.js';
-import { colors, spacing, radius, registarEstilos, paletaEmUso } from '../theme.js';
+import { colors, spacing, radius, registarEstilos, paletaEmUso, elevacao } from '../theme.js';
 import Icone from '../design/Icone.js';
 import NumerosViagem from '../design/NumerosViagem.js';
 import PercursoPontos from '../design/PercursoPontos.js';
@@ -242,7 +244,7 @@ export default function DriverHomeScreen({ navigation }) {
               center={activeRide ? undefined : centroMapa}
               liveMarker={minhaPosicao}
               liveLabel={t('myLocation')}
-              height={activeRide ? 150 : 190}
+              height={activeRide ? 220 : 190}
               info={
                 activeRide ? { km: activeRide.distanceKm, min: activeRide.durationMin } : undefined
               }
@@ -509,6 +511,7 @@ function ActiveRideCard({
   onDismiss,
 }) {
   const { t } = useI18n();
+  const { unread } = useRides();
   const [aCancelar, setACancelar] = useState(false);
   const [aPedirCodigo, setAPedirCodigo] = useState(false);
   const [erroCodigo, setErroCodigo] = useState(null);
@@ -527,103 +530,178 @@ function ActiveRideCard({
     }
   }
   const active = ['accepted', 'arriving', 'in_progress'].includes(ride.status);
+  const aIrBuscar = ride.status === 'accepted' || ride.status === 'arriving';
+  const tipoV = VEICULOS[ride.vehicleType];
+  // QUEM VIAJA À FRENTE, quem pediu por baixo. O motorista vai buscar uma
+  // pessoa, não uma conta: pôr o nome do titular em cima seria mandá-lo
+  // perguntar pela pessoa errada à porta de casa.
+  const quemViaja = ride.viajante?.nome || ride.passenger?.name;
+  // O NÚMERO DE QUEM ESTÁ À ESPERA, não o da conta: quem pediu pode estar em
+  // casa, e quem atende tem de ser quem está no passeio.
+  const telefone = ride.viajante?.telefone || ride.passenger?.phone;
+  // O "ver no mapa" leva à RECOLHA enquanto se vai buscar a pessoa, e ao
+  // DESTINO depois de ela entrar — é a pergunta que o motorista tem em cada
+  // momento, e abre a navegação do telemóvel já com o ponto certo.
+  const alvo = aIrBuscar
+    ? { lat: ride.originLat, lng: ride.originLng }
+    : { lat: ride.destLat, lng: ride.destLng };
+  const pedida = ride.createdAt ? new Date(ride.createdAt) : null;
+  const quando =
+    pedida && !Number.isNaN(pedida.getTime())
+      ? pedida.toLocaleString(undefined, {
+          day: '2-digit',
+          month: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : null;
+
+  // A ACÇÃO DE TRABALHO muda com o estado, e é sempre uma só: ir buscar,
+  // começar (com o código do passageiro), acabar. Concluir sem começar
+  // deixou de ser possível — o código é que abre a viagem.
+  const principal =
+    ride.status === 'accepted'
+      ? { titulo: t('onTheWay'), icone: 'rota', onPress: onArriving }
+      : ride.status === 'arriving'
+        ? { titulo: t('startRide'), icone: 'volante', onPress: () => setAPedirCodigo(true) }
+        : { titulo: t('completeRide'), icone: 'bandeira', onPress: onComplete };
 
   return (
-    <View style={styles.card}>
-      <StatusBadge status={ride.status} />
-      <Text style={styles.destLabel}>{t('destination')}</Text>
-      <Text style={styles.destValue}>{ride.destLabel}</Text>
-      {ride.originLabel ? (
-        <Text style={styles.origin}>
-          {t('originField')}: {ride.originLabel}
-        </Text>
-      ) : null}
-
-      <View style={styles.passengerBox}>
-        <Text style={styles.boxTitle}>{t('yourPassenger')}</Text>
-        {/* QUEM VIAJA À FRENTE, quem pediu por baixo.
-            O motorista vai buscar uma pessoa, não uma conta. Pôr o nome do
-            titular em cima seria mandá-lo perguntar pela pessoa errada à
-            porta de casa. */}
-        <Text style={styles.passengerName}>{ride.viajante?.nome || ride.passenger?.name}</Text>
-        {ride.viajante ? (
-          <Text style={styles.quemPediu}>
-            {ride.viajante.menor ? `👦 ${t('pedidoMenor')} · ` : ''}
-            {t('pedidoPor', { nome: ride.passenger?.name || '—' })}
-          </Text>
-        ) : null}
-        {/* O motorista precisa de saber em que se está a meter antes de
-            arrancar: quanto tempo e quantos quilómetros. */}
-        {ride.durationMin != null ? (
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>{t('etaTrip')}</Text>
-            <Text style={styles.rowValue}>
-              {t('etaTripValue', { min: ride.durationMin, km: ride.distanceKm ?? '—' })}
-            </Text>
+    <View style={styles.viagem}>
+      {/* CABEÇALHO: o estado em palavras, e à direita o número da viagem e a
+          hora do pedido — é o que se diz ao telefone quando alguma coisa
+          corre mal ("a viagem 63, das 21:52"). */}
+      <View style={styles.viagemTopo}>
+        <Icone nome={tipoV?.icone || 'carro'} tamanho={30} cor={colors.teal} />
+        <Text style={styles.viagemEstado}>{t(statusMeta(ride.status).key)}</Text>
+        <View style={styles.viagemId}>
+          <View style={styles.idPastilha}>
+            <Text style={styles.idTexto}>#{ride.id}</Text>
           </View>
-        ) : null}
-        <View style={styles.row}>
-          <Text style={styles.rowLabel}>{t('fareLabel')}</Text>
-          <Text style={styles.rowValueStrong}>
-            {ride.fareUsd != null ? `$${ride.fareUsd}` : t('fareToAgree')}
-          </Text>
+          {quando ? <Text style={styles.idHora}>{quando}</Text> : null}
         </View>
-        {/* O NÚMERO DE QUEM ESTÁ À ESPERA, não o da conta.
-            Quem pediu pode estar em casa; quem atende tem de ser quem está
-            no passeio. Sem viajante, é o mesmo número de sempre. */}
-        {ride.viajante?.telefone || ride.passenger?.phone ? (
-          <Pressable
-            style={styles.callBtn}
-            onPress={() =>
-              Linking.openURL(`tel:${ride.viajante?.telefone || ride.passenger.phone}`)
-            }
-          >
-            <Text style={styles.callBtnText}>
-              📞 {t('callLabel')} · {ride.viajante?.telefone || ride.passenger.phone}
-            </Text>
-          </Pressable>
-        ) : null}
       </View>
 
+      <View style={styles.destinoLinha}>
+        <Icone nome="pin" tamanho={22} cor={colors.coral} />
+        <View style={styles.destinoTextos}>
+          <Text style={styles.destLabel}>{t('destination')}</Text>
+          <Text style={styles.destValue}>{ride.destLabel}</Text>
+          {ride.originLabel ? (
+            <Text style={styles.origin}>
+              {t('originField')}: {ride.originLabel}
+            </Text>
+          ) : null}
+        </View>
+      </View>
+      {active && alvo.lat != null && alvo.lng != null ? (
+        <Pressable
+          style={({ pressed }) => [styles.hareeMapa, pressed && { opacity: 0.8 }]}
+          onPress={() => abrirNoMapa(Linking, alvo.lat, alvo.lng)}
+          accessibilityRole="button"
+        >
+          <Icone nome="mapa" tamanho={18} cor={colors.teal} />
+          <Text style={styles.hareeMapaTexto}>{t(aIrBuscar ? 'mapaRecolha' : 'mapaDestino')}</Text>
+        </Pressable>
+      ) : null}
+
+      <View style={styles.passageiroCaixa}>
+        <View style={styles.passageiroLinha}>
+          <Avatar nome={quemViaja} tamanho={56} />
+          <View style={styles.passageiroTextos}>
+            <Text style={styles.passageiroRotulo}>{t('yourPassenger')}</Text>
+            <Text style={styles.passageiroNome} numberOfLines={2}>
+              {quemViaja}
+            </Text>
+            {/* A média é de quem tem a conta; se viaja outra pessoa, as
+                estrelas não são dela e ficam de fora. Só a média, sem o
+                número de avaliações — decisão do Simão. */}
+            {!ride.viajante && ride.passenger?.rating ? (
+              <View style={styles.estrelas}>
+                <Icone nome="estrela" tamanho={14} cor={colors.coral} />
+                <Text style={styles.estrelasTexto}>{ride.passenger.rating.toFixed(1)}</Text>
+              </View>
+            ) : null}
+            {ride.viajante ? (
+              <Text style={styles.quemPediu}>
+                {ride.viajante.menor ? `${t('pedidoMenor')} · ` : ''}
+                {t('pedidoPor', { nome: ride.passenger?.name || '—' })}
+              </Text>
+            ) : null}
+          </View>
+        </View>
+        <NumerosViagem
+          km={ride.distanceKm}
+          min={ride.durationMin}
+          preco={ride.fareUsd}
+          semPreco={t('fareToAgree')}
+        />
+      </View>
+
+      {/* A GRELHA DE ACÇÕES, pela ordem da referência: falar (telefone,
+          mensagem), depois o que muda a viagem (emergência, a acção de
+          trabalho), e por último o cancelar — sozinho, a toda a largura e só
+          com contorno, para não se carregar sem querer. A emergência é o
+          SosButton de sempre, com o seu fluxo: escolher o serviço, registar o
+          alerta, ligar. O motorista corre o mesmo risco que o passageiro. */}
       {active ? (
-        <>
-          <View style={{ marginTop: spacing.md }}>
-            <ChatButton navigation={navigation} />
+        <View style={styles.accoes}>
+          <View style={styles.accoesLinha}>
+            {telefone ? (
+              <BotaoAccao
+                icone="telefone"
+                titulo={t('phone')}
+                sub={telefone}
+                variante="cheio"
+                onPress={() => Linking.openURL(`tel:${telefone}`)}
+              />
+            ) : null}
+            <BotaoAccao
+              icone="mensagem"
+              titulo={t('acaoMensajen')}
+              contagem={unread}
+              onPress={() => navigation.navigate('Chat')}
+            />
           </View>
-          {/* O motorista corre o mesmo risco que o passageiro — leva
-              desconhecidos no carro, muitas vezes de noite. */}
-          <View style={{ marginTop: spacing.md }}>
-            <SosButton rideId={ride.id} />
+          <View style={styles.accoesLinha}>
+            <View style={styles.sosCaixa}>
+              <SosButton rideId={ride.id} />
+            </View>
+            <BotaoAccao
+              icone={principal.icone}
+              titulo={principal.titulo}
+              variante="cheio"
+              onPress={principal.onPress}
+            />
           </View>
-        </>
+          <View style={styles.accoesLinha}>
+            <BotaoAccao
+              icone="fechar"
+              titulo={t('cancelRide')}
+              variante="perigoContorno"
+              onPress={() => setACancelar(true)}
+            />
+          </View>
+        </View>
+      ) : null}
+
+      {active ? (
+        <View style={styles.seguranca}>
+          <Icone nome="escudo" tamanho={28} cor={colors.teal} />
+          <View style={styles.segurancaTextos}>
+            <Text style={styles.segurancaTitulo}>{t('seguroTitulo')}</Text>
+            <Text style={styles.segurancaTexto}>{t('seguroTexto')}</Text>
+          </View>
+        </View>
       ) : null}
 
       {ride.status === 'completed' ? <RatingPanel ride={ride} role="driver" /> : null}
 
-      <View style={{ height: spacing.lg }} />
       {isFinal ? (
-        <Button title={t('newRide')} onPress={onDismiss} />
-      ) : ride.status === 'accepted' ? (
-        <>
-          <Button title={t('onTheWay')} onPress={onArriving} />
-          <View style={{ height: spacing.sm }} />
-          <Button title={t('cancelRide')} variant="outline" onPress={() => setACancelar(true)} />
-        </>
-      ) : ride.status === 'arriving' ? (
-        <>
-          {/* Só depois do código é que a viagem começa. Concluir sem
-              começar deixou de ser possível. */}
-          <Button title={t('startRide')} onPress={() => setAPedirCodigo(true)} />
-          <View style={{ height: spacing.sm }} />
-          <Button title={t('cancelRide')} variant="outline" onPress={() => setACancelar(true)} />
-        </>
-      ) : (
-        <>
-          <Button title={t('completeRide')} variant="secondary" onPress={onComplete} />
-          <View style={{ height: spacing.sm }} />
-          <Button title={t('cancelRide')} variant="outline" onPress={() => setACancelar(true)} />
-        </>
-      )}
+        <View style={{ marginTop: spacing.lg }}>
+          <Button title={t('newRide')} onPress={onDismiss} />
+        </View>
+      ) : null}
 
       <PedirCodigo
         visivel={aPedirCodigo}
@@ -743,17 +821,80 @@ const criarEstilos = () =>
       borderColor: colors.border,
       marginBottom: spacing.md,
     },
+    // ---- A viagem do motorista (14/09/26) ----
+    viagem: {
+      backgroundColor: colors.white,
+      borderRadius: radius.xl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      padding: spacing.md,
+      marginBottom: spacing.md,
+      ...elevacao.plana,
+    },
+    viagemTopo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      paddingBottom: spacing.md,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    viagemEstado: { ...tipo.subtitulo, color: colors.teal, flex: 1 },
+    viagemId: { alignItems: 'flex-end', gap: 2 },
+    idPastilha: {
+      backgroundColor: colors.tintaTeal,
+      borderRadius: radius.pill,
+      paddingVertical: 3,
+      paddingHorizontal: spacing.sm,
+    },
+    idTexto: { ...tipo.corpoForte, fontSize: 13, color: colors.teal },
+    idHora: { ...tipo.legenda, color: colors.textMuted, fontVariant: ['tabular-nums'] },
+    destinoLinha: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+    destinoTextos: { flex: 1 },
+    hareeMapa: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      gap: 6,
+      minHeight: 40,
+      marginTop: spacing.sm,
+      marginLeft: 30,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.pill,
+      backgroundColor: colors.tintaTeal,
+    },
+    hareeMapaTexto: { ...tipo.corpoForte, fontSize: 14, color: colors.teal },
+    passageiroCaixa: {
+      backgroundColor: colors.paper,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      paddingBottom: spacing.xs,
+      marginTop: spacing.md,
+    },
+    passageiroLinha: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    passageiroTextos: { flex: 1 },
+    passageiroRotulo: { ...tipo.legenda, color: colors.teal },
+    passageiroNome: { ...tipo.titulo, color: colors.text },
+    estrelas: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+    estrelasTexto: { ...tipo.corpoForte, color: colors.text },
+    accoes: { gap: spacing.sm, marginTop: spacing.md },
+    accoesLinha: { flexDirection: 'row', gap: spacing.sm },
+    sosCaixa: { flex: 1, justifyContent: 'center' },
+    seguranca: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      backgroundColor: colors.tintaTeal,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      marginTop: spacing.md,
+    },
+    segurancaTextos: { flex: 1 },
+    segurancaTitulo: { ...tipo.corpoForte, color: colors.teal },
+    segurancaTexto: { ...tipo.pequeno, color: colors.text, marginTop: 1 },
     destLabel: { ...tipo.etiqueta, color: colors.textMuted, marginTop: spacing.md },
     destValue: { ...tipo.titulo, color: colors.text },
     origin: { ...tipo.pequeno, color: colors.textMuted, marginTop: spacing.xs },
-    passengerBox: {
-      marginTop: spacing.lg,
-      backgroundColor: colors.tintaTeal,
-      borderRadius: radius.md,
-      padding: spacing.md,
-    },
-    boxTitle: { ...tipo.corpoForte, color: colors.teal, marginBottom: spacing.xs },
-    passengerName: { ...tipo.titulo, color: colors.text, marginBottom: spacing.xs },
     quemPediu: { ...tipo.legenda, color: colors.textMuted, marginBottom: spacing.sm },
     // O distintivo de "para outra pessoa". Coral quando é um menor: não é
     // um erro, é uma coisa que o motorista tem de ver antes de decidir.
@@ -767,18 +908,6 @@ const criarEstilos = () =>
     },
     paraOutraMenor: { backgroundColor: colors.tintaCoral },
     paraOutraTexto: { ...tipo.legenda, color: colors.text, fontWeight: '700' },
-    row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
-    rowLabel: { ...tipo.pequeno, color: colors.textMuted },
-    rowValue: { ...tipo.corpoForte, color: colors.text },
-    rowValueStrong: { ...tipo.subtitulo, color: colors.teal },
-    callBtn: {
-      marginTop: spacing.md,
-      backgroundColor: colors.teal,
-      borderRadius: radius.md,
-      paddingVertical: 12,
-      alignItems: 'center',
-    },
-    callBtnText: { ...tipo.corpoForte, color: colors.onTeal },
     carga: {
       backgroundColor: colors.tintaTeal,
       borderRadius: radius.md,

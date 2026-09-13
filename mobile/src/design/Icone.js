@@ -170,6 +170,141 @@ function desenho(nome, p, cheio, preenchido, c) {
     // emoji no registo.
     case 'fechar':
       return <Path d="M6.5 6.5l11 11M17.5 6.5l-11 11" {...p} />;
+    case 'voltar':
+      return <Path d="M19 12H5M11 5.5L4.5 12l6.5 6.5" {...p} />;
+    case 'grafico':
+      return (
+        <>
+          <Rect x="4" y="12" width="4" height="8" rx="1" {...p} />
+          <Rect x="10" y="5" width="4" height="15" rx="1" {...p} />
+          <Rect x="16" y="9" width="4" height="11" rx="1" {...p} />
+        </>
+      );
+    case 'globo':
+      return (
+        <>
+          <Circle cx="12" cy="12" r="9" {...p} />
+          <Ellipse cx="12" cy="12" rx="4" ry="9" {...p} />
+          <Line x1="3" y1="12" x2="21" y2="12" {...p} />
+        </>
+      );
+    case 'grelha':
+      return (
+        <>
+          <Rect x="4" y="4" width="6.5" height="6.5" rx="1.5" {...p} />
+          <Rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5" {...p} />
+          <Rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5" {...p} />
+          <Rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5" {...p} />
+        </>
+      );
+    case 'boia':
+      return (
+        <>
+          <Circle cx="12" cy="12" r="9" {...p} />
+          <Circle cx="12" cy="12" r="3.8" {...p} />
+          <Line x1="5.6" y1="5.6" x2="9.3" y2="9.3" {...p} />
+          <Line x1="14.7" y1="14.7" x2="18.4" y2="18.4" {...p} />
+          <Line x1="18.4" y1="5.6" x2="14.7" y2="9.3" {...p} />
+          <Line x1="9.3" y1="14.7" x2="5.6" y2="18.4" {...p} />
+        </>
+      );
+    case 'coroa':
+      return (
+        <>
+          <Path d="M4 17.5L3 7.5l5 4 4-6 4 6 5-4-1 10z" {...p} />
+          <Line x1="5" y1="20.5" x2="19" y2="20.5" {...p} />
+        </>
+      );
+    case 'servidor':
+      return (
+        <>
+          <Rect x="4" y="4" width="16" height="7" rx="2" {...p} />
+          <Rect x="4" y="13" width="16" height="7" rx="2" {...p} />
+          <Line x1="8" y1="7.5" x2="8.01" y2="7.5" {...p} strokeWidth={3} />
+          <Line x1="8" y1="16.5" x2="8.01" y2="16.5" {...p} strokeWidth={3} />
+        </>
+      );
+    case 'lupa':
+      return (
+        <>
+          <Circle cx="11" cy="11" r="6.5" {...p} />
+          <Line x1="16" y1="16" x2="20" y2="20" {...p} />
+        </>
+      );
+    case 'filtro':
+      return <Path d="M4 5h16l-6.2 7.4V19l-3.6 1.6v-8.2z" {...p} />;
+    case 'camera':
+      return (
+        <>
+          <Path d="M4 8.5h3.2L9 6h6l1.8 2.5H20V19H4z" {...p} />
+          <Circle cx="12" cy="13.5" r="3.3" {...p} />
+        </>
+      );
+    case 'pasta':
+      return (
+        <Path
+          d="M3.5 7.5a2 2 0 0 1 2-2h3.8l2 2h7.2a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"
+          {...p}
+        />
+      );
+    case 'bandeira':
+      return (
+        <>
+          <Line x1="5.5" y1="21" x2="5.5" y2="4" {...p} />
+          <Path d="M5.5 4.5h12l-2.5 4 2.5 4h-12" {...p} />
+        </>
+      );
+    case 'info':
+      return (
+        <>
+          <Circle cx="12" cy="12" r="9" {...p} />
+          <Line x1="12" y1="11" x2="12" y2="16.5" {...p} />
+          <Line x1="12" y1="7.8" x2="12.01" y2="7.8" {...p} strokeWidth={3} />
+        </>
+      );
+    case 'aviso':
+      return (
+        <>
+          <Path d="M12 4l9 16H3z" {...p} />
+          <Line x1="12" y1="10" x2="12" y2="14" {...p} />
+          <Line x1="12" y1="17" x2="12.01" y2="17" {...p} strokeWidth={3} />
+        </>
+      );
+    case 'grupo':
+      return (
+        <>
+          <Circle cx="9" cy="8.5" r="3.2" {...p} />
+          <Path d="M3.5 19.5c.6-3 2.8-4.8 5.5-4.8s4.9 1.8 5.5 4.8" {...p} />
+          <Circle cx="16.8" cy="9.3" r="2.5" {...p} />
+          <Path d="M16.8 14.6c2 .2 3.4 1.6 3.9 4" {...p} />
+        </>
+      );
+    case 'atualizar':
+      return (
+        <>
+          <Path d="M19.5 10A7.8 7.8 0 0 0 5.6 7" {...p} />
+          <Polyline points="5,3.5 5.3,7.3 9,6.8" {...p} />
+          <Path d="M4.5 14a7.8 7.8 0 0 0 13.9 3" {...p} />
+          <Polyline points="19,20.5 18.7,16.7 15,17.2" {...p} />
+        </>
+      );
+    case 'mais':
+      return (
+        <>
+          <Line x1="12" y1="5" x2="12" y2="19" {...p} />
+          <Line x1="5" y1="12" x2="19" y2="12" {...p} />
+        </>
+      );
+    case 'sair':
+      return (
+        <>
+          <Path d="M14.5 4H18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3.5" {...p} />
+          <Polyline points="9.5,7.5 5,12 9.5,16.5" {...p} />
+          <Line x1="5" y1="12" x2="15.5" y2="12" {...p} />
+        </>
+      );
+    case 'lua':
+      return <Path d="M19.5 14.5A8 8 0 1 1 9.5 4.5a6.4 6.4 0 0 0 10 10z" {...p} />;
     case 'escudo':
       return (
         <>

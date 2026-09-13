@@ -91,6 +91,19 @@ baixo, folhas). Três e não mais. Não existe `elevacao.cartao`.
 | **Percurso** | `design/PercursoPontos.js` | partida → paragens → destino, pinos ligados por traço **contínuo** (o Android não desenha tracejado num só lado). |
 | **Viagem do passageiro** | `components/ViagemPassageiro.js` | título por estado → etapas → mapa → percurso → motorista → veículo → números → aviso → Partilhar · SOS · Kansela. |
 | **Cartão do pedido** | `screens/DriverHomeScreen.js` (`RequestCard`) | quem pede + média → percurso → mapa → números → carga → Recusa (`perigoSuave`) e Simu (`secondary`) lado a lado. |
+| **Cabeçalho de ecrã** | `design/CabecalhoEcra.js` | "← Fila" + título + subtítulo + lugar à direita (sino, roda dentada). `centrado` (painel) ou título grande à esquerda (definições). |
+| **Título de secção** | `design/SeccaoTitulo.js` | ícone sozinho + ETIQUETA + nota discreta **ou** acção ("Haree hotu ›"). |
+| **Cartão** | `design/Cartao.js` | branco, raio 20, fio. Com `titulo` leva cabeçalho com ícone; com `lista` o corpo vai de ponta a ponta. |
+| **Linhas** | `design/LinhaMenu.js` | `LinhaMenu` (ícone, título, frase, seta — leva a outro sítio) e `LinhaInfo` (rótulo discreto, valor forte — mostra). 56 px. `ultimo` tira o traço de baixo. |
+| **Pastilhas de filtro** | `design/Chip.js` | `Chip` com ícone e contagem (só quando o servidor a dá) e `FilaChips`. |
+| **Busca** | `design/CampoBusca.js` | lupa + texto + ✕ para limpar. |
+| **Escolha entre poucas** | `design/SeletorSegmentado.js` | língua, tema. Todas à vista, a escolhida cheia. |
+| **Estado vazio** | `design/EstadoVazio.js` | ilustração (ou ícone grande) + o que falta + porquê + acção opcional. O antigo `design/Vazio.js` (com emoji) fica para os ecrãs que ainda o usam; os novos usam este. |
+| **Avatar** | `design/Avatar.js` | fotografia protegida ou iniciais em tinta teal; ponto verde só quando o servidor diz `online`. |
+| **Grelha de acções** | `design/BotaoAccao.js` | `cheio` (acção de trabalho), `contorno`, `perigoContorno` (Kansela). 56 px. |
+| **Veículo** | `design/CartaoVeiculo.js` | ilustração do tipo + matrícula em caixa + tipo/modelo/cor/lugares. O mesmo na viagem, no perfil e no painel. |
+| **KPI e tarifa** | `design/painel.js` | `CartaoKPI` (ícone, número, rótulo, faixa de contexto na tinta do estado) e `CartaoTarifa` (a conta: passageiro → comissão **$0.00** → motorista). |
+| **Rodapé** | `design/RodapeMarca.js` | Díli ténue por trás do logótipo e de "DÍLI · TIMOR-LESTE". Sem lema. |
 
 `Button` tem também **`perigoSuave`** (fundo `tintaPerigo`, texto `danger`): recusar sem gritar ao lado de um botão cheio.
 
@@ -130,6 +143,7 @@ transparência (43 KB). No escuro vai a 50 % de opacidade.
 - **Estrelas: só a média**, sem o número de avaliações. Quem ainda não foi avaliado não mostra estrelas — o servidor manda `null`, e um "0.0" diria "péssimo".
 - **Antes de aceitar, o motorista não vê o telefone de quem pede** nem tem botão de mensagem: a lista de pedidos vai para todos os motoristas do município.
 - **As chaves da tabela `VEICULOS` são `motorbike`, `car`, `carry`** — não "mota". Um `VEICULOS.mota` não dá erro no verificador, dá `undefined` no telemóvel.
+- **O painel não inventa números.** As referências geradas por IA traziam uma comissão de 15%, "Sistema normal" fixo e dados de exemplo. Cada número do painel vem do servidor (`/admin/resumo`, `/admin/estatisticas`, `/admin/drivers`); a comissão é $0.00 porque a plataforma não cobra comissão. Uma taxa vai sempre com a conta ao lado ("2 husi 3 pedidu").
 
 ---
 

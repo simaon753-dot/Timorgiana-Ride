@@ -1,19 +1,11 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  Image,
-  Pressable,
-  Linking,
-  Alert,
-  ActivityIndicator,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, Pressable, Linking, Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import Retrato from '../design/Retrato.js';
 import Icone from '../design/Icone.js';
 import EtapasViagem from '../design/EtapasViagem.js';
 import NumerosViagem from '../design/NumerosViagem.js';
 import PercursoPontos from '../design/PercursoPontos.js';
+import CartaoVeiculo from '../design/CartaoVeiculo.js';
 import { tipo } from '../design/tipografia.js';
 import Button from './Button.js';
 import MapaExpandivel from './MapaExpandivel.js';
@@ -23,10 +15,8 @@ import MotivoCancelamento from './MotivoCancelamento.js';
 import ShareTripButton from './ShareTripButton.js';
 import RatingPanel from './RatingPanel.js';
 import { statusMeta } from './StatusBadge.js';
-import { VEICULOS, nomeDoVeiculo } from '../dados/tiposDeVeiculo.js';
 import { rideMarkers } from '../lib/rideMarkers.js';
 import { minutosAte, horaDeChegada } from '../lib/estimativa.js';
-import { nomeDaCor, hexDaCor } from '../lib/corVeiculo.js';
 import { useI18n } from '../i18n/index.js';
 import { useRides } from '../context/RideContext.js';
 import { colors, spacing, radius, elevacao, registarEstilos, paletaEmUso } from '../theme.js';
@@ -67,7 +57,6 @@ export default function ViagemPassageiro({ ride, navigation }) {
     ? minutosAte(driverLocation, { lat: ride.originLat, lng: ride.originLng })
     : null;
   const veiculo = ride.driver?.vehicle;
-  const tipoV = VEICULOS[veiculo?.type];
 
   // Cancelar depois de o motorista aceitar não é a mesma coisa que cancelar
   // enquanto ainda se procura. O texto diz-lhe qual dos dois é — sem impedir
@@ -167,50 +156,7 @@ export default function ViagemPassageiro({ ride, navigation }) {
           sequência: vê a COR e a forma ao longe, confirma a MATRÍCULA de perto.
           A ilustração é a do tipo de veículo — não uma fotografia do carro dele
           —, e serve para o olho procurar a forma certa na rua. */}
-      {withDriver && veiculo ? (
-        <View style={styles.cartao}>
-          <View style={styles.cartaoCabeca}>
-            <Icone nome={tipoV?.icone || 'carro'} tamanho={20} cor={colors.teal} />
-            <Text style={styles.cartaoTitulo}>{t('cartaoVeiculoTitulo')}</Text>
-          </View>
-          <View style={styles.veiculoLinha}>
-            {tipoV ? (
-              <View style={styles.veiculoFotoCaixa}>
-                <Image
-                  source={tipoV.imagens[paletaEmUso()] || tipoV.imagens.claro}
-                  style={styles.veiculoFoto}
-                  resizeMode="contain"
-                />
-              </View>
-            ) : null}
-            {veiculo.plate ? (
-              <View style={styles.matriculaCaixa}>
-                <Text style={styles.dadoRotulo}>{t('vehiclePlate')}</Text>
-                <Text style={styles.matricula}>{veiculo.plate}</Text>
-              </View>
-            ) : null}
-          </View>
-          <View style={styles.dadosLinha}>
-            <Dado rotulo={t('vehicleType')} valor={nomeDoVeiculo(t, veiculo.type)} />
-            <Dado rotulo={t('vehicleModel')} valor={veiculo.model} />
-            {veiculo.color ? (
-              <View style={styles.dado}>
-                <Text style={styles.dadoRotulo}>{t('rotuloCor')}</Text>
-                <View style={styles.corLinha}>
-                  {hexDaCor(veiculo.color) ? (
-                    <View
-                      style={[styles.corAmostra, { backgroundColor: hexDaCor(veiculo.color) }]}
-                    />
-                  ) : null}
-                  <Text style={styles.dadoValor} numberOfLines={1}>
-                    {nomeDaCor(veiculo.color, t)}
-                  </Text>
-                </View>
-              </View>
-            ) : null}
-          </View>
-        </View>
-      ) : null}
+      {withDriver && veiculo ? <CartaoVeiculo veiculo={veiculo} /> : null}
 
       <NumerosViagem
         km={ride.distanceKm}
@@ -325,18 +271,6 @@ function AcaoRedonda({ icone, rotulo, contagem, onPress }) {
   );
 }
 
-function Dado({ rotulo, valor }) {
-  if (!valor) return null;
-  return (
-    <View style={styles.dado}>
-      <Text style={styles.dadoRotulo}>{rotulo}</Text>
-      <Text style={styles.dadoValor} numberOfLines={1}>
-        {valor}
-      </Text>
-    </View>
-  );
-}
-
 const criarEstilos = () =>
   StyleSheet.create({
     cabeca: {
@@ -395,56 +329,6 @@ const criarEstilos = () =>
     },
     // Texto escuro sobre o coral: branco sobre coral fica a 2,8:1.
     contagemTexto: { ...tipo.legenda, color: '#22100A' },
-    cartaoCabeca: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-    cartaoTitulo: { ...tipo.corpoForte, color: colors.teal },
-    veiculoLinha: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.md,
-      marginTop: spacing.sm,
-    },
-    // A imagem num quadrado da cor do fundo DELA (branco/preto): as cores
-    // são as dos ficheiros e não do tema — ver SISTEMA.md.
-    veiculoFotoCaixa: {
-      width: 108,
-      height: 76,
-      borderRadius: radius.lg,
-      overflow: 'hidden',
-      backgroundColor: paletaEmUso() === 'escuro' ? '#000000' : '#FFFFFF',
-    },
-    veiculoFoto: { width: 108, height: 76 },
-    matriculaCaixa: {
-      flex: 1,
-      borderWidth: 1.5,
-      borderColor: colors.teal,
-      borderRadius: radius.md,
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.md,
-      backgroundColor: colors.paper,
-    },
-    // Espaçamento largo: uma matrícula lê-se carácter a carácter, e é assim
-    // que se compara com o carro que está à frente.
-    matricula: { ...tipo.titulo, color: colors.text, letterSpacing: 1.5 },
-    dadosLinha: {
-      flexDirection: 'row',
-      marginTop: spacing.md,
-      paddingTop: spacing.sm,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
-    },
-    dado: { flex: 1, paddingRight: spacing.xs },
-    dadoRotulo: { ...tipo.legenda, color: colors.textMuted },
-    dadoValor: { ...tipo.corpoForte, color: colors.text },
-    corLinha: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    // A amostra identifica-se de longe; a palavra "Metan" tem primeiro de
-    // ser lida.
-    corAmostra: {
-      width: 18,
-      height: 18,
-      borderRadius: 9,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
     aviso: {
       flexDirection: 'row',
       alignItems: 'center',

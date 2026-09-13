@@ -1,5 +1,7 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Icone from './Icone.js';
+import { useI18n } from '../i18n/index.js';
 import { colors, radius, spacing, elevacao, registarEstilos } from '../theme.js';
 import { tipo } from './tipografia.js';
 
@@ -93,6 +95,91 @@ export function Metrica({ valor, etiqueta, estado, nota }) {
   );
 }
 
+// ── Cartão de KPI (14/09/26, das referências do painel) ─────────────
+//
+// Ícone sozinho, o número grande, o rótulo, e por baixo uma faixa com uma
+// frase curta que dá contexto ("Pedidu iha fila agora"). A faixa leva a tinta
+// do estado: um número mau fica vermelho E a faixa rosada, para se apanhar
+// pelo canto do olho. Com `onPress`, leva a seta e abre a secção onde se age.
+export function CartaoKPI({ icone, valor, etiqueta, nota, estado = ESTADO.neutro, onPress }) {
+  const alerta = estado === ESTADO.mau || estado === ESTADO.aviso;
+  const cor = alerta ? corDoEstado(estado) : colors.teal;
+  const fundo =
+    estado === ESTADO.mau
+      ? colors.tintaPerigo
+      : estado === ESTADO.aviso
+        ? colors.tintaCoral
+        : colors.tintaTeal;
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={!onPress}
+      style={({ pressed }) => [styles.kpi, pressed && { opacity: 0.85 }]}
+      accessibilityRole={onPress ? 'button' : undefined}
+    >
+      <View style={styles.kpiTopo}>
+        <Icone nome={icone} tamanho={26} cor={cor} />
+        <View style={styles.kpiTextos}>
+          <Text style={[styles.kpiValor, alerta && { color: cor }]} numberOfLines={1}>
+            {valor ?? '—'}
+          </Text>
+          <Text style={styles.metricaEtiqueta} numberOfLines={2}>
+            {etiqueta}
+          </Text>
+        </View>
+        {onPress ? <Icone nome="seta" tamanho={16} cor={colors.textMuted} traco={2.4} /> : null}
+      </View>
+      {nota ? (
+        <View style={[styles.kpiNota, { backgroundColor: fundo }]}>
+          <Text style={styles.kpiNotaTexto} numberOfLines={2}>
+            {nota}
+          </Text>
+        </View>
+      ) : null}
+    </Pressable>
+  );
+}
+
+// ── A tarifa, com a conta à vista ────────────────────────────────────
+//
+// A referência pedia "Tarifa ba pasajeiru / Komisaun plataforma / Motorista
+// simu" — e mostrava uma comissão de 15% que NÃO existe. A TimorgianaRide não
+// cobra comissão: vive das assinaturas dos motoristas, e os termos dizem-no.
+// A conta fica, porque é boa pergunta; a comissão sai a $0.00, porque é a
+// verdade. Um painel da própria empresa a mostrar receita que ela não tem
+// seria o pior sítio para errar.
+export function CartaoTarifa({ total, etiqueta }) {
+  const { t } = useI18n();
+  const v = (n) => `$${Number(n || 0).toFixed(2)}`;
+  return (
+    <View style={styles.tarifa}>
+      <View style={styles.kpiTopo}>
+        <Icone nome="carteira" tamanho={30} cor={colors.teal} />
+        <View style={styles.kpiTextos}>
+          <Text style={styles.kpiValor}>{v(total)}</Text>
+          <Text style={styles.metricaEtiqueta}>{etiqueta}</Text>
+        </View>
+      </View>
+      <View style={styles.tarifaConta}>
+        <LinhaConta rotulo={t('admTarifaPassageiro')} valor={v(total)} />
+        <LinhaConta rotulo={t('admTarifaComissao')} valor={v(0)} />
+        <View style={styles.tarifaTraco} />
+        <LinhaConta rotulo={t('admTarifaMotorista')} valor={v(total)} forte />
+      </View>
+      <Text style={styles.metricaNota}>{t('admTarifasNota')}</Text>
+    </View>
+  );
+}
+
+function LinhaConta({ rotulo, valor, forte }) {
+  return (
+    <View style={styles.contaLinha}>
+      <Text style={[styles.contaRotulo, forte && styles.contaForte]}>{rotulo}</Text>
+      <Text style={[styles.contaValor, forte && styles.contaForte]}>{valor}</Text>
+    </View>
+  );
+}
+
 // ── Painel de secção ─────────────────────────────────────────────────
 export function Bloco({ titulo, accao, children }) {
   return (
@@ -162,6 +249,52 @@ const criarEstilos = () =>
     },
     metricaEtiqueta: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
     metricaNota: { ...tipo.legenda, color: colors.textMuted, marginTop: spacing.xs, opacity: 0.8 },
+
+    kpi: {
+      flexGrow: 1,
+      flexBasis: '46%',
+      backgroundColor: colors.white,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      borderRadius: radius.xl,
+      padding: spacing.md,
+      gap: spacing.sm,
+      ...elevacao.plana,
+    },
+    kpiTopo: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+    kpiTextos: { flex: 1 },
+    kpiValor: {
+      ...tipo.displayPequeno,
+      color: colors.text,
+      fontVariant: ['tabular-nums'],
+    },
+    kpiNota: { borderRadius: radius.md, paddingVertical: 6, paddingHorizontal: spacing.sm },
+    kpiNotaTexto: { ...tipo.legenda, color: colors.text },
+    tarifa: {
+      backgroundColor: colors.white,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      borderRadius: radius.xl,
+      padding: spacing.md,
+      gap: spacing.sm,
+      marginTop: spacing.sm,
+      ...elevacao.plana,
+    },
+    tarifaConta: {
+      backgroundColor: colors.tintaTeal,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      gap: 4,
+    },
+    tarifaTraco: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: colors.teal,
+      marginVertical: 4,
+    },
+    contaLinha: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.sm },
+    contaRotulo: { ...tipo.pequeno, color: colors.text, flex: 1 },
+    contaValor: { ...tipo.corpoForte, color: colors.text, fontVariant: ['tabular-nums'] },
+    contaForte: { color: colors.teal, fontSize: 16 },
 
     bloco: { marginBottom: spacing.lg },
     blocoTopo: {

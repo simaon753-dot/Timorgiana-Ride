@@ -70,7 +70,20 @@ adminRouter.get(
       [status]
     );
 
+    // Quantos há em cada estado, para os números nas pastilhas do filtro.
+    // Consulta à parte e agrupada: a lista de cima só traz o estado pedido.
+    const grupos = await query(
+      `SELECT driver_status AS estado, COUNT(*)::int AS n
+       FROM users WHERE driver_status IS NOT NULL GROUP BY driver_status`
+    );
+    const contagens = { todos: 0 };
+    for (const g of grupos) {
+      contagens[g.estado] = g.n;
+      contagens.todos += g.n;
+    }
+
     res.json({
+      contagens,
       drivers: rows.map((r) => ({
         ...toPublicUser(r),
         documents: r.docs || [],
@@ -855,7 +868,7 @@ adminRouter.get(
     const dias = Math.min(90, Math.max(1, Number(req.query.dias) || 7));
     const intervalo = `${dias} days`;
 
-    const [cancelamentos, tempos, docs] = await Promise.all([
+    const [cancelamentos, tempos, docs, notas] = await Promise.all([
       // Motivos de cancelamento, do mais frequente ao menos. É a lista que
       // diz o que corrigir a seguir.
       query(
@@ -870,6 +883,10 @@ adminRouter.get(
       one(
         `SELECT
            COUNT(*) FILTER (WHERE driver_id IS NOT NULL)::int AS aceites,
+           -- Os totais do período, para as taxas de aceitação e de
+           -- cancelamento: "2 de 3 pedidos" diz mais do que "67%" sozinho.
+           COUNT(*)::int AS pedidos,
+           COUNT(*) FILTER (WHERE status='cancelled')::int AS canceladas,
            COUNT(*) FILTER (WHERE status='cancelled' AND driver_id IS NULL)::int AS sem_resposta,
            ROUND(AVG(EXTRACT(EPOCH FROM (updated_at - created_at)))
                  FILTER (WHERE driver_id IS NOT NULL))::int AS segundos_ate_aceitar
@@ -887,6 +904,15 @@ adminRouter.get(
            AND u.driver_status = 'approved'
          ORDER BY d.expires_on ASC`
       ),
+      // A SATISFAÇÃO: a média das estrelas dadas no mesmo período, dos dois
+      // lados. Vai com o número de notas ao lado: uma média de 5,0 dada por
+      // uma pessoa não diz o mesmo que dada por cem, e quem administra tem de
+      // ver as duas coisas.
+      one(
+        `SELECT ROUND(AVG(stars)::numeric, 1)::float8 AS media, COUNT(*)::int AS n
+         FROM ratings WHERE created_at > NOW() - $1::interval`,
+        [intervalo]
+      ),
     ]);
 
     res.json({
@@ -895,6 +921,9 @@ adminRouter.get(
       aceites: tempos?.aceites ?? 0,
       semResposta: tempos?.sem_resposta ?? 0,
       segundosAteAceitar: tempos?.segundos_ate_aceitar ?? null,
+      pedidos: tempos?.pedidos ?? 0,
+      canceladas: tempos?.canceladas ?? 0,
+      satisfacao: notas?.n ? { media: notas.media, n: notas.n } : null,
       documentosACaducar: docs.map((d) => ({
         userId: d.id,
         nome: d.name,

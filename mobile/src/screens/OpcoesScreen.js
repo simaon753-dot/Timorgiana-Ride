@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, ScrollView, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Voltar from '../components/Voltar.js';
-import LanguageToggle from '../components/LanguageToggle.js';
-import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import CabecalhoEcra from '../design/CabecalhoEcra.js';
+import SeccaoTitulo from '../design/SeccaoTitulo.js';
+import Cartao from '../design/Cartao.js';
+import { LinhaMenu } from '../design/LinhaMenu.js';
+import SeletorSegmentado from '../design/SeletorSegmentado.js';
+import RodapeMarca from '../design/RodapeMarca.js';
+import { colors, spacing, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 import BarraEstado from '../design/BarraEstado.js';
-import { useI18n } from '../i18n/index.js';
+import { useI18n, LANGUAGES } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useTema } from '../context/TemaContext.js';
 import EscolherEmergencia, { NUMEROS_RESERVA } from '../components/EscolherEmergencia.js';
@@ -20,7 +24,7 @@ import { api } from '../api/client.js';
 // a app funcione". Juntá-los obrigava a passar por cima de definições
 // para chegar aos dados, e vice-versa.
 export default function OpcoesScreen({ navigation }) {
-  const { t, reporLingua } = useI18n();
+  const { t, lang, setLang, reporLingua } = useI18n();
   const { user } = useAuth();
   const { tema, setTema } = useTema();
 
@@ -77,75 +81,102 @@ export default function OpcoesScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <BarraEstado />
+      <CabecalhoEcra
+        navigation={navigation}
+        titulo={t('settingsTitle')}
+        subtitulo={t('opcoesSub')}
+        centrado={false}
+      />
       <ScrollView contentContainerStyle={styles.conteudo}>
-        <Voltar navigation={navigation} />
-        <Text style={styles.titulo}>{t('settingsTitle')}</Text>
+        {/* A LÍNGUA PRIMEIRO, e as três à vista. Um selector que abre uma
+            lista esconde que há três; e quem abre as definições por não
+            perceber o que lê procura exactamente isto. */}
+        <SeccaoTitulo icone="globo" titulo={t('language')} nota={t('opcoesLinguaNota')} />
+        <Cartao>
+          <SeletorSegmentado
+            opcoes={LANGUAGES.map((l) => ({ id: l.code, rotulo: l.label }))}
+            valor={lang}
+            onMudar={setLang}
+          />
+        </Cartao>
 
-        {/* A cor vem primeiro porque é a definição com efeito imediato e
-            visível — vê-se a escolha a acontecer no próprio ecrã. */}
-        <Seccao titulo={t('themeTitle')}>
-          <View style={styles.temas}>
-            {[
-              { id: 'claro', rotulo: t('themeLight'), fundo: '#F7F4EF', tinta: '#0E5C54' },
-              { id: 'escuro', rotulo: t('themeDark'), fundo: '#101A18', tinta: '#4FB3A5' },
-            ].map((op) => {
-              const activo = tema === op.id;
-              return (
-                <Pressable
-                  key={op.id}
-                  style={[styles.tema, activo && styles.temaActivo]}
-                  onPress={() => setTema(op.id)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: activo }}
-                >
-                  {/* Amostra em vez de só o nome: escolhe-se uma cor a
-                      olhar para ela, não a ler a palavra. */}
-                  <View style={[styles.amostra, { backgroundColor: op.fundo }]}>
-                    <View style={[styles.amostraBarra, { backgroundColor: op.tinta }]} />
-                  </View>
-                  <Text style={[styles.temaNome, activo && styles.temaNomeActivo]}>
-                    {op.rotulo}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </Seccao>
+        {/* O tema fica, embora a referência não o mostre: é uma função que já
+            existe, e as referências pedem para as preservar todas. */}
+        <SeccaoTitulo icone="lua" titulo={t('themeTitle')} />
+        <Cartao>
+          <SeletorSegmentado
+            opcoes={[
+              { id: 'claro', rotulo: t('themeLight') },
+              { id: 'escuro', rotulo: t('themeDark') },
+            ]}
+            valor={tema}
+            onMudar={setTema}
+          />
+        </Cartao>
 
-        <Seccao titulo={t('language')}>
-          <View style={styles.linha}>
-            <LanguageToggle />
-          </View>
-        </Seccao>
-
-        <Seccao titulo={t('profileApp')}>
-          <Item
-            texto={t('termsTitle')}
+        <SeccaoTitulo icone="grelha" titulo={t('profileApp')} nota={t('opcoesAppNota')} />
+        <Cartao lista>
+          <LinhaMenu
+            icone="documento"
+            titulo={t('termsTitle')}
+            subtitulo={t('opcoesTermosSub')}
             onPress={() => navigation.navigate('Termos', { quem: user?.role })}
           />
-          <Item
-            texto={t('privacyTitle')}
+          <LinhaMenu
+            icone="escudo"
+            titulo={t('privacyTitle')}
+            subtitulo={t('opcoesPrivSub')}
             onPress={() => navigation.navigate('Termos', { documento: 'privacidade' })}
           />
-          <Item texto={t('serverSettings')} onPress={() => navigation.navigate('Server')} />
-          <Item texto={t('reporPrefs')} onPress={reporPreferencias} />
-        </Seccao>
+          <LinhaMenu
+            icone="servidor"
+            titulo={t('serverSettings')}
+            subtitulo={t('opcoesServidorSub')}
+            onPress={() => navigation.navigate('Server')}
+          />
+          <LinhaMenu
+            icone="atualizar"
+            titulo={t('reporPrefs')}
+            subtitulo={t('opcoesReporSub')}
+            onPress={reporPreferencias}
+            ultimo
+          />
+        </Cartao>
 
-        <Seccao titulo={t('profileHelp')}>
-          <Item
-            texto={t('profileCallSupport')}
+        <SeccaoTitulo icone="boia" titulo={t('profileHelp')} nota={t('opcoesAjudaNota')} />
+        <Cartao lista>
+          <LinhaMenu
+            icone="telefone"
+            titulo={t('opcoesApoio')}
+            subtitulo={t('opcoesApoioSub')}
             onPress={() => Linking.openURL('tel:+67074192857')}
           />
-          <Item texto={t('profileEmergency')} destaque onPress={() => setAEscolher(true)} />
-        </Seccao>
+          <LinhaMenu
+            icone="sirene"
+            titulo={t('sos')}
+            subtitulo={t('opcoesEmergSub')}
+            perigo
+            onPress={() => setAEscolher(true)}
+            ultimo
+          />
+        </Cartao>
 
         {user?.isAdmin ? (
-          <Seccao titulo={t('admin')}>
-            <Item texto={t('adminTitle')} onPress={() => navigation.navigate('Admin')} />
-          </Seccao>
+          <>
+            <SeccaoTitulo icone="coroa" titulo={t('admin')} nota={t('opcoesAdminNota')} />
+            <Cartao lista>
+              <LinhaMenu
+                icone="grafico"
+                titulo={t('adminTitle')}
+                subtitulo={t('opcoesPainelSub')}
+                onPress={() => navigation.navigate('Admin')}
+                ultimo
+              />
+            </Cartao>
+          </>
         ) : null}
 
-        <Text style={styles.rodape}>TimorgianaRide · Díli</Text>
+        <RodapeMarca />
       </ScrollView>
 
       {/* O mesmo selector do botão SOS, mas sem enviar alerta nenhum:
@@ -165,80 +196,10 @@ export default function OpcoesScreen({ navigation }) {
   );
 }
 
-function Seccao({ titulo, children }) {
-  return (
-    <View style={styles.seccao}>
-      <Text style={styles.seccaoTitulo}>{titulo}</Text>
-      <View style={styles.caixa}>{children}</View>
-    </View>
-  );
-}
-
-function Item({ texto, onPress, destaque }) {
-  return (
-    <Pressable style={styles.item} onPress={onPress}>
-      <Text style={[styles.itemTexto, destaque && styles.itemDestaque]}>{texto}</Text>
-      <Text style={styles.seta}>›</Text>
-    </Pressable>
-  );
-}
-
 const criarEstilos = () =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.paper },
-    conteudo: { padding: spacing.lg, paddingBottom: spacing.xxl },
-    titulo: {
-      ...tipo.displayPequeno,
-      color: colors.text,
-      marginTop: spacing.sm,
-      marginBottom: spacing.lg,
-    },
-    seccao: { marginBottom: spacing.lg },
-    seccaoTitulo: { ...tipo.etiqueta, color: colors.textMuted, marginBottom: spacing.sm },
-    caixa: { backgroundColor: colors.white, borderRadius: radius.md, overflow: 'hidden' },
-    linha: { padding: spacing.md, alignItems: 'flex-start' },
-    item: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: spacing.md,
-      paddingHorizontal: spacing.md,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
-    },
-    itemTexto: { ...tipo.corpo, color: colors.text },
-    itemDestaque: { color: colors.danger, fontWeight: '700' },
-    seta: { fontSize: 22, color: colors.textMuted },
-
-    temas: { flexDirection: 'row', gap: spacing.sm, padding: spacing.md },
-    tema: {
-      flex: 1,
-      alignItems: 'center',
-      paddingVertical: spacing.sm,
-      borderRadius: radius.md,
-      borderWidth: 2,
-      borderColor: colors.border,
-    },
-    temaActivo: { borderColor: colors.teal },
-    amostra: {
-      width: 62,
-      height: 44,
-      borderRadius: radius.sm,
-      borderWidth: 1,
-      borderColor: colors.border,
-      justifyContent: 'flex-end',
-      padding: 6,
-    },
-    amostraBarra: { height: 8, borderRadius: 4 },
-    temaNome: { ...tipo.corpoForte, color: colors.textMuted, marginTop: 6 },
-    temaNomeActivo: { color: colors.teal, fontWeight: '800' },
-
-    rodape: {
-      ...tipo.legenda,
-      textAlign: 'center',
-      color: colors.textMuted,
-      marginTop: spacing.lg,
-    },
+    conteudo: { paddingHorizontal: spacing.lg, paddingBottom: spacing.lg },
   });
 
 let styles = criarEstilos();

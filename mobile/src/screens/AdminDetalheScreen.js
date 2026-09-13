@@ -1,7 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Voltar from '../components/Voltar.js';
+import CabecalhoEcra from '../design/CabecalhoEcra.js';
+import Cartao from '../design/Cartao.js';
+import { LinhaInfo } from '../design/LinhaMenu.js';
+import Avatar from '../design/Avatar.js';
+import BotaoAccao from '../design/BotaoAccao.js';
+import CartaoVeiculo from '../design/CartaoVeiculo.js';
+import Chip, { FilaChips } from '../design/Chip.js';
+import Icone from '../design/Icone.js';
+import { Pastilha, ESTADO } from '../design/painel.js';
 import BarraEstado from '../design/BarraEstado.js';
 import Carregando from '../design/Carregando.js';
 import ImagemProtegida from '../design/ImagemProtegida.js';
@@ -74,12 +82,12 @@ export default function AdminDetalheScreen({ navigation, route }) {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <BarraEstado />
+      <CabecalhoEcra
+        navigation={navigation}
+        titulo={tipoAlvo === 'viagem' ? `${t('admDetalheViagem')} #${id}` : t('admDetalheConta')}
+        subtitulo="TimorgianaRide · Díli"
+      />
       <ScrollView contentContainerStyle={styles.conteudo}>
-        <Voltar navigation={navigation} />
-        <Text style={styles.titulo}>
-          {tipoAlvo === 'viagem' ? `${t('admDetalheViagem')} #${id}` : t('admDetalheConta')}
-        </Text>
-
         <Aviso texto={erro} style={{ marginBottom: spacing.md }} />
 
         {!dados && !erro ? (
@@ -135,7 +143,7 @@ function abrirDetalhe(navigation, tipoAlvo, id) {
 function DetalheViagem({ v, t, navigation }) {
   return (
     <>
-      <Seccao titulo={t('destination')}>
+      <Seccao icone="pin" titulo={t('destination')}>
         <Linha rotulo={t('pickupPoint')} valor={v.origem?.nome} />
         <Linha rotulo={t('dropoffPoint')} valor={v.destino?.nome} />
         <Linha
@@ -160,11 +168,11 @@ function DetalheViagem({ v, t, navigation }) {
 
       {/* Os dois participantes levam a mais detalhe: quem investiga uma
           viagem quase sempre acaba a olhar para uma das pessoas. */}
-      <Seccao titulo={t('passenger')}>
+      <Seccao icone="pessoa" titulo={t('passenger')}>
         <Pessoa p={v.passageiro} t={t} navigation={navigation} />
       </Seccao>
       {v.motorista ? (
-        <Seccao titulo={t('driver')}>
+        <Seccao icone="volante" titulo={t('driver')}>
           <Pessoa p={v.motorista} t={t} navigation={navigation} />
           <Linha rotulo={t('vehiclePlate')} valor={v.motorista.veiculo?.matricula} />
           <Linha rotulo={t('vehicleModel')} valor={v.motorista.veiculo?.modelo} />
@@ -172,9 +180,9 @@ function DetalheViagem({ v, t, navigation }) {
       ) : null}
 
       {v.avaliacoes?.length ? (
-        <Seccao titulo={t('admAvaliacoesRecebidas')}>
+        <Seccao icone="estrela" titulo={t('admAvaliacoesRecebidas')}>
           {v.avaliacoes.map((a, i) => (
-            <Linha key={i} rotulo={`${a.de} → ${a.para}`} valor={'⭐'.repeat(a.estrelas)} />
+            <Linha key={i} rotulo={`${a.de} → ${a.para}`} valor={'★'.repeat(a.estrelas)} />
           ))}
         </Seccao>
       ) : null}
@@ -188,7 +196,7 @@ function DetalheViagem({ v, t, navigation }) {
           O número é sinal útil: uma viagem com quarenta mensagens diz
           alguma coisa sem revelar nada. */}
       {v.nMensagens > 0 ? (
-        <Seccao titulo="💬">
+        <Seccao icone="mensagem" titulo={t('acaoMensajen')}>
           <Linha rotulo={t('admMensagensN')} valor={String(v.nMensagens)} />
           <Text style={styles.registado}>{t('admMensagensPrivadas')}</Text>
         </Seccao>
@@ -199,6 +207,7 @@ function DetalheViagem({ v, t, navigation }) {
 
 // ── Conta ─────────────────────────────────────────────────────────────
 function DetalheConta({ d, t, navigation, token, onMudou, verImagem }) {
+  const [filtroV, setFiltroV] = useState('todas');
   // Confirmar um documento substituído. Recarrega a seguir, para a marca
   // "por confirmar" desaparecer sem ter de sair e voltar ao ecrã.
   async function marcarRevisto(id) {
@@ -211,35 +220,99 @@ function DetalheConta({ d, t, navigation, token, onMudou, verImagem }) {
   }
 
   const c = d.conta;
+  // O histórico filtra-se aqui, sobre o que já veio: é a lista desta pessoa.
+  const viagensVisiveis = (d.viagens || []).filter(
+    (v) => filtroV === 'todas' || v.estado === filtroV
+  );
   return (
     <>
-      <Seccao titulo={c.name}>
-        <Pressable onPress={() => Linking.openURL(`tel:${c.phone}`)}>
-          <Linha rotulo={t('phone')} valor={c.phone} forte />
-        </Pressable>
-        {c.email ? <Linha rotulo={t('email')} valor={c.email} /> : null}
-        <Linha rotulo={t('admDesde')} valor={quando(c.desde)} />
-        <Linha rotulo={t('admUltimaVez')} valor={quando(c.ultimaVez)} />
-        {c.ratingAvg ? (
-          <Linha
-            rotulo={t('admAvaliacoesRecebidas')}
-            valor={`⭐ ${Number(c.ratingAvg).toFixed(1)} (${c.ratingCount})`}
-          />
-        ) : null}
-        {c.vehicle ? (
-          <Linha
-            rotulo={t('vehicleSection')}
-            valor={`${c.vehicle.model || ''} · ${c.vehicle.plate || ''}`.trim()}
-          />
-        ) : null}
+      {/* O CARTÃO DA PESSOA: o rosto (a fotografia de turno mais recente,
+          quando é motorista), o nome, o papel, as estrelas com o número de
+          avaliações — aqui fica, porque quem administra tem de pesar a média
+          com quantas pessoas a deram — e desde quando é membro. */}
+      <View style={styles.perfil}>
+        <Avatar
+          nome={c.name}
+          tamanho={76}
+          online={!!c.online}
+          caminho={d.turnos?.[0] ? `/admin/turnos/${d.turnos[0].id}/foto` : undefined}
+        />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.perfilNome} numberOfLines={2}>
+            {c.name}
+          </Text>
+          <View style={styles.papeis}>
+            {c.isAdmin ? <Papel icone="coroa" texto={t('admPapelAdmin')} /> : null}
+            {c.driverStatus ? (
+              <Papel icone="volante" texto={t('admPapelMotorista')} />
+            ) : (
+              <Papel icone="pessoa" texto={t('admPapelPassageiro')} />
+            )}
+          </View>
+          {c.ratingAvg ? (
+            <View style={styles.estrelas}>
+              <Icone nome="estrela" tamanho={15} cor={colors.coral} />
+              <Text style={styles.estrelasTexto}>
+                {Number(c.ratingAvg).toFixed(1)} ({c.ratingCount})
+              </Text>
+            </View>
+          ) : null}
+          <Text style={styles.perfilDesde}>{t('admMembroDesde', { data: dia(c.desde) })}</Text>
+        </View>
+      </View>
+      {/* Mensajen abre as SMS do telefone: a administração não lê nem
+          escreve no chat das viagens, que é entre passageiro e motorista. */}
+      <View style={styles.perfilAccoes}>
+        <BotaoAccao
+          icone="telefone"
+          titulo={t('acaoLiga')}
+          variante="cheio"
+          onPress={() => Linking.openURL(`tel:${c.phone}`)}
+        />
+        <BotaoAccao
+          icone="mensagem"
+          titulo={t('acaoMensajen')}
+          onPress={() => Linking.openURL(`sms:${c.phone}`)}
+        />
+      </View>
+
+      <Seccao icone="pessoa" titulo={t('perfilInfo')}>
+        <LinhaInfo
+          icone="telefone"
+          rotulo={t('phone')}
+          valor={c.phone}
+          forte
+          onPress={() => Linking.openURL(`tel:${c.phone}`)}
+        />
+        <LinhaInfo icone="email" rotulo={t('email')} valor={c.email} />
+        <LinhaInfo icone="calendario" rotulo={t('admDesde')} valor={quando(c.desde)} />
+        <LinhaInfo
+          icone="relogio"
+          rotulo={t('admUltimaVez')}
+          valor={quando(c.ultimaVez) || '—'}
+          extra={c.online ? <Pastilha texto={t('admAtivoAgora')} estado={ESTADO.bom} /> : null}
+        />
+        <LinhaInfo
+          icone="estrela"
+          rotulo={t('admAvaliacoesRecebidas')}
+          valor={c.ratingAvg ? `${Number(c.ratingAvg).toFixed(1)} (${c.ratingCount})` : null}
+          ultimo
+        />
       </Seccao>
+
+      {c.vehicle ? (
+        <View style={styles.bloco}>
+          <CartaoVeiculo veiculo={c.vehicle} titulo={t('vehicleSection')} />
+        </View>
+      ) : null}
 
       {/* Numa disputa, "aceitou os termos?" é a primeira pergunta — e não
           estava visível em lado nenhum. */}
       {c.vehicle ? <Assinatura c={c} t={t} token={token} onMudou={onMudou} /> : null}
 
-      <Seccao titulo={t('admTermos')}>
+      <Seccao icone="documento" titulo={t('admTermos')}>
         <Linha
+          icone="pessoa"
           rotulo={t('passenger')}
           valor={
             c.termos?.passageiro
@@ -249,6 +322,7 @@ function DetalheConta({ d, t, navigation, token, onMudou, verImagem }) {
           mau={!c.termos?.passageiro}
         />
         <Linha
+          icone="volante"
           rotulo={t('driver')}
           valor={
             c.termos?.motorista
@@ -258,6 +332,7 @@ function DetalheConta({ d, t, navigation, token, onMudou, verImagem }) {
         />
         {c.decisao ? (
           <Linha
+            icone="proibido"
             rotulo={t('admDecisao')}
             valor={`${c.decisao.motivo || '—'} · ${quando(c.decisao.quando)}`}
           />
@@ -273,7 +348,7 @@ function DetalheConta({ d, t, navigation, token, onMudou, verImagem }) {
           fotografias e só no fim se descobre o que era preciso confirmar. */}
 
       {d.conta?.cidadaoTL ? (
-        <Seccao titulo={t('admCidadania')}>
+        <Seccao icone="bandeira" titulo={t('admCidadania')}>
           <Linha
             rotulo={t('admCidadaniaDeclarou')}
 
@@ -289,7 +364,7 @@ function DetalheConta({ d, t, navigation, token, onMudou, verImagem }) {
       ) : null}
 
       {d.documentos?.length ? (
-        <Seccao titulo={t('adminDocs')}>
+        <Seccao icone="pasta" titulo={t('adminDocs')}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tira}>
             {d.documentos.map((doc) => (
               <View key={doc.id} style={styles.docCaixa}>
@@ -312,7 +387,6 @@ function DetalheConta({ d, t, navigation, token, onMudou, verImagem }) {
                 </Pressable>
                 <Text style={[styles.docNome, doc.caducado && styles.mauTexto]}>
                   {NOME_DO_DOC[doc.tipo] ? t(NOME_DO_DOC[doc.tipo]) : doc.tipo}
-                  {doc.caducado ? ' ⚠' : ''}
                 </Text>
                 {/* A DATA AO LADO DA FOTOGRAFIA, e não é detalhe de arrumação.
                     A validade é escrita pelo próprio motorista: ele fotografa
@@ -347,7 +421,7 @@ function DetalheConta({ d, t, navigation, token, onMudou, verImagem }) {
       ) : null}
 
       {d.turnos?.length ? (
-        <Seccao titulo={t('admTurnosFoto')}>
+        <Seccao icone="camera" titulo={t('admTurnosFoto')}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tira}>
             {d.turnos.map((tn) => (
               <View key={tn.id} style={styles.docCaixa}>
@@ -371,9 +445,23 @@ function DetalheConta({ d, t, navigation, token, onMudou, verImagem }) {
         </Seccao>
       ) : null}
 
-      <Seccao titulo={t('admHistorico')}>
+      <Seccao icone="rota" titulo={t('admHistorico')}>
         {d.viagens?.length ? (
-          d.viagens.map((v) => (
+          <View style={styles.chips}>
+            <FilaChips>
+              {FILTROS_VIAGEM.map(([f, chave]) => (
+                <Chip
+                  key={f}
+                  texto={t(chave)}
+                  activo={filtroV === f}
+                  onPress={() => setFiltroV(f)}
+                />
+              ))}
+            </FilaChips>
+          </View>
+        ) : null}
+        {viagensVisiveis.length ? (
+          viagensVisiveis.map((v) => (
             <Pressable
               key={v.id}
               style={styles.item}
@@ -388,7 +476,7 @@ function DetalheConta({ d, t, navigation, token, onMudou, verImagem }) {
                 </Text>
               </View>
               <Text style={styles.itemValor}>{v.preco != null ? `$${v.preco}` : '—'}</Text>
-              <Text style={styles.seta}>›</Text>
+              <Icone nome="seta" tamanho={16} cor={colors.textMuted} traco={2.4} />
             </Pressable>
           ))
         ) : (
@@ -397,12 +485,12 @@ function DetalheConta({ d, t, navigation, token, onMudou, verImagem }) {
       </Seccao>
 
       {d.emergencias?.length ? (
-        <Seccao titulo={t('admEmergencias')}>
+        <Seccao icone="sirene" titulo={t('admEmergencias')}>
           {d.emergencias.map((s) => (
             <Linha
               key={s.id}
               rotulo={`${s.tipo || 'SOS'} · ${quando(s.quando)}`}
-              valor={s.resolvido ? '✓' : '⚠'}
+              valor={s.resolvido ? t('admSosResolvido') : t('admSosAberto')}
               mau={!s.resolvido}
             />
           ))}
@@ -412,40 +500,57 @@ function DetalheConta({ d, t, navigation, token, onMudou, verImagem }) {
   );
 }
 
+const FILTROS_VIAGEM = [
+  ['todas', 'admFiltroTodos'],
+  ['completed', 'admConcluidas'],
+  ['cancelled', 'statusCancelled'],
+];
+
+function Papel({ icone, texto }) {
+  return (
+    <View style={styles.papel}>
+      <Icone nome={icone} tamanho={14} cor={colors.teal} />
+      <Text style={styles.papelTexto}>{texto}</Text>
+    </View>
+  );
+}
+
 function Pessoa({ p, t, navigation }) {
   return (
     <Pressable style={styles.item} onPress={() => abrirDetalhe(navigation, 'utilizador', p.id)}>
+      <Avatar nome={p.nome} tamanho={40} />
       <View style={{ flex: 1 }}>
         <Text style={styles.itemTitulo}>{p.nome}</Text>
         <Text style={styles.itemMeta}>
           {p.telefone}
-          {p.estrelas ? ` · ⭐ ${Number(p.estrelas).toFixed(1)}` : ''}
+          {p.estrelas ? ` · ★ ${Number(p.estrelas).toFixed(1)}` : ''}
         </Text>
       </View>
-      <Text style={styles.seta}>›</Text>
+      <Icone nome="seta" tamanho={16} cor={colors.textMuted} traco={2.4} />
     </Pressable>
   );
 }
 
-function Seccao({ titulo, children }) {
+// Cada secção é um Cartao do sistema de design, com ícone no cabeçalho; cada
+// linha é uma LinhaInfo. Mantêm os nomes antigos para o resto do ficheiro não
+// ter de mudar — e para as duas coisas nunca divergirem do resto da app.
+function Seccao({ icone, titulo, direita, children }) {
   return (
-    <View style={styles.seccao}>
-      <Text style={styles.seccaoTitulo}>{titulo}</Text>
-      <View style={styles.caixa}>{children}</View>
-    </View>
+    <Cartao icone={icone} titulo={titulo} direita={direita} lista>
+      {children}
+    </Cartao>
   );
 }
 
-function Linha({ rotulo, valor, forte, mau }) {
-  if (!valor) return null;
-  return (
-    <View style={styles.linha}>
-      <Text style={styles.linhaRotulo}>{rotulo}</Text>
-      <Text style={[styles.linhaValor, forte && styles.linhaForte, mau && styles.mauTexto]}>
-        {valor}
-      </Text>
-    </View>
-  );
+function Linha({ icone, rotulo, valor, forte, mau }) {
+  return <LinhaInfo icone={icone} rotulo={rotulo} valor={valor} forte={forte} mau={mau} />;
+}
+
+// Só o dia, para o "membro desde".
+function dia(iso) {
+  const d = iso ? new Date(iso) : null;
+  if (!d || Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 // Data curta e local. O ISO completo do servidor é ilegível de relance, e
@@ -465,33 +570,40 @@ function quando(iso) {
 const criarEstilos = () =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.paper },
-    conteudo: { padding: spacing.lg, paddingBottom: spacing.xxl },
-    titulo: { ...tipo.displayPequeno, color: colors.text, marginVertical: spacing.md },
+    conteudo: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
     aCarregar: { alignItems: 'center', paddingVertical: spacing.xxl },
-
-    seccao: { marginBottom: spacing.lg },
-    seccaoTitulo: { ...tipo.etiqueta, color: colors.textMuted, marginBottom: spacing.sm },
-    caixa: {
-      backgroundColor: colors.white,
-      borderRadius: radius.lg,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border,
-      overflow: 'hidden',
-    },
-
-    linha: {
+    perfil: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
       gap: spacing.md,
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.md,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
+      backgroundColor: colors.tintaTeal,
+      borderRadius: radius.xl,
+      padding: spacing.md,
     },
-    linhaRotulo: { ...tipo.pequeno, color: colors.textMuted, flexShrink: 0 },
-    linhaValor: { ...tipo.corpoForte, color: colors.text, flex: 1, textAlign: 'right' },
-    linhaForte: { ...tipo.subtitulo, color: colors.teal },
+    perfilNome: { ...tipo.titulo, color: colors.text },
+    papeis: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.xs },
+    papel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: colors.white,
+      borderRadius: radius.pill,
+      paddingVertical: 3,
+      paddingHorizontal: spacing.sm,
+    },
+    papelTexto: { ...tipo.legenda, color: colors.teal },
+    estrelas: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.xs },
+    estrelasTexto: { ...tipo.corpoForte, color: colors.text },
+    perfilDesde: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
+    perfilAccoes: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      marginTop: spacing.sm,
+      marginBottom: spacing.md,
+    },
+    bloco: { marginTop: -spacing.md, marginBottom: spacing.md },
+    chips: { paddingHorizontal: spacing.md, paddingTop: spacing.md },
+
     mauTexto: { color: colors.danger },
 
     item: {
@@ -506,7 +618,6 @@ const criarEstilos = () =>
     itemTitulo: { ...tipo.corpoForte, color: colors.text },
     itemMeta: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },
     itemValor: { ...tipo.corpoForte, color: colors.teal },
-    seta: { fontSize: 22, color: colors.textMuted },
 
     tira: { paddingVertical: spacing.sm, paddingHorizontal: spacing.sm },
     docCaixa: { marginRight: spacing.sm, alignItems: 'center' },
@@ -590,36 +701,37 @@ function Assinatura({ c, t, token, onMudou }) {
   }
 
   return (
-    <Seccao titulo={t('admAssinatura')}>
-      <Linha rotulo={t('admDiasSaldo')} valor={String(c.dias ?? 0)} forte />
+    <Seccao
+      icone="carteira"
+      titulo={t('admAssinatura')}
+      direita={
+        <View style={estilosAssin.saldo}>
+          <Text style={estilosAssin.saldoRotulo}>{t('admDiasSaldo')}</Text>
+          <Text style={estilosAssin.saldoValor}>{c.dias ?? 0}</Text>
+        </View>
+      }
+    >
+      <View style={estilosAssin.corpo}>
+        <Text style={estilosAssin.rotulo}>{t('admFormaPagamento')}</Text>
+        <View style={estilosAssin.linha}>
+          {METODOS.map((m) => (
+            <Chip key={m} texto={m} activo={metodo === m} onPress={() => setMetodo(m)} />
+          ))}
+        </View>
 
-      <Text style={estilosAssin.rotulo}>{t('admFormaPagamento')}</Text>
-      <View style={estilosAssin.linha}>
-        {METODOS.map((m) => (
-          <Pressable
-            key={m}
-            onPress={() => setMetodo(m)}
-            style={[estilosAssin.chip, metodo === m && estilosAssin.chipActivo]}
-          >
-            <Text style={[estilosAssin.chipTexto, metodo === m && estilosAssin.chipTextoActivo]}>
-              {m}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-
-      <View style={estilosAssin.linha}>
-        {PACOTES.map((p) => (
-          <Pressable
-            key={p.dias}
-            disabled={aGravar}
-            onPress={() => carregarDias(p)}
-            style={[estilosAssin.pacote, aGravar && { opacity: 0.5 }]}
-          >
-            <Text style={estilosAssin.pacoteDias}>+{p.dias}</Text>
-            <Text style={estilosAssin.pacoteUsd}>${p.usd}</Text>
-          </Pressable>
-        ))}
+        <View style={estilosAssin.linha}>
+          {PACOTES.map((p) => (
+            <Pressable
+              key={p.dias}
+              disabled={aGravar}
+              onPress={() => carregarDias(p)}
+              style={[estilosAssin.pacote, aGravar && { opacity: 0.5 }]}
+            >
+              <Text style={estilosAssin.pacoteDias}>{t('admMaisDias', { n: p.dias })}</Text>
+              <Text style={estilosAssin.pacoteUsd}>${p.usd}</Text>
+            </Pressable>
+          ))}
+        </View>
       </View>
     </Seccao>
   );
@@ -627,26 +739,29 @@ function Assinatura({ c, t, token, onMudou }) {
 
 const criarEstilosAssin = () =>
   StyleSheet.create({
-    rotulo: { ...tipo.legenda, color: colors.textMuted, marginTop: spacing.md },
-    linha: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.xs },
-    chip: {
-      borderWidth: 1,
-      borderColor: colors.border,
+    corpo: { padding: spacing.md },
+    saldo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: colors.tintaTeal,
       borderRadius: radius.pill,
       paddingVertical: 4,
-      paddingHorizontal: spacing.sm,
+      paddingHorizontal: spacing.md,
     },
-    chipActivo: { borderColor: colors.teal, backgroundColor: colors.teal },
-    chipTexto: { ...tipo.legenda, color: colors.textMuted },
-    chipTextoActivo: { color: colors.onTeal },
+    saldoRotulo: { ...tipo.legenda, color: colors.teal },
+    saldoValor: { ...tipo.titulo, color: colors.teal },
+    rotulo: { ...tipo.legenda, color: colors.textMuted },
+    linha: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.xs },
     pacote: {
       flexGrow: 1,
       flexBasis: '28%',
       alignItems: 'center',
       borderWidth: 1,
       borderColor: colors.teal,
-      borderRadius: radius.md,
-      paddingVertical: spacing.sm,
+      borderRadius: radius.lg,
+      paddingVertical: spacing.md,
+      minHeight: 64,
     },
     pacoteDias: { ...tipo.corpoForte, color: colors.teal },
     pacoteUsd: { ...tipo.legenda, color: colors.textMuted },
