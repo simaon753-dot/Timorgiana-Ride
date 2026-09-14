@@ -87,7 +87,7 @@ export async function notificarEtapaCarga(pushToken, etapa, rideId) {
 }
 
 // "Já há motorista" — o aviso que o passageiro pediu quando não havia ninguém.
-const NOME_TIPO = { motorbike: 'Motorizada', car: 'Carro', carry: 'Carry' };
+const NOME_TIPO = { motorbike: 'Motorizada', car: 'Carro', carry: 'Carro Pickup' };
 export async function notificarMotoristaDisponivel(pushToken, tipo) {
   if (!pushToken) return { enviadas: 0 };
   return enviar([

@@ -153,7 +153,7 @@ ridesRouter.post(
     // decorrer continuam: desligar é para parar de receber, não para largar
     // ninguém a meio.
     if (vehicleType === 'carry' && !carryEstaAtivo()) {
-      return res.status(503).json({ error: 'O Carry está temporariamente indisponível.' });
+      return res.status(503).json({ error: 'O Pickup está temporariamente indisponível.' });
     }
 
     // ── Transporte de bens ─────────────────────────────────────────

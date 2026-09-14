@@ -250,13 +250,13 @@
     <div id="secViagens" hidden>
       <p class="explica">
         O que aconteceu nas últimas 48 horas: quem pediu, quem levou, quanto custou
-        e o que correu mal. Os <b>Carry</b> mostram também o que ia dentro e as
+        e o que correu mal. Os <b>Pickup</b> mostram também o que ia dentro e as
         fotografias que quem pediu tirou — é com elas que se responde a uma queixa
         sobre bens danificados.
       </p>
       <div class="filtros" id="filtroVeiculo">
         <button data-veiculo="todos" aria-pressed="true">Todas</button>
-        <button data-veiculo="carry" aria-pressed="false">Carry</button>
+        <button data-veiculo="carry" aria-pressed="false">Pickup</button>
         <button data-veiculo="car" aria-pressed="false">Carro</button>
         <button data-veiculo="motorbike" aria-pressed="false">Motorizada</button>
       </div>
@@ -415,7 +415,7 @@ const ESTADOS = {
 const VEICULOS = {
   motorbike: 'Motorizada',
   car: 'Carro',
-  carry: 'Carry / Pickup',
+  carry: 'Carro Pickup',
 };
 const nomeVeiculo = (t) => VEICULOS[t] || '—';
 
@@ -1053,8 +1053,8 @@ async function mostrarResumo() {
       cartao('canceladas 24h', n.canceladas24h) +
       cartao('à espera agora', n.esperando) +
       cartao('em serviço', n.veiculosServico) +
-      cartao('motoristas Carry', n.carryMotoristas) +
-      cartao('Carry 24h', n.carry24h);
+      cartao('motoristas Pickup', n.carryMotoristas) +
+      cartao('Pickup 24h', n.carry24h);
   } catch {
     // A tira é um extra. Falhar em silêncio é melhor do que uma mensagem
     // de erro por cima da lista de viagens, que essa sim é o que se veio ver.

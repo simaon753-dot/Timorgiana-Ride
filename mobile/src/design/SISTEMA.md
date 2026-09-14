@@ -98,7 +98,7 @@ baixo, folhas). Três e não mais. Não existe `elevacao.cartao`.
 | **Pastilhas de filtro** | `design/Chip.js` | `Chip` com ícone e contagem (só quando o servidor a dá) e `FilaChips`. |
 | **Busca** | `design/CampoBusca.js` | lupa + texto + ✕ para limpar. |
 | **Escolha entre poucas** | `design/SeletorSegmentado.js` | língua, tema. Todas à vista, a escolhida cheia. |
-| **Estado vazio** | `design/EstadoVazio.js` | ilustração (ou ícone grande) + o que falta + porquê + acção opcional. O antigo `design/Vazio.js` (com emoji) fica para os ecrãs que ainda o usam; os novos usam este. |
+| **Estado vazio** | `design/EstadoVazio.js` | ilustração (ou ícone grande) + o que falta + porquê + acção opcional. O antigo `design/Vazio.js` saiu a 14/09/2026: já nenhum ecrã o usava. |
 | **Avatar** | `design/Avatar.js` | fotografia protegida ou iniciais em tinta teal; ponto verde só quando o servidor diz `online`. |
 | **Grelha de acções** | `design/BotaoAccao.js` | `cheio` (acção de trabalho), `contorno`, `perigoContorno` (Kansela). 56 px. |
 | **Veículo** | `design/CartaoVeiculo.js` | ilustração do tipo + matrícula em caixa + tipo/modelo/cor/lugares. O mesmo na viagem, no perfil e no painel. |
@@ -108,9 +108,8 @@ baixo, folhas). Três e não mais. Não existe `elevacao.cartao`.
 `Button` tem também **`perigoSuave`** (fundo `tintaPerigo`, texto `danger`): recusar sem gritar ao lado de um botão cheio.
 
 ### Imagens de veículos
-Desde 14/09/2026 são as ilustrações do Simão com a marca TimorgianaRide (as anteriores
-vinham da Internet — direito de autor). Entram viradas na horizontal: os originais
-tinham o texto em espelho. 624 px de largura.
+Desde 14/09/2026 são as ilustrações planas do Simão, em coral e teal, sem texto nem
+logótipos (as anteriores vinham da Internet; as seguintes pareciam modelos reais). 624 px.
 `assets/veiculos/{mota,carro,carry}-{claro,escuro}.jpg` — fundo branco puro de
 dia, preto puro de noite. Ficam sempre num quadrado da **cor do fundo delas**
 (branco/preto), que de dia desaparece e de noite se lê como moldura. Nunca se

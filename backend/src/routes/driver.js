@@ -234,7 +234,7 @@ driverRouter.post(
     }
     const carga = dadosDeCarga({ carroceria, capacidade, ano }, tipo === 'carry');
     if (tipo === 'carry' && (!carga.carroceria || !carga.capacidade)) {
-      return res.status(400).json({ error: 'Indica a carroçaria e a capacidade do Carry.' });
+      return res.status(400).json({ error: 'Indica a carroçaria e a capacidade do Pickup.' });
     }
 
     const row = await one(
@@ -286,11 +286,11 @@ driverRouter.post(
   '/capacidade',
   wrap(async (req, res) => {
     if (req.user.vehicle_type !== 'carry') {
-      return res.status(400).json({ error: 'Só para veículos Carry.' });
+      return res.status(400).json({ error: 'Só para veículos Pickup.' });
     }
     const carga = dadosDeCarga(req.body || {}, true);
     if (!carga.carroceria || !carga.capacidade) {
-      return res.status(400).json({ error: 'Indica a carroçaria e a capacidade do Carry.' });
+      return res.status(400).json({ error: 'Indica a carroçaria e a capacidade do Pickup.' });
     }
     const row = await one(
       `UPDATE users SET vehicle_carroceria = $1, vehicle_capacidade = $2, vehicle_ano = $3

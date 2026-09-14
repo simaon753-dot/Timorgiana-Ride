@@ -31,11 +31,10 @@ export const VEICULOS = {
     // As ilustrações do Simão, uma por tema: fundo branco puro de dia, preto
     // puro de noite. Ver veiculoFotoCaixa no ecrã inicial.
     //
-    // TROCADAS a 14/09/26 pelas que o Simão fez com as cores e o logótipo da
-    // TimorgianaRide: as de 13/09 tinham sido tiradas da Internet, e o direito
-    // de autor não é nosso. As novas vinham com o texto em espelho; entram
-    // viradas na horizontal, para "Timorgiana Ride" se ler. Os originais ficam
-    // em desenho/imagens (fora do repositório).
+    // TROCADAS a 14/09/26 pelas ilustrações planas do Simão, em coral e teal,
+    // sem texto nem logótipos: as primeiras vinham da Internet (direito de
+    // autor de outros) e as seguintes pareciam modelos reais de fabricantes.
+    // "É melhor evitar do que curar." Os originais ficam em desenho/imagens.
     imagens: {
       claro: require('../../assets/veiculos/mota-claro.jpg'),
       escuro: require('../../assets/veiculos/mota-escuro.jpg'),
@@ -57,11 +56,10 @@ export const VEICULOS = {
     // As ilustrações do Simão, uma por tema: fundo branco puro de dia, preto
     // puro de noite. Ver veiculoFotoCaixa no ecrã inicial.
     //
-    // TROCADAS a 14/09/26 pelas que o Simão fez com as cores e o logótipo da
-    // TimorgianaRide: as de 13/09 tinham sido tiradas da Internet, e o direito
-    // de autor não é nosso. As novas vinham com o texto em espelho; entram
-    // viradas na horizontal, para "Timorgiana Ride" se ler. Os originais ficam
-    // em desenho/imagens (fora do repositório).
+    // TROCADAS a 14/09/26 pelas ilustrações planas do Simão, em coral e teal,
+    // sem texto nem logótipos: as primeiras vinham da Internet (direito de
+    // autor de outros) e as seguintes pareciam modelos reais de fabricantes.
+    // "É melhor evitar do que curar." Os originais ficam em desenho/imagens.
     imagens: {
       claro: require('../../assets/veiculos/carro-claro.jpg'),
       escuro: require('../../assets/veiculos/carro-escuro.jpg'),
@@ -89,11 +87,10 @@ export const VEICULOS = {
     // As ilustrações do Simão, uma por tema: fundo branco puro de dia, preto
     // puro de noite. Ver veiculoFotoCaixa no ecrã inicial.
     //
-    // TROCADAS a 14/09/26 pelas que o Simão fez com as cores e o logótipo da
-    // TimorgianaRide: as de 13/09 tinham sido tiradas da Internet, e o direito
-    // de autor não é nosso. As novas vinham com o texto em espelho; entram
-    // viradas na horizontal, para "Timorgiana Ride" se ler. Os originais ficam
-    // em desenho/imagens (fora do repositório).
+    // TROCADAS a 14/09/26 pelas ilustrações planas do Simão, em coral e teal,
+    // sem texto nem logótipos: as primeiras vinham da Internet (direito de
+    // autor de outros) e as seguintes pareciam modelos reais de fabricantes.
+    // "É melhor evitar do que curar." Os originais ficam em desenho/imagens.
     imagens: {
       claro: require('../../assets/veiculos/carry-claro.jpg'),
       escuro: require('../../assets/veiculos/carry-escuro.jpg'),

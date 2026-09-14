@@ -50,3 +50,8 @@ copia-*.sql
 # nomes, números e matrículas verdadeiros. Só vai para o repositório o que for
 # escolhido, já preparado, em loja/capturas/.
 loja/capturas-originais/
+
+# As imagens de trabalho (referências, originais das ilustrações). Ficam no
+# computador do Simão; na app entram só as versões preparadas em
+# mobile/assets/. O repositório é público.
+desenho/imagens/

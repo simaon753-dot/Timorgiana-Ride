@@ -113,7 +113,7 @@ authRouter.post('/register', async (req, res) => {
       vehicle?.type === 'carry' &&
       (!CARROCERIAS.includes(vehicle.carroceria) || !CAPACIDADES.includes(vehicle.capacidade))
     ) {
-      return res.status(400).json({ error: 'Indica a carroçaria e a capacidade do Carry.' });
+      return res.status(400).json({ error: 'Indica a carroçaria e a capacidade do Pickup.' });
     }
 
     if (await findUserByPhone(phone)) {
