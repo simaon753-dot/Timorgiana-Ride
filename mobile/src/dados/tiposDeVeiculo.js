@@ -28,8 +28,14 @@ export const VEICULOS = {
     chaveMatricula: 'vehiclePlatePlaceholderMoto',
     icone: 'mota',
     emoji: '🏍️',
-    // As ilustrações do Simão (13/09/26), uma por tema: fundo branco puro de
-    // dia, preto puro de noite. Ver veiculoFotoCaixa no ecrã inicial.
+    // As ilustrações do Simão, uma por tema: fundo branco puro de dia, preto
+    // puro de noite. Ver veiculoFotoCaixa no ecrã inicial.
+    //
+    // TROCADAS a 14/09/26 pelas que o Simão fez com as cores e o logótipo da
+    // TimorgianaRide: as de 13/09 tinham sido tiradas da Internet, e o direito
+    // de autor não é nosso. As novas vinham com o texto em espelho; entram
+    // viradas na horizontal, para "Timorgiana Ride" se ler. Os originais ficam
+    // em desenho/imagens (fora do repositório).
     imagens: {
       claro: require('../../assets/veiculos/mota-claro.jpg'),
       escuro: require('../../assets/veiculos/mota-escuro.jpg'),
@@ -48,8 +54,14 @@ export const VEICULOS = {
     chaveMatricula: 'vehiclePlatePlaceholderCar',
     icone: 'carro',
     emoji: '🚗',
-    // As ilustrações do Simão (13/09/26), uma por tema: fundo branco puro de
-    // dia, preto puro de noite. Ver veiculoFotoCaixa no ecrã inicial.
+    // As ilustrações do Simão, uma por tema: fundo branco puro de dia, preto
+    // puro de noite. Ver veiculoFotoCaixa no ecrã inicial.
+    //
+    // TROCADAS a 14/09/26 pelas que o Simão fez com as cores e o logótipo da
+    // TimorgianaRide: as de 13/09 tinham sido tiradas da Internet, e o direito
+    // de autor não é nosso. As novas vinham com o texto em espelho; entram
+    // viradas na horizontal, para "Timorgiana Ride" se ler. Os originais ficam
+    // em desenho/imagens (fora do repositório).
     imagens: {
       claro: require('../../assets/veiculos/carro-claro.jpg'),
       escuro: require('../../assets/veiculos/carro-escuro.jpg'),
@@ -74,8 +86,14 @@ export const VEICULOS = {
     chaveMatricula: 'vehiclePlatePlaceholderCar',
     icone: 'carry',
     emoji: '🛻',
-    // As ilustrações do Simão (13/09/26), uma por tema: fundo branco puro de
-    // dia, preto puro de noite. Ver veiculoFotoCaixa no ecrã inicial.
+    // As ilustrações do Simão, uma por tema: fundo branco puro de dia, preto
+    // puro de noite. Ver veiculoFotoCaixa no ecrã inicial.
+    //
+    // TROCADAS a 14/09/26 pelas que o Simão fez com as cores e o logótipo da
+    // TimorgianaRide: as de 13/09 tinham sido tiradas da Internet, e o direito
+    // de autor não é nosso. As novas vinham com o texto em espelho; entram
+    // viradas na horizontal, para "Timorgiana Ride" se ler. Os originais ficam
+    // em desenho/imagens (fora do repositório).
     imagens: {
       claro: require('../../assets/veiculos/carry-claro.jpg'),
       escuro: require('../../assets/veiculos/carry-escuro.jpg'),

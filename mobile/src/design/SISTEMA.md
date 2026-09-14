@@ -108,6 +108,9 @@ baixo, folhas). Três e não mais. Não existe `elevacao.cartao`.
 `Button` tem também **`perigoSuave`** (fundo `tintaPerigo`, texto `danger`): recusar sem gritar ao lado de um botão cheio.
 
 ### Imagens de veículos
+Desde 14/09/2026 são as ilustrações do Simão com a marca TimorgianaRide (as anteriores
+vinham da Internet — direito de autor). Entram viradas na horizontal: os originais
+tinham o texto em espelho. 624 px de largura.
 `assets/veiculos/{mota,carro,carry}-{claro,escuro}.jpg` — fundo branco puro de
 dia, preto puro de noite. Ficam sempre num quadrado da **cor do fundo delas**
 (branco/preto), que de dia desaparece e de noite se lê como moldura. Nunca se
