@@ -128,6 +128,11 @@ export function toPublicRide(row, opcoes = {}) {
     passengers: row.passengers ?? null,
     startedAt: row.started_at ?? null,
     acceptedAt: row.accepted_at ?? null,
+    // As horas da linha do tempo (14/09/26). As três últimas só numa entrega.
+    aChegarEm: row.a_chegar_em ?? null,
+    carregadaEm: row.carregada_em ?? null,
+    noDestinoEm: row.no_destino_em ?? null,
+    descarregadaEm: row.descarregada_em ?? null,
     fareUsd: row.fare_usd ?? null,
     distanceKm: row.distance_km ?? null,
     durationMin: row.duration_min ?? null,
@@ -593,11 +598,57 @@ export async function iniciarViagem(rideId, driverId, codigo) {
 export async function setRideStatus(rideId, status, porQuem = null) {
   await query(
     `UPDATE rides SET status = $1, updated_at = NOW(),
-            cancelled_by = COALESCE($3, cancelled_by)
+            cancelled_by = COALESCE($3, cancelled_by),
+            -- A hora em que o motorista disse que chegou (linha do tempo).
+            a_chegar_em = CASE WHEN $1 = 'arriving' THEN NOW() ELSE a_chegar_em END
      WHERE id = $2`,
     [status, rideId, porQuem]
   );
   return getRideById(rideId);
+}
+
+// AS ETAPAS DA ENTREGA, pela ordem e só pelo motorista da viagem (14/09/26).
+//
+// Uma consulta por etapa, com a anterior como condição DENTRO do UPDATE:
+// "descarregada" antes de "no destino" não encontra linha, e marcar duas
+// vezes a mesma também não. Só em viagens de bens a decorrer.
+export async function marcarCarregada(rideId, driverId) {
+  return one(
+    `UPDATE rides SET carregada_em = NOW(), updated_at = NOW()
+     WHERE id = $1 AND driver_id = $2 AND status = 'in_progress' AND carga_tipo IS NOT NULL
+       AND carregada_em IS NULL
+     RETURNING id`,
+    [rideId, driverId]
+  );
+}
+export async function marcarNoDestino(rideId, driverId) {
+  return one(
+    `UPDATE rides SET no_destino_em = NOW(), updated_at = NOW()
+     WHERE id = $1 AND driver_id = $2 AND status = 'in_progress' AND carga_tipo IS NOT NULL
+       AND carregada_em IS NOT NULL AND no_destino_em IS NULL
+     RETURNING id`,
+    [rideId, driverId]
+  );
+}
+export async function marcarDescarregada(rideId, driverId) {
+  return one(
+    `UPDATE rides SET descarregada_em = NOW(), updated_at = NOW()
+     WHERE id = $1 AND driver_id = $2 AND status = 'in_progress' AND carga_tipo IS NOT NULL
+       AND no_destino_em IS NOT NULL AND descarregada_em IS NULL
+     RETURNING id`,
+    [rideId, driverId]
+  );
+}
+const MARCAR_ETAPA = {
+  carregada: marcarCarregada,
+  no_destino: marcarNoDestino,
+  descarregada: marcarDescarregada,
+};
+export async function marcarEtapaCarga(rideId, driverId, etapa) {
+  const marcar = MARCAR_ETAPA[etapa];
+  if (!marcar) return null;
+  const feito = await marcar(rideId, driverId);
+  return feito ? getRideById(rideId) : null;
 }
 
 // Escrever a tarifa à mão. SÓ onde não há preço calculado.

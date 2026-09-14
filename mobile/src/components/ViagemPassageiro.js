@@ -3,6 +3,7 @@ import { View, Text, Pressable, Linking, Alert, ActivityIndicator, StyleSheet } 
 import Retrato from '../design/Retrato.js';
 import Icone from '../design/Icone.js';
 import EtapasViagem from '../design/EtapasViagem.js';
+import EtapasEntrega from '../design/EtapasEntrega.js';
 import NumerosViagem from '../design/NumerosViagem.js';
 import PercursoPontos from '../design/PercursoPontos.js';
 import CartaoVeiculo from '../design/CartaoVeiculo.js';
@@ -46,7 +47,8 @@ const SUBTITULO = {
 
 export default function ViagemPassageiro({ ride, navigation }) {
   const { t } = useI18n();
-  const { isFinal, cancelRide, dismissRide, driverLocation, driverPlace, unread } = useRides();
+  const { isFinal, cancelRide, dismissRide, driverLocation, driverPlace, unread, rated } =
+    useRides();
   const [aCancelar, setACancelar] = useState(false);
 
   const markers = rideMarkers(ride);
@@ -79,7 +81,13 @@ export default function ViagemPassageiro({ ride, navigation }) {
         <Text style={styles.subtitulo}>{t(SUBTITULO[ride.status])}</Text>
       ) : null}
 
-      {ride.status !== 'cancelled' ? <EtapasViagem ride={ride} /> : null}
+      {/* Numa ENTREGA DE BENS, a linha do tempo vertical com as etapas da
+          carga; numa viagem de pessoas, as quatro etapas de sempre. */}
+      {ride.status === 'cancelled' ? null : ride.carga ? (
+        <EtapasEntrega ride={ride} avaliado={!!rated} />
+      ) : (
+        <EtapasViagem ride={ride} />
+      )}
 
       {markers.length > 0 ? (
         <View style={styles.mapa}>

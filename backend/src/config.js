@@ -46,6 +46,8 @@ export const CAPACIDADES = ['pequena', 'media', 'grande'];
 // história da viagem: "carga incompatível" repetida diz que os pedidos estão
 // a chegar aos veículos errados.
 export const MOTIVOS_RECUSA = ['agora', 'incompativel'];
+// As etapas que o motorista marca numa entrega de bens, pela ordem.
+export const ETAPAS_CARGA = ['carregada', 'no_destino', 'descarregada'];
 
 export const config = {
   // O alojamento define a porta por variável de ambiente

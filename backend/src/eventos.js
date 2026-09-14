@@ -34,6 +34,8 @@ export const EVENTOS = {
   SOS: 'sos',
   // Um motorista pôs o pedido de lado, com o motivo em `detalhe`.
   RECUSADA: 'recusada',
+  // Uma etapa da entrega (carregada / no_destino / descarregada), em `detalhe`.
+  ETAPA_CARGA: 'etapa_carga',
 };
 
 // Regista um evento.

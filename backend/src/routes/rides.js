@@ -1,6 +1,15 @@
 import { Router } from 'express';
+import { marcarEtapaCarga } from '../rides.js';
+import { notificarEtapaCarga } from '../push.js';
+import { criarAviso, cancelarAvisos } from '../avisos.js';
 import { carryEstaAtivo } from '../configServico.js';
-import { TIPOS_CARGA, TIPOS_VEICULO, MOTIVOS_RECUSA } from '../config.js';
+import {
+  TIPOS_CARGA,
+  TIPOS_VEICULO,
+  MOTIVOS_RECUSA,
+  VOLUMES_CARGA,
+  ETAPAS_CARGA,
+} from '../config.js';
 import { cabe } from '../capacidade.js';
 import { criarAlerta, cancelamentosRecentes } from '../sos.js';
 import { ultimaFotoDeTurno } from '../turnos.js';
@@ -406,6 +415,67 @@ ridesRouter.get(
       req.user.vehicle_capacidade
     );
     return res.json({ rides: rows.map((r) => toPublicRide(r)) });
+  })
+);
+
+// POST /api/rides/aviso — "avisar quando houver motorista"
+ridesRouter.post(
+  '/aviso',
+  wrap(async (req, res) => {
+    const { vehicleType, originLat, originLng, cargaVolume } = req.body || {};
+    const lat = Number(originLat);
+    const lng = Number(originLng);
+    if (!TIPOS_VEICULO.includes(vehicleType) || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return res.status(400).json({ error: 'Faltam o tipo de veículo ou a recolha.' });
+    }
+    const aviso = await criarAviso({
+      passengerId: req.user.id,
+      vehicleType,
+      lat,
+      lng,
+      cargaVolume: VOLUMES_CARGA.includes(cargaVolume) ? cargaVolume : null,
+    });
+    return res.status(201).json({ ok: true, expiraEm: aviso?.expira_em ?? null });
+  })
+);
+
+// DELETE /api/rides/aviso — já não é preciso avisar
+ridesRouter.delete(
+  '/aviso',
+  wrap(async (req, res) => {
+    await cancelarAvisos(req.user.id);
+    return res.json({ ok: true });
+  })
+);
+
+// POST /api/rides/:id/etapa-carga — o motorista marca uma etapa da entrega
+ridesRouter.post(
+  '/:id/etapa-carga',
+  requireApprovedDriver,
+  wrap(async (req, res) => {
+    const rideId = Number(req.params.id);
+    const etapa = String(req.body?.etapa || '');
+    if (!ETAPAS_CARGA.includes(etapa)) {
+      return res.status(400).json({ error: 'Etapa desconhecida.' });
+    }
+    const updated = await marcarEtapaCarga(rideId, req.user.id, etapa);
+    if (!updated) {
+      return res.status(409).json({ error: 'Esta etapa não se pode marcar agora.' });
+    }
+    registarSemEsperar({
+      rideId,
+      que: EVENTOS.ETAPA_CARGA,
+      por: req.user.id,
+      lat: num2(req.user.last_lat),
+      lng: num2(req.user.last_lng),
+      detalhe: { etapa },
+    });
+    notify(req.app.get('io'), updated, 'ride:update');
+    // A notificação ao passageiro, sem esperar: a etapa já está marcada.
+    one('SELECT push_token FROM users WHERE id = $1', [updated.passenger_id])
+      .then((p) => notificarEtapaCarga(p?.push_token, etapa, rideId))
+      .catch(() => {});
+    return res.json({ ride: toPublicRide(updated) });
   })
 );
 

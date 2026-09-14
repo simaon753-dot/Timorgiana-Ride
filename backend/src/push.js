@@ -63,6 +63,45 @@ export async function notificarPedidoNovo(ride) {
   return enviar(mensagens);
 }
 
+// As etapas da entrega, ao passageiro (14/09/26). Quem mandou uma mudança
+// não está a olhar para o ecrã: é a notificação que lhe diz que a carga já
+// está a caminho, ou que chegou.
+const TEXTO_ETAPA = {
+  carregada: ['Carga carregada', 'O motorista já carregou e vai a caminho do destino.'],
+  no_destino: ['Chegou ao destino', 'O motorista chegou ao destino da entrega.'],
+  descarregada: ['Descarga feita', 'A carga foi descarregada. Falta concluir a entrega.'],
+};
+export async function notificarEtapaCarga(pushToken, etapa, rideId) {
+  const texto = TEXTO_ETAPA[etapa];
+  if (!pushToken || !texto) return { enviadas: 0 };
+  return enviar([
+    {
+      to: pushToken,
+      sound: 'default',
+      title: texto[0],
+      body: texto[1],
+      data: { tipo: 'ride:etapa', rideId, etapa },
+      priority: 'high',
+    },
+  ]);
+}
+
+// "Já há motorista" — o aviso que o passageiro pediu quando não havia ninguém.
+const NOME_TIPO = { motorbike: 'Motorizada', car: 'Carro', carry: 'Carry' };
+export async function notificarMotoristaDisponivel(pushToken, tipo) {
+  if (!pushToken) return { enviadas: 0 };
+  return enviar([
+    {
+      to: pushToken,
+      sound: 'default',
+      title: 'Há um motorista disponível',
+      body: `Já há ${NOME_TIPO[tipo] || 'um motorista'} perto de si. Abra a app para pedir.`,
+      data: { tipo: 'aviso:motorista' },
+      priority: 'high',
+    },
+  ]);
+}
+
 // Avisa o passageiro de que um motorista aceitou
 export async function notificarAceite(pushToken, ride) {
   if (!pushToken) return { enviadas: 0 };

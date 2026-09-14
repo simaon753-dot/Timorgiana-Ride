@@ -103,6 +103,12 @@ export const api = {
   ride: (token, id) => request(`/rides/${id}`, { token }),
   rideHistory: (token) => request('/rides/history', { token }),
   availableRides: (token) => request('/rides/available', { token }),
+  // As etapas da entrega (carregada / no_destino / descarregada), pelo motorista.
+  marcarEtapaCarga: (token, id, etapa) =>
+    request(`/rides/${id}/etapa-carga`, { method: 'POST', body: { etapa }, token }),
+  // "Avisar quando houver motorista", e desistir do aviso.
+  pedirAviso: (token, dados) => request('/rides/aviso', { method: 'POST', body: dados, token }),
+  cancelarAviso: (token) => request('/rides/aviso', { method: 'DELETE', token }),
   // Pôr um pedido de lado, com o motivo (14/09/26).
   recusarPedido: (token, id, motivo) =>
     request(`/rides/${id}/recusar`, { method: 'POST', body: { motivo }, token }),

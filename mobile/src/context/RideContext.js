@@ -378,6 +378,17 @@ export function RideProvider({ children }) {
     [token]
   );
 
+  // Marcar uma etapa da entrega (motorista). O servidor devolve a viagem já
+  // com a hora da etapa, e o passageiro recebe-a pelo tempo real.
+  const marcarEtapaCarga = useCallback(
+    async (id, etapa) => {
+      const { ride } = await api.marcarEtapaCarga(token, id, etapa);
+      setActiveRide(ride);
+      return ride;
+    },
+    [token]
+  );
+
   const markChatRead = useCallback(() => setUnread(0), []);
 
   // A CONVERSA NÃO DEPENDE SÓ DO SOCKET (13/09/26).
@@ -462,6 +473,7 @@ export function RideProvider({ children }) {
         requests: pedidosVisiveis,
         ignorarPedido,
         recusarPedido,
+        marcarEtapaCarga,
         messages,
         unread,
         rated,

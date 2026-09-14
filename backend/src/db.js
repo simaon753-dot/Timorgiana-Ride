@@ -737,6 +737,34 @@ export async function initSchema() {
     )
   `);
 
+  // AS ETAPAS DE UMA ENTREGA DE BENS (14/09/26). Não são estados novos da
+  // viagem — a máquina de estados fica como está —, são horas que o motorista
+  // marca enquanto a viagem decorre, e que o passageiro vê numa linha do tempo.
+  // `a_chegar_em` serve todas as viagens: é quando o motorista disse que
+  // chegou à recolha.
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS a_chegar_em TIMESTAMPTZ`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carregada_em TIMESTAMPTZ`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS no_destino_em TIMESTAMPTZ`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS descarregada_em TIMESTAMPTZ`);
+
+  // "AVISAR QUANDO HOUVER MOTORISTA" (14/09/26). Um pedido de aviso vive duas
+  // horas; um varrimento de minuto a minuto procura um motorista adequado
+  // perto e manda uma notificação ao passageiro. Não cria viagem nenhuma: o
+  // passageiro volta e pede, com o preço à frente.
+  await query(`
+    CREATE TABLE IF NOT EXISTS avisos_motorista (
+      id           SERIAL PRIMARY KEY,
+      passenger_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      vehicle_type TEXT NOT NULL,
+      lat          DOUBLE PRECISION NOT NULL,
+      lng          DOUBLE PRECISION NOT NULL,
+      carga_volume TEXT,
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      expira_em    TIMESTAMPTZ NOT NULL,
+      avisado_em   TIMESTAMPTZ
+    )
+  `);
+
   // CONFIGURAÇÃO DO SERVIÇO editável no painel (14/09/26): os preços do
   // Carry e se ele está ligado. Chave e valor em JSON; quem mudou e quando
   // fica na própria linha. Sem linhas, valem os valores de partida de

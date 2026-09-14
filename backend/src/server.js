@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { verificarAvisos, limparAvisosVelhos } from './avisos.js';
 import { carregarConfigServico } from './configServico.js';
 import { podeEntrarAoServico } from './assinatura.js';
 import express from 'express';
@@ -444,6 +445,13 @@ async function start() {
     // que uma instância, todas acabam por ver a mesma coisa.
     await carregarConfigServico();
     setInterval(carregarConfigServico, 5 * 60 * 1000).unref?.();
+    // Os avisos "quando houver motorista", de minuto a minuto; os velhos
+    // saem uma vez por hora.
+    setInterval(
+      () => verificarAvisos().catch((e) => console.error('[avisos]', e.message)),
+      60 * 1000
+    ).unref?.();
+    setInterval(() => limparAvisosVelhos().catch(() => {}), 60 * 60 * 1000).unref?.();
   } catch (e) {
     console.error('[arranque] não foi possível preparar a base de dados:', e.message);
     process.exit(1);

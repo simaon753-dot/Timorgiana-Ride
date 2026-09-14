@@ -204,6 +204,8 @@ export default function RequestRideScreen({ navigation, route }) {
   const origemRef = useRef(null);
   const destinoRef = useRef(null);
   const [erro, setErro] = useState(null);
+  // "Avisar quando houver motorista": null | 'a_pedir' | 'pedido' | 'erro'.
+  const [aviso, setAviso] = useState(null);
   const [aPedir, setAPedir] = useState(false);
   const [pesquisa, setPesquisa] = useState(null); // 'origem' | 'destino' | null
   // Escolher no mapa: o pino fica fixo no centro e o mapa move-se por baixo.
@@ -1016,6 +1018,22 @@ export default function RequestRideScreen({ navigation, route }) {
   const corBotao = colors.text;
   const precoTexto = opcao ? `$${opcao.fareUsd.toFixed(2)}` : null;
 
+  async function pedirAviso() {
+    if (!origem) return;
+    setAviso('a_pedir');
+    try {
+      await api.pedirAviso(token, {
+        vehicleType: veiculoAtual,
+        originLat: origem.lat,
+        originLng: origem.lng,
+        cargaVolume: !veiculo(veiculoAtual).levaPessoas && !carryPessoas ? cargaVolume : null,
+      });
+      setAviso('pedido');
+    } catch {
+      setAviso('erro');
+    }
+  }
+
   const podePedir =
     !!origem &&
     !!destino &&
@@ -1534,6 +1552,27 @@ export default function RequestRideScreen({ navigation, route }) {
             </View>
           </View>
         ) : null}
+        {/* AVISAR QUANDO HOUVER MOTORISTA (14/09/26): em vez de pedir às cegas,
+            fica um aviso de duas horas. Quando aparecer um motorista adequado
+            perto, chega uma notificação — e a pessoa volta e pede com o preço à
+            frente. */}
+        {semMotorista && podePedir ? (
+          <Pressable
+            style={({ pressed }) => [styles.avisarBotao, pressed && { opacity: 0.8 }]}
+            onPress={pedirAviso}
+            disabled={aviso === 'a_pedir' || aviso === 'pedido'}
+            accessibilityRole="button"
+          >
+            <Icone nome={aviso === 'pedido' ? 'visto' : 'sino'} tamanho={20} cor={colors.teal} />
+            <Text style={styles.avisarTexto}>
+              {aviso === 'pedido'
+                ? t('avisoPedidoOk')
+                : aviso === 'erro'
+                  ? t('avisoErro')
+                  : t('avisarQuando')}
+            </Text>
+          </Pressable>
+        ) : null}
         <Pressable
           style={[styles.botaoPedir, !podePedir && styles.botaoInativo]}
           onPress={pedir}
@@ -2041,6 +2080,19 @@ const criarEstilos = () =>
     },
     botaoInativo: { backgroundColor: colors.border },
     resumo: { marginTop: spacing.lg },
+    avisarBotao: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      minHeight: 48,
+      paddingHorizontal: spacing.md,
+      marginTop: spacing.sm,
+      borderWidth: 1.5,
+      borderColor: colors.teal,
+      borderRadius: radius.lg,
+      backgroundColor: colors.white,
+    },
+    avisarTexto: { ...tipo.corpoForte, fontSize: 14, color: colors.teal, flex: 1 },
     // O botão principal da referência: coral a toda a largura, com o ícone do
     // veículo à esquerda e a seta à direita. O texto é ESCURO — branco sobre
     // coral fica a 2,8:1, abaixo do mínimo (ver SISTEMA.md).

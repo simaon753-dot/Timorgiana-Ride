@@ -115,6 +115,7 @@ export default function DriverHomeScreen({ navigation }) {
     isFinal,
     requests,
     recusarPedido,
+    marcarEtapaCarga,
     acceptRide,
     advanceStatus,
     startRide,
@@ -275,6 +276,7 @@ export default function DriverHomeScreen({ navigation }) {
             onStart={(codigo) => startRide(activeRide.id, codigo)}
             onComplete={() => advanceStatus(activeRide.id, 'completed')}
             onCancel={(motivo) => cancelRide(activeRide.id, motivo)}
+            onEtapa={(etapa) => marcarEtapaCarga(activeRide.id, etapa)}
             onDismiss={dismissRide}
           />
         ) : (
@@ -540,6 +542,14 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
 }
 
 // ---- Cartão da viagem ativa do motorista ----
+// As etapas da entrega: o texto do botão e o ícone de cada uma.
+const ACCAO_ETAPA = {
+  carregada: 'accaoCarregada',
+  no_destino: 'accaoNoDestino',
+  descarregada: 'accaoDescarregada',
+};
+const ICONE_ETAPA = { carregada: 'caixa', no_destino: 'pin', descarregada: 'caixa' };
+
 function ActiveRideCard({
   ride,
   isFinal,
@@ -549,6 +559,7 @@ function ActiveRideCard({
   onComplete,
   onCancel,
   onDismiss,
+  onEtapa,
 }) {
   const { t } = useI18n();
   const { unread } = useRides();
@@ -567,6 +578,26 @@ function ActiveRideCard({
       setErroCodigo(e?.message === 'NETWORK' ? t('errNetwork') : e?.message || t('errGeneric'));
     } finally {
       setAIniciar(false);
+    }
+  }
+  // NUMA ENTREGA DE BENS, a acção de trabalho percorre as etapas por ordem
+  // antes de concluir: carregada → no destino → descarregada → entregue. Uma
+  // de cada vez, a seguinte; o passageiro vê cada uma na linha do tempo.
+  const etapaSeguinte =
+    ride.status === 'in_progress' && ride.carga
+      ? !ride.carregadaEm
+        ? 'carregada'
+        : !ride.noDestinoEm
+          ? 'no_destino'
+          : !ride.descarregadaEm
+            ? 'descarregada'
+            : null
+      : null;
+  async function marcarEtapa(etapa) {
+    try {
+      await onEtapa?.(etapa);
+    } catch (e) {
+      Alert.alert(t('errGeneric'), e?.message || '');
     }
   }
   const active = ['accepted', 'arriving', 'in_progress'].includes(ride.status);
@@ -604,7 +635,17 @@ function ActiveRideCard({
       ? { titulo: t('onTheWay'), icone: 'rota', onPress: onArriving }
       : ride.status === 'arriving'
         ? { titulo: t('startRide'), icone: 'volante', onPress: () => setAPedirCodigo(true) }
-        : { titulo: t('completeRide'), icone: 'bandeira', onPress: onComplete };
+        : etapaSeguinte
+          ? {
+              titulo: t(ACCAO_ETAPA[etapaSeguinte]),
+              icone: ICONE_ETAPA[etapaSeguinte],
+              onPress: () => marcarEtapa(etapaSeguinte),
+            }
+          : {
+              titulo: t(ride.carga ? 'entregaConcluida' : 'completeRide'),
+              icone: 'bandeira',
+              onPress: onComplete,
+            };
 
   return (
     <View style={styles.viagem}>
