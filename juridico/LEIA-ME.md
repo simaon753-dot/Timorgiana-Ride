@@ -53,6 +53,28 @@ A ida e volta foi ensaiada a 14/09/2026: quatro cláusulas estragadas numa
 cópia voltaram iguais ao original (69 346 caracteres, três documentos, três
 línguas).
 
+## Todas as palavras da app, em Word (desde 15/09/2026)
+
+Os 910 textos dos ecrãs (botões, títulos, avisos, mensagens), nas três
+línguas, saem para `app/Textos da App.docx`: uma tabela chave | português |
+tétum | inglês, agrupada pelo ecrã onde cada texto aparece. O texto que vale é
+o de `mobile/src/i18n/`.
+
+```bash
+cd juridico
+node textos-app.mjs                                        # app → Word
+python3 importar-textos.py "app/Textos da App.docx"        # mostra o que mudou
+python3 importar-textos.py --escrever "app/Textos da App.docx"   # Word → app
+```
+
+Um texto só entra se mantiver os marcadores (`{nome}`, `{h}`…) e os `**` aos
+pares; os outros ficam de fora, com aviso. Depois de importar: `npx prettier
+--write "src/**/*.js"` e `npm run verificar` na app, e publicar.
+
+Ensaiado a 15/09/2026: sem mexer, os 2730 valores voltam iguais; com três
+alterações plantadas, as duas válidas entram (uma com plica, em inglês) e a
+que apagava um marcador fica de fora.
+
 ## O que NÃO está aqui
 
 **Citações legais que eu não pudesse verificar.** O único diploma citado é o
