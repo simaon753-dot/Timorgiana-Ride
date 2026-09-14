@@ -1,4 +1,5 @@
 import { onlineDrivers, nearestDrivers } from './drivers.js';
+import { cabe } from './capacidade.js';
 import { query } from './db.js';
 import { config } from './config.js';
 
@@ -47,7 +48,9 @@ export async function notificarPedidoNovo(ride) {
       }).then((rows) => rows.map((r) => ({ ...r, push_token: r.push_token })))
     : await onlineDrivers(ride.vehicleType);
   const mensagens = motoristas
-    .filter((m) => m.push_token)
+    // Só a quem a carga cabe no veículo — a mesma regra da lista (14/09/26).
+    // Sem isto, um Carry pequeno era acordado por um pedido que não vê.
+    .filter((m) => m.push_token && cabe(ride.carga?.volume, m.vehicle_capacidade))
     .map((m) => ({
       to: m.push_token,
       sound: 'default',

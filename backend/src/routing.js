@@ -104,8 +104,17 @@ export function preco(vehicleType, km, min = null, pessoas = null, carga = null)
   const fVolume = (t.volume && carga && t.volume[carga.volume]) || 1;
   const extraAjuda = (t.ajuda && carga && t.ajuda[carga.ajuda]) || 0;
 
+  // A TAXA POR PARAGEM (14/09/26), configurável no painel. Soma, como a
+  // ajuda: parar numa loja pelo caminho custa o mesmo tempo seja ela onde for.
+  // Os quilómetros do desvio já estão na distância; isto é o tempo parado.
+  const extraParagens = (t.porParagem || 0) * (Number(carga?.paragens) || 0);
+
   const bruto =
-    t.base + porKm * distancia * fVolume + (t.porMinuto || 0) * minutos + extraAjuda;
+    t.base +
+    porKm * distancia * fVolume +
+    (t.porMinuto || 0) * minutos +
+    extraAjuda +
+    extraParagens;
   // O MÍNIMO DO CARRY COM PESSOAS. Só chega aqui um `pessoas` num Carry
   // quando o pedido é de pessoas — a rota só o passa nesse modo, porque a
   // cotação manda sempre um número de pessoas (o ecrã começa em 1) e, lido

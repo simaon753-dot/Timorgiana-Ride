@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { carryEstaAtivo } from '../configServico.js';
 import { requireAuth } from '../auth.js';
 import { preco, etaMinutos, straightKm } from '../routing.js';
 import { rotaCompleta } from '../rotas.js';
@@ -61,6 +62,8 @@ quoteRouter.post(
     const paragens = limparDestinos(req.body?.destinos);
     // O modo do Carry, explícito — ver a nota em routes/rides.js.
     const carryPessoas = req.body?.carryModo === 'pessoas';
+    // As paragens contam no preço do Carry (a taxa por paragem do painel).
+    carga.paragens = paragens.length;
     const viagem = await rotaCompleta(
       { lat: oLat, lng: oLng },
       { lat: dLat, lng: dLng },
@@ -80,7 +83,11 @@ quoteRouter.post(
     // fazer: é dinheiro em mão, sem recibo e sem estorno. Havendo paragens, a
     // resposta traz a opção que corresponde ao que foi calculado, e mais
     // nenhuma.
-    const tiposPossiveis = paragens.length ? ['carry'] : TIPOS_VEICULO;
+    // O CARRY DESLIGADO NO PAINEL não aparece na cotação: mostrar um preço
+    // de um serviço que não aceita pedidos seria prometer o que não há.
+    const tiposPossiveis = (paragens.length ? ['carry'] : TIPOS_VEICULO).filter(
+      (tipo) => tipo !== 'carry' || carryEstaAtivo()
+    );
     const opcoes = await Promise.all(
       tiposPossiveis.map(async (tipo) => {
         const perto = await nearestDrivers({
@@ -126,6 +133,15 @@ quoteRouter.post(
       taxasDeEntrada: taxasPara({ originLat: oLat, originLng: oLng, destLat: dLat, destLng: dLng }),
     });
   })
+);
+
+// GET /api/quote/servicos — que serviços estão ligados agora.
+//
+// Para o ecrã inicial saber se mostra o Carry como disponível. Vai com a
+// cotação porque é a mesma pergunta: "o que posso pedir?".
+quoteRouter.get(
+  '/servicos',
+  wrap(async (_req, res) => res.json({ servicos: { carry: { ativo: carryEstaAtivo() } } }))
 );
 
 // POST /api/quote/linha — só a linha da viagem.

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import GestaoCarry from '../components/GestaoCarry.js';
 import {
   Alert,
   Linking,
@@ -54,6 +55,7 @@ const SECCOES = [
   ['motoristas', 'admSecDrivers', 'volante'],
   ['contas', 'admSecContas', 'pessoa'],
   ['viagens', 'admSecRides', 'carro'],
+  ['carry', 'admSecCarry', 'carry'],
   ['registo', 'admSecRegisto', 'documento'],
   ['lugares', 'admSecLugares', 'pin'],
 ];
@@ -435,6 +437,8 @@ export default function AdminScreen({ navigation }) {
           />
         ) : seccao === 'viagens' ? (
           <Viagens viagens={viagens} t={t} navigation={navigation} />
+        ) : seccao === 'carry' ? (
+          <GestaoCarry token={token} t={t} navigation={navigation} />
         ) : seccao === 'registo' ? (
           <Registo acessos={registo} t={t} navigation={navigation} dias={dias} setDias={setDias} />
         ) : (

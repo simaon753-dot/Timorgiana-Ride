@@ -737,6 +737,19 @@ export async function initSchema() {
     )
   `);
 
+  // CONFIGURAÇÃO DO SERVIÇO editável no painel (14/09/26): os preços do
+  // Carry e se ele está ligado. Chave e valor em JSON; quem mudou e quando
+  // fica na própria linha. Sem linhas, valem os valores de partida de
+  // config.js — a tabela só guarda o que o administrador mudou.
+  await query(`
+    CREATE TABLE IF NOT EXISTS config_servico (
+      chave          TEXT PRIMARY KEY,
+      valor          JSONB NOT NULL,
+      atualizado_em  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      atualizado_por INTEGER REFERENCES users(id)
+    )
+  `);
+
   const [{ now }] = await query('SELECT NOW() AS now');
   console.log('[db] PostgreSQL pronto —', now.toISOString());
 }

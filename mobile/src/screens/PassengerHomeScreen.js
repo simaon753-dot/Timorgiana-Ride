@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { api } from '../api/client.js';
 import {
   View,
   Text,
@@ -7,6 +8,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Pressable,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BarraEstado from '../design/BarraEstado.js';
@@ -48,6 +50,20 @@ export default function PassengerHomeScreen({ navigation }) {
   // caia neste ecrã por um instante veria "o teu motorista: <o próprio
   // nome>", que é absurdo e mina a confiança no resto.
   const activeRide = viagemBruta && viagemBruta.driver?.id !== user?.id ? viagemBruta : null;
+
+  // QUE SERVIÇOS ESTÃO LIGADOS. O Carry pode ser desligado no painel; lido ao
+  // entrar e sempre que se volta a este ecrã. Sem resposta, fica tudo como
+  // estava — um serviço não desaparece por falta de rede.
+  const [servicos, setServicos] = useState(null);
+  useEffect(() => {
+    const ler = () =>
+      api
+        .servicos(token)
+        .then((r) => setServicos(r?.servicos || null))
+        .catch(() => {});
+    ler();
+    return navigation.addListener('focus', ler);
+  }, [navigation, token]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -144,9 +160,12 @@ export default function PassengerHomeScreen({ navigation }) {
                     // A tinta de cada veículo vem da tabela (dados/tiposDeVeiculo.js).
                     { backgroundColor: colors[v.tinta] || colors.white },
                     pressed && styles.premido,
+                    servicos?.[v.id]?.ativo === false && styles.veiculoDesligado,
                   ]}
                   onPress={() =>
-                    navigation.navigate(v.primeiroPasso || 'EscolherDestino', { veiculo: v.id })
+                    servicos?.[v.id]?.ativo === false
+                      ? Alert.alert(t('servicoIndisponivel'), t('servicoIndisponivelTexto'))
+                      : navigation.navigate(v.primeiroPasso || 'EscolherDestino', { veiculo: v.id })
                   }
                   accessibilityRole="button"
                   accessibilityLabel={t(v.chaveNome)}
@@ -167,7 +186,11 @@ export default function PassengerHomeScreen({ navigation }) {
                         {t(v.chaveNome)}
                       </Text>
                     </View>
-                    <Text style={styles.veiculoNota}>{t(v.chaveNota)}</Text>
+                    <Text style={styles.veiculoNota}>
+                      {servicos?.[v.id]?.ativo === false
+                        ? t('servicoIndisponivel')
+                        : t(v.chaveNota)}
+                    </Text>
                   </View>
                   <View style={styles.veiculoSeta}>
                     <Icone nome="seta" tamanho={18} cor={colors[v.acento]} traco={2.5} />
@@ -255,6 +278,7 @@ const criarEstilos = () =>
     saudacaoNome: { ...tipo.display, color: colors.teal },
     convite: { ...tipo.corpo, color: colors.textMuted, marginTop: spacing.xs },
     premido: { opacity: 0.92, transform: [{ scale: 0.995 }] },
+    veiculoDesligado: { opacity: 0.5 },
 
     safe: { flex: 1, backgroundColor: colors.paper },
     scroll: { flexGrow: 1, padding: spacing.lg },

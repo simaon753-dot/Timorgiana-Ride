@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { carryEstaAtivo } from '../configServico.js';
 import { TIPOS_CARGA, TIPOS_VEICULO, MOTIVOS_RECUSA } from '../config.js';
 import { cabe } from '../capacidade.js';
 import { criarAlerta, cancelamentosRecentes } from '../sos.js';
@@ -137,6 +138,13 @@ ridesRouter.post(
     } = req.body || {};
     if (!destLabel || !destLabel.trim()) {
       return res.status(400).json({ error: 'Indica o destino.' });
+    }
+
+    // O CARRY DESLIGADO NO PAINEL não aceita pedidos novos. As viagens já a
+    // decorrer continuam: desligar é para parar de receber, não para largar
+    // ninguém a meio.
+    if (vehicleType === 'carry' && !carryEstaAtivo()) {
+      return res.status(503).json({ error: 'O Carry está temporariamente indisponível.' });
     }
 
     // ── Transporte de bens ─────────────────────────────────────────
@@ -278,7 +286,7 @@ ridesRouter.post(
         // via um preço no ecrã e a viagem nascia com outro — e o do ecrã é o
         // que ele aceitou.
         pessoasContam ? passengers : null,
-        carryPessoas ? null : { volume: cargaVolume, ajuda: cargaAjuda }
+        carryPessoas ? null : { volume: cargaVolume, ajuda: cargaAjuda, paragens: paragens.length }
       );
       kmViagem = viagem.km;
       minViagem = viagem.min;

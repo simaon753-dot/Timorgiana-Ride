@@ -166,6 +166,14 @@ export const api = {
     request('/driver/terms', { method: 'POST', body: { version }, token }),
 
   adminResumo: (token) => request('/admin/resumo', { token }),
+  // Gestão do Carry (14/09/26): estado, preços, motoristas, recusas.
+  adminCarry: (token) => request('/admin/carry', { token }),
+  adminCarryTarifa: (token, valores) =>
+    request('/admin/carry/tarifa', { method: 'PUT', body: { valores }, token }),
+  adminCarryAtivo: (token, ativo) =>
+    request('/admin/carry/ativo', { method: 'PUT', body: { ativo }, token }),
+  // Que serviços estão ligados (o Carry pode ser desligado no painel).
+  servicos: (token) => request('/quote/servicos', { token }),
   adminSos: (token) => request('/admin/sos', { token }),
   adminNotificacoes: (token) => request('/admin/notificacoes', { token }),
   assinatura: (token) => request('/driver/assinatura', { token }),

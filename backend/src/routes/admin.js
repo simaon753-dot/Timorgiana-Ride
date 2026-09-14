@@ -1,4 +1,11 @@
 import { Router } from 'express';
+import { preco } from '../routing.js';
+import {
+  estadoCarry,
+  validarTarifa,
+  gravarTarifaCarry,
+  gravarCarryAtivo,
+} from '../configServico.js';
 import { historicoDe } from '../eventos.js';
 import { listarParadas, criarParada, apagarParada } from '../paradas.js';
 import { requireAuth } from '../auth.js';
@@ -235,6 +242,96 @@ adminRouter.get(
           AS "carry24h"
     `);
     res.json({ resumo: n });
+  })
+);
+
+// ── GESTÃO DO CARRY (14/09/26) ─────────────────────────────────────
+//
+// Um sítio para o que o Simão pediu gerir: ligar e desligar o serviço, os
+// preços, quem conduz (por capacidade), e porque é que os pedidos são postos
+// de lado. Os EXEMPLOS de preço são calculados aqui com a mesma função da
+// cotação: quem muda um valor vê o efeito em números que o passageiro vai ver.
+adminRouter.get(
+  '/carry',
+  wrap(async (_req, res) => {
+    const [motoristas, pedidos, recusas, ultimas] = await Promise.all([
+      query(
+        `SELECT COALESCE(vehicle_capacidade, 'sem') AS capacidade, COUNT(*)::int AS n,
+                COUNT(*) FILTER (WHERE is_online)::int AS online
+         FROM users
+         WHERE role = 'driver' AND driver_status = 'approved' AND vehicle_type = 'carry'
+         GROUP BY 1`
+      ),
+      one(
+        `SELECT COUNT(*)::int AS total,
+                COUNT(*) FILTER (WHERE status = 'completed')::int AS concluidas,
+                COUNT(*) FILTER (WHERE status = 'cancelled')::int AS canceladas,
+                COUNT(*) FILTER (WHERE status = 'cancelled' AND driver_id IS NULL)::int AS sem_resposta
+         FROM rides WHERE vehicle_type = 'carry' AND created_at > NOW() - INTERVAL '7 days'`
+      ),
+      query(
+        `SELECT detalhe->>'motivo' AS motivo, COUNT(*)::int AS n
+         FROM ride_events WHERE que = 'recusada' AND created_at > NOW() - INTERVAL '7 days'
+         GROUP BY 1`
+      ),
+      query(
+        `SELECT e.ride_id, e.created_at, e.detalhe->>'motivo' AS motivo, u.name AS motorista,
+                r.carga_volume, r.dest_label
+         FROM ride_events e
+         LEFT JOIN users u ON u.id = e.por
+         JOIN rides r ON r.id = e.ride_id
+         WHERE e.que = 'recusada'
+         ORDER BY e.id DESC LIMIT 10`
+      ),
+    ]);
+    const estado = estadoCarry();
+    let quem = null;
+    if (estado.atualizado?.por) {
+      quem = (await one('SELECT name FROM users WHERE id = $1', [estado.atualizado.por]))?.name;
+    }
+    const exemplos = [
+      { km: 5, min: 15, volume: 'pequeno', ajuda: 'nenhuma', paragens: 0 },
+      { km: 5, min: 15, volume: 'medio', ajuda: 'carregar', paragens: 0 },
+      { km: 10, min: 30, volume: 'grande', ajuda: 'ambas', paragens: 1 },
+    ].map((x) => ({ ...x, preco: preco('carry', x.km, x.min, null, x) }));
+    exemplos.push({ km: 10, min: 30, pessoas: 8, preco: preco('carry', 10, 30, 8, null) });
+
+    res.json({
+      ...estado,
+      atualizadoPorNome: quem || null,
+      exemplos,
+      motoristas,
+      pedidos7d: pedidos,
+      recusas7d: recusas,
+      ultimasRecusas: ultimas.map((u) => ({
+        rideId: u.ride_id,
+        quando: u.created_at,
+        motivo: u.motivo,
+        motorista: u.motorista,
+        volume: u.carga_volume,
+        destino: u.dest_label,
+      })),
+    });
+  })
+);
+
+// PUT /api/admin/carry/tarifa — gravar os preços ({} volta aos de partida)
+adminRouter.put(
+  '/carry/tarifa',
+  wrap(async (req, res) => {
+    const { erro, limpo } = validarTarifa(req.body?.valores);
+    if (erro) return res.status(400).json({ error: erro });
+    await gravarTarifaCarry(limpo, req.user.id);
+    res.json(estadoCarry());
+  })
+);
+
+// PUT /api/admin/carry/ativo — ligar ou desligar o serviço
+adminRouter.put(
+  '/carry/ativo',
+  wrap(async (req, res) => {
+    await gravarCarryAtivo(!!req.body?.ativo, req.user.id);
+    res.json(estadoCarry());
   })
 );
 

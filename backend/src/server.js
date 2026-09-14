@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { carregarConfigServico } from './configServico.js';
 import { podeEntrarAoServico } from './assinatura.js';
 import express from 'express';
 import cors from 'cors';
@@ -438,6 +439,11 @@ app.set('io', io);
 async function start() {
   try {
     await initSchema();
+    // Os preços e o estado do Carry guardados no painel, por cima dos de
+    // partida. Relidos de cinco em cinco minutos: se um dia houver mais do
+    // que uma instância, todas acabam por ver a mesma coisa.
+    await carregarConfigServico();
+    setInterval(carregarConfigServico, 5 * 60 * 1000).unref?.();
   } catch (e) {
     console.error('[arranque] não foi possível preparar a base de dados:', e.message);
     process.exit(1);
