@@ -1,6 +1,8 @@
 // Tétum (Tétum Praça, de Díli) — PRIMEIRA VERSÃO.
 // As traduções devem ser revistas por um falante nativo antes do lançamento.
 export default {
+  opcoesSeguranca: 'Polítika seguransa',
+  opcoesSegurancaSub: 'Saida mak ami halo atu proteje ema ne’ebé viaja (iha portugés)',
   privacidadeNovaTitulo: 'Avizu privasidade muda ona',
   termosNovosTitulo: 'Termu ba motorista muda ona',
   termosNovosTexto: 'Lee saida mak muda no simu.',

@@ -1,5 +1,7 @@
 // Português (europeu)
 export default {
+  opcoesSeguranca: 'Política de segurança',
+  opcoesSegurancaSub: 'O que fazemos para proteger quem viaja',
   privacidadeNovaTitulo: 'O aviso de privacidade mudou',
   termosNovosTitulo: 'Os termos para motoristas mudaram',
   termosNovosTexto: 'Leia o que mudou e aceite.',

@@ -6,6 +6,8 @@
 // code passes them by those names; changing them here would silently break
 // the substitution.
 export default {
+  opcoesSeguranca: 'Safety policy',
+  opcoesSegurancaSub: 'What we do to protect those who travel (in Portuguese)',
   privacidadeNovaTitulo: 'The privacy notice has changed',
   termosNovosTitulo: 'The driver terms have changed',
   termosNovosTexto: 'Read what has changed and accept it.',

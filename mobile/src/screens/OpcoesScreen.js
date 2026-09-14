@@ -16,6 +16,7 @@ import { useAuth } from '../context/AuthContext.js';
 import { useTema } from '../context/TemaContext.js';
 import EscolherEmergencia, { NUMEROS_RESERVA } from '../components/EscolherEmergencia.js';
 import { api } from '../api/client.js';
+import { getBaseUrl } from '../serverUrl.js';
 
 // Opções: como a aplicação se comporta.
 //
@@ -127,6 +128,15 @@ export default function OpcoesScreen({ navigation }) {
             titulo={t('privacyTitle')}
             subtitulo={t('opcoesPrivSub')}
             onPress={() => navigation.navigate('Termos', { documento: 'privacidade' })}
+          />
+          {/* A Política de Segurança não vive na app: é a página pública
+              gerada do mesmo ficheiro que faz o Word (juridico/d5-seguranca.js).
+              Abre-se no navegador, no servidor que a app está a usar. */}
+          <LinhaMenu
+            icone="boia"
+            titulo={t('opcoesSeguranca')}
+            subtitulo={t('opcoesSegurancaSub')}
+            onPress={() => Linking.openURL(`${getBaseUrl()}/seguranca`)}
           />
           <LinhaMenu
             icone="servidor"
