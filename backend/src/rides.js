@@ -526,6 +526,10 @@ export async function acceptRide(rideId, driverId, fareUsd, driverSeats) {
          SELECT 1 FROM rides r2
           WHERE r2.driver_id = $1 AND r2.status = ANY($5)
        )
+       -- SÓ QUEM ESTÁ AO SERVIÇO ACEITA (14/09/26). A rota já recusa quem
+       -- está indisponível; aqui fecha-se a corrida de desligar e aceitar no
+       -- mesmo instante.
+       AND EXISTS (SELECT 1 FROM users u WHERE u.id = $1 AND u.is_online)
      RETURNING id`,
     [driverId, num(fareUsd), rideId, driverSeats ?? null, ACTIVE_DRIVER]
   );

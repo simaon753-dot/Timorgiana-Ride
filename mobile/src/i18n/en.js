@@ -224,6 +224,8 @@ export default {
   resumoConfirmado: 'Confirmed',
   resumoPorConfirmar: 'Not yet confirmed',
   pedirCarryPreco: 'Request Carry · {preco}',
+  indisponivelTitulo: "You're offline",
+  indisponivelTexto: 'Turn on the button above to see and accept requests.',
   errCargaTipo: 'Choose what you are sending.',
   errCargaDeclaracao: 'Confirm the declaration before requesting.',
   vehicleMotorbike: 'Motorbike',

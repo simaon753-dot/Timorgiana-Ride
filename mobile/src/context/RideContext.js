@@ -69,7 +69,10 @@ export function RideProvider({ children }) {
       try {
         const { ride } = await api.activeRide(token);
         if (!cancelled && ride) setActiveRide(ride);
-        if (!cancelled && isDriver) {
+        // SÓ QUEM ESTÁ AO SERVIÇO VÊ PEDIDOS (14/09/26). O servidor já
+        // devolve a lista vazia a quem está indisponível; pedir aqui só
+        // quando se está ligado evita mostrar pedidos que não se podem aceitar.
+        if (!cancelled && isDriver && user?.isOnline) {
           const { rides } = await api.availableRides(token);
           if (!cancelled) setRequests(rides || []);
         }
@@ -137,18 +140,31 @@ export function RideProvider({ children }) {
       //
       // Ao religar, a app reafirma. O servidor é quem manda no registo, mas
       // a app é quem sabe o que o motorista escolheu.
-      if (onlineRef.current) socket.emit('driver:setOnline', true);
-
-      try {
-        const { rides } = await api.availableRides(token);
-        if (!cancelled) setRequests(rides || []);
-      } catch {
-        /* sem rede; a próxima ligação tenta outra vez */
+      //
+      // A LISTA SÓ DEPOIS DE O SERVIDOR CONFIRMAR. O servidor passou a dar a
+      // lista vazia a quem está indisponível; pedi-la antes de ele processar o
+      // "estou ao serviço" devolvia uma lista vazia a quem está ligado. Por
+      // isso vai no aviso de recepção do próprio `driver:setOnline`.
+      // Desligado, a lista fica vazia — é o que o motorista escolheu.
+      if (onlineRef.current) {
+        socket.emit('driver:setOnline', true, async () => {
+          try {
+            const { rides } = await api.availableRides(token);
+            if (!cancelled) setRequests(rides || []);
+          } catch {
+            /* sem rede; a próxima ligação tenta outra vez */
+          }
+        });
+      } else {
+        setRequests([]);
       }
     });
     socket.on('disconnect', () => setConnected(false));
 
     socket.on('ride:new', (ride) => {
+      // Desligado não ouve pedidos. O servidor já não o põe nas salas, mas um
+      // anúncio a meio de desligar não pode aparecer num ecrã indisponível.
+      if (!onlineRef.current) return;
       setRequests((prev) => (prev.some((r) => r.id === ride.id) ? prev : [...prev, ride]));
     });
     socket.on('ride:taken', ({ id }) => {
@@ -331,11 +347,20 @@ export function RideProvider({ children }) {
   const toggleOnline = useCallback(
     async (valor) => {
       setOnlineState(valor);
+      // DESLIGAR LIMPA A LISTA NO MESMO INSTANTE: quem está indisponível não
+      // vê pedidos nem os pode aceitar (14/09/26).
+      if (!valor) setRequests([]);
       socketRef.current?.emit('driver:setOnline', valor);
       try {
         const { online } = await api.setAvailability(token, valor);
         setOnlineState(!!online);
         setBloqueio(null);
+        // Ligar mostra os pedidos que já estavam à espera — não só os que
+        // forem anunciados daqui para a frente.
+        if (online) {
+          const { rides } = await api.availableRides(token);
+          setRequests(rides || []);
+        }
       } catch (e) {
         setOnlineState(!valor); // reverter se falhou
         // O `catch` mudo que estava aqui era o pior dos dois mundos: o
@@ -398,7 +423,7 @@ export function RideProvider({ children }) {
     // uma linha.
     rideIdRef.current = null;
     setActiveRide(null);
-    if (isDriver) {
+    if (isDriver && onlineRef.current) {
       try {
         const { rides } = await api.availableRides(token);
         setRequests(rides || []);

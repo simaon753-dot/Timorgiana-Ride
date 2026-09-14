@@ -8,6 +8,7 @@ import {
   Linking,
   Pressable,
   Image,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Logo from '../components/Logo.js';
@@ -269,7 +270,7 @@ export default function DriverHomeScreen({ navigation }) {
           <View>
             <View style={styles.cabecalhoLista}>
               <Text style={styles.heading}>{t('availableRequests')}</Text>
-              {requests.length ? (
+              {online && requests.length ? (
                 <View style={styles.novoPastilha}>
                   <Text style={styles.novoTexto}>{t('pedidoNovo')}</Text>
                 </View>
@@ -278,7 +279,18 @@ export default function DriverHomeScreen({ navigation }) {
             {/* O VAZIO COM DESENHO, como na referência: a mota a andar diz
                 "está tudo a funcionar, só ainda não há ninguém" melhor do que
                 uma caixa de texto — que se lê como "a lista não carregou". */}
-            {requests.length === 0 ? (
+            {/* INDISPONÍVEL NÃO VÊ PEDIDOS (14/09/26): nem a lista nem o botão
+                de aceitar. O ecrã diz porquê e o que fazer — o botão de ligar
+                está logo acima. */}
+            {!online ? (
+              <View style={styles.empty}>
+                <Icone nome="volante" tamanho={52} cor={colors.textMuted} traco={1.6} />
+                <Text style={[styles.emptyTitle, { marginTop: spacing.sm }]}>
+                  {t('indisponivelTitulo')}
+                </Text>
+                <Text style={styles.emptyHint}>{t('indisponivelTexto')}</Text>
+              </View>
+            ) : requests.length === 0 ? (
               <View style={styles.empty}>
                 <View style={styles.vazioImagemCaixa}>
                   <Image
@@ -342,8 +354,11 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
     setBusy(true);
     try {
       await onAccept(null);
-    } catch {
-      setBusy(false); // se falhar (já aceite por outro), volta a permitir
+    } catch (e) {
+      setBusy(false); // se falhar, volta a permitir
+      // A RAZÃO À VISTA: já aceite por outro, indisponível, outra viagem a
+      // decorrer. O `catch` mudo deixava o botão voltar atrás sem explicar.
+      Alert.alert(t('errGeneric'), e?.message || '');
     }
   }
 

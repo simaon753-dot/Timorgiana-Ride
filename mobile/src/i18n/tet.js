@@ -223,6 +223,8 @@ export default {
   resumoConfirmado: 'Konfirmadu',
   resumoPorConfirmar: 'Seidauk konfirma',
   pedirCarryPreco: 'Husu Carry · {preco}',
+  indisponivelTitulo: 'Ita la disponivel',
+  indisponivelTexto: 'Liga botão iha leten atu haree no simu pedidu.',
   errCargaTipo: 'Hili saida mak ita sei lori.',
   errCargaDeclaracao: 'Konfirma deklarasaun molok husu.',
   vehicleMotorbike: 'Motorizada',

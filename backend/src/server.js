@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { podeEntrarAoServico } from './assinatura.js';
 import express from 'express';
 import cors from 'cors';
 import { corsPorPedido } from './corsApi.js';
@@ -357,6 +358,14 @@ io.on('connection', (socket) => {
         if (!apto.pode) return ack?.({ ok: false, motivo: apto.motivo, qual: apto.qual });
         if (!(await temFotoDeHoje(user.id))) {
           return ack?.({ ok: false, motivo: 'foto_de_turno' });
+        }
+        // O SALDO TAMBÉM, e faltava (14/09/26). A rota HTTP verificava-o e
+        // este caminho não: um motorista sem dias carregava em "ligar", o
+        // socket marcava-o disponível na base, e a rota recusava a seguir sem
+        // desfazer nada — ficava "disponível" para o servidor e indisponível
+        // no ecrã. Com as três condições nos dois caminhos, isso acaba.
+        if (!(await podeEntrarAoServico(user.id)).pode) {
+          return ack?.({ ok: false, motivo: 'sem_saldo' });
         }
       }
       await setOnline(user.id, online);

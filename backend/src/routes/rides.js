@@ -379,6 +379,16 @@ ridesRouter.get(
   '/available',
   requireApprovedDriver,
   wrap(async (req, res) => {
+    // QUEM ESTÁ INDISPONÍVEL NÃO VÊ PEDIDOS (14/09/26).
+    //
+    // As salas do tempo real já faziam isto — quem se desliga sai delas e
+    // deixa de ouvir os anúncios —, mas esta lista não perguntava nada: a app
+    // pede-a ao abrir e em cada religação, e um motorista desligado via os
+    // pedidos todos e podia aceitá-los. O Simão apanhou-o a testar.
+    //
+    // Lista vazia e não erro: estar desligado é um estado normal, não uma
+    // falha. `indisponivel` diz à app porquê.
+    if (!req.user.is_online) return res.json({ rides: [], indisponivel: true });
     const rows = await getAvailableRidesForDriver(
       req.user.vehicle_type || 'car',
       req.user.last_lat,
@@ -399,6 +409,15 @@ ridesRouter.post(
     const fare = fareUsd != null && fareUsd !== '' ? Number(fareUsd) : null;
     if (fare != null && (Number.isNaN(fare) || fare < 0)) {
       return res.status(400).json({ error: 'Tarifa inválida.' });
+    }
+    // Indisponível não aceita. A mesma condição vai também DENTRO do UPDATE
+    // (acceptRide): esta dá a mensagem certa, aquela fecha a corrida entre
+    // desligar e aceitar no mesmo instante.
+    if (!req.user.is_online) {
+      return res.status(403).json({
+        error: 'Estás indisponível. Liga-te para aceitar pedidos.',
+        motivo: 'indisponivel',
+      });
     }
 
     const row = await acceptRide(rideId, req.user.id, fare, lugaresQueContam(req.user));
@@ -882,9 +901,12 @@ ridesRouter.get(
     const terminada = ride.status === 'completed' || ride.status === 'cancelled';
     const meu = ride.passenger_id === req.user.id || ride.driver_id === req.user.id;
     const porAceitar = ride.status === 'requested' && !ride.driver_id;
-    const motoristaAprovado = req.user.driver_status === 'approved';
+    // Aprovado E ao serviço: é a mesma porta da lista de pedidos, e quem está
+    // indisponível deixou de ver a lista — não pode continuar a ver as
+    // fotografias dela.
+    const motoristaAoServico = req.user.driver_status === 'approved' && !!req.user.is_online;
 
-    if (terminada || !(meu || (porAceitar && motoristaAprovado))) {
+    if (terminada || !(meu || (porAceitar && motoristaAoServico))) {
       return res.status(404).json({ error: 'Sem fotografia.' });
     }
 

@@ -224,6 +224,8 @@ export default {
   resumoConfirmado: 'Confirmada',
   resumoPorConfirmar: 'Por confirmar',
   pedirCarryPreco: 'Pedir Carry · {preco}',
+  indisponivelTitulo: 'Está indisponível',
+  indisponivelTexto: 'Ligue o botão acima para ver e aceitar pedidos.',
   errCargaTipo: 'Escolha o que vai transportar.',
   errCargaDeclaracao: 'Confirme a declaração antes de pedir.',
   vehicleMotorbike: 'Motorizada',
