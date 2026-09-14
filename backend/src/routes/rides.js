@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { TIPOS_CARGA, TIPOS_VEICULO } from '../config.js';
+import { TIPOS_CARGA, TIPOS_VEICULO, MOTIVOS_RECUSA } from '../config.js';
+import { cabe } from '../capacidade.js';
 import { criarAlerta, cancelamentosRecentes } from '../sos.js';
 import { ultimaFotoDeTurno } from '../turnos.js';
 import { getOwnDocument } from '../documents.js';
@@ -393,9 +394,34 @@ ridesRouter.get(
       req.user.vehicle_type || 'car',
       req.user.last_lat,
       req.user.last_lng,
-      lugaresQueContam(req.user)
+      lugaresQueContam(req.user),
+      req.user.vehicle_capacidade
     );
     return res.json({ rides: rows.map((r) => toPublicRide(r)) });
+  })
+);
+
+// POST /api/rides/:id/recusar — pôr um pedido de lado, com o motivo
+//
+// O pedido continua para os outros motoristas; só se regista quem o pôs de
+// lado e porquê. "Carga incompatível com o veículo" repetida no mesmo pedido
+// diz que a carga está mal descrita ou que chegou aos veículos errados.
+ridesRouter.post(
+  '/:id/recusar',
+  requireApprovedDriver,
+  wrap(async (req, res) => {
+    const rideId = Number(req.params.id);
+    const motivo = MOTIVOS_RECUSA.includes(req.body?.motivo) ? req.body.motivo : 'agora';
+    const ride = await getRideById(rideId);
+    if (ride?.status === 'requested') {
+      registarSemEsperar({
+        rideId,
+        que: EVENTOS.RECUSADA,
+        por: req.user.id,
+        detalhe: { motivo, capacidade: req.user.vehicle_capacidade || null },
+      });
+    }
+    return res.json({ ok: true });
   })
 );
 
@@ -420,7 +446,13 @@ ridesRouter.post(
       });
     }
 
-    const row = await acceptRide(rideId, req.user.id, fare, lugaresQueContam(req.user));
+    const row = await acceptRide(
+      rideId,
+      req.user.id,
+      fare,
+      lugaresQueContam(req.user),
+      req.user.vehicle_capacidade
+    );
     if (!row) {
       // Duas causas possíveis; distingui-las poupa uma chamada de telefone
       // ao motorista a perguntar porque é que não conseguiu aceitar.
@@ -438,6 +470,12 @@ ridesRouter.post(
       // O motorista já tem uma viagem a decorrer. Passou a ser recusado no
       // próprio UPDATE; sem esta mensagem, quem tem uma viagem em curso lia
       // "já não está disponível" e ia procurar o problema no sítio errado.
+      if (atual?.status === 'requested' && !cabe(atual.carga_volume, req.user.vehicle_capacidade)) {
+        return res.status(409).json({
+          error: 'Esta carga é maior do que a capacidade do teu veículo.',
+          motivo: 'capacidade',
+        });
+      }
       if (await motoristaOcupado(req.user.id)) {
         return res.status(409).json({
           error: 'Já tens uma viagem a decorrer. Termina-a antes de aceitar outra.',

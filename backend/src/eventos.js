@@ -32,6 +32,8 @@ export const EVENTOS = {
   CANCELADA: 'cancelada',
   TARIFA_ALTERADA: 'tarifa_alterada',
   SOS: 'sos',
+  // Um motorista pôs o pedido de lado, com o motivo em `detalhe`.
+  RECUSADA: 'recusada',
 };
 
 // Regista um evento.

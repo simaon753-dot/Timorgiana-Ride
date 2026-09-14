@@ -103,6 +103,12 @@ export const api = {
   ride: (token, id) => request(`/rides/${id}`, { token }),
   rideHistory: (token) => request('/rides/history', { token }),
   availableRides: (token) => request('/rides/available', { token }),
+  // Pôr um pedido de lado, com o motivo (14/09/26).
+  recusarPedido: (token, id, motivo) =>
+    request(`/rides/${id}/recusar`, { method: 'POST', body: { motivo }, token }),
+  // Carroçaria, capacidade e ano do Carry, para quem se registou antes.
+  definirCapacidade: (token, dados) =>
+    request('/driver/capacidade', { method: 'POST', body: dados, token }),
   acceptRide: (token, id, fareUsd) =>
     request(`/rides/${id}/accept`, { method: 'POST', body: { fareUsd }, token }),
   startRide: (token, id, code) =>

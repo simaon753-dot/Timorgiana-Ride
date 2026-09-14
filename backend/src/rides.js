@@ -3,6 +3,7 @@ import {
   TIPOS_VEICULO,
   TIPOS_CARGA,
   VOLUMES_CARGA,
+  CAPACIDADES,
   AJUDAS_CARGA,
   MAX_PESSOAS_CARRY,
 } from './config.js';
@@ -447,7 +448,13 @@ export function getRideHistoryForUser(user, limit = 50) {
 // `driverSeats` = lugares do carro. Um pedido de 5 pessoas não deve
 // sequer aparecer a quem tem 4 lugares: mostrar e depois recusar seria
 // fazer o motorista perder tempo e o passageiro perder a viagem.
-export function getAvailableRidesForDriver(driverVehicleType, driverLat, driverLng, driverSeats) {
+export function getAvailableRidesForDriver(
+  driverVehicleType,
+  driverLat,
+  driverLng,
+  driverSeats,
+  driverCapacidade
+) {
   // Município do motorista, calculado da posição dele.
   //
   // Sem posição conhecida, fica `null` e o filtro deixa passar tudo. É
@@ -478,7 +485,14 @@ export function getAvailableRidesForDriver(driverVehicleType, driverLat, driverL
        WHERE r.status = 'requested' AND r.driver_id IS NULL
          AND (r.vehicle_type IS NULL OR r.vehicle_type = $1)
          AND (r.passengers IS NULL OR $4::int IS NULL OR r.passengers <= $4::int)
-         AND (r.municipio IS NULL OR $5::text IS NULL OR r.municipio = $5::text)) sub
+         AND (r.municipio IS NULL OR $5::text IS NULL OR r.municipio = $5::text)
+         -- A CARGA CABE NO VEÍCULO (14/09/26): pequena para todos, média para
+         -- médios e grandes, grande só para grandes. Sem capacidade conhecida
+         -- vê tudo (motoristas registados antes deste campo); sem volume é
+         -- viagem de pessoas. A mesma ordem de capacidade.js.
+         AND (r.carga_volume IS NULL OR $6::text IS NULL OR
+              (CASE r.carga_volume WHEN 'pequeno' THEN 1 WHEN 'medio' THEN 2 ELSE 3 END)
+              <= (CASE $6::text WHEN 'pequena' THEN 1 WHEN 'media' THEN 2 ELSE 3 END))) sub
      ORDER BY pickup_km ASC NULLS LAST, sub.id ASC`,
     [
       driverVehicleType,
@@ -486,13 +500,14 @@ export function getAvailableRidesForDriver(driverVehicleType, driverLat, driverL
       typeof driverLng === 'number' ? driverLng : null,
       driverSeats ?? null,
       meuMunicipio,
+      CAPACIDADES.includes(driverCapacidade) ? driverCapacidade : null,
     ]
   );
 }
 
 // Aceitar de forma ATÓMICA: a condição vai DENTRO do UPDATE, por isso se
 // dois motoristas carregarem ao mesmo tempo só um encontra a linha livre.
-export async function acceptRide(rideId, driverId, fareUsd, driverSeats) {
+export async function acceptRide(rideId, driverId, fareUsd, driverSeats, driverCapacidade) {
   // A condição dos lugares vai DENTRO do UPDATE, tal como a da corrida já
   // estar livre. A app filtra a lista, mas isso é conveniência — um
   // telemóvel modificado aceitaria à mesma, e ficariam pessoas de fé em
@@ -530,8 +545,19 @@ export async function acceptRide(rideId, driverId, fareUsd, driverSeats) {
        -- está indisponível; aqui fecha-se a corrida de desligar e aceitar no
        -- mesmo instante.
        AND EXISTS (SELECT 1 FROM users u WHERE u.id = $1 AND u.is_online)
+       -- A carga cabe no veículo — a mesma regra da lista (14/09/26).
+       AND (carga_volume IS NULL OR $6::text IS NULL OR
+            (CASE carga_volume WHEN 'pequeno' THEN 1 WHEN 'medio' THEN 2 ELSE 3 END)
+            <= (CASE $6::text WHEN 'pequena' THEN 1 WHEN 'media' THEN 2 ELSE 3 END))
      RETURNING id`,
-    [driverId, num(fareUsd), rideId, driverSeats ?? null, ACTIVE_DRIVER]
+    [
+      driverId,
+      num(fareUsd),
+      rideId,
+      driverSeats ?? null,
+      ACTIVE_DRIVER,
+      CAPACIDADES.includes(driverCapacidade) ? driverCapacidade : null,
+    ]
   );
   if (!updated) return null; // já aceite por outro, este já tem viagem, ou inexistente
   return getRideById(rideId);

@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { dadosDeCarga } from './capacidade.js';
 import { TIPOS_VEICULO } from './config.js';
 import { query, one } from './db.js';
 
@@ -60,6 +61,9 @@ export function toPublicUser(row) {
       plate: row.vehicle_plate || null,
       color: row.vehicle_color || null,
       seats: row.vehicle_seats ?? null,
+      carroceria: row.vehicle_carroceria || null,
+      capacidade: row.vehicle_capacidade || null,
+      ano: row.vehicle_ano ?? null,
     };
   }
   if (row.is_admin) base.isAdmin = true;
@@ -94,19 +98,23 @@ export async function createUser({
   const vehicleType =
     role === 'driver' ? (TIPOS_VEICULO.includes(vehicle?.type) ? vehicle.type : 'car') : null;
 
+  const carga = dadosDeCarga(vehicle, role === 'driver' && vehicleType === 'carry');
+
   // Motoristas novos ficam à espera de aprovação; passageiros entram logo
   return one(
     `INSERT INTO users
        (name, phone, email, password_hash, role, vehicle_type, vehicle_model, vehicle_plate,
         vehicle_color, vehicle_seats, driver_status, terms_version, terms_accepted_at,
-        privacy_version, privacy_accepted_at, cidadao_tl, cidadao_tl_em)
+        privacy_version, privacy_accepted_at, cidadao_tl, cidadao_tl_em,
+        vehicle_carroceria, vehicle_capacidade, vehicle_ano)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NOW(),$13,
              CASE WHEN $13::text IS NULL THEN NULL ELSE NOW() END,
              $14,
              -- A hora só existe se a declaração existir. Guardar uma data ao
              -- lado de um "não declarou" seria datar uma coisa que ninguém
              -- disse — o mesmo princípio do consentimento dos menores.
-             CASE WHEN $14::boolean IS TRUE THEN NOW() ELSE NULL END)
+             CASE WHEN $14::boolean IS TRUE THEN NOW() ELSE NULL END,
+             $15, $16, $17)
      RETURNING *`,
     [
       name.trim(),
@@ -128,6 +136,9 @@ export async function createUser({
       // como "não foi perguntado" — diferente de FALSE, que seria "disse que
       // não é". A app nem lhe faz a pergunta.
       role === 'driver' ? !!cidadaoTL : null,
+      carga.carroceria,
+      carga.capacidade,
+      carga.ano,
     ]
   );
 }

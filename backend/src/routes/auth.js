@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { CARROCERIAS, CAPACIDADES } from '../config.js';
 import {
   createUser,
   findUserByPhone,
@@ -103,6 +104,16 @@ authRouter.post('/register', async (req, res) => {
     // uma cortesia da interface; o que fica como prova é isto.
     if (!termsVersion) {
       return res.status(400).json({ error: 'É preciso aceitar os termos de utilização.' });
+    }
+
+    // O Carry diz a carroçaria e a capacidade no registo: é a capacidade que
+    // decide que pedidos de bens lhe chegam.
+    if (
+      role === 'driver' &&
+      vehicle?.type === 'carry' &&
+      (!CARROCERIAS.includes(vehicle.carroceria) || !CAPACIDADES.includes(vehicle.capacidade))
+    ) {
+      return res.status(400).json({ error: 'Indica a carroçaria e a capacidade do Carry.' });
     }
 
     if (await findUserByPhone(phone)) {

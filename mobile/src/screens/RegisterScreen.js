@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import DadosCarga from '../design/DadosCarga.js';
 import {
   View,
   Text,
@@ -84,6 +85,10 @@ export default function RegisterScreen({ navigation, route }) {
   const [vPlate, setVPlate] = useState('');
   const [vColor, setVColor] = useState('');
   const [vSeats, setVSeats] = useState(null);
+  // Só no Carry (VEICULOS[tipo].perguntaCarga): carroçaria, capacidade, ano.
+  const [vCarroceria, setVCarroceria] = useState(null);
+  const [vCapacidade, setVCapacidade] = useState(null);
+  const [vAno, setVAno] = useState('');
 
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -111,6 +116,8 @@ export default function RegisterScreen({ navigation, route }) {
     // A COR É OBRIGATÓRIA: é o que o passageiro vê primeiro. A matrícula só
     // se lê a três metros; ao fundo da rua o que identifica um veículo é a cor.
     if (!vColor) return t('errColorRequired');
+    if (VEICULOS[vType]?.perguntaCarga && (!vCarroceria || !vCapacidade))
+      return t('errCarroceriaCapacidade');
     return null;
   }
 
@@ -160,6 +167,13 @@ export default function RegisterScreen({ navigation, route }) {
               plate: vPlate.trim().toUpperCase(),
               color: vColor,
               ...(VEICULOS[vType]?.perguntaLugares && vSeats ? { seats: vSeats } : {}),
+              ...(VEICULOS[vType]?.perguntaCarga
+                ? {
+                    carroceria: vCarroceria,
+                    capacidade: vCapacidade,
+                    ano: vAno ? Number(vAno) : null,
+                  }
+                : {}),
             },
           }
         : {}),
@@ -393,6 +407,18 @@ export default function RegisterScreen({ navigation, route }) {
                   <Text style={styles.asterisco}> *</Text>
                 </Text>
                 <EscolherCor valor={vColor} onEscolher={setVColor} />
+                {VEICULOS[vType]?.perguntaCarga ? (
+                  <View style={{ marginTop: spacing.md }}>
+                    <DadosCarga
+                      carroceria={vCarroceria}
+                      onCarroceria={setVCarroceria}
+                      capacidade={vCapacidade}
+                      onCapacidade={setVCapacidade}
+                      ano={vAno}
+                      onAno={setVAno}
+                    />
+                  </View>
+                ) : null}
               </CartaoSeccao>
             </View>
           ) : (

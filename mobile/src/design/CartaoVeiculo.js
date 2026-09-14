@@ -5,6 +5,7 @@ import { tipo } from './tipografia.js';
 import Icone from './Icone.js';
 import { VEICULOS, nomeDoVeiculo } from '../dados/tiposDeVeiculo.js';
 import { nomeDaCor, hexDaCor } from '../lib/corVeiculo.js';
+import { CARROCERIAS, CAPACIDADES } from '../dados/veiculos.js';
 import { useI18n } from '../i18n/index.js';
 
 // O CARTÃO DO VEÍCULO — sistema de design TGA. Saiu da viagem do passageiro
@@ -61,9 +62,26 @@ export default function CartaoVeiculo({ veiculo, titulo }) {
         ) : null}
         {veiculo.seats ? <Dado rotulo={t('vehicleSeats')} valor={String(veiculo.seats)} /> : null}
       </View>
+      {/* A segunda linha, só no Carry: o que protege a carga e quanto leva. */}
+      {veiculo.carroceria || veiculo.capacidade || veiculo.ano ? (
+        <View style={styles.dados}>
+          <Dado
+            rotulo={t('rotuloCarroceria')}
+            valor={veiculo.carroceria ? t(NOME_CARROCERIA[veiculo.carroceria]) : null}
+          />
+          <Dado
+            rotulo={t('capacidadeRotulo')}
+            valor={veiculo.capacidade ? t(NOME_CAPACIDADE[veiculo.capacidade]) : null}
+          />
+          <Dado rotulo={t('rotuloAno')} valor={veiculo.ano ? String(veiculo.ano) : null} />
+        </View>
+      ) : null}
     </View>
   );
 }
+
+const NOME_CARROCERIA = Object.fromEntries(CARROCERIAS.map((c) => [c.id, c.chave]));
+const NOME_CAPACIDADE = Object.fromEntries(CAPACIDADES.map((c) => [c.id, c.chave]));
 
 function Dado({ rotulo, valor }) {
   if (!valor) return null;

@@ -36,6 +36,17 @@ export const TIPOS_CARGA = [
 export const VOLUMES_CARGA = ['pequeno', 'medio', 'grande'];
 export const AJUDAS_CARGA = ['nenhuma', 'carregar', 'descarregar', 'ambas'];
 
+// O VEÍCULO DE CARGA, descrito para o matching (14/09/26). A carroçaria diz
+// o que o veículo protege (chuva, sol, roubo); a capacidade diz o que cabe. A
+// capacidade é a que decide quem vê um pedido: uma carga GRANDE só vai a
+// veículos grandes, uma MÉDIA a médios e grandes, uma PEQUENA a todos.
+export const CARROCERIAS = ['aberta', 'coberta', 'fechada', 'caixa'];
+export const CAPACIDADES = ['pequena', 'media', 'grande'];
+// Porque é que um motorista pôs um pedido de lado. Fica registado na
+// história da viagem: "carga incompatível" repetida diz que os pedidos estão
+// a chegar aos veículos errados.
+export const MOTIVOS_RECUSA = ['agora', 'incompativel'];
+
 export const config = {
   // O alojamento define a porta por variável de ambiente
   port: Number(process.env.PORT) || 4000,

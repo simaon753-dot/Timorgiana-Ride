@@ -160,12 +160,37 @@ export const LUGARES_CARRY = Array.from({ length: 15 }, (_, i) => i + 1);
 export const CARGA = [
   { marca: 'Suzuki', modelos: ['Carry'] },
   { marca: 'Daihatsu', modelos: ['Gran Max Pickup'] },
-  { marca: 'Mitsubishi', modelos: ['Colt L200'] },
+  { marca: 'Mitsubishi', modelos: ['Colt', 'L200'] },
   { marca: 'Toyota', modelos: ['Hilux'] },
   { marca: 'Isuzu', modelos: ['D-Max'] },
   { marca: 'Mazda', modelos: ['BT-50'] },
   { marca: 'Ford', modelos: ['Ranger'] },
 ];
+
+// A CARROÇARIA E A CAPACIDADE do Carry (14/09/26) — as mesmas listas do
+// servidor (config.js). A capacidade decide que pedidos de bens chegam a cada
+// veículo; as notas dizem-no em coisas que se vêem, não em quilos.
+export const CARROCERIAS = [
+  { id: 'aberta', chave: 'carroceriaAberta' },
+  { id: 'coberta', chave: 'carroceriaCoberta' },
+  { id: 'fechada', chave: 'carroceriaFechada' },
+  { id: 'caixa', chave: 'carroceriaCaixa' },
+];
+export const CAPACIDADES = [
+  { id: 'pequena', chave: 'capacidadePequena', nota: 'capacidadePequenaNota' },
+  { id: 'media', chave: 'capacidadeMedia', nota: 'capacidadeMediaNota' },
+  { id: 'grande', chave: 'capacidadeGrande', nota: 'capacidadeGrandeNota' },
+];
+
+// A carga cabe no veículo? A mesma regra do servidor (capacidade.js): sem
+// capacidade conhecida, cabe — quem se registou antes deste campo continua a
+// ver tudo até o indicar.
+const ORDEM_VOLUME = { pequeno: 1, medio: 2, grande: 3 };
+const ORDEM_CAPACIDADE = { pequena: 1, media: 2, grande: 3 };
+export function cargaCabe(volume, capacidade) {
+  if (!ORDEM_VOLUME[volume] || !ORDEM_CAPACIDADE[capacidade]) return true;
+  return ORDEM_VOLUME[volume] <= ORDEM_CAPACIDADE[capacidade];
+}
 
 export function listaPlana(tipo) {
   // Três listas e não duas. Antes era um ternário — tudo o que não fosse mota

@@ -1,7 +1,9 @@
 import { query, one } from './db.js';
 
 const MAX_BYTES = 4 * 1024 * 1024; // 4 MB por documento
-const TIPOS = ['licence', 'vehicle', 'photo', 'inspection', 'identity'];
+// 'fotoveiculo' (14/09/26): a fotografia do Carry com a matrícula à vista. OPCIONAL — não
+// entra em OBRIGATORIOS, e por isso nunca bloqueia ninguém de trabalhar.
+const TIPOS = ['licence', 'vehicle', 'photo', 'inspection', 'identity', 'fotoveiculo'];
 
 // O dia em Díli, e não o dia do servidor.
 //

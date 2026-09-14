@@ -46,6 +46,7 @@ const NOME_DO_DOC = {
   inspection: 'docInspection',
   identity: 'docIdentity',
   photo: 'docPhoto',
+  fotoveiculo: 'docFotoveiculo',
 };
 
 export default function AdminDetalheScreen({ navigation, route }) {

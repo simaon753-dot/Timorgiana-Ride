@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { VEICULOS } from '../dados/tiposDeVeiculo.js';
 import {
   View,
   Text,
@@ -59,6 +60,10 @@ const TIPOS = [
   // com ele caducado dá multa a dobrar se a polícia de trânsito mandar
   // parar. Entrou em 02/09/2026.
   { kind: 'inspection', label: 'docInspection' },
+  // A fotografia do Carry, com a matrícula à vista (14/09/26). Opcional, sem
+  // validade, e só para quem conduz um Carry: é ela que mostra ao
+  // administrador o tamanho real da caixa que o motorista declarou.
+  { kind: 'fotoveiculo', label: 'docFotoveiculo', soCarry: true },
 ];
 
 // Ecrã que o motorista vê enquanto a conta não está aprovada. Sem isto,
@@ -148,7 +153,7 @@ export default function DriverPendingScreen({ navigation }) {
   // A fotografia do motorista não caduca; tudo o resto sim. Não se pergunta
   // uma data que não existe.
   function precisaValidade(kind) {
-    return kind !== 'photo' && kind !== 'identity';
+    return kind !== 'photo' && kind !== 'identity' && kind !== 'fotoveiculo';
   }
 
   // Guardar só a data, sem mexer na fotografia.
@@ -285,7 +290,9 @@ export default function DriverPendingScreen({ navigation }) {
               {loading ? (
                 <ActivityIndicator color={colors.teal} style={{ marginTop: spacing.lg }} />
               ) : (
-                TIPOS.map((tp) => {
+                TIPOS.filter(
+                  (tp) => !tp.soCarry || VEICULOS[user?.vehicle?.type]?.perguntaCarga
+                ).map((tp) => {
                   const enviado = enviados.includes(tp.kind);
                   const doc = docs.find((d) => d.kind === tp.kind);
                   return (

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import { cargaCabe } from '../dados/veiculos.js';
 import { nomeDaRua, metrosEntre } from '../lib/geocode.js';
 import * as Location from 'expo-location';
 import { api } from '../api/client.js';
@@ -165,6 +166,9 @@ export function RideProvider({ children }) {
       // Desligado não ouve pedidos. O servidor já não o põe nas salas, mas um
       // anúncio a meio de desligar não pode aparecer num ecrã indisponível.
       if (!onlineRef.current) return;
+      // Só o que cabe no veículo — a mesma regra que o servidor aplica na
+      // lista e na aceitação (14/09/26).
+      if (!cargaCabe(ride.carga?.volume, user?.vehicle?.capacidade)) return;
       setRequests((prev) => (prev.some((r) => r.id === ride.id) ? prev : [...prev, ride]));
     });
     socket.on('ride:taken', ({ id }) => {
@@ -437,6 +441,17 @@ export function RideProvider({ children }) {
 
   // A filtragem é feita AQUI, à saída, e não em cada ecrã que use a lista.
   // Um filtro por consumidor divergiria no dia em que houvesse dois.
+  // RECUSAR COM MOTIVO: o pedido sai da lista deste motorista e o motivo
+  // fica registado no servidor (sem esperar — a lista não fica à espera da
+  // rede para esconder o que ele já pôs de lado).
+  const recusarPedido = useCallback(
+    (id, motivo = 'agora') => {
+      api.recusarPedido(token, id, motivo).catch(() => {});
+      ignorarPedido(id);
+    },
+    [token, ignorarPedido]
+  );
+
   const pedidosVisiveis = requests.filter((r) => !ignorados.has(r.id));
 
   return (
@@ -446,6 +461,7 @@ export function RideProvider({ children }) {
         isFinal,
         requests: pedidosVisiveis,
         ignorarPedido,
+        recusarPedido,
         messages,
         unread,
         rated,

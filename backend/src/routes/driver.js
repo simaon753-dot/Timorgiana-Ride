@@ -1,5 +1,6 @@
 import { Router } from 'express';
 // Faltava: a lista era usada sem ser importada (ver scripts/verificar-nomes.mjs).
+import { dadosDeCarga } from '../capacidade.js';
 import { TIPOS_VEICULO } from '../config.js';
 import { one, query } from '../db.js';
 import { requireAuth } from '../auth.js';
@@ -223,7 +224,7 @@ driverRouter.get(
 driverRouter.post(
   '/vehicle',
   wrap(async (req, res) => {
-    const { type, model, plate, color, seats } = req.body || {};
+    const { type, model, plate, color, seats, carroceria, capacidade, ano } = req.body || {};
     if (!plate || !String(plate).trim()) {
       return res.status(400).json({ error: 'Indica a matrícula do veículo.' });
     }
@@ -231,11 +232,16 @@ driverRouter.post(
     if (tipo === 'car' && !seats) {
       return res.status(400).json({ error: 'Indica quantos passageiros o carro leva.' });
     }
+    const carga = dadosDeCarga({ carroceria, capacidade, ano }, tipo === 'carry');
+    if (tipo === 'carry' && (!carga.carroceria || !carga.capacidade)) {
+      return res.status(400).json({ error: 'Indica a carroçaria e a capacidade do Carry.' });
+    }
 
     const row = await one(
       `UPDATE users
        SET vehicle_type = $1, vehicle_model = $2, vehicle_plate = $3,
            vehicle_color = $4, vehicle_seats = $5,
+           vehicle_carroceria = $7, vehicle_capacidade = $8, vehicle_ano = $9,
            -- O PAPEL PASSA A MOTORISTA, e a falta desta linha era um
            -- defeito silencioso: a conta ficava aprovada e o sistema de
            -- motoristas continuava a não a ver.
@@ -262,7 +268,34 @@ driverRouter.post(
         color?.trim() || null,
         tipo === 'car' ? Math.max(1, Math.min(12, Number(seats))) : null,
         req.user.id,
+        carga.carroceria,
+        carga.capacidade,
+        carga.ano,
       ]
+    );
+    res.json({ user: toPublicUser(row) });
+  })
+);
+
+// POST /api/driver/capacidade — carroçaria, capacidade e ano do Carry
+//
+// Para os motoristas que se registaram antes destes campos existirem: dizem
+// o que falta sem voltar a preencher o veículo inteiro — e sem a análise
+// recomeçar, porque não mudam nada do que já foi aprovado.
+driverRouter.post(
+  '/capacidade',
+  wrap(async (req, res) => {
+    if (req.user.vehicle_type !== 'carry') {
+      return res.status(400).json({ error: 'Só para veículos Carry.' });
+    }
+    const carga = dadosDeCarga(req.body || {}, true);
+    if (!carga.carroceria || !carga.capacidade) {
+      return res.status(400).json({ error: 'Indica a carroçaria e a capacidade do Carry.' });
+    }
+    const row = await one(
+      `UPDATE users SET vehicle_carroceria = $1, vehicle_capacidade = $2, vehicle_ano = $3
+       WHERE id = $4 RETURNING *`,
+      [carga.carroceria, carga.capacidade, carga.ano, req.user.id]
     );
     res.json({ user: toPublicUser(row) });
   })

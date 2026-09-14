@@ -64,6 +64,9 @@ for (const id of naApp) {
 // documento que a app não pede, o motorista fica bloqueado sem ter onde
 // carregar para se desbloquear — e não há ecrã nenhum que lhe explique isso.
 const noServidorDocs = idsDe('../backend/src/documents.js', 'export const OBRIGATORIOS = [');
+// Os que o servidor CONHECE (aceita receber), obrigatórios ou não. Um documento
+// opcional — a fotografia do Carry — é conhecido sem ser exigido.
+const conhecidosDocs = idsDe('../backend/src/documents.js', 'const TIPOS = [');
 const naAppDocs = [
   ...readFileSync('src/screens/DriverPendingScreen.js', 'utf8').matchAll(
     /\{\s*kind:\s*'([a-z]+)'/g
@@ -78,7 +81,7 @@ for (const x of noServidorDocs) {
   }
 }
 for (const x of naAppDocs) {
-  if (!noServidorDocs.includes(x)) {
+  if (!conhecidosDocs.includes(x)) {
     problemas.push(`documento '${x}' é pedido pela app mas o servidor não o conhece`);
   }
 }

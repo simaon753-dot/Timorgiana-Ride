@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import DadosCarga from '../design/DadosCarga.js';
 import { StyleSheet, Text, View } from 'react-native';
 import Button from './Button.js';
 import TextField from './TextField.js';
@@ -38,6 +39,10 @@ export default function FormularioVeiculo({ onPronto }) {
   const [matricula, setMatricula] = useState('');
   const [cor, setCor] = useState('');
   const [lugares, setLugares] = useState(null);
+  const [carroceria, setCarroceria] = useState(null);
+  const [capacidade, setCapacidade] = useState(null);
+  const [ano, setAno] = useState('');
+  const pedeCarga = !!VEICULOS[tipoVeiculo]?.perguntaCarga;
   const [erro, setErro] = useState(null);
   const [aEnviar, setAEnviar] = useState(false);
   const pedeLugares = !!VEICULOS[tipoVeiculo]?.perguntaLugares;
@@ -51,6 +56,7 @@ export default function FormularioVeiculo({ onPronto }) {
     // desaparecer — e este é o ecrã por onde um motorista já registado a vai
     // preencher pela primeira vez.
     if (!cor) return setErro(t('errColorRequired'));
+    if (pedeCarga && (!carroceria || !capacidade)) return setErro(t('errCarroceriaCapacidade'));
 
     setAEnviar(true);
     try {
@@ -60,6 +66,7 @@ export default function FormularioVeiculo({ onPronto }) {
         plate: matricula.trim().toUpperCase(),
         color: cor,
         ...(pedeLugares ? { seats: lugares } : {}),
+        ...(pedeCarga ? { carroceria, capacidade, ano: ano ? Number(ano) : null } : {}),
       });
       await refreshUser();
       onPronto?.();
@@ -113,6 +120,18 @@ export default function FormularioVeiculo({ onPronto }) {
         <Text style={styles.asterisco}> *</Text>
       </Text>
       <EscolherCor valor={cor} onEscolher={setCor} />
+      {pedeCarga ? (
+        <View style={{ marginTop: spacing.md }}>
+          <DadosCarga
+            carroceria={carroceria}
+            onCarroceria={setCarroceria}
+            capacidade={capacidade}
+            onCapacidade={setCapacidade}
+            ano={ano}
+            onAno={setAno}
+          />
+        </View>
+      ) : null}
 
       {erro ? <Text style={styles.erro}>{erro}</Text> : null}
       <View style={{ height: spacing.md }} />

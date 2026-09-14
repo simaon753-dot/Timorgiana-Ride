@@ -390,6 +390,10 @@ export async function initSchema() {
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS passengers INTEGER`);
   // Lugares do carro, SEM contar o motorista.
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS vehicle_seats INTEGER`);
+  // O veículo de carga: carroçaria, capacidade e ano (14/09/26). Só no Carry.
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS vehicle_carroceria TEXT`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS vehicle_capacidade TEXT`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS vehicle_ano INTEGER`);
 
   // Código que o passageiro diz ao motorista para a viagem começar. Prova
   // que quem entrou no carro é quem pediu, e impede o motorista de marcar
@@ -426,7 +430,7 @@ export async function initSchema() {
   await query(`ALTER TABLE driver_documents DROP CONSTRAINT IF EXISTS driver_documents_kind_check`);
   await query(`
     ALTER TABLE driver_documents ADD CONSTRAINT driver_documents_kind_check
-    CHECK (kind IN ('licence', 'vehicle', 'photo', 'inspection', 'identity'))
+    CHECK (kind IN ('licence', 'vehicle', 'photo', 'inspection', 'identity', 'fotoveiculo'))
   `);
 
   // Porque é que um documento já verificado foi substituído.

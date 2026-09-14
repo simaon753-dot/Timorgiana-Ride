@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import DadosCarga from '../design/DadosCarga.js';
 import {
   View,
   Text,
@@ -9,6 +10,7 @@ import {
   Pressable,
   Image,
   Alert,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Logo from '../components/Logo.js';
@@ -73,6 +75,7 @@ const NOME_DO_DOC = {
   inspection: 'docInspection',
   identity: 'docIdentity',
   photo: 'docPhoto',
+  fotoveiculo: 'docFotoveiculo',
 };
 
 export default function DriverHomeScreen({ navigation }) {
@@ -111,7 +114,7 @@ export default function DriverHomeScreen({ navigation }) {
     activeRide: viagemBruta,
     isFinal,
     requests,
-    ignorarPedido,
+    recusarPedido,
     acceptRide,
     advanceStatus,
     startRide,
@@ -177,6 +180,14 @@ export default function DriverHomeScreen({ navigation }) {
             acontece enquanto um documento estiver fora de prazo, e desfaz-se
             sozinha quando o documento novo chegar. Dizer isso importa: sem
             essa frase, quem lê "suspensa" telefona. */}
+        {/* O CARRY SEM CAPACIDADE: registou-se antes do campo existir. Vê todos
+            os pedidos (decisão do Simão), e este aviso pede o que falta. */}
+        {!activeRide &&
+        VEICULOS[user?.vehicle?.type]?.perguntaCarga &&
+        !user?.vehicle?.capacidade ? (
+          <AvisoCapacidade />
+        ) : null}
+
         {!activeRide && avisoDocs ? (
           <Pressable style={styles.avisoDocs} onPress={() => navigation.navigate('DriverPending')}>
             <Text style={styles.avisoDocsTitulo}>{t('docSuspensoTitulo')}</Text>
@@ -315,7 +326,7 @@ export default function DriverHomeScreen({ navigation }) {
                   // mesmo mapa diz tudo de uma vez.
                   minhaPosicao={minhaPosicao}
                   onAccept={(fare) => acceptRide(r.id, fare)}
-                  onIgnorar={() => ignorarPedido(r.id)}
+                  onIgnorar={(motivo) => recusarPedido(r.id, motivo)}
                 />
               ))
             )}
@@ -349,6 +360,18 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
   // gravado — pedidos antigos, ou feitos sem coordenadas — e a essas não se
   // pode chamar "Carro" só porque é o valor de reserva da tabela.
   const wants = VEICULOS[ride.vehicleType] ? nomeDoVeiculo(t, ride.vehicleType) : t('vehicleAny');
+
+  // RECUSAR COM MOTIVO num pedido de bens: "Carga incompatível com o
+  // veículo" fica registado, e diz se a carga chegou ao veículo errado.
+  // Numa viagem de pessoas não há que escolher.
+  function recusar() {
+    if (!ride.carga) return onIgnorar('agora');
+    Alert.alert(t('recusaMotivoTitulo'), undefined, [
+      { text: t('cancel'), style: 'cancel' },
+      { text: t('recusaAgora'), onPress: () => onIgnorar('agora') },
+      { text: t('recusaIncompativel'), onPress: () => onIgnorar('incompativel') },
+    ]);
+  }
 
   async function accept() {
     setBusy(true);
@@ -499,7 +522,7 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
       <View style={styles.pedidoBotoes}>
         {onIgnorar ? (
           <View style={styles.pedidoBotao}>
-            <Button title={t('recusaPedidu')} icone="✕" variant="perigoSuave" onPress={onIgnorar} />
+            <Button title={t('recusaPedidu')} icone="✕" variant="perigoSuave" onPress={recusar} />
           </View>
         ) : null}
         <View style={styles.pedidoBotao}>
@@ -1034,4 +1057,100 @@ const criarEstilosFaixa = () =>
 let estilosFaixa = criarEstilosFaixa();
 registarEstilos(() => {
   estilosFaixa = criarEstilosFaixa();
+});
+
+// O aviso ao Carry sem capacidade, com o formulário numa folha.
+function AvisoCapacidade() {
+  const { t } = useI18n();
+  const { token, refreshUser } = useAuth();
+  const [aberto, setAberto] = useState(false);
+  const [carroceria, setCarroceria] = useState(null);
+  const [capacidade, setCapacidade] = useState(null);
+  const [ano, setAno] = useState('');
+  const [aGuardar, setAGuardar] = useState(false);
+  const [erro, setErro] = useState(null);
+
+  async function guardar() {
+    if (!carroceria || !capacidade) return setErro(t('errCarroceriaCapacidade'));
+    setErro(null);
+    setAGuardar(true);
+    try {
+      await api.definirCapacidade(token, { carroceria, capacidade, ano: ano ? Number(ano) : null });
+      await refreshUser();
+      setAberto(false);
+    } catch (e) {
+      setErro(e?.message === 'NETWORK' ? t('errNetwork') : e?.message || t('errGeneric'));
+    } finally {
+      setAGuardar(false);
+    }
+  }
+
+  return (
+    <>
+      <Pressable
+        style={({ pressed }) => [estilosCap.aviso, pressed && { opacity: 0.85 }]}
+        onPress={() => setAberto(true)}
+        accessibilityRole="button"
+      >
+        <Icone nome="caixa" tamanho={28} cor={colors.coralDark} />
+        <View style={{ flex: 1 }}>
+          <Text style={estilosCap.titulo}>{t('capacidadeFaltaTitulo')}</Text>
+          <Text style={estilosCap.texto}>{t('capacidadeFaltaTexto')}</Text>
+        </View>
+        <Icone nome="seta" tamanho={18} cor={colors.coralDark} traco={2.5} />
+      </Pressable>
+      <Modal visible={aberto} animationType="slide" onRequestClose={() => setAberto(false)}>
+        <SafeAreaView style={estilosCap.folha} edges={['top', 'bottom']}>
+          <ScrollView contentContainerStyle={estilosCap.folhaConteudo}>
+            <Text style={estilosCap.folhaTitulo}>{t('capacidadeFaltaTitulo')}</Text>
+            <Text style={estilosCap.texto}>{t('capacidadeFaltaTexto')}</Text>
+            <View style={{ height: spacing.lg }} />
+            <DadosCarga
+              carroceria={carroceria}
+              onCarroceria={setCarroceria}
+              capacidade={capacidade}
+              onCapacidade={setCapacidade}
+              ano={ano}
+              onAno={setAno}
+            />
+            {erro ? <Text style={estilosCap.erro}>{erro}</Text> : null}
+            <Button
+              title={t('capacidadeGuardar')}
+              onPress={guardar}
+              loading={aGuardar}
+              variant="marca"
+              tamanho="grande"
+            />
+            <View style={{ height: spacing.sm }} />
+            <Button title={t('cancel')} variant="ghost" onPress={() => setAberto(false)} />
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+    </>
+  );
+}
+
+const criarEstilosCap = () =>
+  StyleSheet.create({
+    aviso: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      backgroundColor: colors.tintaCoral,
+      borderRadius: radius.xl,
+      padding: spacing.md,
+      marginBottom: spacing.md,
+      minHeight: 72,
+    },
+    titulo: { ...tipo.corpoForte, color: colors.coralDark },
+    texto: { ...tipo.pequeno, color: colors.text, marginTop: 2 },
+    folha: { flex: 1, backgroundColor: colors.paper },
+    folhaConteudo: { padding: spacing.lg },
+    folhaTitulo: { ...tipo.displayPequeno, color: colors.text, marginBottom: spacing.xs },
+    erro: { ...tipo.pequeno, color: colors.danger, marginBottom: spacing.sm },
+  });
+
+let estilosCap = criarEstilosCap();
+registarEstilos(() => {
+  estilosCap = criarEstilosCap();
 });

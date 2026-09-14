@@ -68,6 +68,8 @@ export const VEICULOS = {
     // depois o destino — pedido do Simão (14/09/26). Os outros dois tipos não
     // têm este campo e vão directos ao "Para onde vai?".
     primeiroPasso: 'EscolherCarry',
+    // O Carry diz a carroçaria e a capacidade no registo (14/09/26).
+    perguntaCarga: true,
     chaveBotaoPedir: 'pedirCarryPreco',
     chaveMatricula: 'vehiclePlatePlaceholderCar',
     icone: 'carry',
