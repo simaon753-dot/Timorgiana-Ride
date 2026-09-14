@@ -1,5 +1,7 @@
 // Português (europeu)
 export default {
+  cor_outra: 'Outra',
+  corOutraPlaceholder: 'Escreva a cor do veículo',
   docCartaverso: 'Carta de condução (verso)',
   docCartaversoNota: 'O verso mostra as categorias que pode conduzir (mota, carro, pickup).',
   admConfirmarCategorias: 'Confirme as categorias para: {veiculo}',

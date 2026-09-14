@@ -1,6 +1,8 @@
 // Tétum (Tétum Praça, de Díli) — PRIMEIRA VERSÃO.
 // As traduções devem ser revistas por um falante nativo antes do lançamento.
 export default {
+  cor_outra: 'Seluk',
+  corOutraPlaceholder: 'Hakerek veíkulu nia kór',
   docCartaverso: 'Karta kondusaun (kotuk)',
   docCartaversoNota:
     'Parte kotuk hatudu kategoria veíkulu ne’ebé ita bele lori (motorizada, kareta, pickup).',

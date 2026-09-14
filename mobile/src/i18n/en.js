@@ -6,6 +6,8 @@
 // code passes them by those names; changing them here would silently break
 // the substitution.
 export default {
+  cor_outra: 'Other',
+  corOutraPlaceholder: "Type the vehicle's colour",
   docCartaverso: 'Driving licence (back)',
   docCartaversoNota:
     'The back shows which vehicle categories you may drive (motorbike, car, pickup).',

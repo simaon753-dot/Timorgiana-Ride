@@ -39,6 +39,7 @@ export default function TextField({
   sucesso = false,
   maxLength,
   onBlur,
+  autoFocus,
 }) {
   const { t } = useI18n();
   const [focused, setFocused] = useState(false);
@@ -89,6 +90,7 @@ export default function TextField({
           autoCapitalize={autoCapitalize}
           autoCorrect={false}
           maxLength={maxLength}
+          autoFocus={autoFocus}
           onFocus={() => setFocused(true)}
           onBlur={() => {
             setFocused(false);

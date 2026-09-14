@@ -26,6 +26,7 @@ import CampoTelefone, { telefoneValido } from '../components/CampoTelefone.js';
 import { useI18n } from '../i18n/index.js';
 import AceitarTermos from '../components/AceitarTermos.js';
 import EscolherCor from '../components/EscolherCor.js';
+import { nomeDaCor } from '../lib/corVeiculo.js';
 import EscolherLugares from '../components/EscolherLugares.js';
 import { LUGARES } from '../dados/veiculos.js';
 import { VEICULOS } from '../dados/tiposDeVeiculo.js';
@@ -122,7 +123,7 @@ export default function RegisterScreen({ navigation, route }) {
     if (VEICULOS[vType]?.perguntaLugares && !vSeats) return t('errSeatsRequired');
     // A COR É OBRIGATÓRIA: é o que o passageiro vê primeiro. A matrícula só
     // se lê a três metros; ao fundo da rua o que identifica um veículo é a cor.
-    if (!vColor) return t('errColorRequired');
+    if (!vColor.trim()) return t('errColorRequired');
     if (VEICULOS[vType]?.perguntaCarga && (!vCarroceria || !vCapacidade))
       return t('errCarroceriaCapacidade');
     return null;
@@ -172,7 +173,7 @@ export default function RegisterScreen({ navigation, route }) {
               type: vType,
               model: vModel,
               plate: vPlate.trim().toUpperCase(),
-              color: vColor,
+              color: vColor.trim(),
               ...(VEICULOS[vType]?.perguntaLugares && vSeats ? { seats: vSeats } : {}),
               ...(VEICULOS[vType]?.perguntaCarga
                 ? {
@@ -211,7 +212,7 @@ export default function RegisterScreen({ navigation, route }) {
           ...(VEICULOS[vType]?.perguntaLugares
             ? [{ rotulo: t('vehicleSeats'), valor: vSeats ? String(vSeats) : '—', ir: 1 }]
             : []),
-          { rotulo: t('vehicleColor'), valor: vColor ? t(`cor_${vColor}`) : '—', ir: 1 },
+          { rotulo: t('vehicleColor'), valor: nomeDaCor(vColor.trim(), t) || '—', ir: 1 },
         ]
       : []),
   ];

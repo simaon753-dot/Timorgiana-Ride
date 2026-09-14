@@ -125,7 +125,8 @@ export async function createUser({
       vehicleType,
       vehicle?.model?.trim() || null,
       vehicle?.plate?.trim() || null,
-      vehicle?.color?.trim() || null,
+      // "Outra" cor é texto livre: 30 caracteres, o mesmo limite da app.
+      String(vehicle?.color || '').trim().slice(0, 30) || null,
       role === 'driver' && vehicleType === 'car' && vehicle?.seats
         ? Math.max(1, Math.min(12, Number(vehicle.seats)))
         : null,

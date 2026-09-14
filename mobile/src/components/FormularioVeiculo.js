@@ -55,7 +55,7 @@ export default function FormularioVeiculo({ onPronto }) {
     // Também aqui, senão bastava editar o veículo para a cor voltar a
     // desaparecer — e este é o ecrã por onde um motorista já registado a vai
     // preencher pela primeira vez.
-    if (!cor) return setErro(t('errColorRequired'));
+    if (!cor.trim()) return setErro(t('errColorRequired'));
     if (pedeCarga && (!carroceria || !capacidade)) return setErro(t('errCarroceriaCapacidade'));
 
     setAEnviar(true);
@@ -64,7 +64,7 @@ export default function FormularioVeiculo({ onPronto }) {
         type: tipoVeiculo,
         model: modelo,
         plate: matricula.trim().toUpperCase(),
-        color: cor,
+        color: cor.trim(),
         ...(pedeLugares ? { seats: lugares } : {}),
         ...(pedeCarga ? { carroceria, capacidade, ano: ano ? Number(ano) : null } : {}),
       });
