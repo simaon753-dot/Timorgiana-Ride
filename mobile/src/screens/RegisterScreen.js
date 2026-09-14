@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import Icone from '../design/Icone.js';
 import DadosCarga from '../design/DadosCarga.js';
 import {
   View,
@@ -68,6 +69,12 @@ export default function RegisterScreen({ navigation, route }) {
 
   const [etapa, setEtapa] = useState(0);
   const [role, setRole] = useState(route?.params?.role || 'passenger');
+  // O PAPEL VEM ESCOLHIDO do ecrã de entrada (14/09/26, pedido do Simão): quem
+  // tocou em "Motorista" vê só o registo de motorista, e vice-versa. Perguntar
+  // outra vez era um passo a mais, e deixava mudar por engano para o outro
+  // registo a meio. Quem quiser o outro papel volta atrás. O selector só
+  // aparece se o ecrã abrir sem papel.
+  const papelFixo = route?.params?.role === 'driver' || route?.params?.role === 'passenger';
   // Declaração de cidadania, só para quem se inscreve como motorista.
   const [cidadaoTL, setCidadaoTL] = useState(false);
   const [name, setName] = useState('');
@@ -285,7 +292,11 @@ export default function RegisterScreen({ navigation, route }) {
           <CabecalhoRegisto
             onVoltar={voltar}
             titulo={t('registerTitle')}
-            subtitulo={t('registoSub')}
+            subtitulo={
+              papelFixo
+                ? t(motorista ? 'registoSubMotorista' : 'registoSubPassageiro')
+                : t('registoSub')
+            }
             ilustracao={DILI}
           />
           <Etapas etapas={etapas} actual={etapa} />
@@ -298,11 +309,22 @@ export default function RegisterScreen({ navigation, route }) {
               subtitulo={t('seccaoPessoalSub')}
               obrigatorio={t('obrigatoriu')}
             >
-              <Text style={styles.rotulo}>
-                {t('accountType')}
-                <Text style={styles.asterisco}> *</Text>
-              </Text>
-              <SeletorConta valor={role} onMudar={setRole} />
+              {papelFixo ? (
+                <View style={styles.papelFixo}>
+                  <Icone nome={motorista ? 'volante' : 'pessoa'} tamanho={20} cor={colors.teal} />
+                  <Text style={styles.papelFixoTexto}>
+                    {t(motorista ? 'registoComoMotorista' : 'registoComoPassageiro')}
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  <Text style={styles.rotulo}>
+                    {t('accountType')}
+                    <Text style={styles.asterisco}> *</Text>
+                  </Text>
+                  <SeletorConta valor={role} onMudar={setRole} />
+                </>
+              )}
               <TextField
                 label={t('name')}
                 value={name}
@@ -456,6 +478,19 @@ export default function RegisterScreen({ navigation, route }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
+    // O papel escolhido na entrada, só de leitura (no lugar do selector).
+    papelFixo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      gap: spacing.sm,
+      minHeight: 44,
+      paddingHorizontal: spacing.md,
+      marginBottom: spacing.md,
+      borderRadius: radius.pill,
+      backgroundColor: colors.tintaTeal,
+    },
+    papelFixoTexto: { ...tipo.corpoForte, color: colors.teal },
     safe: { flex: 1, backgroundColor: colors.paper },
     scroll: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
     escondida: { display: 'none' },
