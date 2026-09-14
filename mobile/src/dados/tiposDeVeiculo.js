@@ -31,10 +31,11 @@ export const VEICULOS = {
     // As ilustrações do Simão, uma por tema: fundo branco puro de dia, preto
     // puro de noite. Ver veiculoFotoCaixa no ecrã inicial.
     //
-    // TROCADAS a 14/09/26 pelas ilustrações planas do Simão, em coral e teal,
-    // sem texto nem logótipos: as primeiras vinham da Internet (direito de
-    // autor de outros) e as seguintes pareciam modelos reais de fabricantes.
-    // "É melhor evitar do que curar." Os originais ficam em desenho/imagens.
+    // TROCADAS de novo a 14/09/26, à noite, pelas silhuetas do Simão a preto
+    // e branco, sem texto nem logótipos. Antes houve fotografias da Internet
+    // (direito de autor de outros), depois modelos que pareciam de fabricantes
+    // reais, depois as ilustrações coral. Os originais — só estes seis — ficam
+    // em desenho/imagens a 1536 × 1024; aqui vão reduzidos a 624 × 416.
     imagens: {
       claro: require('../../assets/veiculos/mota-claro.jpg'),
       escuro: require('../../assets/veiculos/mota-escuro.jpg'),
@@ -56,10 +57,11 @@ export const VEICULOS = {
     // As ilustrações do Simão, uma por tema: fundo branco puro de dia, preto
     // puro de noite. Ver veiculoFotoCaixa no ecrã inicial.
     //
-    // TROCADAS a 14/09/26 pelas ilustrações planas do Simão, em coral e teal,
-    // sem texto nem logótipos: as primeiras vinham da Internet (direito de
-    // autor de outros) e as seguintes pareciam modelos reais de fabricantes.
-    // "É melhor evitar do que curar." Os originais ficam em desenho/imagens.
+    // TROCADAS de novo a 14/09/26, à noite, pelas silhuetas do Simão a preto
+    // e branco, sem texto nem logótipos. Antes houve fotografias da Internet
+    // (direito de autor de outros), depois modelos que pareciam de fabricantes
+    // reais, depois as ilustrações coral. Os originais — só estes seis — ficam
+    // em desenho/imagens a 1536 × 1024; aqui vão reduzidos a 624 × 416.
     imagens: {
       claro: require('../../assets/veiculos/carro-claro.jpg'),
       escuro: require('../../assets/veiculos/carro-escuro.jpg'),
@@ -87,10 +89,11 @@ export const VEICULOS = {
     // As ilustrações do Simão, uma por tema: fundo branco puro de dia, preto
     // puro de noite. Ver veiculoFotoCaixa no ecrã inicial.
     //
-    // TROCADAS a 14/09/26 pelas ilustrações planas do Simão, em coral e teal,
-    // sem texto nem logótipos: as primeiras vinham da Internet (direito de
-    // autor de outros) e as seguintes pareciam modelos reais de fabricantes.
-    // "É melhor evitar do que curar." Os originais ficam em desenho/imagens.
+    // TROCADAS de novo a 14/09/26, à noite, pelas silhuetas do Simão a preto
+    // e branco, sem texto nem logótipos. Antes houve fotografias da Internet
+    // (direito de autor de outros), depois modelos que pareciam de fabricantes
+    // reais, depois as ilustrações coral. Os originais — só estes seis — ficam
+    // em desenho/imagens a 1536 × 1024; aqui vão reduzidos a 624 × 416.
     imagens: {
       claro: require('../../assets/veiculos/carry-claro.jpg'),
       escuro: require('../../assets/veiculos/carry-escuro.jpg'),

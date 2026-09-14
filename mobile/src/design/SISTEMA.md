@@ -2,7 +2,9 @@
 
 Referência de desenvolvimento da TimorgianaRide. Compilado a 13/09/2026 a partir
 das três referências do Simão (`desenho/imagens/Visualização …`): o registo do
-passageiro, o registo do motorista e o ecrã inicial.
+passageiro, o registo do motorista e o ecrã inicial. As capturas de referência
+saíram da pasta a 14/09/2026, com as outras imagens sem uso; o que delas
+ficou está neste documento.
 
 **Regra de ouro:** nenhum ecrã escolhe cores, tamanhos ou raios por conta
 própria. Tudo sai daqui — dos tokens em `theme.js` e `tipografia.js`, e dos
@@ -108,7 +110,7 @@ baixo, folhas). Três e não mais. Não existe `elevacao.cartao`.
 `Button` tem também **`perigoSuave`** (fundo `tintaPerigo`, texto `danger`): recusar sem gritar ao lado de um botão cheio.
 
 ### Imagens de veículos
-Desde 14/09/2026 são as ilustrações planas do Simão, em coral e teal, sem texto nem
+Desde 14/09/2026 (à noite) são as silhuetas do Simão, a preto e branco, sem texto nem
 logótipos (as anteriores vinham da Internet; as seguintes pareciam modelos reais). 624 px.
 `assets/veiculos/{mota,carro,carry}-{claro,escuro}.jpg` — fundo branco puro de
 dia, preto puro de noite. Ficam sempre num quadrado da **cor do fundo delas**
