@@ -6,9 +6,9 @@
 // code passes them by those names; changing them here would silently break
 // the substitution.
 export default {
+  privacidadeNovaTitulo: 'The privacy notice has changed',
   termosNovosTitulo: 'The driver terms have changed',
-  termosNovosTexto:
-    'The subscription comes in (free until 30/04/2027), with its prices and the refund of unused days. Please read and accept.',
+  termosNovosTexto: 'Read what has changed and accept it.',
   corMaisCores: 'More colours',
   cor_perola: 'Pearl',
   cor_creme: 'Cream',

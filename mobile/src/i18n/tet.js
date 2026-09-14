@@ -1,9 +1,9 @@
 // Tétum (Tétum Praça, de Díli) — PRIMEIRA VERSÃO.
 // As traduções devem ser revistas por um falante nativo antes do lançamento.
 export default {
+  privacidadeNovaTitulo: 'Avizu privasidade muda ona',
   termosNovosTitulo: 'Termu ba motorista muda ona',
-  termosNovosTexto:
-    'Tama asinatura (gratuitu to’o 30/04/2027), folin sira no devolusaun loron ne’ebé la uza. Favor lee no simu.',
+  termosNovosTexto: 'Lee saida mak muda no simu.',
   corMaisCores: 'Kór seluk',
   cor_perola: 'Pérola',
   cor_creme: 'Krema',

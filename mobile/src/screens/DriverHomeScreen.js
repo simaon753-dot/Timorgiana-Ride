@@ -41,7 +41,7 @@ import NumerosViagem from '../design/NumerosViagem.js';
 import PercursoPontos from '../design/PercursoPontos.js';
 import { tipo } from '../design/tipografia.js';
 import BarraEstado from '../design/BarraEstado.js';
-import { VERSAO_TERMOS_MOTORISTA } from '../termos/index.js';
+import { VERSAO_TERMOS_MOTORISTA, VERSAO_PRIVACIDADE } from '../termos/versao.js';
 import ImagemProtegida from '../design/ImagemProtegida.js';
 
 // O nome de cada documento, para o aviso poder dizer "Cartão de inspeção"
@@ -133,6 +133,11 @@ export default function DriverHomeScreen({ navigation }) {
 
   // Espelho do ecrã do passageiro: aqui só entram viagens que EU conduzo.
   const activeRide = viagemBruta && viagemBruta.driver?.id === user?.id ? viagemBruta : null;
+
+  // Documentos por aceitar. A privacidade também: o ecrã do passageiro já a
+  // pedia, mas quem está no modo de motorista nunca passa por lá.
+  const faltaTermosMotorista = user?.driverTermsVersion !== VERSAO_TERMOS_MOTORISTA;
+  const faltaPrivacidade = user?.privacyVersion !== VERSAO_PRIVACIDADE;
 
   const verEstado = useCallback(async () => {
     try {
@@ -245,13 +250,24 @@ export default function DriverHomeScreen({ navigation }) {
             pelo perfil. A versão que entrou a assinatura nunca seria aceite
             por quem já trabalha. Coral e não vermelho: não impede de
             trabalhar, pede que se leia. */}
-        {!activeRide && user?.driverTermsVersion !== VERSAO_TERMOS_MOTORISTA ? (
+        {!activeRide && (faltaTermosMotorista || faltaPrivacidade) ? (
           <Pressable
             style={styles.avisoValidade}
-            onPress={() => navigation.navigate('Termos', { quem: 'driver', aceitavel: true })}
+            // Um de cada vez, os termos primeiro — como no ecrã do passageiro.
+            // Aceite o primeiro, o aviso volta com o segundo.
+            onPress={() =>
+              navigation.navigate(
+                'Termos',
+                faltaTermosMotorista
+                  ? { quem: 'driver', aceitavel: true }
+                  : { documento: 'privacidade', aceitavel: true }
+              )
+            }
             accessibilityRole="button"
           >
-            <Text style={styles.avisoValidadeTitulo}>{t('termosNovosTitulo')}</Text>
+            <Text style={styles.avisoValidadeTitulo}>
+              {t(faltaTermosMotorista ? 'termosNovosTitulo' : 'privacidadeNovaTitulo')}
+            </Text>
             <Text style={styles.avisoValidadeTexto}>{t('termosNovosTexto')}</Text>
             <Text style={[styles.avisoValidadeTexto, { fontWeight: '700' }]}>
               {t('driverTermsRead')} ›

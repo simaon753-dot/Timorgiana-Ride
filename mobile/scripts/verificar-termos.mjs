@@ -104,11 +104,16 @@ for (const lang of LINGUAS) {
 //
 // Passava despercebida para sempre, e aparecia no painel, ao lado de um nome,
 // como a versão do documento que aquela pessoa aceitou.
+//
+// UMA LETRA NO FIM é aceite ('2026-09-14b'): é a segunda revisão no mesmo
+// dia. Aconteceu a 14/09/2026 — a assinatura de manhã, a revisão conjunta à
+// tarde — e reutilizar a data contaria quem aceitou a primeira como tendo
+// aceitado a segunda. A data à frente continua a ter de existir.
 const VERSOES = { VERSAO_TERMOS, VERSAO_TERMOS_MOTORISTA, VERSAO_PRIVACIDADE };
 for (const [nome, v] of Object.entries(VERSOES)) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(v ?? '')) {
+  if (!/^\d{4}-\d{2}-\d{2}[a-z]?$/.test(v ?? '')) {
     faltas.push(`${nome}: "${v}" não é uma data AAAA-MM-DD`);
-  } else if (Number.isNaN(Date.parse(v))) {
+  } else if (Number.isNaN(Date.parse(v.slice(0, 10)))) {
     faltas.push(`${nome}: "${v}" não é uma data que exista`);
   }
 }

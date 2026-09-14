@@ -109,6 +109,9 @@ export function gerarPaginas() {
   return {
     'privacidade.html': pagina(extrair('privacidade.js', 'pt')),
     'termos.html': pagina(extrair('pt.js', 'termosPassageiro')),
+    // Público desde 14/09/2026: quem pensa em conduzir lê as condições e os
+    // preços da assinatura ANTES de instalar a app e de se registar.
+    'termos-motorista.html': pagina(extrair('pt.js', 'termosMotorista')),
   };
 }
 
@@ -117,5 +120,5 @@ if (process.argv[1] && process.argv[1].endsWith('gerar-legal.mjs')) {
   for (const [nome, html] of Object.entries(gerarPaginas())) {
     writeFileSync(RAIZ + 'publico/' + nome, html);
   }
-  console.log('  ✓ publico/privacidade.html e publico/termos.html gerados da app');
+  console.log('  ✓ ' + Object.keys(gerarPaginas()).map((n) => 'publico/' + n).join(', ') + ' gerados da app');
 }

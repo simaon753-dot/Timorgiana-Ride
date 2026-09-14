@@ -11,7 +11,9 @@
 // contas que existem são de teste — por isso corrigir custa zero. Daqui a um
 // mês custaria obrigar todos os passageiros a aceitar outra vez por causa de
 // um erro de escrita.
-export const VERSAO_TERMOS = '2026-08-29';
+// Alterada em 14/09/2026: taxas de entrada, pedir para outra pessoa e
+// menores, Carro Pickup; e o pagamento deixa de dizer que o motorista não paga.
+export const VERSAO_TERMOS = '2026-09-14';
 // Alterada em 03/09/2026: a cláusula do seguro deixou de pedir "seguro
 // adequado à atividade" — que era vago — e passa a citar a obrigação legal
 // concreta (Instrução Pública n.º 07/2010) e a dizer o que acontece a quem
@@ -36,7 +38,9 @@ export const VERSAO_TERMOS = '2026-08-29';
 // avisada antes; esta é esse aviso. Decisões do Simão: devolve-se o valor dos
 // dias não usados a quem fecha a conta e a quem é desactivado (salvo falta
 // grave), preços avisados com 30 dias, dias creditados até 24 horas.
-export const VERSAO_TERMOS_MOTORISTA = '2026-09-14';
+// E de novo no MESMO dia (daí o 'b'): fotografia de turno, Carro Pickup e
+// passageiros menores, na revisão conjunta dos três documentos.
+export const VERSAO_TERMOS_MOTORISTA = '2026-09-14b';
 
 // A privacidade tem versão PRÓPRIA, e não a dos termos.
 //
@@ -44,4 +48,7 @@ export const VERSAO_TERMOS_MOTORISTA = '2026-09-14';
 // uma cláusula de responsabilidade nos termos não devia invalidar o que
 // alguém aceitou sobre o tratamento dos seus dados, nem o contrário. Um
 // número só para os dois não permite saber quem aceitou o quê.
-export const VERSAO_PRIVACIDADE = '2026-08-30';
+// Alterada em 14/09/2026: fotografia de turno, dados de quem viaja por
+// pedido de outra pessoa, carga, pagamentos, prazos concretos e registo de
+// acessos.
+export const VERSAO_PRIVACIDADE = '2026-09-14';

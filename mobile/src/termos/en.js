@@ -25,7 +25,7 @@
 export const termosPassageiro = {
   titulo: 'Terms of use',
   subtitulo: 'Read before creating an account. It is short and clear.',
-  atualizado: 'Version of 29 August 2026',
+  atualizado: 'Version of 14 September 2026',
   // Texto da caixa de aceitação. O que está entre ** fica clicável
   // e abre o documento. Sem este campo o ecrã de registo não abre.
   aceitarCurto: 'I have read and accept the **terms of use**',
@@ -39,7 +39,12 @@ export const termosPassageiro = {
     {
       titulo: 'Payment — in cash, no commission',
       texto:
-        'Payment is made directly to the driver, in cash, at the end of the ride. The amount payable is the one the application showed at the time of the request, and it does not change at the end. In this initial testing phase, the platform service is free (we charge no commission to either the passenger or the driver). If in the future we begin charging any fee, you will be notified in advance — never during a ride and never without prior notice.',
+        'Payment is made directly to the driver, in cash, at the end of the ride. The amount payable is the one the application showed when the request was made, and does not change at the end. TimorgianaRide charges the passenger no commission and no fee of any kind. If we ever begin charging the passenger a fee, you will be notified in advance — never during a ride and never without prior notice.',
+    },
+    {
+      titulo: 'Entry fees at venues',
+      texto:
+        'Some venues charge for vehicles to enter, such as the Timor Plaza car park and the Nicolau Lobato Airport grounds. When the pick-up or the destination is inside one of these venues, the application warns you before you request. That fee is not part of the fare: it is paid by the passenger, directly at the barrier, and not to TimorgianaRide or to the driver.',
     },
     {
       titulo: 'Testing phase (Beta version)',
@@ -53,6 +58,16 @@ export const termosPassageiro = {
         '• Share ride: lets you send your real-time location to someone you trust.\n' +
         '• Emergency: alerts our operations centre with your position and provides direct shortcuts to call the police, an ambulance or the fire service.\n\n' +
         'Important emergency notice: in the event of immediate danger, call 112, 110 or 115 first. The platform acts as a complementary support channel, not as a substitute for the emergency authorities.',
+    },
+    {
+      titulo: 'Requesting for someone else, and minors',
+      texto:
+        'You may request a ride for someone else by giving the name and mobile number of the person who will travel. In doing so, you declare that this person agrees to the ride and to the use of that data to carry it out. The driver contacts the traveller’s number; the pick-up code and the emergency button stay in the requester’s application, and the requester must give the code to the traveller before the driver arrives. The requester is responsible for the request they make.\n\nA minor may only travel if the requester declares that they are responsible for the minor or have the authorisation of the person who is. That declaration is recorded with the date and time, and the person who makes it answers for its truth. The driver sees that the traveller is a minor before accepting and may refuse the ride.',
+    },
+    {
+      titulo: 'Pickup service',
+      texto:
+        'The Pickup carries goods or groups of people.\n\nFor goods, the requester declares that the goods are lawful, safe and compatible with the vehicle’s capacity, and describes them truthfully — type, size and, if they wish, photographs. It is prohibited to carry unlawful goods, weapons, ammunition, explosives, fuel or other dangerous materials. The driver may refuse a load that does not match the description, does not fit in the vehicle or cannot be carried safely. Packing and protecting the goods is the requester’s responsibility; help with loading or unloading is only included when requested and shown in the price.\n\nIn this service too, TimorgianaRide acts solely as an intermediary: the transport is a direct agreement between the requester and the driver, and TimorgianaRide is not liable for loss, theft or damage to the goods, or for delays. Photographs of the load serve as a record of the condition of the goods at departure.\n\nFor people, the number stated may not exceed what the vehicle may lawfully carry, and the driver may refuse if the number or the conditions are not safe.',
     },
     {
       titulo: 'Processing of personal data',
@@ -134,9 +149,24 @@ export const termosMotorista = {
         'We ask for your driving licence, the vehicle document and a photograph of yourself solely to confirm your identity and formal eligibility — this is what gives passengers confidence when getting into the vehicle. Your driving licence and vehicle document are stored in our database, accessed only by the platform management team, and are not shown to passengers or shared with third parties. Your photograph is different: it is shown to the passenger of a ride you accept, on their screen, for as long as that ride lasts — this is how they confirm they got into the right vehicle, just as they confirm the plate and the model. Once the ride ends it is no longer shown, and the ride history does not display it. You may request the deletion of your documents, which will result in the closure of your driver account.',
     },
     {
+      titulo: 'Shift photograph',
+      texto:
+        'At the start of each working day, the application asks for a photograph of you (the shift photograph) to confirm that the person driving is the account holder. Without it you cannot go available. Your most recent shift photograph is the one the passenger sees during the ride, and the management team may compare it with your registration photograph. Each shift photograph is kept for 7 days and then deleted.',
+    },
+    {
       titulo: 'Safety and rules of conduct',
       texto:
         'The driver undertakes to comply strictly with the Highway Code and to drive prudently. Driving under the influence of alcohol, narcotics or psychotropic substances is expressly prohibited. Respectful and non-discriminatory treatment of all passengers is mandatory. While providing the service, the driver has the Emergency button in the app to report situations of risk, and must call 112, 110 or 115 directly in the event of immediate danger.',
+    },
+    {
+      titulo: 'Pickup service',
+      texto:
+        'Drivers of a Pickup receive requests to carry goods and groups of people.\n\n• Goods: before accepting, you see the type and size of the load, the help requested and, where available, the photographs. You may refuse a load that does not match the description, does not fit in the vehicle or cannot be carried safely, and you must refuse goods you know or suspect to be unlawful or dangerous. You must secure the load safely during transport and mark in the application when it was loaded, when it reached the destination and when it was unloaded — these records serve as proof of the service. TimorgianaRide is not liable for loss, theft or damage to the goods carried.\n• People: you may only carry the number of people, and in the conditions, that the law and the vehicle’s documents allow, and you must refuse the request when the number or the conditions are not safe or lawful.',
+    },
+    {
+      titulo: 'Minor passengers',
+      texto:
+        'A request may be made for a minor, with the requester’s declaration that they are responsible for the minor or have the authorisation of the person who is. The driver sees this before accepting and is free to refuse. If you accept, you must take the minor directly to the destination given.',
     },
     {
       titulo: 'Cancellation and attendance policy',

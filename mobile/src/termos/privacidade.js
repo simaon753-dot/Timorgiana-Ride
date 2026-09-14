@@ -32,11 +32,18 @@
 // (b), interesses legítimos (h) e consentimento (a).
 //
 // Origem: piloto/TimorgianaRide_Aviso_de_Privacidade_PT_Tetum.docx
+//
+// REVISÃO DE 14/09/2026, redigida por mim a pedido do Simão e revista por ele
+// antes de publicar: fotografia de turno, pedidos para outra pessoa e
+// menores, fotografias e declaração da carga, pagamentos da assinatura, os
+// prazos concretos de conservação (os de retencao.js, turnos.js e
+// fotosDaCarga.js) e o registo de acessos. Se um desses prazos mudar no
+// código, muda aqui também — e a versão.
 
 const pt = {
   titulo: 'Aviso de Privacidade',
   aceitarCurto: 'Li e aceito o **aviso de privacidade**',
-  subtitulo: 'Passageiro e motorista · versão de 29 de Agosto de 2026',
+  subtitulo: 'Passageiro e motorista · versão de 14 de Setembro de 2026',
   seccoes: [
     {
       titulo: 'Quem trata os dados',
@@ -51,7 +58,7 @@ const pt = {
     {
       titulo: 'Dados que recolhemos',
       texto:
-        'Podemos recolher: nome, número de telefone, e-mail, fotografia e identificação da conta; pedidos, locais de recolha e destino, histórico, cancelamentos e comunicações; dados técnicos como dispositivo, sistema, endereço IP e registos de utilização; localização do veículo durante a disponibilidade e viagem; e, para motoristas, carta de condução, documentos do veículo, licenças e informação fiscal exigida. Não peça nem envie dados sensíveis que não sejam necessários para o serviço.',
+        'Podemos recolher: nome, número de telefone, e-mail, fotografia e identificação da conta; pedidos, locais de recolha e destino, histórico, cancelamentos e comunicações; dados técnicos como dispositivo, sistema, endereço IP e registos de utilização; localização do veículo durante a disponibilidade e viagem; e, para motoristas, carta de condução, documentos do veículo, licenças e informação fiscal exigida. Não peça nem envie dados sensíveis que não sejam necessários para o serviço.\n\nPara motoristas, recolhemos ainda uma fotografia diária de turno, os pagamentos da assinatura (valor, forma de pagamento, referência e comprovativo) e as declarações feitas no registo. Quando pede uma viagem para outra pessoa, recolhemos o nome e o telemóvel de quem viaja, a indicação de que é menor e a declaração de responsabilidade ou autorização — e só nos deve dar esses dados com o conhecimento dessa pessoa. No transporte de bens, recolhemos a descrição da carga, as fotografias que tirar e a declaração sobre os bens. As declarações ficam registadas com a data e a hora.',
     },
     {
       titulo: 'Porque usamos os dados',
@@ -61,7 +68,7 @@ const pt = {
     {
       titulo: 'Com quem partilhamos',
       texto:
-        'Partilhamos com o motorista os dados do passageiro estritamente necessários para recolha e viagem; e com o passageiro os dados do motorista necessários para o identificar e realizar a viagem. Podemos também partilhar com fornecedores que alojam, mantêm ou suportam a aplicação, autoridades ou consultores, apenas quando necessário, autorizado ou exigido por lei e com salvaguardas adequadas.',
+        'Partilhamos com o motorista os dados do passageiro estritamente necessários para recolha e viagem; e com o passageiro os dados do motorista necessários para o identificar e realizar a viagem. Podemos também partilhar com fornecedores que alojam, mantêm ou suportam a aplicação, autoridades ou consultores, apenas quando necessário, autorizado ou exigido por lei e com salvaguardas adequadas.\n\nEm concreto: quando a viagem é pedida para outra pessoa, o motorista vê o nome e o telemóvel de quem viaja enquanto a viagem durar, e a indicação de menor antes de aceitar; as fotografias da carga são mostradas aos motoristas a quem o pedido é apresentado; e a fotografia de turno mais recente do motorista é mostrada ao passageiro durante a viagem.',
     },
     {
       titulo: 'Localização e emergência',
@@ -71,12 +78,12 @@ const pt = {
     {
       titulo: 'Conservação e segurança',
       texto:
-        'Conservamos os dados apenas durante o tempo necessário para as finalidades deste aviso, para obrigações legais, segurança, fraude, contabilidade ou litígios. Aplicamos medidas organizativas e técnicas razoáveis, mas nenhum sistema é totalmente seguro.',
+        'Conservamos os dados apenas durante o tempo necessário para as finalidades deste aviso, para obrigações legais, segurança, fraude, contabilidade ou litígios. Aplicamos medidas organizativas e técnicas razoáveis, mas nenhum sistema é totalmente seguro.\n\nAlguns prazos concretos: as fotografias de turno são guardadas 7 dias; as fotografias da carga, 7 dias depois de a viagem terminar; o registo detalhado de cada viagem (eventos e posições), 6 meses; o registo de quem, na equipa de gestão, consultou ou exportou dados, 24 meses. Os pagamentos da assinatura são guardados pelo tempo que as obrigações contabilísticas e fiscais exigirem.',
     },
     {
       titulo: 'Os seus direitos e escolhas',
       texto:
-        'Pode pedir acesso, correção, atualização, eliminação, limitação ou oposição, quando a lei aplicável o permitir. Pode pedir cópia dos dados ou retirar consentimento quando o tratamento se basear nele. A eliminação pode não abranger dados que tenhamos de manter por lei, segurança, prevenção de fraude ou defesa de direitos. Responderemos conforme a lei aplicável.',
+        'Pode pedir acesso, correção, atualização, eliminação, limitação ou oposição, quando a lei aplicável o permitir. Pode pedir cópia dos dados ou retirar consentimento quando o tratamento se basear nele. A eliminação pode não abranger dados que tenhamos de manter por lei, segurança, prevenção de fraude ou defesa de direitos. Responderemos conforme a lei aplicável.\n\nCada consulta ou exportação dos seus documentos e dados pela equipa de gestão fica registada, com quem a fez e quando. Pode pedir para saber quem os consultou.',
     },
     {
       titulo: 'Transferências e alterações',
@@ -94,7 +101,7 @@ const pt = {
 const tet = {
   titulo: 'Avizu Privasidade',
   aceitarCurto: 'Ha’u lee no simu **avizu privasidade**',
-  subtitulo: 'Pasajeiru no motorista · versaun 29 Agostu 2026',
+  subtitulo: 'Pasajeiru no motorista · versaun 14 Setembru 2026',
   seccoes: [
     {
       titulo: 'Sé mak trata dadus',
@@ -109,7 +116,7 @@ const tet = {
     {
       titulo: 'Dadus neʼebé ami halibur',
       texto:
-        'Ami bele halibur: naran, telefone, e-mail, foto no dadus konta; pedidu, fatin foti no destinu, istória viajen, kanselamentu no komunikasaun; dadus tékniku hanesan dispozitivu, sistema, enderesu IP no rejistu uza; lokalizasaun veíkulu durante disponibilidade no viajen; no, ba motorista, karta kondusaun, dokumentu veíkulu, lisensa no informasaun fiskál neʼebé presiza. Keta haruka dadus sensível neʼebé la presiza ba servisu.',
+        'Ami bele halibur: naran, telefone, e-mail, foto no dadus konta; pedidu, fatin foti no destinu, istória viajen, kanselamentu no komunikasaun; dadus tékniku hanesan dispozitivu, sistema, enderesu IP no rejistu uza; lokalizasaun veíkulu durante disponibilidade no viajen; no, ba motorista, karta kondusaun, dokumentu veíkulu, lisensa no informasaun fiskál neʼebé presiza. Keta haruka dadus sensível neʼebé la presiza ba servisu.\n\nBa motorista, ami halibur mós fotografia turnu loroloron, pagamentu asinatura nian (valor, forma pagamentu, referénsia no komprovativu) no deklarasaun sira ne’ebé halo iha rejistu. Bainhira ita husu viajen ba ema seluk, ami halibur naran no telemóvel ema ne’ebé viaja, indikasaun katak nia menór no deklarasaun responsabilidade ka autorizasaun — no ita tenke fó dadus hirak ne’e de’it ho ema ne’e nia hatene. Iha transporte sasán, ami halibur deskrisaun karga, fotografia ne’ebé ita foti no deklarasaun kona-ba sasán. Deklarasaun sira rejistu ho data no oras.',
     },
     {
       titulo: 'Tanba sá ami uza dadus',
@@ -119,7 +126,7 @@ const tet = {
     {
       titulo: 'Ho sé mak ami fahe',
       texto:
-        'Ami fahe ba motorista pasajeiru nia dadus neʼebé presiza atu foti no halo viajen; no ba pasajeiru, motorista nia dadus neʼebé presiza atu identifika no halo viajen. Ami bele fahe ho forneseedór neʼebé alojamentu, manutensaun ka apoiu aplikasaun, autoridade ka konsultór, deit bainhira presiza, autorizadu ka lei obriga, no ho salvaguarda apropriadu.',
+        'Ami fahe ba motorista pasajeiru nia dadus neʼebé presiza atu foti no halo viajen; no ba pasajeiru, motorista nia dadus neʼebé presiza atu identifika no halo viajen. Ami bele fahe ho forneseedór neʼebé alojamentu, manutensaun ka apoiu aplikasaun, autoridade ka konsultór, deit bainhira presiza, autorizadu ka lei obriga, no ho salvaguarda apropriadu.\n\nKonkretamente: bainhira viajen husu ba ema seluk, motorista haree naran no telemóvel ema ne’ebé viaja durante viajen, no indikasaun menór antes simu; fotografia karga nian hatudu ba motorista sira ne’ebé simu pedidu atu haree; no motorista nia fotografia turnu ikus liu hatudu ba pasajeiru durante viajen.',
     },
     {
       titulo: 'Lokalizasaun no emerjénsia',
@@ -129,12 +136,12 @@ const tet = {
     {
       titulo: 'Tempu rai no seguransa',
       texto:
-        'Ami rai dadus deit tempu neʼebé presiza ba finalidade avizu ida, obrigasaun legál, seguransa, fraude, kontabilidade ka disputa. Ami uza medida organizativu no tékniku razoável, maibé sistema ida la seguro 100%.',
+        'Ami rai dadus deit tempu neʼebé presiza ba finalidade avizu ida, obrigasaun legál, seguransa, fraude, kontabilidade ka disputa. Ami uza medida organizativu no tékniku razoável, maibé sistema ida la seguro 100%.\n\nPrazu konkretu balu: fotografia turnu rai loron 7; fotografia karga nian, loron 7 depois viajen remata; rejistu detalladu viajen ida-idak nian (eventu no pozisaun), fulan 6; rejistu kona-ba sé husi ekipa jestaun mak haree ka esporta dadus, fulan 24. Pagamentu asinatura nian rai tuir tempu ne’ebé obrigasaun kontabilidade no fiskál husu.',
     },
     {
       titulo: 'Ita-nia direitu no escolha',
       texto:
-        'Ita bele husu asesu, koreksaun, atualizasaun, hamoos, limitasaun ka opozisaun bainhira lei permite. Ita bele husu kópia dadus ka hasai konsentimentu se tratamentu bazeia ba konsentimentu. Hamoos bele la inklui dadus neʼebé ami tenke rai tuir lei, seguransa, fraude ka defeza direitu. Ami responde tuir lei aplika.',
+        'Ita bele husu asesu, koreksaun, atualizasaun, hamoos, limitasaun ka opozisaun bainhira lei permite. Ita bele husu kópia dadus ka hasai konsentimentu se tratamentu bazeia ba konsentimentu. Hamoos bele la inklui dadus neʼebé ami tenke rai tuir lei, seguransa, fraude ka defeza direitu. Ami responde tuir lei aplika.\n\nKada vez ekipa jestaun haree ka esporta ita-nia dokumentu no dadus, rejistu ho sé mak halo no bainhira. Ita bele husu atu hatene sé mak haree.',
     },
     {
       titulo: 'Transferénsia no mudansa',
@@ -152,7 +159,7 @@ const tet = {
 const en = {
   titulo: 'Privacy Notice',
   aceitarCurto: 'I have read and accept the **privacy notice**',
-  subtitulo: 'Passenger and driver · version of 29 August 2026',
+  subtitulo: 'Passenger and driver · version of 14 September 2026',
   seccoes: [
     {
       titulo: 'Who processes the data',
@@ -167,7 +174,7 @@ const en = {
     {
       titulo: 'Data we collect',
       texto:
-        'We may collect: name, telephone number, email, photograph and account identification; ride requests, pick-up and drop-off locations, history, cancellations and communications; technical data such as device, operating system, IP address and usage logs; the vehicle’s location while available and during rides; and, for drivers, driving licence, vehicle documents, licences and any required tax information. Do not request or send sensitive data that is not necessary for the service.',
+        'We may collect: name, telephone number, email, photograph and account identification; ride requests, pick-up and drop-off locations, history, cancellations and communications; technical data such as device, operating system, IP address and usage logs; the vehicle’s location while available and during rides; and, for drivers, driving licence, vehicle documents, licences and any required tax information. Do not request or send sensitive data that is not necessary for the service.\n\nFor drivers, we also collect a daily shift photograph, subscription payments (amount, payment method, reference and proof of payment) and the declarations made at registration. When you request a ride for someone else, we collect the traveller’s name and mobile number, whether they are a minor, and the declaration of responsibility or authorisation — and you should only give us that data with that person’s knowledge. For goods transport, we collect the description of the load, any photographs you take and the declaration about the goods. Declarations are recorded with the date and time.',
     },
     {
       titulo: 'Why we use the data',
@@ -177,7 +184,7 @@ const en = {
     {
       titulo: 'Who we share it with',
       texto:
-        'We share with the driver the passenger data strictly necessary for pick-up and the ride; and with the passenger the driver data necessary to identify them and carry out the ride. We may also share with suppliers who host, maintain or support the application, and with authorities or advisers, only where necessary, authorised or required by law, and with appropriate safeguards.',
+        'We share with the driver the passenger data strictly necessary for pick-up and the ride; and with the passenger the driver data necessary to identify them and carry out the ride. We may also share with suppliers who host, maintain or support the application, and with authorities or advisers, only where necessary, authorised or required by law, and with appropriate safeguards.\n\nSpecifically: when a ride is requested for someone else, the driver sees the traveller’s name and mobile number while the ride lasts, and whether they are a minor before accepting; photographs of the load are shown to the drivers to whom the request is presented; and the driver’s most recent shift photograph is shown to the passenger during the ride.',
     },
     {
       titulo: 'Location and emergency',
@@ -187,12 +194,12 @@ const en = {
     {
       titulo: 'Retention and security',
       texto:
-        'We keep data only for as long as necessary for the purposes of this notice, and for legal obligations, security, fraud prevention, accounting or disputes. We apply reasonable organisational and technical measures, but no system is completely secure.',
+        'We keep data only for as long as necessary for the purposes of this notice, and for legal obligations, security, fraud prevention, accounting or disputes. We apply reasonable organisational and technical measures, but no system is completely secure.\n\nSome specific periods: shift photographs are kept for 7 days; photographs of the load, for 7 days after the ride ends; the detailed record of each ride (events and positions), for 6 months; the record of who in the management team viewed or exported data, for 24 months. Subscription payments are kept for as long as accounting and tax obligations require.',
     },
     {
       titulo: 'Your rights and choices',
       texto:
-        'You may request access, correction, updating, deletion, restriction or objection, where the applicable law allows. You may request a copy of the data, or withdraw consent where processing is based on it. Deletion may not extend to data we are required to keep by law, or for security, fraud prevention or the defence of rights. We will respond in accordance with the applicable law.',
+        'You may request access, correction, updating, deletion, restriction or objection, where the applicable law allows. You may request a copy of the data, or withdraw consent where processing is based on it. Deletion may not extend to data we are required to keep by law, or for security, fraud prevention or the defence of rights. We will respond in accordance with the applicable law.\n\nEach time the management team views or exports your documents and data, it is recorded, with who did it and when. You may ask to know who viewed them.',
     },
     {
       titulo: 'Transfers and changes',

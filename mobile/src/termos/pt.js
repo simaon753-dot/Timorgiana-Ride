@@ -12,11 +12,15 @@
 // Em caso de dúvida entre idiomas, PREVALECE O PORTUGUÊS — decisão dele.
 //
 // Gerado a partir de piloto/TimorgianaRide-termos.docx.
+//
+// Cláusulas acrescentadas a 14/09/2026 — assinatura; taxas de entrada; pedir
+// para outra pessoa e menores; Carro Pickup; fotografia de turno — redigidas
+// por mim a pedido do Simão e revistas por ele antes de publicar.
 
 export const termosPassageiro = {
   titulo: 'Termos de utilização',
   subtitulo: 'Leia antes de criar conta. É rápido e transparente.',
-  atualizado: 'Versão de 29 de Agosto de 2026',
+  atualizado: 'Versão de 14 de Setembro de 2026',
   // Texto da caixa de aceitação. O que está entre ** fica clicável
   // e abre o documento. Sem este campo o ecrã de registo não abre.
   aceitarCurto: 'Li e aceito os **termos de utilização**',
@@ -30,7 +34,12 @@ export const termosPassageiro = {
     {
       titulo: 'Pagamento – em dinheiro, sem comissão',
       texto:
-        'O pagamento é efetuado diretamente ao motorista, em dinheiro, no final da viagem. O valor a pagar é o que a aplicação mostrou no momento do pedido, não sofrendo alterações no final. Nesta fase inicial de testes, o serviço da plataforma é gratuito (não cobramos comissão ao passageiro nem ao motorista). Se no futuro passarmos a cobrar alguma taxa, será previamente avisado – nunca no decorrer de uma viagem e nunca sem aviso prévio.',
+        'O pagamento é efetuado diretamente ao motorista, em dinheiro, no final da viagem. O valor a pagar é o que a aplicação mostrou no momento do pedido, não sofrendo alterações no final. A TimorgianaRide não cobra comissão nem qualquer taxa ao passageiro. Se no futuro passarmos a cobrar alguma taxa ao passageiro, será previamente avisado – nunca no decorrer de uma viagem e nunca sem aviso prévio.',
+    },
+    {
+      titulo: 'Taxas de Entrada em Recintos',
+      texto:
+        'Alguns recintos cobram a entrada do veículo, como o estacionamento do Timor Plaza e o recinto do Aeroporto Nicolau Lobato. Quando a recolha ou o destino ficam num desses recintos, a aplicação avisa antes de pedir. Essa taxa não faz parte do preço da viagem: é paga pelo passageiro, diretamente na cancela, e não à TimorgianaRide nem ao motorista.',
     },
     {
       titulo: 'Fase de testes (Versão Beta)',
@@ -41,6 +50,16 @@ export const termosPassageiro = {
       titulo: 'Segurança do Passageiro',
       texto:
         'Antes de entrar no veículo, confirme sempre se a matrícula, o modelo do veículo e o nome/fotografia do motorista coincidem com os dados apresentados no ecrã. Se não coincidirem, não entre no veículo. Durante a viagem, dispõe de dois botões de segurança:\n\n• Partilhar viagem: Permite enviar a sua localização em tempo real a alguém da sua confiança.\n\n• Emergência: Avisa a nossa central com a sua posição e disponibiliza atalhos diretos para ligar à polícia, ambulância ou bombeiros.\n\nAviso Importante de Emergência: Em caso de perigo imediato, ligue prioritariamente para o 112, 110, e 115. A plataforma atua como canal de apoio complementar, não em substituição das autoridades de emergência.',
+    },
+    {
+      titulo: 'Pedir para Outra Pessoa e Menores',
+      texto:
+        'Pode pedir uma viagem para outra pessoa, indicando o nome e o número de telemóvel de quem vai viajar. Ao fazê-lo, declara que essa pessoa concorda com a viagem e com a utilização desses dados para a realizar. O motorista contacta o número de quem viaja; o código de recolha e o botão de emergência ficam na aplicação de quem pediu, que deve dar o código a quem vai viajar antes de o motorista chegar. Quem pede é responsável pelo pedido que faz.\n\nUma pessoa menor de idade só pode viajar se quem pede declarar que é responsável por ela ou que tem autorização de quem o é. Essa declaração fica registada, com a data e a hora, e quem a faz responde pela sua veracidade. O motorista vê que se trata de um menor antes de aceitar e pode recusar a viagem.',
+    },
+    {
+      titulo: 'Serviço Carro Pickup',
+      texto:
+        'O Carro Pickup transporta bens ou grupos de pessoas.\n\nNo transporte de bens, quem pede declara que os bens são legais, seguros e compatíveis com a capacidade do veículo, e descreve-os com verdade — tipo, tamanho e, se quiser, fotografias. É proibido transportar bens ilícitos, armas, munições, explosivos, combustíveis ou outras matérias perigosas. O motorista pode recusar a carga que não corresponda ao descrito, que não caiba no veículo ou que não possa ser transportada em segurança. A embalagem e a proteção dos bens cabem a quem pede; a ajuda para carregar ou descarregar só está incluída quando for pedida e constar do preço.\n\nTambém neste serviço a TimorgianaRide atua exclusivamente como intermediária: o transporte é um acordo direto entre quem pede e o motorista, e a TimorgianaRide não responde por perda, furto ou danos nos bens, nem por atrasos. As fotografias da carga servem de registo do estado dos bens à partida.\n\nNo transporte de pessoas, o número indicado não pode exceder o que o veículo pode legalmente transportar, e o motorista pode recusar se o número ou as condições não forem seguros.',
     },
     {
       titulo: 'Tratamento de Dados Pessoais',
@@ -101,9 +120,24 @@ export const termosMotorista = {
         'Pedimos a carta de condução, o documento do veículo e uma fotografia sua exclusivamente para confirmar a sua identidade e elegibilidade formal – é isso que transmite confiança ao passageiro ao entrar no veículo. A carta de condução e o documento do veículo ficam guardados na nossa base de dados, são acedidos unicamente pela equipa de gestão da plataforma e não são exibidos aos passageiros nem partilhados com terceiros. A sua fotografia é diferente: é mostrada ao passageiro da viagem que aceitar, no ecrã dele, enquanto essa viagem durar — é assim que ele confirma que entrou no carro certo, tal como confirma a matrícula e o modelo. Termina a viagem, deixa de ser mostrada, e o histórico não a guarda à vista. Pode solicitar a eliminação dos seus documentos, o que resultará no encerramento da sua conta de motorista.',
     },
     {
+      titulo: 'Fotografia de Turno',
+      texto:
+        'No início de cada dia de trabalho, a aplicação pede uma fotografia sua (fotografia de turno), para confirmar que quem conduz é o titular da conta. Sem ela não é possível ficar disponível. A fotografia de turno mais recente é a que o passageiro vê durante a viagem, e a equipa de gestão pode compará-la com a do registo. Cada fotografia de turno é guardada durante 7 dias e depois apagada.',
+    },
+    {
       titulo: 'Segurança e Regras de Conduta',
       texto:
         'O motorista compromete-se a cumprir estritamente o Código da Estrada e a conduzir de forma prudente. É expressamente proibida a condução sob o efeito de álcool, estupefacientes ou substâncias psicotrópicas. É obrigatório o tratamento respeitoso e não discriminatório de todos os passageiros. Durante o serviço, o motorista dispõe do botão de Emergência na app para comunicar situações de risco, devendo acionar diretamente o 112, 110 e 115 em caso de perigo imediato.',
+    },
+    {
+      titulo: 'Serviço Carro Pickup',
+      texto:
+        'Quem conduz um Carro Pickup recebe pedidos de transporte de bens e de grupos de pessoas.\n\n• Bens: antes de aceitar, vê o tipo e o tamanho da carga, a ajuda pedida e, quando existam, as fotografias. Pode recusar a carga que não corresponda ao descrito, que não caiba no veículo ou que não possa ser transportada em segurança, e deve recusar bens que saiba ou suspeite serem ilícitos ou perigosos. Deve acondicionar a carga de forma segura durante o transporte e marcar na aplicação quando foi carregada, quando chegou ao destino e quando foi descarregada — esses registos servem de prova do serviço. A TimorgianaRide não responde por perda, furto ou danos nos bens transportados.\n\n• Pessoas: só pode transportar o número de pessoas e nas condições que a lei e os documentos do veículo permitem, e deve recusar o pedido quando o número ou as condições não forem seguros ou legais.',
+    },
+    {
+      titulo: 'Passageiros Menores',
+      texto:
+        'Um pedido pode ser feito para uma pessoa menor de idade, com a declaração de quem pede de que é responsável por ela ou tem autorização de quem o é. O motorista vê essa indicação antes de aceitar e é livre de recusar. Se aceitar, deve levar o menor diretamente ao destino indicado.',
     },
     {
       titulo: 'Política de Cancelamentos e Assiduidade',
