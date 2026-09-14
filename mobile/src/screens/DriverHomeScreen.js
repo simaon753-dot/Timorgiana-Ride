@@ -41,6 +41,7 @@ import NumerosViagem from '../design/NumerosViagem.js';
 import PercursoPontos from '../design/PercursoPontos.js';
 import { tipo } from '../design/tipografia.js';
 import BarraEstado from '../design/BarraEstado.js';
+import { VERSAO_TERMOS_MOTORISTA } from '../termos/index.js';
 import ImagemProtegida from '../design/ImagemProtegida.js';
 
 // O nome de cada documento, para o aviso poder dizer "Cartão de inspeção"
@@ -236,6 +237,25 @@ export default function DriverHomeScreen({ navigation }) {
             {docsACaducar.some((d) => d.qual === 'inspection') ? (
               <Text style={styles.avisoValidadeTexto}>{t('docInspecaoRenovar')}</Text>
             ) : null}
+          </Pressable>
+        ) : null}
+
+        {/* OS TERMOS MUDARAM (14/09/26). Antes disto, só o ecrã dos documentos
+            pedia a nova aceitação — e um motorista já aprovado só lá chega
+            pelo perfil. A versão que entrou a assinatura nunca seria aceite
+            por quem já trabalha. Coral e não vermelho: não impede de
+            trabalhar, pede que se leia. */}
+        {!activeRide && user?.driverTermsVersion !== VERSAO_TERMOS_MOTORISTA ? (
+          <Pressable
+            style={styles.avisoValidade}
+            onPress={() => navigation.navigate('Termos', { quem: 'driver', aceitavel: true })}
+            accessibilityRole="button"
+          >
+            <Text style={styles.avisoValidadeTitulo}>{t('termosNovosTitulo')}</Text>
+            <Text style={styles.avisoValidadeTexto}>{t('termosNovosTexto')}</Text>
+            <Text style={[styles.avisoValidadeTexto, { fontWeight: '700' }]}>
+              {t('driverTermsRead')} ›
+            </Text>
           </Pressable>
         ) : null}
 

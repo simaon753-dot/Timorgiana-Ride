@@ -30,7 +30,13 @@ export const VERSAO_TERMOS = '2026-08-29';
 //
 // Muda o que o motorista autoriza sobre a sua própria imagem, portanto muda a
 // versão e os motoristas voltam a ter de aceitar.
-export const VERSAO_TERMOS_MOTORISTA = '2026-09-10';
+// Alterada em 14/09/2026: entra a ASSINATURA — preços, a regra do dia, como
+// pagar, quando os dias entram e o que acontece aos dias não usados. Até aqui
+// os termos diziam que o serviço era gratuito e que qualquer taxa seria
+// avisada antes; esta é esse aviso. Decisões do Simão: devolve-se o valor dos
+// dias não usados a quem fecha a conta e a quem é desactivado (salvo falta
+// grave), preços avisados com 30 dias, dias creditados até 24 horas.
+export const VERSAO_TERMOS_MOTORISTA = '2026-09-14';
 
 // A privacidade tem versão PRÓPRIA, e não a dos termos.
 //

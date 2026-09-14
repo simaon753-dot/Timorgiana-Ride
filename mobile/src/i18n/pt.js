@@ -1,5 +1,8 @@
 // Português (europeu)
 export default {
+  termosNovosTitulo: 'Os termos para motoristas mudaram',
+  termosNovosTexto:
+    'Entra a assinatura (gratuita até 30/04/2027), com os preços e a devolução dos dias não usados. Leia e aceite.',
   corMaisCores: 'Mais cores',
   cor_perola: 'Pérola',
   cor_creme: 'Creme',

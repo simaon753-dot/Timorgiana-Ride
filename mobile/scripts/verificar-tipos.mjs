@@ -171,6 +171,42 @@ for (const id of naAppCores) {
   if (faltam.length) problemas.push(`${chave} — falta em ${faltam.join(', ')}`);
 }
 
+// ── e os preços da assinatura, escritos nos termos do motorista ──
+//
+// Desde 14/09/26 os termos citam a tabela de pacotes, e o servidor cobra pela
+// PACOTES de assinatura.js. Se um mudar sem o outro, o motorista aceitou um
+// preço e paga outro — e o que vale é o texto que ele aceitou.
+const textoAssin = readFileSync('../backend/src/assinatura.js', 'utf8');
+const blocoPacotes = textoAssin.slice(textoAssin.indexOf('export const PACOTES = {'));
+const pacotes = {};
+for (const m of blocoPacotes
+  .slice(0, blocoPacotes.indexOf('\n};'))
+  .matchAll(/(\w+): \[([^\]]*)\]/g)) {
+  pacotes[m[1]] = [...m[2].matchAll(/dias:\s*(\d+),\s*usd:\s*([\d.]+)/g)].map((p) => [p[1], p[2]]);
+}
+const LINHA_PRECO = {
+  pt: (d, u) => `${d} dias – $${u}`,
+  tet: (d, u) => `loron ${d} – $${u}`,
+  en: (d, u) => `${d} days – $${u}`,
+};
+if (!pacotes.car?.length || !pacotes.motorbike?.length) {
+  problemas.push('não encontrei os PACOTES da assinatura');
+}
+// Os termos juntam o carro e o Carro Pickup numa linha só.
+if (JSON.stringify(pacotes.carry) !== JSON.stringify(pacotes.car)) {
+  problemas.push('o Carry deixou de ter os preços do carro — os termos juntam-nos numa linha');
+}
+for (const l of LINGUAS) {
+  const termos = await import(`../src/termos/${l}.js`);
+  const texto = termos.termosMotorista.seccoes.map((s) => s.texto).join('\n');
+  for (const tipo of ['motorbike', 'car']) {
+    const linha = (pacotes[tipo] || []).map(([d, u]) => LINHA_PRECO[l](d, u)).join('; ');
+    if (!texto.includes(linha)) {
+      problemas.push(`termos do motorista (${l}) sem os preços de ${tipo}: "${linha}"`);
+    }
+  }
+}
+
 if (problemas.length) {
   console.error('  ✗ tipos de lugar:\n');
   for (const p of problemas) console.error('    ' + p);
