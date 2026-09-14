@@ -161,3 +161,36 @@ export async function notificarAdminsMotoristaPronto({ nome, telefone }) {
     }))
   );
 }
+
+// Um pedido de carregamento novo. Os termos prometem os dias em 24 horas, e
+// o prazo só se cumpre se alguém souber que há um pedido à espera.
+export async function notificarAdminsPagamento({ nome, dias, valor, referencia }) {
+  const admins = await query(
+    'SELECT push_token FROM users WHERE is_admin = TRUE AND push_token IS NOT NULL'
+  );
+  if (!admins.length) return { enviadas: 0 };
+  return enviar(
+    admins.map((a) => ({
+      to: a.push_token,
+      sound: 'default',
+      title: 'Pagamento por confirmar',
+      body: `${nome || 'Um motorista'} · ${dias} dias · $${valor} · ${referencia}`,
+      data: { tipo: 'pagamento:novo' },
+      priority: 'high',
+    }))
+  );
+}
+
+// A decisão sobre o pedido, para o motorista não ter de ir ver.
+export async function notificarMotoristaPagamento(pushToken, { confirmado, dias, motivo }) {
+  if (!pushToken) return { enviadas: 0 };
+  return enviar([
+    {
+      to: pushToken,
+      sound: 'default',
+      title: confirmado ? 'Dias carregados' : 'Pagamento não confirmado',
+      body: confirmado ? `${dias} dias entraram na sua conta.` : `Motivo: ${motivo}`,
+      data: { tipo: 'pagamento:decidido' },
+    },
+  ]);
+}

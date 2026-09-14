@@ -192,6 +192,55 @@ export async function initSchema() {
     )
   `);
 
+  // PEDIDOS DE CARREGAMENTO (14/09/26). O motorista paga sozinho — QR,
+  // transferência, Mosan — e manda o comprovativo; alguém confirma contra o
+  // extracto antes de os dias existirem. O comprovativo fica aqui, como os
+  // documentos: é a prova do pagamento, para os dois lados.
+  //
+  // UM SÓ PEDIDO À ESPERA POR MOTORISTA (o índice único parcial): dois
+  // toques no botão, ou um reenvio porque a rede demorou, não podem virar
+  // dois pedidos e o dobro dos dias.
+  await query(`
+    CREATE TABLE IF NOT EXISTS pedidos_carregamento (
+      id                SERIAL PRIMARY KEY,
+      user_id           INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      dias              INTEGER NOT NULL,
+      valor_usd         NUMERIC(8,2) NOT NULL,
+      metodo            TEXT NOT NULL,
+      referencia        TEXT NOT NULL,
+      comprovativo_mime TEXT,
+      comprovativo      BYTEA,
+      estado            TEXT NOT NULL DEFAULT 'pendente'
+                        CHECK (estado IN ('pendente', 'confirmado', 'recusado', 'cancelado')),
+      motivo            TEXT,
+      decidido_por      INTEGER,
+      decidido_em       TIMESTAMPTZ,
+      carregamento_id   INTEGER,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await query(
+    `CREATE UNIQUE INDEX IF NOT EXISTS idx_pedido_pendente
+       ON pedidos_carregamento(user_id) WHERE estado = 'pendente'`
+  );
+  await query(
+    'CREATE INDEX IF NOT EXISTS idx_pedidos_estado ON pedidos_carregamento(estado, created_at)'
+  );
+
+  // DEVOLUÇÕES dos dias não usados, como os termos prometem (14/09/26). O
+  // dinheiro sai por fora; isto é o registo de quanto, a quem e porquê.
+  await query(`
+    CREATE TABLE IF NOT EXISTS devolucoes (
+      id         SERIAL PRIMARY KEY,
+      user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      dias       INTEGER NOT NULL,
+      valor_usd  NUMERIC(8,2) NOT NULL,
+      motivo     TEXT NOT NULL CHECK (motivo IN ('encerramento', 'desativacao', 'fim_servico')),
+      admin_id   INTEGER,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
   // --- Migrações para bases criadas antes destas colunas ---
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS driver_status TEXT`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT FALSE`);

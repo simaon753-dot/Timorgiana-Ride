@@ -183,6 +183,11 @@ export const api = {
   adminSos: (token) => request('/admin/sos', { token }),
   adminNotificacoes: (token) => request('/admin/notificacoes', { token }),
   assinatura: (token) => request('/driver/assinatura', { token }),
+  // Carregar dias (14/09/26): o pedido com o comprovativo, e desistir dele.
+  pedirCarregamento: (token, body) =>
+    request('/driver/assinatura/pedidos', { method: 'POST', body, token }),
+  cancelarCarregamento: (token, id) =>
+    request(`/driver/assinatura/pedidos/${id}`, { method: 'DELETE', token }),
   proporLugar: (token, body) => request('/lugares/propor', { method: 'POST', body, token }),
   // Onde fica este ponto, na divisão administrativa. Devolve também os
   // sucos do posto e as aldeias que já foram escritas neles.
@@ -208,6 +213,18 @@ export const api = {
     request(`/admin/lugares/${id}/estado`, { method: 'POST', body: { estado }, token }),
   adminCarregar: (token, id, body) =>
     request(`/admin/drivers/${id}/carregar`, { method: 'POST', body, token }),
+  // Pagamentos da assinatura (14/09/26): confirmar contra o extracto, recusar
+  // com motivo, as formas que o motorista vê, e as devoluções.
+  adminPagamentos: (token) => request('/admin/pagamentos', { token }),
+  adminConfirmarPagamento: (token, id) =>
+    request(`/admin/pagamentos/${id}/confirmar`, { method: 'POST', token }),
+  adminRecusarPagamento: (token, id, motivo) =>
+    request(`/admin/pagamentos/${id}/recusar`, { method: 'POST', body: { motivo }, token }),
+  adminFormasPagamento: (token, formas) =>
+    request('/admin/pagamentos/formas', { method: 'PUT', body: { formas }, token }),
+  adminDevolucao: (token, id) => request(`/admin/drivers/${id}/devolucao`, { token }),
+  adminRegistarDevolucao: (token, id, motivo) =>
+    request(`/admin/drivers/${id}/devolucao`, { method: 'POST', body: { motivo }, token }),
   // Confirmar um documento que o motorista substituiu depois de aprovado.
   adminDocRevisto: (token, id) =>
     request(`/admin/documents/${id}/revisto`, { method: 'POST', token }),

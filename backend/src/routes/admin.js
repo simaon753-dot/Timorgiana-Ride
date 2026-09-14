@@ -15,7 +15,22 @@ import { getDocument } from '../documents.js';
 import { toPublicUser } from '../users.js';
 import { alertasAbertos, resolverAlerta } from '../sos.js';
 import { fotosDeHoje, getFotoDeTurno } from '../turnos.js';
-import { carregar, FORMAS_PAGAMENTO, PACOTES } from '../assinatura.js';
+import {
+  carregar,
+  FORMAS_PAGAMENTO,
+  PACOTES,
+  PRAZO_HORAS,
+  referenciaDe,
+  formasConfiguradas,
+  gravarFormas,
+  pedidosParaAdmin,
+  comprovativoDe,
+  confirmarPedido,
+  recusarPedido,
+  calcularDevolucao,
+  registarDevolucao,
+} from '../assinatura.js';
+import { notificarMotoristaPagamento } from '../push.js';
 import { etiquetaOsm } from '../tiposDeLugar.js';
 import { googleConhece } from '../lugares.js';
 import { linhasOsm } from '../etiquetasOsm.js';
@@ -363,7 +378,13 @@ adminRouter.get(
         (SELECT COUNT(*) FROM rides
           WHERE status='cancelled' AND created_at > NOW() - INTERVAL '24 hours')::int
           AS "canceladas",
-        (SELECT COUNT(*) FROM users WHERE driver_status='suspended')::int AS "suspensas"
+        (SELECT COUNT(*) FROM users WHERE driver_status='suspended')::int AS "suspensas",
+        (SELECT COUNT(*) FROM pedidos_carregamento
+          WHERE estado='pendente' AND created_at >= NOW() - INTERVAL '24 hours')::int
+          AS "pagamentos",
+        (SELECT COUNT(*) FROM pedidos_carregamento
+          WHERE estado='pendente' AND created_at < NOW() - INTERVAL '24 hours')::int
+          AS "pagamentosAtrasados"
     `);
 
     // Cada item traz a gravidade consigo. O ecrã não deve ter de decidir se
@@ -371,6 +392,14 @@ adminRouter.get(
     // negócio, e vive aqui.
     const itens = [
       { chave: 'sos', n: n.sos, nivel: 'mau', seccao: 'resumo' },
+      // Passadas as 24 horas que os termos prometem, deixa de ser aviso.
+      {
+        chave: 'pagamentosAtrasados',
+        n: n.pagamentosAtrasados,
+        nivel: 'mau',
+        seccao: 'pagamentos',
+      },
+      { chave: 'pagamentos', n: n.pagamentos, nivel: 'aviso', seccao: 'pagamentos' },
       { chave: 'docsCaducados', n: n.docsCaducados, nivel: 'mau', seccao: 'motoristas' },
       { chave: 'aprovacoes', n: n.aprovacoes, nivel: 'aviso', seccao: 'motoristas' },
       { chave: 'semResposta', n: n.semResposta, nivel: 'aviso', seccao: 'viagens' },
@@ -724,6 +753,8 @@ adminRouter.get(
         // uma publicação do servidor.
         pacotes: PACOTES[u.vehicle_type] || PACOTES.car,
         formasPagamento: FORMAS_PAGAMENTO,
+        // A referência que o motorista escreve nos pagamentos (TR0042).
+        referencia: referenciaDe(u.id),
       },
       documentos: docs.map((d) => ({
         id: d.id,
@@ -1065,6 +1096,115 @@ adminRouter.post(
       res.json({ dias: saldo });
     } catch (e) {
       res.status(400).json({ error: e.message });
+    }
+  })
+);
+
+// ── PAGAMENTOS DA ASSINATURA (14/09/26) ─────────────────────────────────
+//
+// Os pedidos que os motoristas mandam com comprovativo. Confirmar é olhar
+// para o extracto do banco e encontrar o pagamento pela referência (TR0042)
+// e pelo valor — nunca só pela fotografia do comprovativo, que se fabrica em
+// segundos. Os termos prometem os dias em 24 horas.
+const respostaDePolitica = (res, e) => {
+  if (e.status) return res.status(e.status).json({ error: e.message });
+  throw e;
+};
+const pushDe = async (userId) =>
+  (await one('SELECT push_token FROM users WHERE id = $1', [userId]))?.push_token;
+
+adminRouter.get(
+  '/pagamentos',
+  wrap(async (_req, res) => {
+    const [pedidos, formas] = await Promise.all([pedidosParaAdmin(), formasConfiguradas()]);
+    res.json({ ...pedidos, formas, prazoHoras: PRAZO_HORAS });
+  })
+);
+
+adminRouter.get(
+  '/pagamentos/:id/comprovativo',
+  wrap(async (req, res) => {
+    const c = await comprovativoDe(Number(req.params.id));
+    if (!c?.bytes) return res.status(404).json({ error: 'Sem comprovativo.' });
+    registarAcesso(req.user.id, 'comprovativo de pagamento', c.user_id);
+    res.setHeader('Content-Type', c.mime);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.send(c.bytes);
+  })
+);
+
+adminRouter.post(
+  '/pagamentos/:id/confirmar',
+  wrap(async (req, res) => {
+    try {
+      const r = await confirmarPedido({ id: Number(req.params.id), adminId: req.user.id });
+      registarAcesso(req.user.id, `confirmou pagamento de ${r.dias} dias`, r.userId);
+      notificarMotoristaPagamento(await pushDe(r.userId), { confirmado: true, dias: r.dias }).catch(
+        () => {}
+      );
+      res.json({ ok: true, saldo: r.saldo });
+    } catch (e) {
+      respostaDePolitica(res, e);
+    }
+  })
+);
+
+adminRouter.post(
+  '/pagamentos/:id/recusar',
+  wrap(async (req, res) => {
+    try {
+      const r = await recusarPedido({
+        id: Number(req.params.id),
+        adminId: req.user.id,
+        motivo: req.body?.motivo,
+      });
+      registarAcesso(req.user.id, `recusou pagamento de ${r.dias} dias`, r.userId);
+      notificarMotoristaPagamento(await pushDe(r.userId), {
+        confirmado: false,
+        motivo: r.motivo,
+      }).catch(() => {});
+      res.json({ ok: true });
+    } catch (e) {
+      respostaDePolitica(res, e);
+    }
+  })
+);
+
+// As formas de pagamento que o motorista vê, com as instruções.
+adminRouter.put(
+  '/pagamentos/formas',
+  wrap(async (req, res) => {
+    try {
+      await gravarFormas(req.body?.formas, req.user.id);
+      res.json({ formas: await formasConfiguradas() });
+    } catch (e) {
+      respostaDePolitica(res, e);
+    }
+  })
+);
+
+// Quanto se devolveria hoje a este motorista, com a conta à vista.
+adminRouter.get(
+  '/drivers/:id/devolucao',
+  wrap(async (req, res) => {
+    res.json(await calcularDevolucao(Number(req.params.id)));
+  })
+);
+
+adminRouter.post(
+  '/drivers/:id/devolucao',
+  wrap(async (req, res) => {
+    const id = Number(req.params.id);
+    try {
+      const r = await registarDevolucao({
+        userId: id,
+        motivo: req.body?.motivo,
+        adminId: req.user.id,
+      });
+      registarAcesso(req.user.id, `registou devolução de ${r.dias} dias ($${r.valorUsd})`, id);
+      res.json(r);
+    } catch (e) {
+      respostaDePolitica(res, e);
     }
   })
 );

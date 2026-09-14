@@ -16,8 +16,14 @@ import {
 import { temFotoDeHoje, guardarFotoDeTurno, ultimaFotoDeTurno } from '../turnos.js';
 import { setOnline, savePushToken } from '../drivers.js';
 import { toPublicUser } from '../users.js';
-import { notificarAdminsMotoristaPronto } from '../push.js';
-import { podeEntrarAoServico, estadoDe, resumoDe } from '../assinatura.js';
+import { notificarAdminsMotoristaPronto, notificarAdminsPagamento } from '../push.js';
+import {
+  podeEntrarAoServico,
+  estadoDe,
+  resumoDe,
+  criarPedido,
+  cancelarPedido,
+} from '../assinatura.js';
 
 export const driverRouter = Router();
 // Sem guarda de papel: é por aqui que uma conta de passageiro se torna
@@ -266,7 +272,9 @@ driverRouter.post(
         model?.trim() || null,
         String(plate).trim(),
         // Um código da lista, ou texto livre dos registos antigos: 30 caracteres chegam.
-        String(color || '').trim().slice(0, 30) || null,
+        String(color || '')
+          .trim()
+          .slice(0, 30) || null,
         tipo === 'car' ? Math.max(1, Math.min(12, Number(seats))) : null,
         req.user.id,
         carga.carroceria,
@@ -449,5 +457,45 @@ driverRouter.get(
   '/assinatura',
   wrap(async (req, res) => {
     res.json(await estadoDe(req.user.id));
+  })
+);
+
+// POST /api/driver/assinatura/pedidos — pedir um carregamento (14/09/26)
+//
+// Com o comprovativo. Os dias só existem depois de alguém confirmar que o
+// dinheiro entrou (POST /api/admin/pagamentos/:id/confirmar). As recusas de
+// política (compras fechadas, pedido repetido, sem comprovativo) voltam com
+// o seu estado e a mensagem, para o motorista a ler.
+driverRouter.post(
+  '/assinatura/pedidos',
+  wrap(async (req, res) => {
+    const { dias, metodo, mime, base64 } = req.body || {};
+    try {
+      const p = await criarPedido({ userId: req.user.id, dias, metodo, mime, base64 });
+      notificarAdminsPagamento({
+        nome: p.nome,
+        dias: p.dias,
+        valor: Number(p.valor_usd),
+        referencia: p.referencia,
+      }).catch(() => {});
+      res.status(201).json({ ok: true, id: p.id });
+    } catch (e) {
+      if (e.status) return res.status(e.status).json({ error: e.message });
+      throw e;
+    }
+  })
+);
+
+// DELETE /api/driver/assinatura/pedidos/:id — desistir de um pedido à espera
+driverRouter.delete(
+  '/assinatura/pedidos/:id',
+  wrap(async (req, res) => {
+    try {
+      await cancelarPedido({ id: Number(req.params.id), userId: req.user.id });
+      res.json({ ok: true });
+    } catch (e) {
+      if (e.status) return res.status(e.status).json({ error: e.message });
+      throw e;
+    }
   })
 );

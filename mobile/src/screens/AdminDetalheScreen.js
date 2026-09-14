@@ -22,6 +22,8 @@ import { colors, spacing, radius, registarEstilos } from '../theme.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
+import Button from '../components/Button.js';
+import { nomeDaForma } from '../dados/formasPagamento.js';
 import { paraMostrar } from '../lib/datas.js';
 
 // Detalhe de administração: uma conta ou uma viagem, por inteiro.
@@ -674,9 +676,19 @@ registarEstilos(() => {
 //
 // Os pacotes vêm do servidor por outra razão: o preço muda, e não pode
 // mudar em três sítios.
+// Os motivos por que os termos mandam devolver. A desactivação por falta
+// grave não está aqui de propósito: os termos excluem-na.
+const MOTIVOS_DEVOLUCAO = [
+  ['encerramento', 'admDevMotivoEncerramento'],
+  ['desativacao', 'admDevMotivoDesativacao'],
+  ['fim_servico', 'admDevMotivoFim'],
+];
+
 function Assinatura({ c, t, token, onMudou }) {
   const [aGravar, setAGravar] = useState(false);
   const [metodo, setMetodo] = useState('escritorio');
+  const [dev, setDev] = useState(null);
+  const [motivoDev, setMotivoDev] = useState(null);
 
   // Do servidor, sempre. Tinha-os escrito aqui à mão e isso punha o preço
   // em dois sítios — o do motorista vindo do servidor, o do administrador
@@ -711,6 +723,45 @@ function Assinatura({ c, t, token, onMudou }) {
     ]);
   }
 
+  // A DEVOLUÇÃO (14/09/26): o servidor calcula — os dias mais antigos
+  // gastam-se primeiro, por isso os que sobram são os mais recentes, ao preço
+  // por dia a que foram pagos. Aqui só se mostra a conta e se escolhe o motivo.
+  async function calcularDevolucao() {
+    try {
+      setDev(await api.adminDevolucao(token, c.id));
+      setMotivoDev(null);
+    } catch (e) {
+      Alert.alert(t('errGeneric'), e?.message || '');
+    }
+  }
+
+  function registarDevolucao() {
+    if (!dev || !motivoDev) return;
+    Alert.alert(
+      t('admDevRegistar'),
+      t('admDevConfirmar', { valor: dev.valorUsd.toFixed(2), dias: dev.dias }),
+      [
+        { text: t('cancel'), style: 'cancel' },
+        {
+          text: t('admDevRegistar'),
+          style: 'destructive',
+          onPress: async () => {
+            setAGravar(true);
+            try {
+              await api.adminRegistarDevolucao(token, c.id, motivoDev);
+              setDev(null);
+              onMudou?.();
+            } catch (e) {
+              Alert.alert(t('errGeneric'), e?.message || '');
+            } finally {
+              setAGravar(false);
+            }
+          },
+        },
+      ]
+    );
+  }
+
   return (
     <Seccao
       icone="carteira"
@@ -723,10 +774,20 @@ function Assinatura({ c, t, token, onMudou }) {
       }
     >
       <View style={estilosAssin.corpo}>
+        {c.referencia ? (
+          <Text style={estilosAssin.rotulo}>
+            {t('admReferencia')}: <Text style={estilosAssin.referencia}>{c.referencia}</Text>
+          </Text>
+        ) : null}
         <Text style={estilosAssin.rotulo}>{t('admFormaPagamento')}</Text>
         <View style={estilosAssin.linha}>
           {METODOS.map((m) => (
-            <Chip key={m} texto={m} activo={metodo === m} onPress={() => setMetodo(m)} />
+            <Chip
+              key={m}
+              texto={nomeDaForma(m, t)}
+              activo={metodo === m}
+              onPress={() => setMetodo(m)}
+            />
           ))}
         </View>
 
@@ -743,6 +804,58 @@ function Assinatura({ c, t, token, onMudou }) {
             </Pressable>
           ))}
         </View>
+
+        <View style={estilosAssin.devolucao}>
+          {!dev ? (
+            <Button
+              title={t('admDevCalcular')}
+              variant="ghost"
+              disabled={aGravar}
+              onPress={calcularDevolucao}
+            />
+          ) : !dev.dias ? (
+            <Text style={estilosAssin.nota}>{t('admDevSemDias')}</Text>
+          ) : (
+            <>
+              <Text style={estilosAssin.devTitulo}>
+                {t('admDevResultado', { dias: dev.dias, valor: dev.valorUsd.toFixed(2) })}
+              </Text>
+              {dev.partes
+                .filter((x) => x.porDia > 0)
+                .map((x, i) => (
+                  <Text key={i} style={estilosAssin.nota}>
+                    {t('admDevParte', {
+                      dias: x.dias,
+                      porDia: x.porDia.toFixed(2),
+                      quando: x.quando ? paraMostrar(x.quando) : '—',
+                    })}
+                  </Text>
+                ))}
+              {dev.oferecidos ? (
+                <Text style={estilosAssin.nota}>
+                  {t('admDevOferecidos', { n: dev.oferecidos })}
+                </Text>
+              ) : null}
+              <FilaChips>
+                {MOTIVOS_DEVOLUCAO.map(([id, chave]) => (
+                  <Chip
+                    key={id}
+                    texto={t(chave)}
+                    activo={motivoDev === id}
+                    onPress={() => setMotivoDev(id)}
+                  />
+                ))}
+              </FilaChips>
+              <Text style={estilosAssin.nota}>{t('admDevNota')}</Text>
+              <Button
+                title={t('admDevRegistar')}
+                variant="perigo"
+                disabled={!motivoDev || aGravar}
+                onPress={registarDevolucao}
+              />
+            </>
+          )}
+        </View>
       </View>
     </Seccao>
   );
@@ -751,6 +864,16 @@ function Assinatura({ c, t, token, onMudou }) {
 const criarEstilosAssin = () =>
   StyleSheet.create({
     corpo: { padding: spacing.md },
+    referencia: { ...tipo.corpoForte, color: colors.teal, letterSpacing: 1 },
+    devolucao: {
+      marginTop: spacing.md,
+      paddingTop: spacing.md,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+      gap: spacing.sm,
+    },
+    devTitulo: { ...tipo.corpoForte, color: colors.text },
+    nota: { ...tipo.pequeno, color: colors.textMuted },
     saldo: {
       flexDirection: 'row',
       alignItems: 'center',

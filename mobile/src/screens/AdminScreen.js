@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ordenarDocumentos } from '../dados/documentos.js';
 import GestaoCarry from '../components/GestaoCarry.js';
+import GestaoPagamentos from '../components/GestaoPagamentos.js';
 import {
   Alert,
   Linking,
@@ -54,6 +55,7 @@ import { abrirNoMapa } from '../lib/mapaLink.js';
 const SECCOES = [
   ['resumo', 'admSecResumo', 'grafico'],
   ['motoristas', 'admSecDrivers', 'volante'],
+  ['pagamentos', 'admSecPagamentos', 'carteira'],
   ['contas', 'admSecContas', 'pessoa'],
   ['viagens', 'admSecRides', 'carro'],
   ['carry', 'admSecCarry', 'carry'],
@@ -438,6 +440,8 @@ export default function AdminScreen({ navigation }) {
           />
         ) : seccao === 'viagens' ? (
           <Viagens viagens={viagens} t={t} navigation={navigation} />
+        ) : seccao === 'pagamentos' ? (
+          <GestaoPagamentos token={token} t={t} />
         ) : seccao === 'carry' ? (
           <GestaoCarry token={token} t={t} navigation={navigation} />
         ) : seccao === 'registo' ? (
