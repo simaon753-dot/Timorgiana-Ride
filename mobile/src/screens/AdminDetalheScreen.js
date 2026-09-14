@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { nomeDoVeiculo } from '../dados/tiposDeVeiculo.js';
+import { ordenarDocumentos } from '../dados/documentos.js';
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CabecalhoEcra from '../design/CabecalhoEcra.js';
@@ -42,6 +44,7 @@ const MOTIVO_TEXTO = {
 
 const NOME_DO_DOC = {
   licence: 'docLicence',
+  cartaverso: 'docCartaverso',
   vehicle: 'docVehicle',
   inspection: 'docInspection',
   identity: 'docIdentity',
@@ -367,7 +370,7 @@ function DetalheConta({ d, t, navigation, token, onMudou, verImagem }) {
       {d.documentos?.length ? (
         <Seccao icone="pasta" titulo={t('adminDocs')}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tira}>
-            {d.documentos.map((doc) => (
+            {ordenarDocumentos(d.documentos, 'tipo').map((doc) => (
               <View key={doc.id} style={styles.docCaixa}>
                 {/* TOCAR ABRE EM GRANDE. Noventa e dois pixels dizem que há
                     uma fotografia; não deixam ler o número de uma carta nem
@@ -401,6 +404,13 @@ function DetalheConta({ d, t, navigation, token, onMudou, verImagem }) {
                     confirmar. É exactamente o caso que o Simão quis vigiar ao
                     fechar os documentos: o motorista pode trocá-los, mas tem
                     de dizer porquê e alguém tem de olhar. */}
+                {/* No verso, o que confirmar: as categorias para o veículo que
+                    a pessoa registou. */}
+                {doc.tipo === 'cartaverso' && c.vehicle ? (
+                  <Text style={styles.docMotivo}>
+                    {t('admConfirmarCategorias', { veiculo: nomeDoVeiculo(t, c.vehicle.type) })}
+                  </Text>
+                ) : null}
                 {doc.porRever ? (
                   <>
                     <Text style={styles.docMotivo}>

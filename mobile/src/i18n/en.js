@@ -6,6 +6,10 @@
 // code passes them by those names; changing them here would silently break
 // the substitution.
 export default {
+  docCartaverso: 'Driving licence (back)',
+  docCartaversoNota:
+    'The back shows which vehicle categories you may drive (motorbike, car, pickup).',
+  admConfirmarCategorias: 'Check the categories for: {veiculo}',
   language: 'Language',
   passenger: 'Passenger',
   driver: 'Driver',
@@ -468,7 +472,7 @@ export default {
   rejectedTitle: 'Account not approved',
   rejectedExplain:
     'Your driver account was not approved. If you think this is a mistake, please contact us.',
-  docLicence: 'Driving licence',
+  docLicence: 'Driving licence (front)',
   docVehicle: 'Vehicle registration card',
   docFotoveiculo: 'Vehicle photo',
   docPhoto: 'Photo of you',

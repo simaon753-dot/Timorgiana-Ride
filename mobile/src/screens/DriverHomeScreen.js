@@ -71,6 +71,7 @@ const CHAVE_AJUDA = {
 
 const NOME_DO_DOC = {
   licence: 'docLicence',
+  cartaverso: 'docCartaverso',
   vehicle: 'docVehicle',
   inspection: 'docInspection',
   identity: 'docIdentity',

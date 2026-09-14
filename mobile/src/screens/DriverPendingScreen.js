@@ -55,6 +55,11 @@ const TIPOS = [
   // alguém por um motivo que não tem que ver com conduzir.
   { kind: 'identity', label: 'docIdentity' },
   { kind: 'licence', label: 'docLicence' },
+  // O VERSO DA CARTA (14/09/26): é lá que estão as categorias — mota pequena ou
+  // grande, carro, pickup. Sem ele, quem aprova não sabe se a pessoa pode
+  // conduzir o veículo que registou. Obrigatório; sem data (a validade está na
+  // frente).
+  { kind: 'cartaverso', label: 'docCartaverso', nota: 'docCartaversoNota' },
   { kind: 'vehicle', label: 'docVehicle' },
   // Kartaun Inspesaun. Obrigatório em Timor-Leste, válido um ano, e conduzir
   // com ele caducado dá multa a dobrar se a polícia de trânsito mandar
@@ -153,7 +158,9 @@ export default function DriverPendingScreen({ navigation }) {
   // A fotografia do motorista não caduca; tudo o resto sim. Não se pergunta
   // uma data que não existe.
   function precisaValidade(kind) {
-    return kind !== 'photo' && kind !== 'identity' && kind !== 'fotoveiculo';
+    return (
+      kind !== 'photo' && kind !== 'identity' && kind !== 'fotoveiculo' && kind !== 'cartaverso'
+    );
   }
 
   // Guardar só a data, sem mexer na fotografia.
@@ -300,6 +307,7 @@ export default function DriverPendingScreen({ navigation }) {
                       <View style={styles.docRow}>
                         <View style={{ flex: 1 }}>
                           <Text style={styles.docName}>{t(tp.label)}</Text>
+                          {tp.nota ? <Text style={styles.docNota}>{t(tp.nota)}</Text> : null}
                           <Text style={[styles.docState, enviado && styles.docStateOk]}>
                             {enviado ? `✓ ${t('docSent')}` : t('docMissing')}
                           </Text>
@@ -584,6 +592,7 @@ const criarEstilos = () =>
       marginBottom: spacing.sm,
     },
     docName: { ...tipo.subtitulo, color: colors.text },
+    docNota: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },
     docState: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
     docStateOk: { color: colors.success, fontWeight: '600' },
     docBtn: {

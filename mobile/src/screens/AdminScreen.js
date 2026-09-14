@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ordenarDocumentos } from '../dados/documentos.js';
 import GestaoCarry from '../components/GestaoCarry.js';
 import {
   Alert,
@@ -890,7 +891,7 @@ function Motorista({ m, t, token, navigation, onAprovar, onRecusar, onSuspender 
 
       {m.documents?.length ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.docs}>
-          {m.documents.map((d) => (
+          {ordenarDocumentos(m.documents, 'kind').map((d) => (
             <View key={d.id}>
               {/* Passou a buscar os bytes com fetch, como o retrato do
                   perfil: o carregador nativo pode não enviar o cabeçalho

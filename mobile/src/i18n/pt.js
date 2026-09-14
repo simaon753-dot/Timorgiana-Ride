@@ -1,5 +1,8 @@
 // Português (europeu)
 export default {
+  docCartaverso: 'Carta de condução (verso)',
+  docCartaversoNota: 'O verso mostra as categorias que pode conduzir (mota, carro, pickup).',
+  admConfirmarCategorias: 'Confirme as categorias para: {veiculo}',
   language: 'Língua',
   passenger: 'Passageiro',
   driver: 'Motorista',
@@ -476,7 +479,7 @@ export default {
   rejectedTitle: 'Conta não aprovada',
   rejectedExplain:
     'A sua conta de motorista não foi aprovada. Se achar que houve engano, contacte-nos.',
-  docLicence: 'Carta de condução',
+  docLicence: 'Carta de condução (frente)',
   docVehicle: 'Cartão de registo do veículo',
   docFotoveiculo: 'Fotografia do veículo',
   docPhoto: 'Fotografia sua',

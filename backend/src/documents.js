@@ -3,7 +3,10 @@ import { query, one } from './db.js';
 const MAX_BYTES = 4 * 1024 * 1024; // 4 MB por documento
 // 'fotoveiculo' (14/09/26): a fotografia do Carry com a matrícula à vista. OPCIONAL — não
 // entra em OBRIGATORIOS, e por isso nunca bloqueia ninguém de trabalhar.
-const TIPOS = ['licence', 'vehicle', 'photo', 'inspection', 'identity', 'fotoveiculo'];
+// 'cartaverso' (14/09/26): o VERSO da carta de condução, onde estão as categorias
+// que dizem se a pessoa pode conduzir mota pequena ou grande, carro ou pickup.
+// Obrigatório, sem data própria — a validade está na frente ('licence').
+const TIPOS = ['licence', 'cartaverso', 'vehicle', 'photo', 'inspection', 'identity', 'fotoveiculo'];
 
 // O dia em Díli, e não o dia do servidor.
 //
@@ -124,7 +127,10 @@ export const COM_VALIDADE = ['licence', 'vehicle', 'inspection'];
 
 // Todos são obrigatórios. O cartão de inspecção entrou nesta lista em
 // 02/09/2026, a pedido do Simão.
-export const OBRIGATORIOS = ['photo', 'identity', 'licence', 'vehicle', 'inspection'];
+// O verso da carta entrou a 14/09/2026, a pedido do Simão: sem ele não se vêem
+// as categorias, e aprovava-se um motorista sem saber se pode conduzir aquele
+// veículo.
+export const OBRIGATORIOS = ['photo', 'identity', 'licence', 'cartaverso', 'vehicle', 'inspection'];
 
 // Avisar quinze dias antes. Chega para tratar de um papel em Díli sem
 // perder um dia de trabalho, e não é tão cedo que se esqueça.

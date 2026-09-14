@@ -430,7 +430,7 @@ export async function initSchema() {
   await query(`ALTER TABLE driver_documents DROP CONSTRAINT IF EXISTS driver_documents_kind_check`);
   await query(`
     ALTER TABLE driver_documents ADD CONSTRAINT driver_documents_kind_check
-    CHECK (kind IN ('licence', 'vehicle', 'photo', 'inspection', 'identity', 'fotoveiculo'))
+    CHECK (kind IN ('licence', 'cartaverso', 'vehicle', 'photo', 'inspection', 'identity', 'fotoveiculo'))
   `);
 
   // Porque é que um documento já verificado foi substituído.

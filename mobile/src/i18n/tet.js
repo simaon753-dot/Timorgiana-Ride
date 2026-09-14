@@ -1,6 +1,10 @@
 // Tétum (Tétum Praça, de Díli) — PRIMEIRA VERSÃO.
 // As traduções devem ser revistas por um falante nativo antes do lançamento.
 export default {
+  docCartaverso: 'Karta kondusaun (kotuk)',
+  docCartaversoNota:
+    'Parte kotuk hatudu kategoria veíkulu ne’ebé ita bele lori (motorizada, kareta, pickup).',
+  admConfirmarCategorias: 'Konfirma kategoria ba: {veiculo}',
   language: 'Lian',
   passenger: 'Pasajeiru',
   driver: 'Motorista',
@@ -473,7 +477,7 @@ export default {
   rejectedTitle: 'Konta la aprova',
   rejectedExplain:
     'Ita-nia konta motorista la aprova. Se ita hanoin katak iha sala ruma, kontakta ami.',
-  docLicence: 'Karta kondusaun',
+  docLicence: 'Karta kondusaun (oin)',
   docVehicle: 'Kartaun Rejistu Veíkulu',
   docFotoveiculo: 'Foto veíkulu',
   docPhoto: 'Ita-nia foto',
