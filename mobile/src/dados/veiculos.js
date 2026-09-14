@@ -128,6 +128,38 @@ export const CORES = [
   { id: 'castanho', hex: '#6D4C41' },
 ];
 
+// AS OUTRAS CORES, atrás do botão "Outra" (14/09/26, pedido do Simão).
+//
+// As dez de cima são as que a maioria dos veículos tem, e ficam à vista. Estas
+// cobrem o resto — dourado, pérola, bordô, dois azuis, dois verdes… — para o
+// motorista ESCOLHER a sua em vez de a escrever: o que se escreve não se
+// traduz nem tem amostra, e o passageiro procura pela cor.
+//
+// Ids só com letras minúsculas: a chave de tradução é `cor_<id>`, e o
+// verificar-tipos confirma que todas existem nas três línguas.
+export const CORES_OUTRAS = [
+  { id: 'perola', hex: '#F2EEE3' },
+  { id: 'creme', hex: '#EFE3C2' },
+  { id: 'bege', hex: '#CDB891' },
+  { id: 'champanhe', hex: '#D8C8A8' },
+  { id: 'dourado', hex: '#C9A23F' },
+  { id: 'bronze', hex: '#8C6239' },
+  { id: 'cobre', hex: '#B5653A' },
+  { id: 'bordo', hex: '#6E1F2E' },
+  { id: 'rosa', hex: '#EC8FB2' },
+  { id: 'lilas', hex: '#B79FDA' },
+  { id: 'roxo', hex: '#6A3D9A' },
+  { id: 'azulclaro', hex: '#6CB4EE' },
+  { id: 'azulescuro', hex: '#1B2B5C' },
+  { id: 'turquesa', hex: '#1FA6A0' },
+  { id: 'verdeclaro', hex: '#8DC45A' },
+  { id: 'verdeescuro', hex: '#1D4B2F' },
+  { id: 'oliva', hex: '#6F6A2F' },
+  { id: 'grafite', hex: '#3B3F42' },
+];
+
+export const TODAS_AS_CORES = [...CORES, ...CORES_OUTRAS];
+
 // Lugares que um passageiro pode pedir. Só faz sentido em carro — numa
 // motorizada vai sempre uma pessoa.
 export const LUGARES = [1, 2, 3, 4, 5, 6];

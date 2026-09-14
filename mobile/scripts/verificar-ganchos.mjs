@@ -9,7 +9,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const GANCHOS = ['useEffect','useState','useCallback','useMemo','useRef','useContext','useReducer','useLayoutEffect'];
+const GANCHOS = [
+  'useEffect',
+  'useState',
+  'useCallback',
+  'useMemo',
+  'useRef',
+  'useContext',
+  'useReducer',
+  'useLayoutEffect',
+];
 
 function ficheiros(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {

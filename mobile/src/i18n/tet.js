@@ -1,8 +1,26 @@
 // Tétum (Tétum Praça, de Díli) — PRIMEIRA VERSÃO.
 // As traduções devem ser revistas por um falante nativo antes do lançamento.
 export default {
+  corMaisCores: 'Kór seluk',
+  cor_perola: 'Pérola',
+  cor_creme: 'Krema',
+  cor_bege: 'Beje',
+  cor_champanhe: 'Xampañe',
+  cor_dourado: 'Osan-mean',
+  cor_bronze: 'Bronze',
+  cor_cobre: 'Kobre',
+  cor_bordo: 'Mean-metan',
+  cor_rosa: 'Róza',
+  cor_lilas: 'Lilás',
+  cor_roxo: 'Roxu',
+  cor_azulclaro: 'Azúl-naroman',
+  cor_azulescuro: 'Azúl-nakukun',
+  cor_turquesa: 'Turkeza',
+  cor_verdeclaro: 'Matak-naroman',
+  cor_verdeescuro: 'Matak-nakukun',
+  cor_oliva: 'Matak-oliva',
+  cor_grafite: 'Grafite',
   cor_outra: 'Seluk',
-  corOutraPlaceholder: 'Hakerek veíkulu nia kór',
   docCartaverso: 'Karta kondusaun (kotuk)',
   docCartaversoNota:
     'Parte kotuk hatudu kategoria veíkulu ne’ebé ita bele lori (motorizada, kareta, pickup).',

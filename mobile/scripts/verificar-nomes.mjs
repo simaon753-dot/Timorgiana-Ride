@@ -20,18 +20,69 @@ function ficheiros(dir) {
 
 // Nomes que existem sem serem declarados no ficheiro.
 const AMBIENTE = new Set([
-  'console','setTimeout','clearTimeout','setInterval','clearInterval','fetch','Promise',
-  'JSON','Math','Date','Number','String','Boolean','Array','Object','Error','Map','Set',
-  'RegExp','Intl','URL','URLSearchParams','AbortController','Response','Request','Headers',
-  'globalThis','process','require','module','exports','__DEV__','isNaN','parseInt','parseFloat',
-  'encodeURIComponent','decodeURIComponent','Uint8Array','ArrayBuffer','FileReader','Blob','atob','btoa',
-  'undefined','NaN','Infinity','isFinite','TextEncoder','TextDecoder','WeakMap','Symbol','Proxy','Reflect','BigInt',
+  'console',
+  'setTimeout',
+  'clearTimeout',
+  'setInterval',
+  'clearInterval',
+  'fetch',
+  'Promise',
+  'JSON',
+  'Math',
+  'Date',
+  'Number',
+  'String',
+  'Boolean',
+  'Array',
+  'Object',
+  'Error',
+  'Map',
+  'Set',
+  'RegExp',
+  'Intl',
+  'URL',
+  'URLSearchParams',
+  'AbortController',
+  'Response',
+  'Request',
+  'Headers',
+  'globalThis',
+  'process',
+  'require',
+  'module',
+  'exports',
+  '__DEV__',
+  'isNaN',
+  'parseInt',
+  'parseFloat',
+  'encodeURIComponent',
+  'decodeURIComponent',
+  'Uint8Array',
+  'ArrayBuffer',
+  'FileReader',
+  'Blob',
+  'atob',
+  'btoa',
+  'undefined',
+  'NaN',
+  'Infinity',
+  'isFinite',
+  'TextEncoder',
+  'TextDecoder',
+  'WeakMap',
+  'Symbol',
+  'Proxy',
+  'Reflect',
+  'BigInt',
 ]);
 
 let mau = 0;
 for (const f of ficheiros('src').concat(['App.js'])) {
   const ast = parseSync(fs.readFileSync(f, 'utf8'), {
-    filename: f, babelrc: false, configFile: false, sourceType: 'module',
+    filename: f,
+    babelrc: false,
+    configFile: false,
+    sourceType: 'module',
     plugins: [(await import('@babel/plugin-syntax-jsx')).default],
   });
   traverse(ast, {
@@ -39,7 +90,10 @@ for (const f of ficheiros('src').concat(['App.js'])) {
       // `globals` do âmbito de topo lista tudo o que é usado sem ter sido
       // declarado nem importado neste ficheiro.
       for (const nome of Object.keys(caminho.scope.globals)) {
-        if (!AMBIENTE.has(nome)) { console.log(`  ✗ ${f}: "${nome}" não está declarado nem importado`); mau++; }
+        if (!AMBIENTE.has(nome)) {
+          console.log(`  ✗ ${f}: "${nome}" não está declarado nem importado`);
+          mau++;
+        }
       }
     },
   });

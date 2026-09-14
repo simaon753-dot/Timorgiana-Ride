@@ -6,8 +6,26 @@
 // code passes them by those names; changing them here would silently break
 // the substitution.
 export default {
+  corMaisCores: 'More colours',
+  cor_perola: 'Pearl',
+  cor_creme: 'Cream',
+  cor_bege: 'Beige',
+  cor_champanhe: 'Champagne',
+  cor_dourado: 'Gold',
+  cor_bronze: 'Bronze',
+  cor_cobre: 'Copper',
+  cor_bordo: 'Maroon',
+  cor_rosa: 'Pink',
+  cor_lilas: 'Lilac',
+  cor_roxo: 'Purple',
+  cor_azulclaro: 'Light blue',
+  cor_azulescuro: 'Dark blue',
+  cor_turquesa: 'Turquoise',
+  cor_verdeclaro: 'Light green',
+  cor_verdeescuro: 'Dark green',
+  cor_oliva: 'Olive',
+  cor_grafite: 'Graphite',
   cor_outra: 'Other',
-  corOutraPlaceholder: "Type the vehicle's colour",
   docCartaverso: 'Driving licence (back)',
   docCartaversoNota:
     'The back shows which vehicle categories you may drive (motorbike, car, pickup).',

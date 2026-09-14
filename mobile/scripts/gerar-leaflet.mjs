@@ -33,4 +33,4 @@ export const LEAFLET_JS = ${JSON.stringify(js)};
 `;
 fs.mkdirSync('scripts', { recursive: true });
 fs.writeFileSync('src/components/leafletEmbutido.js', saida);
-console.log(`  gerado: src/components/leafletEmbutido.js  (${Math.round(saida.length/1024)} KB)`);
+console.log(`  gerado: src/components/leafletEmbutido.js  (${Math.round(saida.length / 1024)} KB)`);

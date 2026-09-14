@@ -265,7 +265,7 @@ driverRouter.post(
         tipo,
         model?.trim() || null,
         String(plate).trim(),
-        // "Outra" cor é texto livre: 30 caracteres, o mesmo limite da app.
+        // Um código da lista, ou texto livre dos registos antigos: 30 caracteres chegam.
         String(color || '').trim().slice(0, 30) || null,
         tipo === 'car' ? Math.max(1, Math.min(12, Number(seats))) : null,
         req.user.id,

@@ -1,6 +1,6 @@
-import { CORES } from '../dados/veiculos.js';
+import { TODAS_AS_CORES } from '../dados/veiculos.js';
 
-const CODIGOS = new Set(CORES.map((c) => c.id));
+const CODIGOS = new Set(TODAS_AS_CORES.map((c) => c.id));
 
 // Nome da cor na língua de quem lê.
 //
@@ -14,5 +14,5 @@ export function nomeDaCor(valor, t) {
 }
 
 export function hexDaCor(valor) {
-  return CORES.find((c) => c.id === valor)?.hex || null;
+  return TODAS_AS_CORES.find((c) => c.id === valor)?.hex || null;
 }

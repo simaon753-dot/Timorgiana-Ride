@@ -137,7 +137,8 @@ const listasCarga = {
   'cartão do motorista': chavesDe('src/screens/DriverHomeScreen.js', 'const CHAVE_CARGA = {'),
   painel: chavesDe('../backend/publico/painel.html', 'const CARGA = {'),
 };
-if (!noServidorCarga.length || !naAppCarga.length) problemas.push('não encontrei as listas de tipos de carga');
+if (!noServidorCarga.length || !naAppCarga.length)
+  problemas.push('não encontrei as listas de tipos de carga');
 for (const [onde, lista] of Object.entries(listasCarga)) {
   for (const x of noServidorCarga.filter((y) => !lista.includes(y))) {
     problemas.push(`carga '${x}' está no servidor mas não no ${onde}`);
@@ -151,6 +152,25 @@ for (const chave of chavesCarga) {
   if (faltam.length) problemas.push(`${chave} — falta em ${faltam.join(', ')}`);
 }
 
+// ── e as cores do veículo, pela quinta vez ──
+//
+// O EscolherCor chama t('cor_' + id), montada como as outras. As dezoito
+// cores atrás do botão "Outra" entraram a 14/09/26 — uma sem tétum mostraria
+// "cor_bordo" ao motorista, e o passageiro leria o mesmo no cartão do veículo.
+const naAppCores = [
+  ...idsDe('src/dados/veiculos.js', 'export const CORES = ['),
+  ...idsDe('src/dados/veiculos.js', 'export const CORES_OUTRAS = ['),
+];
+if (!naAppCores.length) problemas.push('não encontrei as listas de cores');
+for (const x of naAppCores.filter((y, i) => naAppCores.indexOf(y) !== i)) {
+  problemas.push(`cor '${x}' aparece duas vezes`);
+}
+for (const id of naAppCores) {
+  const chave = `cor_${id}`;
+  const faltam = LINGUAS.filter((l) => dicionarios[l][chave] == null);
+  if (faltam.length) problemas.push(`${chave} — falta em ${faltam.join(', ')}`);
+}
+
 if (problemas.length) {
   console.error('  ✗ tipos de lugar:\n');
   for (const p of problemas) console.error('    ' + p);
@@ -158,5 +178,5 @@ if (problemas.length) {
 }
 console.log(
   `  ✓ ${naApp.length} tipos de lugar, ${naAppDocs.length} documentos e ` +
-    `${naAppMotivos.length} motivos e ${naAppCarga.length} tipos de carga, traduzidos e iguais nos dois lados`
+    `${naAppMotivos.length} motivos, ${naAppCarga.length} tipos de carga e ${naAppCores.length} cores, traduzidos e iguais nos dois lados`
 );
