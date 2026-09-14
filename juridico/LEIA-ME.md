@@ -24,6 +24,31 @@ regenera-se tudo:
 cd juridico && npm install docx && node gerar.js
 ```
 
+## Os documentos da APP, para revisão em Word (desde 14/09/2026)
+
+Os três textos que a aplicação mostra e pede para aceitar — **Termos do
+Passageiro**, **Termos do Motorista** e **Aviso de Privacidade** — saem para
+Word em `app/`, numa tabela de três colunas (português, tétum, inglês) com
+uma linha por cláusula.
+
+O texto que vale é o da app (`mobile/src/termos/`). O Word é uma cópia para
+corrigir, e volta para a app por programa, sem copiar e colar:
+
+```bash
+cd juridico
+node termos-app.mjs                               # app → Word
+python3 importar-termos.py app/*.docx             # mostra o que o Word mudou
+python3 importar-termos.py --escrever app/*.docx  # Word → app
+```
+
+Depois de importar: rever a versão em `mobile/src/termos/versao.js` (se o
+sentido mudou, sobe — e toda a gente volta a aceitar), correr
+`node scripts/gerar-legal.mjs` no backend e `npm run verificar` nos dois lados.
+
+A ida e volta foi ensaiada a 14/09/2026: quatro cláusulas estragadas numa
+cópia voltaram iguais ao original (69 346 caracteres, três documentos, três
+línguas).
+
 ## O que NÃO está aqui
 
 **Citações legais que eu não pudesse verificar.** O único diploma citado é o
