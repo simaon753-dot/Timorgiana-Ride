@@ -8,7 +8,7 @@ module.exports = C.documento(
     P('Esta Política descreve o que a TimorgianaRide faz para proteger quem viaja, o que pede ao passageiro que faça, e — com igual clareza — o que não pode garantir.'),
 
     A('1.', 'Quem conduz foi verificado'),
-    P('Nenhum motorista recebe pedidos de viagem sem que a sua conta tenha sido aprovada. A aprovação exige cinco documentos: fotografia, documento de identificação, carta de condução, cartão de registo do veículo e cartão de inspeção.'),
+    P('Nenhum motorista recebe pedidos de viagem sem que a sua conta tenha sido aprovada. A aprovação exige seis documentos: fotografia, documento de identificação, carta de condução — frente e verso, porque é no verso que constam as categorias de veículos que o motorista pode conduzir —, cartão de registo do veículo e cartão de inspeção.'),
     R(['A carta de condução, o registo e a inspeção têm de estar ', ['dentro do prazo'], '. Um documento caducado impede automaticamente o motorista de entrar ao serviço, e a conta só volta a funcionar quando o documento renovado for enviado.']),
 
     A('2.', 'Quem conduz hoje é quem foi verificado'),
@@ -22,6 +22,7 @@ module.exports = C.documento(
     A('4.', 'Código de recolha'),
     R(['A aplicação mostra ao passageiro um ', ['código'], ' que este diz ao motorista antes de a viagem começar. Sem esse código, a viagem não é iniciada.']),
     P('O código faz duas coisas: prova ao motorista que quem entrou no veículo é quem pediu a viagem, e impede que sejam registadas viagens que não aconteceram.'),
+    P('Quando a viagem é pedida para outra pessoa, o código e o botão de socorro ficam na aplicação de quem pediu, que deve dar o código a quem vai viajar antes de o motorista chegar.'),
 
     A('5.', 'Botão de emergência'),
     R(['Durante toda a viagem, passageiro e motorista dispõem de um ', ['botão de socorro'], ' que envia um alerta imediato com a posição do momento.']),
@@ -34,7 +35,7 @@ module.exports = C.documento(
 
     A('7.', 'Contacto durante a viagem'),
     P('Passageiro e motorista podem falar entre si por telefone ou por mensagem dentro da aplicação, para se encontrarem no ponto de recolha.'),
-    R(['As conversas ', ['não são lidas pela administração da plataforma'], '. O acesso a documentos de identificação, esse, fica registado.']),
+    R(['A administração da plataforma ', ['não lê as conversas'], ' no decurso normal do serviço: o painel mostra apenas quantas mensagens houve em cada viagem. As conversas só são consultadas quando necessário para investigar uma ocorrência de segurança ou uma reclamação, e cada exportação de dados fica registada, tal como cada acesso a documentos de identificação.']),
 
     A('8.', 'Avaliação'),
     P('No final de cada viagem, o passageiro avalia o motorista. As avaliações são acompanhadas e uma classificação persistentemente baixa determina a análise da conta.'),
@@ -43,7 +44,7 @@ module.exports = C.documento(
     R(['O preço é fixado pela aplicação e ', ['não se negoceia dentro do veículo'], '. O pagamento é feito em dinheiro, ao motorista, no final da viagem.']),
     P('Determinados recintos cobram taxa de entrada, que é da responsabilidade do passageiro e paga na cancela:'),
     T(
-      ['Recinto', 'Carro', 'Motorizada'],
+      ['Recinto', 'Carro e Carro Pickup', 'Motorizada'],
       [
         ['Timor Plaza — estacionamento', 'USD 1 à entrada', 'Isento'],
         ['Aeroporto Nicolau Lobato', 'USD 1 por hora', 'USD 0,50 por hora'],
@@ -72,7 +73,8 @@ module.exports = C.documento(
     I('Pague o valor devido no final da viagem.'),
 
     A('12.', 'Menores'),
-    P('Os menores devem viajar acompanhados por adulto responsável. O motorista pode recusar o transporte de menor desacompanhado.'),
+    P('Pode ser pedida uma viagem para uma pessoa menor de idade, desde que quem pede declare, na aplicação, que é responsável por ela ou que tem autorização de quem o é. A declaração fica registada, com a data e a hora.'),
+    P('O motorista vê que se trata de um menor antes de aceitar e pode recusar. Se aceitar, deve levar o menor diretamente ao destino indicado.'),
 
     A('13.', 'Objetos esquecidos'),
     P('O objeto esquecido no veículo deve ser comunicado logo que possível, pela aplicação ou pelos contactos abaixo. A plataforma auxilia na aproximação entre passageiro e motorista para a devolução, mas não responde pela perda de bens.'),

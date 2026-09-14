@@ -19,7 +19,7 @@ const CONTACTOS = '+670 74192857  ·  +670 75684566';
 const APP = 'TimorgianaRide';
 
 // Data de emissão. Muda aqui e muda nos sete.
-const VERSAO = '3 de Setembro de 2026';
+const VERSAO = '14 de Setembro de 2026';
 
 // A base legal do seguro obrigatório, escrita uma vez e citada nos cinco
 // documentos que dela falam. Num sítio só para não divergirem — e porque

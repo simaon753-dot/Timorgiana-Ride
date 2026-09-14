@@ -7,13 +7,17 @@ entrada foram lidos do código antes de serem escritos.
 
 | # | Documento | Para quem |
 |---|---|---|
-| 1 | Regulamento de Admissão de Motoristas | interno e candidatos |
-| 2 | Regulamento de Registo e Inspeção de Veículos | interno e candidatos |
-| 3 | Contrato de Utilização da Plataforma | assinado com cada motorista |
-| 4 | Declaração de Cedência de Veículo | proprietário + condutor |
-| 5 | Política de Segurança dos Passageiros | público |
-| 6 | Tabela de Infrações e Sanções | interno e motoristas |
-| 7 | Checklist Documental para Aprovação | instrumento de trabalho |
+| 1 | Regulamento de Admissão de Motoristas | uso interno |
+| 2 | Regulamento de Registo e Inspeção de Veículos | uso interno |
+| 3 | Contrato de Utilização da Plataforma | entregue ao motorista antes de assinar |
+| 4 | Declaração de Cedência de Veículo | entregue ao proprietário e ao condutor |
+| 5 | Política de Segurança dos Passageiros | **público** — página `/seguranca` |
+| 6 | Tabela de Infrações e Sanções | entregue ao motorista antes de assinar |
+| 7 | Checklist Documental para Aprovação | uso interno (instrumento de trabalho) |
+
+Quem vê o quê foi decidido pelo Simão a 14/09/2026. Só a Política de Segurança
+tem página pública; é gerada do mesmo `d5-seguranca.js` que faz o Word, por
+`backend/scripts/gerar-legal.mjs`.
 
 ## Regenerar
 

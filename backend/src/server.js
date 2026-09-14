@@ -214,6 +214,7 @@ for (const [caminho, ficheiro] of [
   ['/privacidade', 'privacidade.html'],
   ['/termos', 'termos.html'],
   ['/termos-motorista', 'termos-motorista.html'],
+  ['/seguranca', 'seguranca.html'],
 ]) {
   app.get(caminho, (req, res) => {
     res.setHeader('Cache-Control', 'public, max-age=3600');

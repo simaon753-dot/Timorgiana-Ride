@@ -30,22 +30,23 @@ module.exports = C.documento(
     C.nota('Esta é a advertência que mais importa deste Regulamento. Um motorista que circule sem seguro não fica sem responsabilidade: fica sem quem a suporte por ele. Responde com o seu próprio património — casa, veículo, rendimento futuro — e sem qualquer limite, por danos causados a um passageiro ou a terceiro. Os USD 20.000 do tecto legal existem para quem tem apólice; quem não tem, não tem tecto nenhum.'),
 
     A('Artigo 4.º', 'Documentos obrigatórios'),
-    P('A candidatura só é apreciada quando estiverem submetidos os cinco documentos seguintes:'),
+    P('A candidatura só é apreciada quando estiverem submetidos os seis documentos seguintes:'),
     T(
       ['Documento', 'Finalidade', 'Validade'],
       [
         ['1. Fotografia do motorista', 'Ligar a conta a um rosto; é o que o passageiro vê antes de entrar no veículo', 'Não caduca'],
         ['2. Documento de identificação', 'Confirmar a identidade civil do candidato', 'Não é exigida data'],
-        ['3. Carta de condução', 'Confirmar a habilitação legal para conduzir', 'Data obrigatória'],
-        ['4. Cartão de registo do veículo', 'Confirmar a identificação e a titularidade do veículo', 'Data obrigatória'],
-        ['5. Cartão de inspeção (Kartaun Inspesaun)', 'Confirmar a aptidão técnica do veículo para circular', 'Data obrigatória'],
+        ['3. Carta de condução (frente)', 'Confirmar a habilitação legal para conduzir e a sua validade', 'Data obrigatória'],
+        ['4. Carta de condução (verso)', 'Confirmar as categorias de veículos que o candidato está habilitado a conduzir', 'Não é exigida data — a validade consta da frente'],
+        ['5. Cartão de registo do veículo', 'Confirmar a identificação e a titularidade do veículo', 'Data obrigatória'],
+        ['6. Cartão de inspeção (Kartaun Inspesaun)', 'Confirmar a aptidão técnica do veículo para circular', 'Data obrigatória'],
       ],
       [2500, 4100, 1900]
     ),
     N('O documento de identificação não exige data de validade. O bilhete de identidade tem prazo, mas o que dele releva é a identidade — e essa não caduca. Suspender uma conta por um documento de identificação por renovar seria impedir alguém de trabalhar por motivo alheio à condução.'),
 
     A('Artigo 5.º', 'Datas de validade'),
-    R(['Os documentos indicados nos n.os 3, 4 e 5 do artigo anterior só são aceites com ', ['data de validade'], ' declarada pelo candidato.']),
+    R(['Os documentos indicados nos n.os 3, 5 e 6 do artigo anterior só são aceites com ', ['data de validade'], ' declarada pelo candidato.']),
     P('A data é lida tal como consta do documento, no formato dia/mês/ano. No Kartaun Inspesaun, é a data que figura na linha «Valido Inspesaun».'),
     R([['Um documento submetido sem data de validade equivale, para todos os efeitos deste Regulamento, a documento em falta.']]),
 
@@ -58,11 +59,11 @@ module.exports = C.documento(
     I('Registo de conta com nome completo, número de telemóvel e palavra-passe;'),
     I('Aceitação, em declarações autónomas, dos Termos de Utilização e do Aviso de Privacidade;'),
     I('Declaração do veículo: tipo, marca e modelo, matrícula, cor e, tratando-se de automóvel, número de lugares disponíveis para passageiros;'),
-    I('Submissão dos cinco documentos e das respetivas datas.'),
+    I('Submissão dos seis documentos e das respetivas datas.'),
     P('Antes do envio definitivo de cada documento, é apresentada ao candidato a fotografia captada e a data introduzida, para confirmação.'),
 
     A('Artigo 8.º', 'Apreciação e decisão'),
-    P('A candidatura é apreciada pela Timorgiana, Lda, que verifica a legibilidade dos documentos, a correspondência entre o titular e a fotografia, e a coerência entre a matrícula declarada e a documentação apresentada.'),
+    P('A candidatura é apreciada pela Timorgiana, Lda, que verifica a legibilidade dos documentos, a correspondência entre o titular e a fotografia, a coerência entre a matrícula declarada e a documentação apresentada, e se as categorias constantes do verso da carta de condução permitem conduzir o veículo declarado.'),
     P('A decisão pode ser de aprovação ou de recusa e é comunicada ao candidato na própria aplicação.'),
     R(['A recusa é sempre ', ['fundamentada'], ', indicando ao candidato o que deve corrigir.']),
 
@@ -71,7 +72,7 @@ module.exports = C.documento(
 
     A('Artigo 10.º', 'Suspensão automática'),
     P('A conta do motorista fica automaticamente impedida de entrar ao serviço sempre que se verifique alguma das seguintes situações:'),
-    I('Falta de qualquer dos cinco documentos obrigatórios;'),
+    I('Falta de qualquer dos seis documentos obrigatórios;'),
     I('Falta de data de validade em documento que a exija;'),
     I('Documento com validade expirada, considerando o dia em Díli.'),
     R([['A suspensão cessa automaticamente'], ' com a submissão do documento regularizado, sem necessidade de qualquer ato da Timorgiana, Lda. Um motorista que renove a inspeção de manhã pode trabalhar nessa tarde.']),

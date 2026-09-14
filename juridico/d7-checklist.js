@@ -7,15 +7,16 @@ module.exports = C.documento(
   [
     C.nota('NOTA PRÉVIA, PARA QUE ESTE DOCUMENTO NÃO DESCREVA O QUE NÃO EXISTE. Hoje a aplicação NÃO aprova ninguém sozinha. Ela verifica automaticamente o que é objectivo e apresenta o resultado a quem decide, no painel. A decisão final é de uma pessoa. Este documento separa, por isso, o que a máquina verifica do que continua a exigir olhos humanos. A Timorgiana, Lda decidiu manter a decisão humana e não adotar a aprovação automática — ver o n.º 5.'),
 
-    A('1.', 'Os cinco documentos'),
+    A('1.', 'Os seis documentos'),
     T(
       ['#', 'Documento', 'Data de validade'],
       [
         ['1', 'Fotografia do motorista', 'Não aplicável'],
         ['2', 'Documento de identificação', 'Não exigida'],
-        ['3', 'Carta de condução', 'Obrigatória'],
-        ['4', 'Cartão de registo do veículo', 'Obrigatória'],
-        ['5', 'Cartão de inspeção (Kartaun Inspesaun)', 'Obrigatória'],
+        ['3', 'Carta de condução (frente)', 'Obrigatória'],
+        ['4', 'Carta de condução (verso)', 'Não exigida — a validade consta da frente'],
+        ['5', 'Cartão de registo do veículo', 'Obrigatória'],
+        ['6', 'Cartão de inspeção (Kartaun Inspesaun)', 'Obrigatória'],
       ],
       [600, 5200, 2700]
     ),
@@ -25,7 +26,7 @@ module.exports = C.documento(
     T(
       ['Verificação', 'Regra', 'Se falhar'],
       [
-        ['Presença', 'Estão submetidos os cinco documentos', 'Bloqueia'],
+        ['Presença', 'Estão submetidos os seis documentos', 'Bloqueia'],
         ['Data declarada', 'Carta, registo e inspeção têm data', 'Bloqueia'],
         ['Não caducado', 'Nenhuma data é anterior ao dia de hoje em Díli', 'Bloqueia'],
         ['Data plausível', 'Inspeção até 400 dias; carta e registo até 15 anos', 'Assinala'],
@@ -35,7 +36,7 @@ module.exports = C.documento(
       [2200, 4400, 1900]
     ),
     R([['Bloqueia'], ' significa que a conta não pode entrar ao serviço enquanto a situação se mantiver. ', ['Assinala'], ' significa que a aplicação chama a atenção de quem decide, sem impedir nada.']),
-    N('A verificação de plausibilidade é a que mais trabalho poupa. As datas são escritas pelo próprio motorista a olhar para o cartão, e nada o impede de escrever 2035. A aplicação não sabe ler o cartão, mas sabe que um Kartaun Inspesaun vale um ano: uma validade a três anos de distância não é um documento válido, é um lapso ou uma invenção. Não recusa — levanta o dedo, para que se olhe com atenção para aquela fotografia em vez de olhar para as cinco com a mesma atenção.'),
+    N('A verificação de plausibilidade é a que mais trabalho poupa. As datas são escritas pelo próprio motorista a olhar para o cartão, e nada o impede de escrever 2035. A aplicação não sabe ler o cartão, mas sabe que um Kartaun Inspesaun vale um ano: uma validade a três anos de distância não é um documento válido, é um lapso ou uma invenção. Não recusa — levanta o dedo, para que se olhe com atenção para aquela fotografia em vez de olhar para as seis com a mesma atenção.'),
 
     A('3.', 'Verificações humanas'),
     P('Não são automatizáveis e continuam a exigir que alguém abra a fotografia. No painel, cada documento amplia-se e pode ser rodado, porque os cartões são fotografados ao alto e aparecem deitados.'),
@@ -46,9 +47,9 @@ module.exports = C.documento(
         ['b', 'O nome do documento de identificação é o nome da conta', 'Documento 2 e nome no painel'],
         ['c', 'O rosto da fotografia é o rosto da carta de condução', 'Documentos 1 e 3'],
         ['d', 'A data escrita corresponde à data impressa no cartão', 'Comparar com a data no painel'],
-        ['e', 'A matrícula do cartão de registo é a matrícula declarada', 'Documento 4 e dados do veículo'],
+        ['e', 'A matrícula do cartão de registo é a matrícula declarada', 'Documento 5 e dados do veículo'],
         ['f', 'O cartão de inspeção é do mesmo veículo do cartão de registo', 'Chassis ou matrícula nos dois'],
-        ['g', 'A categoria da carta permite conduzir o veículo declarado', 'Documento 3 e tipo de veículo'],
+        ['g', 'A categoria da carta permite conduzir o veículo declarado', 'Documento 4 (verso); o painel indica por baixo o veículo declarado'],
       ],
       [500, 5100, 2900]
     ),

@@ -49,13 +49,14 @@ module.exports = C.documento(
     R([['A Plataforma não cobra comissão sobre as viagens.'], ' Numa viagem de três dólares, o Motorista recebe três dólares.']),
     R(['O acesso à Plataforma é ', ['gratuito até 30 de abril de 2027'], '. A partir dessa data, o acesso passa a depender da aquisição de dias de utilização, de acordo com a tabela seguinte:']),
     T(
-      ['Pacote', 'Carro', 'Motorizada'],
+      ['Pacote', 'Carro e Carro Pickup', 'Motorizada'],
       [['3 dias', 'USD 4', 'USD 2'], ['10 dias', 'USD 12', 'USD 6'], ['30 dias', 'USD 30', 'USD 15']],
       [2900, 2800, 2800]
     ),
     R([['Só é descontado dia em que o Motorista conclua pelo menos uma viagem.'], ' Um dia em que não trabalhe, ou em que aceite uma viagem que o passageiro cancele, não é contado. A contagem faz-se pelo dia em Díli.']),
-    P('O carregamento de dias pode ser feito por transferência bancária (Mandiri, BNU, BNCTL ou BRI), por Telemor, no escritório da Plataforma ou junto de agente autorizado.'),
-    P('Qualquer alteração de preços é comunicada com antecedência, ficando o Motorista livre de deixar de utilizar a Plataforma.'),
+    P('O carregamento de dias é pago à Plataforma, pelos meios indicados na aplicação — código QR nacional (TUQR), transferência bancária ou no escritório —, com o código de referência pessoal que a aplicação mostra. Os dias entram na conta do Motorista quando a Plataforma confirmar a entrada do pagamento, no prazo máximo de 24 horas após o envio do comprovativo.'),
+    P('Qualquer alteração de preços é comunicada na aplicação com, pelo menos, 30 dias de antecedência e aplica-se apenas às compras posteriores. Os dias já adquiridos não caducam nem perdem valor, e o Motorista fica livre de deixar de utilizar a Plataforma.'),
+    R([['Dias não usados.'], ' A suspensão temporária não consome dias. Em caso de cessação do contrato por iniciativa do Motorista, de desativação definitiva da conta pela Plataforma — salvo quando resulte de falta grave, designadamente documentação falsa ou alterada, ou cobrança de valor diferente do indicado pela aplicação — ou de encerramento do serviço, a Plataforma devolve o valor dos dias não usados, ao preço por dia efetivamente pago por eles, no prazo de 30 dias a contar do pedido. O encerramento do serviço é avisado com, pelo menos, 30 dias de antecedência. Os dias oferecidos gratuitamente não dão direito a devolução.']),
 
     A('Cláusula 6.ª', 'Taxas de entrada em recintos'),
     P('Determinados recintos cobram taxa de entrada a veículos. Essa taxa é da responsabilidade do passageiro e é paga na cancela, não fazendo parte do preço da viagem nem transitando pela Plataforma.'),
@@ -90,7 +91,7 @@ module.exports = C.documento(
     I('Reclamações graves ou reiteradas quanto à segurança ou à conduta;'),
     I('Cobrança de valor diferente do indicado pela aplicação;'),
     I('Taxa excessiva de cancelamentos injustificados após aceitação.'),
-    P('Qualquer das partes pode pôr termo ao presente contrato a todo o tempo, sem necessidade de invocar motivo e sem direito a indemnização. O Motorista fá-lo deixando de utilizar a aplicação ou solicitando a eliminação da conta.'),
+    P('Qualquer das partes pode pôr termo ao presente contrato a todo o tempo, sem necessidade de invocar motivo e sem direito a indemnização, sem prejuízo da devolução dos dias não usados prevista na Cláusula 5.ª. O Motorista fá-lo deixando de utilizar a aplicação ou solicitando a eliminação da conta.'),
 
     A('Cláusula 10.ª', 'Vigência e alterações'),
     P('O presente contrato vigora por tempo indeterminado a partir da data da sua assinatura, ou da aprovação da conta na aplicação, consoante o que ocorrer primeiro.'),
