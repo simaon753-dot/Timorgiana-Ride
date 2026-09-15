@@ -16,6 +16,9 @@
     "ios": {
       "bundleIdentifier": "tl.timorgiana.ride",
       "supportsTablet": true,
+      "config": {
+        "usesNonExemptEncryption": false
+      },
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "A TimorgianaRide usa a sua localização para marcar o ponto de recolha e mostrar ao motorista onde o ir buscar.",
         "NSPhotoLibraryUsageDescription": "A TimorgianaRide precisa de aceder às suas fotografias para enviar a carta de condução e os documentos do veículo, exigidos para conduzir.",
