@@ -147,10 +147,12 @@ Vai da consola directamente para o EAS, e nunca para o Git nem para uma
 conversa:
 
 ```bash
-npx eas-cli env:set --name GOOGLE_MAPS_IOS_KEY --value COLAR-A-CHAVE --visibility sensitive --environment production --environment preview --environment development
+npx eas-cli env:set --name GOOGLE_MAPS_IOS_KEY --value COLAR-A-CHAVE --visibility secret --environment production --environment preview --environment development
 ```
 
-(O `secret:create` do passo 3b está obsoleto; o comando novo é `env:set`.)
+(O `secret:create` do passo 3b está obsoleto; o comando novo é `env:set`.
+`secret` é a mesma visibilidade da chave do Android: só as compilações do
+EAS a lêem, e nenhum ecrã a mostra.)
 
 Para ver que ficou guardada, sem mostrar o valor:
 
