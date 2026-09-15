@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import MolduraModal from '../design/MolduraModal.js';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Ver a nota em RequestRideScreen.js: os mapas de reserva saíram do APK a
 // 08/09/2026 e vivem no histórico do git.
 import Mapa from './MapaGoogle.js';
@@ -27,12 +28,29 @@ export default function MapaExpandivel({
 }) {
   const { t } = useI18n();
   const [aberto, setAberto] = useState(false);
+  const margens = useSafeAreaInsets();
+
+  // O MAPA GRANDE VAI DE PONTA A PONTA, e só os botões descem.
+  //
+  // Escolha do Simão, a 16/09/2026, para o iPhone e para o Android: o mapa
+  // passa por trás do recorte da câmara e das barras do sistema, como no
+  // Google Maps. O ✕, a coluna de botões e o crachá descem a altura da barra
+  // de cima; no iPhone isso tira o ✕ do canto onde se abre o Centro de
+  // Controlo. O logótipo do Google sobe acima da barra de baixo
+  // (`margemDoMapa`), porque tem de estar sempre à vista.
+  //
+  // As margens vêm da raiz da app (useSafeAreaInsets), que estão certas. As
+  // que se medem dentro de um Modal, no iPhone, dão zero.
+  const desceTopo = margens.top;
 
   // O crachá é o mesmo nos dois tamanhos: quem abre o mapa inteiro não
   // deve perder a informação que estava a ver no pequeno.
-  const cracha =
+  const cracha = (desce = 0) =>
     info?.km != null || info?.min != null || aviso ? (
-      <View style={styles.cracha} pointerEvents="none">
+      <View
+        style={[styles.cracha, desce ? { top: spacing.sm + desce } : null]}
+        pointerEvents="none"
+      >
         {aviso ? <Text style={styles.crachaAviso}>{aviso}</Text> : null}
         {info?.min != null ? (
           <Text style={styles.crachaTexto}>
@@ -52,14 +70,27 @@ export default function MapaExpandivel({
           liveLabel={liveLabel}
           height={height}
         />
-        {cracha}
+        {cracha()}
         <Pressable style={styles.expandir} onPress={() => setAberto(true)} hitSlop={8}>
           <Text style={styles.expandirIcone}>⤢</Text>
         </Pressable>
       </View>
 
-      <Modal visible={aberto} animationType="slide" onRequestClose={() => setAberto(false)}>
-        <MolduraModal style={styles.cheio} edges={['top', 'bottom']}>
+      <Modal
+        visible={aberto}
+        animationType="slide"
+        onRequestClose={() => setAberto(false)}
+        // No Android, sem estas duas a janela fica ENTRE as barras, que o
+        // sistema pinta por cima com cor própria, e o mapa não passa por trás
+        // delas. No iPhone não fazem nada.
+        statusBarTranslucent
+        navigationBarTranslucent
+      >
+        <View style={styles.cheio}>
+          {/* Ícones da barra SEMPRE escuros aqui: o mapa do Google é sempre
+           * claro, também no nosso tema escuro. Ao fechar, volta o estilo do
+           * ecrã de baixo. */}
+          <StatusBar style="dark" />
           {/* SÓ SE DESENHA QUANDO ESTÁ ABERTO, e isto não é um detalhe.
            *
            * O <Modal> do React Native MONTA OS FILHOS mesmo fechado — a vista
@@ -85,15 +116,20 @@ export default function MapaExpandivel({
                 // Desce a coluna do mapa em 48 — exactamente o intervalo entre
                 // dois botões — para o ✕ ficar no lugar vago no topo dela, e
                 // não em cima do primeiro.
-                topoDosBotoes={48}
+                topoDosBotoes={48 + desceTopo}
+                margemDoMapa={{ top: margens.top, bottom: margens.bottom, left: 0, right: 0 }}
               />
             ) : null}
-            {cracha}
-            <Pressable style={styles.fechar} onPress={() => setAberto(false)} hitSlop={10}>
+            {cracha(desceTopo)}
+            <Pressable
+              style={[styles.fechar, desceTopo ? { top: spacing.sm + desceTopo } : null]}
+              onPress={() => setAberto(false)}
+              hitSlop={10}
+            >
               <Text style={styles.fecharIcone}>✕</Text>
             </Pressable>
           </View>
-        </MolduraModal>
+        </View>
       </Modal>
     </View>
   );

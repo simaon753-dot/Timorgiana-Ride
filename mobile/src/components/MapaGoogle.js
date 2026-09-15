@@ -326,6 +326,12 @@ export default function MapaGoogle({
   // fechar passa a ser o primeiro da MESMA coluna, com o mesmo tamanho e o
   // mesmo intervalo, e lêem-se os quatro como um conjunto.
   topoDosBotoes = 0,
+  // MARGENS DO PRÓPRIO MAPA (o `mapPadding` do Google). Empurram para dentro o
+  // logótipo do Google e o centro do enquadramento, sem encolher o desenho.
+  // Servem o mapa grande do iPhone, que vai de ponta a ponta por trás das
+  // barras do sistema: sem elas, o logótipo ficava debaixo da barra de início,
+  // e o Google exige-o à vista.
+  margemDoMapa,
 }) {
   const { t } = useI18n();
   const { token } = useAuth();
@@ -887,6 +893,7 @@ export default function MapaGoogle({
         //
         // Agora vê os dois no mesmo ecrã: se não coincidirem, arrasta o pino.
         // Não corrige o satélite — dá a quem está lá a forma de mandar nele.
+        mapPadding={margemDoMapa}
         showsUserLocation
         showsMyLocationButton={false}
         // A BÚSSOLA DO GOOGLE, DESLIGADA. Nós temos a nossa.
