@@ -39,10 +39,17 @@ export function resolverAlerta(id) {
 // Quantas viagens este utilizador cancelou nos últimos dias. Serve para
 // distinguir um imprevisto de um padrão — cancelar uma vez acontece a
 // toda a gente; cancelar cinco numa semana é outra coisa.
+// SÓ CONTA O QUE CHEGOU A TER MOTORISTA (decisão do Simão, 16/09/2026). Desistir de um pedido
+// que ninguém aceitou não é cancelar uma viagem: não houve viagem, e nenhum
+// motorista gastou tempo nem combustível. Os termos do passageiro já o diziam
+// ("cancelamento reiterado após a aceitação"); o código contava mais do que
+// isso, e quem desistia duas vezes de esperar era avisado à primeira viagem
+// aceite que cancelasse.
 export async function cancelamentosRecentes(userId, dias = 7) {
   const r = await one(
     `SELECT COUNT(*)::int AS n FROM rides
-     WHERE cancelled_by = $1 AND created_at > NOW() - ($2 || ' days')::interval`,
+     WHERE cancelled_by = $1 AND driver_id IS NOT NULL
+       AND created_at > NOW() - ($2 || ' days')::interval`,
     [userId, String(dias)]
   );
   return r?.n || 0;

@@ -237,9 +237,17 @@ adminRouter.get(
         (SELECT COUNT(DISTINCT driver_id) FROM rides
           WHERE status IN ('accepted','arriving','in_progress') AND driver_id IS NOT NULL)::int
           AS "veiculosServico",
+        -- Canceladas são as que chegaram a ter motorista. Um pedido que ninguém
+        -- aceitou não é uma viagem cancelada (decisão do Simão, 16/09/2026):
+        -- conta à parte, e é o número que diz onde e quando faltam motoristas.
         (SELECT COUNT(*) FROM rides
-          WHERE status='cancelled' AND created_at > NOW() - INTERVAL '24 hours')::int
+          WHERE status='cancelled' AND driver_id IS NOT NULL
+            AND created_at > NOW() - INTERVAL '24 hours')::int
           AS "canceladas24h",
+        (SELECT COUNT(*) FROM rides
+          WHERE status='cancelled' AND driver_id IS NULL
+            AND created_at > NOW() - INTERVAL '24 hours')::int
+          AS "semMotorista24h",
         -- Soma das tarifas cobradas PELOS MOTORISTAS nas viagens concluídas.
         -- Não é receita da TimorgianaRide: a plataforma não cobra comissão e
         -- não recebe nada. Chamar-lhe receita seria dizer, no próprio painel
@@ -282,7 +290,7 @@ adminRouter.get(
       one(
         `SELECT COUNT(*)::int AS total,
                 COUNT(*) FILTER (WHERE status = 'completed')::int AS concluidas,
-                COUNT(*) FILTER (WHERE status = 'cancelled')::int AS canceladas,
+                COUNT(*) FILTER (WHERE status = 'cancelled' AND driver_id IS NOT NULL)::int AS canceladas,
                 COUNT(*) FILTER (WHERE status = 'cancelled' AND driver_id IS NULL)::int AS sem_resposta
          FROM rides WHERE vehicle_type = 'carry' AND created_at > NOW() - INTERVAL '7 days'`
       ),
@@ -378,7 +386,8 @@ adminRouter.get(
           WHERE expires_on IS NOT NULL AND expires_on >= CURRENT_DATE
             AND expires_on < CURRENT_DATE + 30)::int AS "docsACaducar",
         (SELECT COUNT(*) FROM rides
-          WHERE status='cancelled' AND created_at > NOW() - INTERVAL '24 hours')::int
+          WHERE status='cancelled' AND driver_id IS NOT NULL
+            AND created_at > NOW() - INTERVAL '24 hours')::int
           AS "canceladas",
         (SELECT COUNT(*) FROM users WHERE driver_status='suspended')::int AS "suspensas",
         (SELECT COUNT(*) FROM pedidos_carregamento
@@ -1006,7 +1015,8 @@ adminRouter.get(
       query(
         `SELECT COALESCE(cancel_reason,'outro') AS motivo, COUNT(*)::int AS n
          FROM rides
-         WHERE status='cancelled' AND created_at > NOW() - $1::interval
+         WHERE status='cancelled' AND driver_id IS NOT NULL
+           AND created_at > NOW() - $1::interval
          GROUP BY 1 ORDER BY n DESC`,
         [intervalo]
       ),
@@ -1018,7 +1028,7 @@ adminRouter.get(
            -- Os totais do período, para as taxas de aceitação e de
            -- cancelamento: "2 de 3 pedidos" diz mais do que "67%" sozinho.
            COUNT(*)::int AS pedidos,
-           COUNT(*) FILTER (WHERE status='cancelled')::int AS canceladas,
+           COUNT(*) FILTER (WHERE status='cancelled' AND driver_id IS NOT NULL)::int AS canceladas,
            COUNT(*) FILTER (WHERE status='cancelled' AND driver_id IS NULL)::int AS sem_resposta,
            ROUND(AVG(EXTRACT(EPOCH FROM (updated_at - created_at)))
                  FILTER (WHERE driver_id IS NOT NULL))::int AS segundos_ate_aceitar

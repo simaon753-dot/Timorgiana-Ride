@@ -583,11 +583,17 @@ function Resumo({ resumo, estat, notif, viagens, t, navigation, onIr, onNotif })
   const semResposta = estat?.semResposta ?? 0;
   const v24 = resumo?.viagens24h ?? 0;
   const c24 = resumo?.canceladas24h ?? 0;
+  // Pedidos que nenhum motorista aceitou: não são viagens canceladas
+  // (decisão do Simão, 16/09/2026), e dizem onde e quando faltam motoristas.
+  const sm24 = resumo?.semMotorista24h ?? 0;
   const pct = (a, b) => (b ? Math.round((a / b) * 100) : null);
   const porTratar = notif?.porTratar ?? 0;
   const recentes = (viagens || []).slice(0, 4);
   const temTaxas = estat?.pedidos > 0;
-  const taxaCanc = temTaxas ? pct(estat.canceladas, estat.pedidos) : null;
+  // A taxa de cancelamento é sobre as viagens ACEITES: cancelar só existe
+  // depois de um motorista aceitar. Os pedidos sem motorista contam à parte.
+  const temAceites = estat?.aceites > 0;
+  const taxaCanc = temAceites ? pct(estat.canceladas, estat.aceites) : null;
 
   // Cada número carrega o seu estado: oito números iguais obrigam a ler os
   // oito para saber se está tudo bem, que é o oposto do que um painel serve.
@@ -637,6 +643,14 @@ function Resumo({ resumo, estat, notif, viagens, t, navigation, onIr, onNotif })
           etiqueta={t('admCanceladas24h')}
           nota={pct(c24, v24) != null ? t('admPctPedidos', { n: pct(c24, v24) }) : null}
           estado={c24 > 0 ? ESTADO.aviso : ESTADO.neutro}
+          onPress={() => onIr('viagens')}
+        />
+        <CartaoKPI
+          icone="volante"
+          valor={sm24}
+          etiqueta={t('admSemMotorista')}
+          nota={t('admNotaSemMotorista')}
+          estado={sm24 > 0 ? ESTADO.aviso : ESTADO.neutro}
           onPress={() => onIr('viagens')}
         />
         <CartaoKPI
@@ -699,12 +713,12 @@ function Resumo({ resumo, estat, notif, viagens, t, navigation, onIr, onNotif })
             nota={t('admXdeY', { x: estat.aceites, y: estat.pedidos })}
           />
         ) : null}
-        {temTaxas ? (
+        {temAceites ? (
           <Qualidade
             icone="fechar"
             valor={`${taxaCanc}%`}
             etiqueta={t('admTaxaCancelamento')}
-            nota={t('admXdeY', { x: estat.canceladas, y: estat.pedidos })}
+            nota={t('admXdeYAceites', { x: estat.canceladas, y: estat.aceites })}
             estado={taxaCanc > 20 ? ESTADO.aviso : ESTADO.neutro}
           />
         ) : null}
@@ -1190,7 +1204,10 @@ function GrupoDeAcesso({ a, t, navigation }) {
 // nas que estão a decorrer e nas recentes — e um cartão copiado é um
 // cartão que passa a divergir do outro à primeira correcção.
 function CartaoViagem({ v, t, navigation }) {
-  const mau = v.estado === 'cancelled';
+  // Um pedido que ninguém aceitou não é uma viagem cancelada: etiqueta
+  // própria e cinzento, e não o vermelho de quem cancelou uma viagem.
+  const semMotorista = v.estado === 'cancelled' && !v.motorista;
+  const mau = v.estado === 'cancelled' && !semMotorista;
   return (
     <Pressable
       style={({ pressed }) => [styles.viagem, pressed && { opacity: 0.85 }]}
@@ -1200,7 +1217,7 @@ function CartaoViagem({ v, t, navigation }) {
       <Icone
         nome={ICONE_DO_ESTADO[v.estado] || 'carro'}
         tamanho={26}
-        cor={mau ? colors.danger : colors.teal}
+        cor={mau ? colors.danger : semMotorista ? colors.textMuted : colors.teal}
       />
       <View style={{ flex: 1 }}>
         <Text style={styles.viagemDestino} numberOfLines={1}>
@@ -1212,8 +1229,12 @@ function CartaoViagem({ v, t, navigation }) {
           {v.km ? ` · ${v.km} km` : ''}
         </Text>
         <View style={styles.viagemLinha}>
-          <Etiqueta texto={t(statusMeta(v.estado).key)} mau={mau} />
-          {v.motivoCancelamento ? (
+          <Etiqueta
+            texto={semMotorista ? t('admSemMotorista') : t(statusMeta(v.estado).key)}
+            mau={mau}
+            neutra={semMotorista}
+          />
+          {v.motivoCancelamento && v.motivoCancelamento !== 'sem_motorista' ? (
             <Etiqueta texto={t(`cancelReason_${v.motivoCancelamento}`)} neutra />
           ) : null}
         </View>
@@ -1239,7 +1260,8 @@ function Viagens({ viagens, t, navigation }) {
   // rede como a de Díli um pedido a mais custa mais do que estas somas.
   const activas = viagens.filter((v) => A_DECORRER.includes(v.estado));
   const concluidas = viagens.filter((v) => v.estado === 'completed');
-  const canceladas = viagens.filter((v) => v.estado === 'cancelled');
+  const canceladas = viagens.filter((v) => v.estado === 'cancelled' && v.motorista);
+  const semMotorista = viagens.filter((v) => v.estado === 'cancelled' && !v.motorista);
   const tarifas = concluidas.reduce((soma, v) => soma + (Number(v.preco) || 0), 0);
 
   if (!viagens.length) return <EstadoVazio icone="rota" titulo={t('admNoRides')} />;
@@ -1261,6 +1283,12 @@ function Viagens({ viagens, t, navigation }) {
           valor={canceladas.length}
           etiqueta={t('admCanceladas24h')}
           estado={canceladas.length > 0 ? ESTADO.aviso : ESTADO.neutro}
+        />
+        <CartaoKPI
+          icone="volante"
+          valor={semMotorista.length}
+          etiqueta={t('admSemMotorista')}
+          estado={semMotorista.length > 0 ? ESTADO.aviso : ESTADO.neutro}
         />
       </View>
       <CartaoTarifa total={tarifas} etiqueta={t('admTarifas24h')} />

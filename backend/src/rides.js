@@ -437,6 +437,10 @@ export function getActiveRideForUser(user) {
 // de as ver, e isso é indistinguível de as ter perdido.
 //
 // A viagem activa já procurava nas duas colunas. Isto passa a fazer o mesmo.
+// O HISTÓRICO É DE VIAGENS. Um pedido que nenhum motorista aceitou (o
+// passageiro desistiu, ou caducou ao fim de MINUTOS_ATE_DESISTIR) não é uma
+// viagem cancelada, porque não chegou a haver viagem (decisão do Simão, 16/09/2026). Fica na base
+// e o administrador vê-o à parte, como "sem motorista"; aqui não aparece.
 export function getRideHistoryForUser(user, limit = 50) {
   return query(
     `SELECT sub.*, (
@@ -444,7 +448,8 @@ export function getRideHistoryForUser(user, limit = 50) {
      ) AS my_stars
      FROM (${RIDE_SELECT}
             WHERE (r.passenger_id = $1 OR r.driver_id = $1)
-              AND r.status IN ('completed','cancelled')) sub
+              AND (r.status = 'completed'
+                   OR (r.status = 'cancelled' AND r.driver_id IS NOT NULL))) sub
      ORDER BY sub.id DESC LIMIT $2`,
     [user.id, limit]
   );

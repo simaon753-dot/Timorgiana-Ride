@@ -1006,16 +1006,25 @@ function blocoCarga(v) {
 // PASSAGEIROS. Concatená-los em innerHTML sem escapar punha texto de
 // estranhos a correr dentro do painel de quem aprova motoristas.
 function linhaDeViagem(v) {
+  // SEM MOTORISTA não é "cancelada" (decisão do Simão, 16/09/2026): nenhum
+  // motorista aceitou, logo não houve viagem. E um pedido que caducou sozinho
+  // não tem quem o cancelou; antes aparecia como "cancelada pelo motorista".
+  const semMotorista = v.estado === 'cancelled' && !v.motorista;
+  const quem = semMotorista
+    ? v.canceladoPeloPassageiro
+      ? 'o passageiro desistiu antes de alguém aceitar'
+      : 'ninguém aceitou a tempo'
+    : `cancelada pelo ${v.canceladoPeloPassageiro ? 'passageiro' : 'motorista'}`;
   const cancel = v.motivoCancelamento
-    ? `<br><span class="explica">cancelada pelo ${
-        v.canceladoPeloPassageiro ? 'passageiro' : 'motorista'
-      } — ${escapar(v.motivoCancelamento)}</span>`
+    ? `<br><span class="explica">${quem}${
+        v.motivoCancelamento !== 'sem_motorista' ? ' — ' + escapar(v.motivoCancelamento) : ''
+      }</span>`
     : '';
   const preco = v.preco != null ? '$' + Number(v.preco).toFixed(2) : 'sem preço';
   return (
     '<div class="caixaDados">' +
     `<b>#${v.id} · ${escapar(nomeVeiculo(v.veiculo))} · ${
-      ESTADO_VIAGEM[v.estado] || escapar(v.estado)
+      semMotorista ? 'sem motorista' : ESTADO_VIAGEM[v.estado] || escapar(v.estado)
     }</b><br>` +
     // O PERCURSO INTEIRO, paragens incluídas — e cada troço escapado, porque
     // os nomes das paragens vêm da pesquisa de quem pediu.
@@ -1052,6 +1061,7 @@ async function mostrarResumo() {
     alvo.innerHTML =
       cartao('viagens 24h', n.viagens24h) +
       cartao('canceladas 24h', n.canceladas24h) +
+      cartao('sem motorista 24h', n.semMotorista24h) +
       cartao('à espera agora', n.esperando) +
       cartao('em serviço', n.veiculosServico) +
       cartao('motoristas Pickup', n.carryMotoristas) +
