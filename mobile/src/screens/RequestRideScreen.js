@@ -51,6 +51,12 @@ import Icone from '../design/Icone.js';
 import { TIPOS_VEICULO, VEICULOS, nomeDoVeiculo, veiculo } from '../dados/tiposDeVeiculo.js';
 import BarraEstado from '../design/BarraEstado.js';
 
+// HH:MM na hora do telemóvel, o mesmo formato das etapas da viagem
+// (design/EtapasViagem.js). Serve a "Última procura às …".
+function hhmm(d) {
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
 export default function RequestRideScreen({ navigation, route }) {
   const { t } = useI18n();
   const { token } = useAuth();
@@ -82,6 +88,15 @@ export default function RequestRideScreen({ navigation, route }) {
   const [destino, setDestino] = useState(route?.params?.destino || null);
   const [orcamento, setOrcamento] = useState(null);
   const [aCalcular, setACalcular] = useState(false);
+  // "PROCURAR OUTRA VEZ", quando não há motorista por perto (16/09/2026).
+  // `procuras` conta os toques e entra nas dependências da cotação; `aProcurar`
+  // é a roda do próprio botão, para a lista não sair do ecrã; `ultimaProcura`
+  // é a hora da última resposta, porque um toque que dá o mesmo resultado
+  // parece não ter feito nada.
+  const [procuras, setProcuras] = useState(0);
+  const [aProcurar, setAProcurar] = useState(false);
+  const [ultimaProcura, setUltimaProcura] = useState(null);
+  const soProcuraRef = useRef(false);
   // O VEÍCULO CHEGA JÁ ESCOLHIDO do primeiro passo, e fica PRÉ-SELECCIONADO —
   // não fechado.
   //
@@ -261,7 +276,14 @@ export default function RequestRideScreen({ navigation, route }) {
   useEffect(() => {
     if (!origem || !destino) return setOrcamento(null);
     let cancelado = false;
-    setACalcular(true);
+    // Uma nova procura refaz a cotação SEM tirar a lista do ecrã: só o botão
+    // mostra que está a trabalhar. A roda grande fica para a primeira cotação e
+    // para quando muda o que se pede. A rota vem da memória do servidor
+    // (rotas.js), por isso procurar outra vez não gasta rotas do Google.
+    const soProcura = soProcuraRef.current;
+    soProcuraRef.current = false;
+    if (soProcura) setAProcurar(true);
+    else setACalcular(true);
     api
       .quote(token, {
         originLat: origem.lat,
@@ -287,9 +309,17 @@ export default function RequestRideScreen({ navigation, route }) {
             }
           : {}),
       })
-      .then((q) => !cancelado && setOrcamento(q))
+      .then((q) => {
+        if (cancelado) return;
+        setOrcamento(q);
+        setUltimaProcura(new Date());
+      })
       .catch(() => !cancelado && setOrcamento(null))
-      .finally(() => !cancelado && setACalcular(false));
+      .finally(() => {
+        if (cancelado) return;
+        setACalcular(false);
+        setAProcurar(false);
+      });
     return () => {
       cancelado = true;
     };
@@ -315,6 +345,8 @@ export default function RequestRideScreen({ navigation, route }) {
     modoCarry,
     cargaVolume,
     cargaAjuda,
+    // O botão "Procurar outra vez": cada toque soma um e refaz a cotação.
+    procuras,
   ]);
 
   useEffect(() => {
@@ -1549,6 +1581,35 @@ export default function RequestRideScreen({ navigation, route }) {
               <Text style={styles.semMotoristaTexto}>
                 {t('semMotoristaTexto', { preco: `$${opcao.fareUsd.toFixed(2)}` })}
               </Text>
+              {/* PROCURAR OUTRA VEZ: um motorista pode ficar disponível a
+                  qualquer momento. Um botão e não "puxar para baixo", porque
+                  este painel já se arrasta pela pega e os dois gestos
+                  atrapalhavam-se (pedido do Simão, 16/09/2026). */}
+              <Pressable
+                style={({ pressed }) => [styles.procurarOutraVez, pressed && { opacity: 0.7 }]}
+                onPress={() => {
+                  soProcuraRef.current = true;
+                  setProcuras((n) => n + 1);
+                }}
+                disabled={aProcurar}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityState={{ busy: aProcurar }}
+              >
+                {aProcurar ? (
+                  <ActivityIndicator size="small" color={colors.coralDark} />
+                ) : (
+                  <Icone nome="atualizar" tamanho={18} cor={colors.coralDark} />
+                )}
+                <Text style={styles.procurarOutraVezTexto}>
+                  {aProcurar ? t('aProcurarMotoristas') : t('procurarOutraVez')}
+                </Text>
+              </Pressable>
+              {ultimaProcura ? (
+                <Text style={styles.ultimaProcura}>
+                  {t('ultimaProcura', { hora: hhmm(ultimaProcura) })}
+                </Text>
+              ) : null}
             </View>
           </View>
         ) : null}
@@ -2126,6 +2187,17 @@ const criarEstilos = () =>
     },
     semMotoristaTitulo: { ...tipo.corpoForte, color: colors.coralDark },
     semMotoristaTexto: { ...tipo.pequeno, color: colors.text, marginTop: 2 },
+    // Alvo de toque com pelo menos 44 de altura (6 + 18 + 6 e o hitSlop de 8).
+    procurarOutraVez: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      alignSelf: 'flex-start',
+      marginTop: spacing.sm,
+      paddingVertical: 6,
+    },
+    procurarOutraVezTexto: { ...tipo.corpoForte, color: colors.coralDark },
+    ultimaProcura: { ...tipo.pequeno, color: colors.textMuted, marginTop: 2 },
     botaoTexto: { ...tipo.subtitulo, color: colors.white },
   });
 

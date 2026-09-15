@@ -178,7 +178,7 @@ async function peloOsrm(a, b, intermedios = []) {
 // existiam continuam a comportar-se exactamente como antes. Um parâmetro novo
 // que mudasse o comportamento por omissão seria o modo que parte as coisas a
 // ser o modo normal — e isso já custou caro uma vez, no runtimeVersion.
-export async function rotaCompleta(a, b, intermedios = []) {
+async function calcularRota(a, b, intermedios) {
   if (await podePerguntar()) {
     const g = await peloGoogle(a, b, intermedios);
     if (g) return g;
@@ -200,6 +200,50 @@ export async function rotaCompleta(a, b, intermedios = []) {
     fonte: 'recta',
     aproximado: true,
   };
+}
+
+// MEMÓRIA CURTA DAS ROTAS (16/09/2026).
+//
+// O passageiro sem motorista por perto passou a ter um botão "Procurar outra
+// vez", que repete a cotação. A cotação pede a rota, e cada pedido ao Google
+// conta para o tecto de 300 por dia: um passageiro impaciente a tocar dez
+// vezes gastava dez rotas iguais.
+//
+// Os mesmos pontos, nos últimos dez minutos, dão a mesma rota sem perguntar a
+// ninguém. O que o botão quer saber de novo, que motoristas estão livres, não
+// passa por aqui: vem sempre fresco do nearestDrivers, na cotação.
+//
+// Dez minutos, porque é o tempo que um pedido fica aberto. Guarda-se em
+// memória e não na base de dados: se o servidor reiniciar perde-se tudo, e o
+// pior que acontece é voltar a perguntar uma rota. Só se guardam respostas do
+// Google e do OSRM. A linha recta é o recurso de quando os dois falham, e
+// guardá-la seria não voltar a tentar durante dez minutos.
+const MEMORIA_MS = 10 * 60 * 1000;
+const MEMORIA_MAX = 500;
+const memoria = new Map();
+
+// Cinco casas decimais são cerca de um metro. A app manda sempre as mesmas
+// coordenadas para a mesma viagem, por isso a igualdade exacta chega.
+function chaveDaRota(a, b, intermedios) {
+  const p = (x) => `${Number(x.lat).toFixed(5)},${Number(x.lng).toFixed(5)}`;
+  return [a, ...intermedios, b].map(p).join(';');
+}
+
+// `intermedios` é OPCIONAL e por omissão vazio (ver a nota em calcularRota).
+export async function rotaCompleta(a, b, intermedios = []) {
+  const chave = chaveDaRota(a, b, intermedios);
+  const guardada = memoria.get(chave);
+  // Uma CÓPIA, e não a própria: se quem chama mexer no que recebe, a memória
+  // não pode ficar estragada para o próximo.
+  if (guardada && Date.now() - guardada.em < MEMORIA_MS) return structuredClone(guardada.rota);
+
+  const rota = await calcularRota(a, b, intermedios);
+  if (rota.fonte !== 'recta') {
+    // Cheia, sai a mais antiga (um Map guarda a ordem de entrada).
+    if (memoria.size >= MEMORIA_MAX) memoria.delete(memoria.keys().next().value);
+    memoria.set(chave, { em: Date.now(), rota: structuredClone(rota) });
+  }
+  return rota;
 }
 
 export function estadoDasRotas() {
