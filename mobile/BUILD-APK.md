@@ -126,6 +126,38 @@ A saída de emergência: trocar o import de `MapaGoogle.js` para `OSMMap.js`
 em `RequestRideScreen.js` e `MapaExpandivel.js` e correr `npm run publicar`.
 Volta ao OpenStreetMap em minutos, sem APK novo.
 
+## Passo 3c — A chave do mapa no iPhone (antes da 1.ª compilação iOS)
+
+O iPhone precisa de uma chave **própria**. Na consola do Google a restrição é
+por plataforma, e uma chave presa ao Android não serve ao iOS. Sem ela, a
+compilação iOS sai sem o Google Maps e o mapa não abre. O `app.config.js`
+avisa, mas só nas compilações iOS.
+
+### A chave na consola do Google
+
+- **Projecto:** TimorgianaRide, o mesmo da chave do Android
+- **API activada:** Maps SDK for iOS (só essa). É gratuita e sem limite, tal
+  como a do Android
+- **Restrição de aplicação:** Apps iOS
+- **Bundle:** `tl.timorgiana.ride`
+
+### Guardar no EAS
+
+Vai da consola directamente para o EAS, e nunca para o Git nem para uma
+conversa:
+
+```bash
+npx eas-cli env:set --name GOOGLE_MAPS_IOS_KEY --value COLAR-A-CHAVE --visibility sensitive --environment production --environment preview --environment development
+```
+
+(O `secret:create` do passo 3b está obsoleto; o comando novo é `env:set`.)
+
+Para ver que ficou guardada, sem mostrar o valor:
+
+```bash
+npx eas-cli env:list --environment preview
+```
+
 ## Passo 4 — Gerar o APK
 
 ```bash
