@@ -58,7 +58,7 @@ const pt = {
     {
       titulo: 'Dados que recolhemos',
       texto:
-        'Podemos recolher: nome, número de telefone, e-mail, fotografia e identificação da conta; pedidos, locais de recolha e destino, histórico, cancelamentos e comunicações; dados técnicos como dispositivo, sistema, endereço IP e registos de utilização; localização do veículo durante a disponibilidade e viagem; e, para motoristas, carta de condução, documentos do veículo, licenças e informação fiscal exigida. Não peça nem envie dados sensíveis que não sejam necessários para o serviço.\n\nPara motoristas, recolhemos ainda uma fotografia diária de turno, os pagamentos da assinatura (valor, forma de pagamento, referência e comprovativo) e as declarações feitas no registo. Quando pede uma viagem para outra pessoa, recolhemos o nome e o telemóvel de quem viaja, a indicação de que é menor e a declaração de responsabilidade ou autorização — e só nos deve dar esses dados com o conhecimento dessa pessoa. No transporte de bens, recolhemos a descrição da carga, as fotografias que tirar e a declaração sobre os bens. As declarações ficam registadas com a data e a hora.',
+        'Podemos recolher: nome, número de telefone, e-mail, fotografia e identificação da conta; pedidos, locais de recolha e destino, histórico, cancelamentos e comunicações; dados técnicos como dispositivo, sistema, endereço IP e registos de utilização; localização do veículo durante a disponibilidade e viagem; e, para motoristas, cartão de condução, documentos do veículo, licenças e informação fiscal exigida. Não peça nem envie dados sensíveis que não sejam necessários para o serviço.\n\nPara motoristas, recolhemos ainda uma fotografia diária de turno, os pagamentos da assinatura (valor, forma de pagamento, referência e comprovativo) e as declarações feitas no registo. Quando pede uma viagem para outra pessoa, recolhemos o nome e o telemóvel de quem viaja, a indicação de que é menor e a declaração de responsabilidade ou autorização — e só nos deve dar esses dados com o conhecimento dessa pessoa. No transporte de bens, recolhemos a descrição da carga, as fotografias que tirar e a declaração sobre os bens. As declarações ficam registadas com a data e a hora.',
     },
     {
       titulo: 'Porque usamos os dados',
@@ -100,58 +100,58 @@ const pt = {
 
 const tet = {
   titulo: 'Avizu Privasidade',
-  aceitarCurto: 'Ha’u lee no simu **avizu privasidade**',
+  aceitarCurto: 'Ha’u lee no aseita **avizu privasidade**',
   subtitulo: 'Pasajeiru no motorista · versaun 14 Setembru 2026',
   seccoes: [
     {
       titulo: 'Sé mak trata dadus',
       texto:
-        'TimorgianaRide hanesan servisu husi Timorgiana, Lda, Bidau Toko-Baru, Cristo Rei, Timor-Leste, no trata dadus pessoal neʼebé avizu ida neʼe esplika atu opera no proteje aplikasaun. Ba pergunta ka pedidu kona-ba dadus, kontaktu +670 74192857 · +670 75684566.',
+        'TimorgianaRide hanesan servisu husi Timorgiana, Lda, Bidau Toko-Baru, Cristo Rei, Timor-Leste, no trata dadus pessoal neʼebé hakerek iha avizu ida neʼe atu opera no proteje aplikasaun. Ba pergunta ka pedidu kona-ba dadus, kontaktu +670 74192857 · +670 75684566.',
     },
     {
       titulo: 'Ba sé mak avizu ida',
       texto:
-        'Avizu ida neʼe aplika ba pasajeiru, motorista, ema neʼebé aplika atu sai motorista no ema neʼebé kontaktu TimorgianaRide. Nia kompleta Termos de Utilização no tenke lee molok kria ka uza konta.',
+        'Avizu ida neʼe aplika ba pasajeiru, motorista, kandidatu ba motorista no ema neʼebé kontaktu ho TimorgianaRide. Nia kompleta Termos de Utilização no tenke lee molok kria ka uza konta.',
     },
     {
       titulo: 'Dadus neʼebé ami halibur',
       texto:
-        'Ami bele halibur: naran, telefone, e-mail, foto no dadus konta; pedidu, fatin foti no destinu, istória viajen, kanselamentu no komunikasaun; dadus tékniku hanesan dispozitivu, sistema, enderesu IP no rejistu uza; lokalizasaun veíkulu durante disponibilidade no viajen; no, ba motorista, karta kondusaun, dokumentu veíkulu, lisensa no informasaun fiskál neʼebé presiza. Keta haruka dadus sensível neʼebé la presiza ba servisu.\n\nBa motorista, ami halibur mós fotografia turnu loroloron, pagamentu asinatura nian (valor, forma pagamentu, referénsia no komprovativu) no deklarasaun sira ne’ebé halo iha rejistu. Bainhira ita husu viajen ba ema seluk, ami halibur naran no telemóvel ema ne’ebé viaja, indikasaun katak nia menór no deklarasaun responsabilidade ka autorizasaun — no ita tenke fó dadus hirak ne’e de’it ho ema ne’e nia hatene. Iha transporte sasán, ami halibur deskrisaun karga, fotografia ne’ebé ita foti no deklarasaun kona-ba sasán. Deklarasaun sira rejistu ho data no oras.',
+        'Ami bele halibur: naran, telefone, e-mail, foto no dadus konta; pedidu, fatin rekolla no destinu, istória viajen, kanselamentu no komunikasaun; dadus tékniku hanesan dispozitivu, sistema, enderesu IP no rejistu uza; lokalizasaun veíkulu durante disponibilidade no viajen; no, ba motorista sira, kartaun kondusaun, dokumentu veíkulu, lisensa no informasaun fiskál neʼebé presiza. Keta haruka dadus sensível neʼebé la nesesáriu ba servisu ida ne’e.\n\nBa motorista, ami halibur mós fotografia turnu nian loron-loron, pagamentu asinatura nian (valor, forma pagamentu, referénsia no komprovativu) no deklarasaun sira ne’ebé halo iha rejistu. Bainhira ita husu viajen ba ema seluk, ami halibur naran no telemóvel ema ne’ebé halo viajen, indikasaun katak nia menór no deklarasaun responsabilidade ka autorizasaun — no ita tenke fó dadus hirak ne’e de’it ho ema ne’e nia koñesimentu. Iha transporte sasán, ami halibur deskrisaun karga, fotografia ne’ebé ita foti no deklarasaun kona-ba sasán. Deklarasaun sira rejistu ho data no oras.',
     },
     {
       titulo: 'Tanba sá ami uza dadus',
       texto:
-        'Ami uza dadus atu kria no jere konta; liga pasajeiru no motorista; kalkula no hatudu folin; permite komunikasaun no apoiu; prevene fraude, abusus no perigu seguransa; verifika dokumentu; investiga insidente; kumpre dever legál; no hadiʼa estabilidade no seguransa servisu.\n\nFinalidade ida-idak bazeia ba fundamentu hirak neʼe: ezekusaun servisu neʼebé ita husu; konfirmasaun ita-nia identidade no prevensaun fraude; kumprimentu dever legál; no interese lejítimu seguransa ba ema neʼebé viaja no ema neʼebé konduz. Bainhira lei husu ita-nia konsentimentu, ami husu uluk no ita bele hasai.',
+        'Ami uza dadus atu kria no jere konta; liga pasajeiru no motorista; kalkula no hatudu presu sira; permite komunikasaun no apoiu; prevene fraude, abusus no perigu seguransa; verifika dokumentu; investiga insidente; kumpre dever legál; no hadiʼa estabilidade no seguransa servisu.\n\nFinalidade ida-idak bazeia ba fundamentu hirak neʼe: ezekusaun servisu neʼebé ita husu; konfirmasaun ita-nia identidade no prevensaun fraude; kumprimentu dever legál; no interese lejítimu seguransa ba ema neʼebé halo viajen no ema neʼebé konduz. Bainhira lei husu ita-nia konsentimentu, ami husu uluk ba ita no ita bele hasai.',
     },
     {
       titulo: 'Ho sé mak ami fahe',
       texto:
-        'Ami fahe ba motorista pasajeiru nia dadus neʼebé presiza atu foti no halo viajen; no ba pasajeiru, motorista nia dadus neʼebé presiza atu identifika no halo viajen. Ami bele fahe ho forneseedór neʼebé alojamentu, manutensaun ka apoiu aplikasaun, autoridade ka konsultór, deit bainhira presiza, autorizadu ka lei obriga, no ho salvaguarda apropriadu.\n\nKonkretamente: bainhira viajen husu ba ema seluk, motorista haree naran no telemóvel ema ne’ebé viaja durante viajen, no indikasaun menór antes simu; fotografia karga nian hatudu ba motorista sira ne’ebé simu pedidu atu haree; no motorista nia fotografia turnu ikus liu hatudu ba pasajeiru durante viajen.',
+        'Ami fahe ba motorista pasajeiru nia dadus neʼebé presiza atu rekolla no halo viajen; no ba pasajeiru, motorista nia dadus neʼebé presiza atu identifika no halo viajen. Ami bele fahe ho forneseedór neʼebé alojamentu, manutensaun ka apoiu aplikasaun, autoridade ka konsultór, de’it bainhira nesesáriu, autorizadu ka lei obriga, no ho salvaguarda adekuadu.\n\nKonkretamente: bainhira husu viajen ba ema seluk, motorista haree naran no telemóvel ema ne’ebé atu halo viajen durante viajen, no indikasaun menór antes simu; fotografia karga nian hatudu ba motorista sira ne’ebé simu pedidu atu haree; no motorista nia fotografia turnu ikus liu hatudu ba pasajeiru durante viajen.',
     },
     {
       titulo: 'Lokalizasaun no emerjénsia',
       texto:
-        'Ami uza lokalizasaun atu orienta pedidu, akompaña viajen, seguransa no apoiu. Funsaun fahe viajen no emerjénsia sei halibur ka haruka informasaun tuir hirak neʼebé aplikasaun hatudu. Ami la garante resposta emerjénsia; iha perigu kedas, kontaktu servisu lokál competente sira.',
+        'Ami uza lokalizasaun atu orienta pedidu, akompaña viajen, seguransa no apoiu. Funsaun fahe viajen no emerjénsia sei halibur ka haruka informasaun tuir hirak neʼebé aplikasaun hatudu. Ami la garante resposta emerjénsia; iha perigu imediatu, kontaktu kedas ba servisu lokál kompetente sira.',
     },
     {
       titulo: 'Tempu rai no seguransa',
       texto:
-        'Ami rai dadus deit tempu neʼebé presiza ba finalidade avizu ida, obrigasaun legál, seguransa, fraude, kontabilidade ka disputa. Ami uza medida organizativu no tékniku razoável, maibé sistema ida la seguro 100%.\n\nPrazu konkretu balu: fotografia turnu rai loron 7; fotografia karga nian, loron 7 depois viajen remata; rejistu detalladu viajen ida-idak nian (eventu no pozisaun), fulan 6; rejistu kona-ba sé husi ekipa jestaun mak haree ka esporta dadus, fulan 24. Pagamentu asinatura nian rai tuir tempu ne’ebé obrigasaun kontabilidade no fiskál husu.',
+        "Ami rai de'it dadus durante tempu ne'ebé presiza ba objetivu avizu ida-ne'e nian, ba obrigasaun legál sira, seguransa, fraude, kontabilidade ka litigasaun. Ami implementa ona medida organizasaun no téknika ne'ebé di'ak, maibé laiha sistema ida mak totalmente seguru.\n\nIha prazu espesífiku balun: fotografia turnu nian sei rai durante loron 7; fotografia karga nian, loron 7 hafoin viajen remata; rejistu detalladu kona-ba kada viajen (eventu no pozisaun), fulan 6; rejistu se nian, iha ekipa jestaun nian, konsulta ka esporta dadus fulan 24. Pagamentu ba asinatura ne'e sei kontinua iha tempu ne'ebé rekere obrigasaun kontabilidade no impostu sira.",
     },
     {
       titulo: 'Ita-nia direitu no escolha',
       texto:
-        'Ita bele husu asesu, koreksaun, atualizasaun, hamoos, limitasaun ka opozisaun bainhira lei permite. Ita bele husu kópia dadus ka hasai konsentimentu se tratamentu bazeia ba konsentimentu. Hamoos bele la inklui dadus neʼebé ami tenke rai tuir lei, seguransa, fraude ka defeza direitu. Ami responde tuir lei aplika.\n\nKada vez ekipa jestaun haree ka esporta ita-nia dokumentu no dadus, rejistu ho sé mak halo no bainhira. Ita bele husu atu hatene sé mak haree.',
+        'Ita bele husu asesu, koreksaun, atualizasaun, hamoos, limitasaun ka opozisaun bainhira lei permite. Ita bele husu kópia dadus ka hasai konsentimentu se tratamentu bazeia ba konsentimentu. Hamoos bele la inklui dadus neʼebé ami tenke rai tuir lei, seguransa, fraude ka defeza direitu. Ami responde tuir lei ne’ebé aplikável.\n\nKada konsulta ka esporta ba ita-nia dokumentu no dadus husi ekipa jestaun sei rejistu hotu, sé mak halo ida-ne’e no horibainhira. Ita bele husu atu hatene sé mak konsulta.',
     },
     {
       titulo: 'Transferénsia no mudansa',
       texto:
-        'Dadus bele trata husi forneseedór iha nasaun seluk. Se akontese, ami sei aplika salvaguarda neʼebé lei husu. Ami bele atualiza avizu; ami aviza iha aplikasaun se mudansa ne’e importante no, se presiza, husu konsentimentu foun.',
+        'Dadus sira bele trata husi fornesedór ne’ebé situa iha nasaun seluk. Se akontese, ami sei aplika salvaguarda neʼebé lei husu. Ami bele atualiza avizu; ami aviza iha aplikasaun se mudansa ne’e importante no, se nesesáriu, ami sei husu konsentimentu foun.',
     },
     {
       titulo: 'Keixa no kontaktu',
       texto:
-        'Ba pergunta privasidade, pedidu ka keixa: +670 74192857 · +670 75684566.\n\nLei protesaun dadus pessoal Timor-Leste nian, bainhira aprova no tama iha vigor, kria Autoridade Nacional de Proteção de Dados (ANPD), neʼebé ita bele husu keixa ba. Toʼo ANPD hahú serbisu, haruka ita-nia keixa ba kontaktu iha leten; ami sei responde no rai rejistu.',
+        'Ba pergunta privasidade, pedidu ka keixa: +670 74192857 · +670 75684566.\n\nLei protesaun dadus pessoal Timor-Leste nian, bainhira aprova no tama iha vigor, kria Autoridade Nacional de Proteção de Dados (ANPD), neʼebé fó pode ba ita atu halo reklamasaun. Toʼo ANPD hahú serbisu, haruka ita-nia keixa ba kontaktu iha leten; ami sei responde no rai rejistu.',
     },
   ],
 };

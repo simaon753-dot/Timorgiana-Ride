@@ -54,10 +54,7 @@ export const termosPassageiro = {
     {
       titulo: 'Passenger safety',
       texto:
-        'Before entering the vehicle, always check that the number plate, the vehicle model and the driver’s name and photograph match the details shown on screen. If they do not match, do not enter the vehicle. During the ride you have two safety buttons:\n\n' +
-        '• Share ride: lets you send your real-time location to someone you trust.\n' +
-        '• Emergency: alerts our operations centre with your position and provides direct shortcuts to call the police, an ambulance or the fire service.\n\n' +
-        'Important emergency notice: in the event of immediate danger, call 112, 110 or 115 first. The platform acts as a complementary support channel, not as a substitute for the emergency authorities.',
+        'Before entering the vehicle, always check that the number plate, the vehicle model and the driver’s name and photograph match the details shown on screen. If they do not match, do not enter the vehicle. During the ride you have two safety buttons:\n\n• Share ride: lets you send your real-time location to someone you trust.\n• Emergency: alerts our operations centre with your position and provides direct shortcuts to call the police, an ambulance or the fire service.\n\nImportant emergency notice: in the event of immediate danger, call 112, 110 or 115 first. The platform acts as a complementary support channel, not as a substitute for the emergency authorities.',
     },
     {
       titulo: 'Requesting for someone else, and minors',
@@ -72,33 +69,22 @@ export const termosPassageiro = {
     {
       titulo: 'Processing of personal data',
       texto:
-        'We collect and process data essential to the operation of the service: name, mobile number, ride history and pick-up and drop-off points. During the journey, the vehicle’s geolocation is recorded for navigation and safety purposes.\n\n' +
-        'The driver has access only to your name, your direct contact number and the ride points strictly necessary to perform the service. Your personal data is not sold to third parties.\n\n' +
-        'You may request the closure of your account and the deletion or anonymisation of your data at any time through the contact provided in this app.',
+        'We collect and process data essential to the operation of the service: name, mobile number, ride history and pick-up and drop-off points. During the journey, the vehicle’s geolocation is recorded for navigation and safety purposes.\n\nThe driver has access only to your name, your direct contact number and the ride points strictly necessary to perform the service. Your personal data is not sold to third parties.\n\nYou may request the closure of your account and the deletion or anonymisation of your data at any time through the contact provided in this app.',
     },
     {
       titulo: 'Conduct and acceptable use',
       texto:
-        'Users are required to treat drivers courteously and with respect.\n\n' +
-        'Occasional cancellations are understandable. However, repeated cancellation after the driver has accepted the ride creates undue fuel and time costs, and may result in the temporary or permanent suspension of the account.\n\n' +
-        'Use of the app for unlawful purposes is expressly prohibited.',
+        'Users are required to treat drivers courteously and with respect.\n\nOccasional cancellations are understandable. However, repeated cancellation after the driver has accepted the ride creates undue fuel and time costs, and may result in the temporary or permanent suspension of the account.\n\nUse of the app for unlawful purposes is expressly prohibited.',
     },
     {
       titulo: 'Liability',
       texto:
-        'In the context of the use of this application, TimorgianaRide acts solely as an intermediation technology platform. The transport is carried out by the driver, with their own vehicle and under their own exclusive responsibility; in this relationship TimorgianaRide acts neither as a carrier nor as an insurer.\n\n' +
-        'The provision of the transport service constitutes a direct and exclusive agreement between the passenger and the driver. TimorgianaRide bears no civil, administrative or criminal liability for:\n\n' +
-        '• Road accidents, personal injury, death or material damage occurring during the ride;\n' +
-        '• Delays, failure to keep to schedules, or changes of route by the driver;\n' +
-        '• Loss, theft, forgetting of, or damage to personal objects and belongings inside the vehicle;\n' +
-        '• Conduct, disputes, or verbal or physical offences occurring between passengers and drivers.\n\n' +
-        'The collection and verification of documents (driving licence, vehicle registration and photograph) is intended solely for the driver’s registration validation on the platform, and does not constitute any guarantee or certification of driving skill, the mechanical condition of the vehicle, or the safety of the ride.',
+        'In the context of the use of this application, TimorgianaRide acts solely as an intermediation technology platform. The transport is carried out by the driver, with their own vehicle and under their own exclusive responsibility; in this relationship TimorgianaRide acts neither as a carrier nor as an insurer.\n\nThe provision of the transport service constitutes a direct and exclusive agreement between the passenger and the driver. TimorgianaRide bears no civil, administrative or criminal liability for:\n\n• Road accidents, personal injury, death or material damage occurring during the ride;\n• Delays, failure to keep to schedules, or changes of route by the driver;\n• Loss, theft, forgetting of, or damage to personal objects and belongings inside the vehicle;\n• Conduct, disputes, or verbal or physical offences occurring between passengers and drivers.\n\nThe collection and verification of documents (driving licence, vehicle registration and photograph) is intended solely for the driver’s registration validation on the platform, and does not constitute any guarantee or certification of driving skill, the mechanical condition of the vehicle, or the safety of the ride.',
     },
     {
       titulo: 'Contact and changes to these terms',
       texto:
-        'For any problem, question or request concerning your personal data, contact us through the number provided within the application. Should these terms be changed, we will ask you to accept them again before you continue using the service.\n\n' +
-        'These terms are published in Portuguese, Tetum and English. In the event of any divergence between the versions, the Portuguese text prevails.',
+        'For any problem, question or request concerning your personal data, contact us through the number provided within the application. Should these terms be changed, we will ask you to accept them again before you continue using the service.\n\nThese terms are published in Portuguese, Tetum and English. In the event of any divergence between the versions, the Portuguese text prevails.',
     },
   ],
 };
@@ -116,11 +102,7 @@ export const termosMotorista = {
     {
       titulo: 'Autonomy and professional status',
       texto:
-        'The driver acts as a service provider and independent professional, without any relationship of legal subordination, employment relationship or exclusivity with TimorgianaRide.\n\n' +
-        'This relationship is governed by the following principles of autonomy:\n\n' +
-        '• There is no obligation to keep to schedules or to accept a minimum number of rides. You make yourself available and accept requests when and where you wish.\n' +
-        '• Use of the application confers no right to a fixed salary, allowances, paid holidays, severance pay or the benefits provided for employees under the Labour Code.\n' +
-        '• The driver is solely responsible for their vehicle, for maintenance and fuel costs, and for the tax obligations arising from their independent activity.',
+        'The driver acts as a service provider and independent professional, without any relationship of legal subordination, employment relationship or exclusivity with TimorgianaRide.\n\nThis relationship is governed by the following principles of autonomy:\n\n• There is no obligation to keep to schedules or to accept a minimum number of rides. You make yourself available and accept requests when and where you wish.\n• Use of the application confers no right to a fixed salary, allowances, paid holidays, severance pay or the benefits provided for employees under the Labour Code.\n• The driver is solely responsible for their vehicle, for maintenance and fuel costs, and for the tax obligations arising from their independent activity.',
     },
     {
       titulo: 'Fares and charging',
@@ -135,13 +117,7 @@ export const termosMotorista = {
     {
       titulo: 'Mandatory requirements and documentation',
       texto:
-        'Before accepting rides, it is your sole responsibility to hold and keep valid:\n\n' +
-        '• A driving licence valid and appropriate for the vehicle you drive;\n' +
-        '• Duly updated vehicle documents and registration;\n' +
-        '• Motor third-party liability insurance, which is COMPULSORY in Timor-Leste for every motor vehicle — Public Instruction no. 07/2010, article 3(1);\n' +
-        '• The vehicle in proper safety and mechanical condition.\n\n' +
-        'Insurance is the driver’s exclusive responsibility and must be taken out with an insurer licensed by the Central Bank of Timor-Leste. TimorgianaRide is not an insurer, neither provides nor replaces any cover, and does not verify that a policy exists.\n\n' +
-        'IF THE VEHICLE IS NOT INSURED, the driver answers personally and without any limit for damage caused to passengers or third parties, with their entire estate. The legal cap of USD 20,000 protects those who hold a policy; those who do not have no cap at all. If any document expires, you must stop accepting rides immediately.',
+        'Before accepting rides, it is your sole responsibility to hold and keep valid:\n\n• A driving licence valid and appropriate for the vehicle you drive;\n• Duly updated vehicle documents and registration;\n• Motor third-party liability insurance, which is COMPULSORY in Timor-Leste for every motor vehicle — Public Instruction no. 07/2010, article 3(1);\n• The vehicle in proper safety and mechanical condition.\n\nInsurance is the driver’s exclusive responsibility and must be taken out with an insurer licensed by the Central Bank of Timor-Leste. TimorgianaRide is not an insurer, neither provides nor replaces any cover, and does not verify that a policy exists.\n\nIF THE VEHICLE IS NOT INSURED, the driver answers personally and without any limit for damage caused to passengers or third parties, with their entire estate. The legal cap of USD 20,000 protects those who hold a policy; those who do not have no cap at all. If any document expires, you must stop accepting rides immediately.',
     },
     {
       titulo: 'Document validation and protection',
@@ -171,25 +147,17 @@ export const termosMotorista = {
     {
       titulo: 'Cancellation and attendance policy',
       texto:
-        'By accepting a ride request, the driver undertakes to carry it out. Unjustified cancellations or failure to appear cause serious inconvenience to passengers and damage the reputation of the network.\n\n' +
-        'Systematic or unjustified cancellation after acceptance may result in the temporary or permanent suspension of access to the platform.',
+        'By accepting a ride request, the driver undertakes to carry it out. Unjustified cancellations or failure to appear cause serious inconvenience to passengers and damage the reputation of the network.\n\nSystematic or unjustified cancellation after acceptance may result in the temporary or permanent suspension of access to the platform.',
     },
     {
       titulo: 'Grounds for suspension and deactivation of the account',
       texto:
-        'TimorgianaRide reserves the right to suspend or deactivate a driver’s account in the following situations:\n\n' +
-        '• Presentation of false, altered or expired documentation;\n' +
-        '• Receipt of serious or recurring complaints regarding safety or conduct;\n' +
-        '• An excessive rate of unjustified cancellations;\n' +
-        '• Charging amounts higher than, or different from, those set by the app;\n' +
-        '• Breach of legal rules or of these Terms.\n\n' +
-        'Wherever practicable, the driver will be notified of the reasons for the suspension and given the opportunity to provide an explanation.',
+        'TimorgianaRide reserves the right to suspend or deactivate a driver’s account in the following situations:\n\n• Presentation of false, altered or expired documentation;\n• Receipt of serious or recurring complaints regarding safety or conduct;\n• An excessive rate of unjustified cancellations;\n• Charging amounts higher than, or different from, those set by the app;\n• Breach of legal rules or of these Terms.\n\nWherever practicable, the driver will be notified of the reasons for the suspension and given the opportunity to provide an explanation.',
     },
     {
       titulo: 'Exclusion of liability',
       texto:
-        'The driver carries out their activity on their own account and at their own risk. TimorgianaRide is not liable for accidents, traffic fines, damage to the vehicle, or any occurrence during the provision of the ride. In this relationship, TimorgianaRide acts solely as an intermediation technology tool; it is neither an insurer nor a guarantee of a minimum number of rides or any particular level of earnings.\n\n' +
-        'These terms are published in Portuguese, Tetum and English. In the event of any divergence between the versions, the Portuguese text prevails.',
+        'The driver carries out their activity on their own account and at their own risk. TimorgianaRide is not liable for accidents, traffic fines, damage to the vehicle, or any occurrence during the provision of the ride. In this relationship, TimorgianaRide acts solely as an intermediation technology tool; it is neither an insurer nor a guarantee of a minimum number of rides or any particular level of earnings.\n\nThese terms are published in Portuguese, Tetum and English. In the event of any divergence between the versions, the Portuguese text prevails.',
     },
   ],
 };
