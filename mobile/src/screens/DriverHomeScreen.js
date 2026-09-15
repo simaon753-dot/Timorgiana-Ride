@@ -771,21 +771,36 @@ function ActiveRideCard({
         />
       </View>
 
-      {/* A GRELHA DE ACÇÕES, pela ordem da referência: falar (telefone,
-          mensagem), depois o que muda a viagem (emergência, a acção de
-          trabalho), e por último o cancelar — sozinho, a toda a largura e só
-          com contorno, para não se carregar sem querer. A emergência é o
-          SosButton de sempre, com o seu fluxo: escolher o serviço, registar o
-          alerta, ligar. O motorista corre o mesmo risco que o passageiro. */}
+      {/* A GRELHA DE ACÇÕES, arrumada pelo Simão a 16/09/2026:
+          1. A ACÇÃO DE TRABALHO em cima, sozinha e maior: Iha dalan ona,
+             Hahú ona viajen, Viajen remata ona. Carrega-se em todas as
+             viagens, e tem de ser a primeira coisa que o polegar encontra.
+          2. Falar e pedir ajuda numa linha de três, mais pequenos e com o
+             ícone por cima: telefone, mensagem e emergência. A emergência é o
+             SosButton de sempre, com o seu fluxo (escolher o serviço, registar
+             o alerta, ligar): o motorista corre o mesmo risco que o passageiro.
+          3. O cancelar por último, como estava: sozinho, a toda a largura e só
+             com contorno, para não se carregar sem querer.
+          Só a acção de trabalho é cheia. O telefone passou a contorno para não
+          disputar o olhar com ela. */}
       {active ? (
         <View style={styles.accoes}>
+          <View style={styles.accoesLinha}>
+            <BotaoAccao
+              icone={principal.icone}
+              titulo={principal.titulo}
+              variante="cheio"
+              grande
+              onPress={principal.onPress}
+            />
+          </View>
           <View style={styles.accoesLinha}>
             {telefone ? (
               <BotaoAccao
                 icone="telefone"
                 titulo={t('phone')}
                 sub={telefone}
-                variante="cheio"
+                empilhado
                 onPress={() => Linking.openURL(`tel:${telefone}`)}
               />
             ) : null}
@@ -793,19 +808,12 @@ function ActiveRideCard({
               icone="mensagem"
               titulo={t('acaoMensajen')}
               contagem={unread}
+              empilhado
               onPress={() => navigation.navigate('Chat')}
             />
-          </View>
-          <View style={styles.accoesLinha}>
             <View style={styles.sosCaixa}>
-              <SosButton rideId={ride.id} />
+              <SosButton rideId={ride.id} empilhado />
             </View>
-            <BotaoAccao
-              icone={principal.icone}
-              titulo={principal.titulo}
-              variante="cheio"
-              onPress={principal.onPress}
-            />
           </View>
           <View style={styles.accoesLinha}>
             <BotaoAccao
@@ -1012,7 +1020,8 @@ const criarEstilos = () =>
     estrelasTexto: { ...tipo.corpoForte, color: colors.text },
     accoes: { gap: spacing.sm, marginTop: spacing.md },
     accoesLinha: { flexDirection: 'row', gap: spacing.sm },
-    sosCaixa: { flex: 1, justifyContent: 'center' },
+    // A emergência preenche a caixa inteira, para ter a altura dos vizinhos.
+    sosCaixa: { flex: 1 },
     seguranca: {
       flexDirection: 'row',
       alignItems: 'center',

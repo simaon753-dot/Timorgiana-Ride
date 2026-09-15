@@ -13,7 +13,10 @@ import EscolherEmergencia, { NUMEROS_RESERVA } from './EscolherEmergencia.js';
 // ordem: o alerta é registado no servidor (para ficar prova de que houve
 // pedido de ajuda, com hora e sítio), e só depois se oferece a chamada.
 //
-export default function SosButton({ rideId, compact }) {
+// `empilhado` (16/09/2026): na linha de três do motorista, ao lado do Telefone
+// e da Mensagem, com a mesma altura e o ícone por cima do texto. O fluxo é o
+// mesmo em todas as formas.
+export default function SosButton({ rideId, compact, empilhado }) {
   const { t } = useI18n();
   const { token } = useAuth();
   const [aEnviar, setAEnviar] = useState(false);
@@ -114,7 +117,7 @@ export default function SosButton({ rideId, compact }) {
         onEscolher={escolhido}
       />
       <TouchableOpacity
-        style={[styles.botao, compact && styles.compacto]}
+        style={[styles.botao, compact && styles.compacto, empilhado && styles.empilhado]}
         onPress={abrirEscolha}
         disabled={aEnviar}
         accessibilityRole="button"
@@ -137,9 +140,16 @@ export default function SosButton({ rideId, compact }) {
         ) : compact ? (
           <Text style={[styles.texto, styles.textoCompacto]}>SOS</Text>
         ) : (
-          <View style={styles.linha}>
-            <Icone nome="sirene" tamanho={20} cor="#fff" traco={2.4} />
-            <Text style={styles.texto}>{t('sos')}</Text>
+          <View style={[styles.linha, empilhado && styles.linhaEmpilhada]}>
+            <Icone nome="sirene" tamanho={empilhado ? 22 : 20} cor="#fff" traco={2.4} />
+            <Text
+              style={[styles.texto, empilhado && styles.textoEmpilhado]}
+              numberOfLines={empilhado ? 1 : undefined}
+              adjustsFontSizeToFit={!!empilhado}
+              minimumFontScale={0.8}
+            >
+              {t('sos')}
+            </Text>
           </View>
         )}
       </TouchableOpacity>
@@ -187,6 +197,17 @@ const criarEstilos = () =>
       letterSpacing: 0.5,
     },
     textoCompacto: { fontSize: 13, letterSpacing: 0 },
+    // Na linha de três do motorista: a mesma altura e os mesmos cantos do
+    // BotaoAccao empilhado, e ocupa a caixa inteira.
+    empilhado: {
+      flex: 1,
+      minHeight: 64,
+      borderRadius: radius.lg,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.sm,
+    },
+    linhaEmpilhada: { flexDirection: 'column', gap: 4 },
+    textoEmpilhado: { fontSize: 14, lineHeight: 18, letterSpacing: 0 },
     linha: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   });
 
