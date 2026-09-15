@@ -332,6 +332,10 @@ export default function MapaGoogle({
   // barras do sistema: sem elas, o logótipo ficava debaixo da barra de início,
   // e o Google exige-o à vista.
   margemDoMapa,
+  // A COLUNA DE BOTÕES A MEIO DA ALTURA, na mesma lateral direita (pedido do
+  // Simão, 16/09/2026). Com o mapa em ecrã inteiro, o topo é da pesquisa e das
+  // sugestões, que tapavam a coluna; ao meio, não se tocam.
+  botoesAoMeio = false,
 }) {
   const { t } = useI18n();
   const { token } = useAuth();
@@ -351,6 +355,7 @@ export default function MapaGoogle({
   // Onde o cartão do nome tem de ser desenhado, em pixéis do ecrã.
   const [cartoes, setCartoes] = useState([]);
   const [largura, setLargura] = useState(0);
+  const [altura, setAltura] = useState(0);
   const [veiculo, setVeiculo] = useState(null);
   // OS NOSSOS LUGARES DESENHADOS NO MAPA.
   //
@@ -833,10 +838,25 @@ export default function MapaGoogle({
     );
   }
 
+  // ONDE COMEÇA A COLUNA DE BOTÕES (localização, bússola, seguir, satélite),
+  // numa só conta para os quatro. Por omissão fica no canto de cima, descida
+  // `topoDosBotoes`; com `botoesAoMeio` fica centrada na altura do mapa. Cada
+  // botão fica 48 abaixo do anterior. `null` quer dizer "onde o estilo já o
+  // põe", e é o caso normal, que fica exactamente como estava.
+  const nBotoes = modoEscolha ? 4 : 3;
+  const topoColuna =
+    botoesAoMeio && altura
+      ? Math.max(spacing.sm, Math.round(altura / 2 - (nBotoes * 48) / 2))
+      : spacing.sm + topoDosBotoes;
+  const naColuna = (i) => (topoColuna !== spacing.sm ? { top: topoColuna + 48 * i } : null);
+
   return (
     <View
       style={[styles.wrap, fill ? styles.fill : { height }]}
-      onLayout={(e) => setLargura(e.nativeEvent.layout.width)}
+      onLayout={(e) => {
+        setLargura(e.nativeEvent.layout.width);
+        setAltura(e.nativeEvent.layout.height);
+      }}
     >
       <MapView
         ref={mapaRef}
@@ -1175,11 +1195,7 @@ export default function MapaGoogle({
           no MapaExpandivel — e um mapa não pode ter dois botões no mesmo
           sítio conforme o ecrã onde está. */}
       <Pressable
-        style={[
-          styles.botaoMim,
-          aLocalizar && styles.botaoMimOcupado,
-          topoDosBotoes ? { top: spacing.sm + topoDosBotoes } : null,
-        ]}
+        style={[styles.botaoMim, aLocalizar && styles.botaoMimOcupado, naColuna(0)]}
         onPress={irParaMim}
         hitSlop={8}
         accessibilityRole="button"
@@ -1193,11 +1209,7 @@ export default function MapaGoogle({
           correr — senão a pessoa não percebe porque é que o mapa "mexe
           sozinho" e não sabe como o parar. */}
       <Pressable
-        style={[
-          styles.botaoSeguir,
-          aSeguirBussola && styles.botaoSeguirActivo,
-          topoDosBotoes ? { top: spacing.sm + 96 + topoDosBotoes } : null,
-        ]}
+        style={[styles.botaoSeguir, aSeguirBussola && styles.botaoSeguirActivo, naColuna(2)]}
         onPress={() => setASeguirBussola((v) => !v)}
         hitSlop={8}
         accessibilityRole="button"
@@ -1229,11 +1241,7 @@ export default function MapaGoogle({
           rua, e o resto só pesa. */}
       {modoEscolha ? (
         <Pressable
-          style={[
-            styles.botaoSatelite,
-            satelite && styles.botaoSateliteActivo,
-            topoDosBotoes ? { top: spacing.sm + 144 + topoDosBotoes } : null,
-          ]}
+          style={[styles.botaoSatelite, satelite && styles.botaoSateliteActivo, naColuna(3)]}
           onPress={() => setSatelite((v) => !v)}
           hitSlop={8}
           accessibilityRole="button"
@@ -1255,10 +1263,7 @@ export default function MapaGoogle({
           A agulha aponta sempre ao norte, e por isso diz duas coisas ao
           mesmo tempo: para onde é o norte, e quanto o mapa está torto. */}
       <Pressable
-        style={[
-          styles.botaoBussola,
-          topoDosBotoes ? { top: spacing.sm + 48 + topoDosBotoes } : null,
-        ]}
+        style={[styles.botaoBussola, naColuna(1)]}
         onPress={aoNorte}
         hitSlop={8}
         accessibilityRole="button"

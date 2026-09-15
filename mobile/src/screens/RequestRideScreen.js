@@ -11,7 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 // O mapa. A SAÍDA DE EMERGÊNCIA DEIXOU DE VIVER AQUI DENTRO.
 //
@@ -379,6 +379,9 @@ export default function RequestRideScreen({ navigation, route }) {
   // respondeu. A rota vem da memória do servidor (rotas.js): não gasta rotas do
   // Google.
   const focado = useIsFocused();
+  // As medidas do ecrã, para a pesquisa descer abaixo da barra de estado: ela
+  // é uma camada absoluta e não herda o espaço da moldura segura.
+  const margensEcra = useSafeAreaInsets();
   const [appAberta, setAppAberta] = useState(AppState.currentState === 'active');
   useEffect(() => {
     const sub = AppState.addEventListener('change', (estado) => setAppAberta(estado === 'active'));
@@ -1151,6 +1154,11 @@ export default function RequestRideScreen({ navigation, route }) {
         <Mapa
           pickable
           fill
+          // COM O PAINEL ESCONDIDO o mapa é o ecrã inteiro, e o topo é da
+          // pesquisa e das sugestões, que tapavam a coluna de botões. Aí a
+          // coluna vai para o meio, na lateral direita (Simão, 16/09/2026).
+          // Com o painel à vista, fica no canto de cima, como sempre.
+          botoesAoMeio={!!(pesquisa || aEscolherNoMapa || aEscolherParagem)}
           trocosAPe={trocosAPe}
           paragens={outrasParagens}
           onEscolherParagem={escolherParagem}
@@ -1279,6 +1287,7 @@ export default function RequestRideScreen({ navigation, route }) {
            pelo nome, não apontando ao mapa por cima de uma viagem já
            definida. */
         <PlaceSearch
+          margemTopo={margensEcra.top}
           placeholder={t('paragemAdicionar')}
           onEscolher={(lugar) => {
             setCargaDestinos((lista) =>
@@ -1290,6 +1299,7 @@ export default function RequestRideScreen({ navigation, route }) {
         />
       ) : pesquisa ? (
         <PlaceSearch
+          margemTopo={margensEcra.top}
           placeholder={t('searchPlaceholder')}
           onEscolher={aoEscolherDaPesquisa}
           onFechar={() => setPesquisa(null)}

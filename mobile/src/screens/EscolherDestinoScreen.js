@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import BarraEstado from '../design/BarraEstado.js';
 import Icone from '../design/Icone.js';
 import { nomeDoVeiculo, veiculo as tipoDoVeiculo } from '../dados/tiposDeVeiculo.js';
@@ -41,6 +41,9 @@ const DILI = require('../../assets/entrada/dili.webp');
 // decidido; da próxima vez volta a escolher, que é o correcto — hoje pode
 // querer mota e amanhã carro.
 export default function EscolherDestinoScreen({ navigation, route }) {
+  // A pesquisa sobreposta é uma camada absoluta e não herda o espaço da
+  // moldura segura: sem isto a barra ficava por cima das horas (16/09/2026).
+  const margensEcra = useSafeAreaInsets();
   const { t } = useI18n();
   const { token } = useAuth();
   const veiculo = route?.params?.veiculo || 'car';
@@ -262,6 +265,7 @@ export default function EscolherDestinoScreen({ navigation, route }) {
       {aDefinir ? (
         <View style={styles.pesquisaSobreposta}>
           <PlaceSearch
+            margemTopo={margensEcra.top}
             placeholder={t(FIXOS.find((f) => f.id === aDefinir)?.chave)}
             onEscolher={guardarLugar}
             onFechar={() => setADefinir(null)}

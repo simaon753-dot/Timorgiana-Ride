@@ -38,6 +38,12 @@ export default function PlaceSearch({
   onUsarLocalizacao,
   onEscolherNoMapa,
   rotuloMapa,
+  // QUANTO DESCER a barra e a lista a partir do topo. Esta camada é absoluta,
+  // e uma camada absoluta ignora o espaço interior da moldura segura do ecrã:
+  // no iPhone a barra ficava por cima das horas e da bateria (visto pelo Simão
+  // a 16/09/2026). Quem a põe sobre o ecrã inteiro passa aqui a altura da
+  // barra de estado; dentro de uma caixa que já começa abaixo dela, fica 0.
+  margemTopo = 0,
 }) {
   const { t } = useI18n();
   const { token, user } = useAuth();
@@ -123,7 +129,10 @@ export default function PlaceSearch({
 
   return (
     // box-none: esta camada não intercepta toques; só os filhos o fazem.
-    <View style={styles.wrap} pointerEvents="box-none">
+    <View
+      style={[styles.wrap, margemTopo ? { paddingTop: margemTopo } : null]}
+      pointerEvents="box-none"
+    >
       <View style={styles.barra}>
         <Text style={styles.lupa}>🔎</Text>
         <TextInput
