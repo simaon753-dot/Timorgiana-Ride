@@ -66,8 +66,6 @@ export default function BotaoAccao({
                 { color: v.tinta },
               ]}
               numberOfLines={1}
-              adjustsFontSizeToFit={empilhado}
-              minimumFontScale={0.8}
             >
               {titulo}
             </Text>
@@ -75,8 +73,6 @@ export default function BotaoAccao({
               <Text
                 style={[styles.sub, empilhado && styles.subEmpilhado, { color: v.tinta }]}
                 numberOfLines={1}
-                adjustsFontSizeToFit={empilhado}
-                minimumFontScale={0.8}
               >
                 {sub}
               </Text>
@@ -112,8 +108,13 @@ const criarEstilos = () =>
     grande: { minHeight: 68 },
     tituloGrande: { fontSize: 19, lineHeight: 26 },
     // TRÊS NUMA LINHA: ícone por cima do texto. Com o ícone ao lado, num terço
-    // da largura, "Telefone" e o número eram cortados. O texto pode encolher
-    // até 80% nos Android mais estreitos, em vez de ficar com reticências.
+    // da largura, "Telefone" e o número eram cortados.
+    //
+    // LETRA FIXA, 13, e sem encolher automático. O `adjustsFontSizeToFit` (com
+    // mínimo de 80%) deixou "Mensagem" e "Emergência" minúsculos no iPhone,
+    // muito abaixo do mínimo, quando o texto não tinha largura definida (visto
+    // pelo Simão a 16/09/2026). 13 cabe num terço mesmo nos Android estreitos;
+    // o texto ocupa a largura toda do botão e fica centrado.
     empilhado: {
       flexDirection: 'column',
       gap: 4,
@@ -121,8 +122,8 @@ const criarEstilos = () =>
       paddingHorizontal: spacing.sm,
       paddingVertical: spacing.sm,
     },
-    textosEmpilhados: { alignItems: 'center' },
-    tituloEmpilhado: { fontSize: 14, lineHeight: 18, textAlign: 'center' },
+    textosEmpilhados: { alignItems: 'center', alignSelf: 'stretch' },
+    tituloEmpilhado: { fontSize: 13, lineHeight: 18, textAlign: 'center' },
     subEmpilhado: { textAlign: 'center' },
     contagemCanto: { position: 'absolute', top: 6, right: 6 },
     textos: { flexShrink: 1 },

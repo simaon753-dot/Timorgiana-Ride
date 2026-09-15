@@ -145,8 +145,6 @@ export default function SosButton({ rideId, compact, empilhado }) {
             <Text
               style={[styles.texto, empilhado && styles.textoEmpilhado]}
               numberOfLines={empilhado ? 1 : undefined}
-              adjustsFontSizeToFit={!!empilhado}
-              minimumFontScale={0.8}
             >
               {t('sos')}
             </Text>
@@ -206,8 +204,10 @@ const criarEstilos = () =>
       paddingVertical: spacing.sm,
       paddingHorizontal: spacing.sm,
     },
-    linhaEmpilhada: { flexDirection: 'column', gap: 4 },
-    textoEmpilhado: { fontSize: 14, lineHeight: 18, letterSpacing: 0 },
+    // Letra fixa, sem encolher automático: no iPhone o `adjustsFontSizeToFit`
+    // deixou o "Emergência" minúsculo (16/09/2026). Ver o BotaoAccao.
+    linhaEmpilhada: { flexDirection: 'column', gap: 4, alignSelf: 'stretch' },
+    textoEmpilhado: { fontSize: 13, lineHeight: 18, letterSpacing: 0, textAlign: 'center' },
     linha: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   });
 

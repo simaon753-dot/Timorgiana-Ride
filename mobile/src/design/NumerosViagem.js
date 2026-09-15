@@ -29,15 +29,13 @@ export default function NumerosViagem({ km, min, preco, semPreco }) {
     <View style={styles.linha}>
       {itens.map((i) => (
         <View key={i.icone} style={styles.caixa}>
-          <Icone nome={i.icone} tamanho={22} cor={colors.teal} />
-          <View style={styles.textos}>
-            <Text style={styles.rotulo} numberOfLines={1}>
-              {i.rotulo}
-            </Text>
-            <Text style={styles.valor} numberOfLines={1}>
-              {i.valor}
-            </Text>
-          </View>
+          <Icone nome={i.icone} tamanho={18} cor={colors.teal} />
+          <Text style={styles.rotulo} numberOfLines={2}>
+            {i.rotulo}
+          </Text>
+          <Text style={styles.valor} numberOfLines={2}>
+            {i.valor}
+          </Text>
         </View>
       ))}
     </View>
@@ -47,11 +45,16 @@ export default function NumerosViagem({ km, min, preco, semPreco }) {
 const criarEstilos = () =>
   StyleSheet.create({
     linha: { flexDirection: 'row', gap: spacing.sm, marginVertical: spacing.sm },
+    // ÍCONE, RÓTULO E VALOR UNS POR BAIXO DOS OUTROS (16/09/2026). Com o ícone
+    // ao lado, num terço da largura, sobravam uns 29 pontos para o texto, e o
+    // preço saía "$1.…" no ecrã do motorista: ele não conseguia ler a tarifa.
+    // Empilhado, o valor tem a largura toda da caixa. Pode ir a duas linhas
+    // (o "a combinar" é comprido); sem encolher automático, que no iPhone
+    // deixou texto minúsculo (ver BotaoAccao).
     caixa: {
       flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
+      alignItems: 'flex-start',
+      gap: 2,
       backgroundColor: colors.white,
       borderRadius: radius.lg,
       borderWidth: 1,
@@ -59,8 +62,7 @@ const criarEstilos = () =>
       paddingVertical: spacing.sm,
       paddingHorizontal: spacing.sm,
     },
-    textos: { flex: 1 },
-    rotulo: { ...tipo.legenda, fontSize: 11, color: colors.textMuted },
+    rotulo: { ...tipo.legenda, fontSize: 11, color: colors.textMuted, marginTop: 2 },
     valor: { ...tipo.corpoForte, fontSize: 16, lineHeight: 20, color: colors.text },
   });
 
