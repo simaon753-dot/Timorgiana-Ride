@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import MolduraModal from '../design/MolduraModal.js';
 // Ver a nota em RequestRideScreen.js: os mapas de reserva saíram do APK a
 // 08/09/2026 e vivem no histórico do git.
 import Mapa from './MapaGoogle.js';
@@ -59,7 +59,7 @@ export default function MapaExpandivel({
       </View>
 
       <Modal visible={aberto} animationType="slide" onRequestClose={() => setAberto(false)}>
-        <SafeAreaView style={styles.cheio} edges={['top', 'bottom']}>
+        <MolduraModal style={styles.cheio} edges={['top', 'bottom']}>
           {/* SÓ SE DESENHA QUANDO ESTÁ ABERTO, e isto não é um detalhe.
            *
            * O <Modal> do React Native MONTA OS FILHOS mesmo fechado — a vista
@@ -93,7 +93,7 @@ export default function MapaExpandivel({
               <Text style={styles.fecharIcone}>✕</Text>
             </Pressable>
           </View>
-        </SafeAreaView>
+        </MolduraModal>
       </Modal>
     </View>
   );

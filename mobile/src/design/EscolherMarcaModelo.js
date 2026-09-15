@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, Pressable, Modal, ScrollView, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import MolduraModal from './MolduraModal.js';
 import { colors, spacing, radius, registarEstilos } from '../theme.js';
 import { tipo as tipografia } from './tipografia.js';
 import Icone from './Icone.js';
@@ -33,7 +33,7 @@ function Lista({ visivel, titulo, opcoes, onEscolher, onFechar, t }) {
   }
   return (
     <Modal visible={visivel} animationType="slide" onRequestClose={fechar}>
-      <SafeAreaView style={styles.cheio} edges={['top', 'bottom']}>
+      <MolduraModal style={styles.cheio} edges={['top', 'bottom']}>
         <View style={styles.topo}>
           <Text style={styles.tituloLista}>{titulo}</Text>
           <Pressable onPress={fechar} hitSlop={10} accessibilityRole="button">
@@ -80,7 +80,7 @@ function Lista({ visivel, titulo, opcoes, onEscolher, onFechar, t }) {
             </Pressable>
           </ScrollView>
         )}
-      </SafeAreaView>
+      </MolduraModal>
     </Modal>
   );
 }

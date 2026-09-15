@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import MolduraModal from '../design/MolduraModal.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
@@ -40,7 +40,7 @@ export default function EscolherEmergencia({ visivel, numeros, onFechar, onEscol
   return (
     <Modal visible={visivel} animationType="slide" transparent onRequestClose={onFechar}>
       <View style={styles.fundo}>
-        <SafeAreaView edges={['bottom']} style={styles.painel}>
+        <MolduraModal edges={['bottom']} style={styles.painel}>
           <View style={styles.puxador} />
           <Text style={styles.titulo}>{t('emgTitle')}</Text>
           <Text style={styles.ajuda}>{t('emgHelp')}</Text>
@@ -79,7 +79,7 @@ export default function EscolherEmergencia({ visivel, numeros, onFechar, onEscol
           <Pressable style={styles.cancelar} onPress={onFechar}>
             <Text style={styles.cancelarTexto}>{t('cancel')}</Text>
           </Pressable>
-        </SafeAreaView>
+        </MolduraModal>
       </View>
     </Modal>
   );

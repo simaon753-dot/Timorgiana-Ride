@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import MolduraModal from '../design/MolduraModal.js';
 import Button from './Button.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
@@ -23,7 +23,7 @@ export default function PedirCodigo({ visivel, onFechar, onConfirmar, erro, aEnv
   return (
     <Modal visible={visivel} animationType="slide" transparent onRequestClose={onFechar}>
       <View style={styles.fundo}>
-        <SafeAreaView edges={['bottom']} style={styles.painel}>
+        <MolduraModal edges={['bottom']} style={styles.painel}>
           <View style={styles.puxador} />
           <Text style={styles.titulo}>{t('askCodeTitle')}</Text>
           <Text style={styles.ajuda}>{t('askCodeHelp')}</Text>
@@ -54,7 +54,7 @@ export default function PedirCodigo({ visivel, onFechar, onConfirmar, erro, aEnv
               />
             </View>
           </View>
-        </SafeAreaView>
+        </MolduraModal>
       </View>
     </Modal>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, Modal, ScrollView, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import MolduraModal from '../design/MolduraModal.js';
 import { PAISES, PAIS_POR_OMISSAO, OUTRO_PAIS } from '../dados/paises.js';
 import { colors, spacing, radius, fontSize, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
@@ -158,7 +158,7 @@ export default function CampoTelefone({
       ) : null}
 
       <Modal visible={aberto} animationType="slide" onRequestClose={() => setAberto(false)}>
-        <SafeAreaView style={styles.cheio} edges={['top', 'bottom']}>
+        <MolduraModal style={styles.cheio} edges={['top', 'bottom']}>
           <View style={styles.topo}>
             <Text style={styles.tituloLista}>{t('paisIndicativo')}</Text>
             <Pressable onPress={() => setAberto(false)} hitSlop={10}>
@@ -193,7 +193,7 @@ export default function CampoTelefone({
               </Pressable>
             ))}
           </ScrollView>
-        </SafeAreaView>
+        </MolduraModal>
       </Modal>
     </View>
   );

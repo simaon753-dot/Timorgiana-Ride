@@ -13,6 +13,7 @@ import {
   Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import MolduraModal from '../design/MolduraModal.js';
 import Logo from '../components/Logo.js';
 import AvisoTeste from '../components/AvisoTeste.js';
 import Button from '../components/Button.js';
@@ -1192,7 +1193,7 @@ function AvisoCapacidade() {
         <Icone nome="seta" tamanho={18} cor={colors.coralDark} traco={2.5} />
       </Pressable>
       <Modal visible={aberto} animationType="slide" onRequestClose={() => setAberto(false)}>
-        <SafeAreaView style={estilosCap.folha} edges={['top', 'bottom']}>
+        <MolduraModal style={estilosCap.folha} edges={['top', 'bottom']}>
           <ScrollView contentContainerStyle={estilosCap.folhaConteudo}>
             <Text style={estilosCap.folhaTitulo}>{t('capacidadeFaltaTitulo')}</Text>
             <Text style={estilosCap.texto}>{t('capacidadeFaltaTexto')}</Text>
@@ -1216,7 +1217,7 @@ function AvisoCapacidade() {
             <View style={{ height: spacing.sm }} />
             <Button title={t('cancel')} variant="ghost" onPress={() => setAberto(false)} />
           </ScrollView>
-        </SafeAreaView>
+        </MolduraModal>
       </Modal>
     </>
   );

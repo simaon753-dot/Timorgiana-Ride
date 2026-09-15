@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import MolduraModal from '../design/MolduraModal.js';
 import Button from './Button.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
@@ -40,7 +40,7 @@ export default function MotivoCancelamento({ visivel, papel, aCaminho, onFechar,
   return (
     <Modal visible={visivel} animationType="slide" transparent onRequestClose={onFechar}>
       <View style={styles.fundo}>
-        <SafeAreaView edges={['bottom']} style={styles.painel}>
+        <MolduraModal edges={['bottom']} style={styles.painel}>
           <View style={styles.puxador} />
           <Text style={styles.titulo}>{t('cancelWhyTitle')}</Text>
           {/* O aviso muda conforme já haja motorista a caminho: cancelar
@@ -74,7 +74,7 @@ export default function MotivoCancelamento({ visivel, papel, aCaminho, onFechar,
               <Button title={t('cancelYes')} onPress={confirmar} disabled={!escolhido} />
             </View>
           </View>
-        </SafeAreaView>
+        </MolduraModal>
       </View>
     </Modal>
   );

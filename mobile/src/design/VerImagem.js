@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import MolduraModal from './MolduraModal.js';
 import ImagemProtegida from './ImagemProtegida.js';
 import { tipo } from './tipografia.js';
 import { spacing } from '../theme.js';
@@ -23,7 +23,7 @@ export default function VerImagem({ caminho, titulo, legenda, onFechar }) {
   return (
     <Modal visible={!!caminho} animationType="fade" onRequestClose={onFechar} transparent={false}>
       <View style={estilos.fundo}>
-        <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+        <MolduraModal style={{ flex: 1 }} edges={['top', 'bottom']}>
           {/* Tocar em qualquer sítio fecha. Numa imagem em ecrã inteiro é o
               gesto que toda a gente tenta primeiro, e o ✕ fica na mesma para
               quem procura um botão. */}
@@ -43,7 +43,7 @@ export default function VerImagem({ caminho, titulo, legenda, onFechar }) {
           <Pressable style={estilos.fechar} onPress={onFechar} hitSlop={12}>
             <Text style={estilos.fecharIcone}>✕</Text>
           </Pressable>
-        </SafeAreaView>
+        </MolduraModal>
       </View>
     </Modal>
   );

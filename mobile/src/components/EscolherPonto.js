@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import MolduraModal from '../design/MolduraModal.js';
 import Mapa from './MapaGoogle.js';
 import { nomeDoLugar, rotuloCoordenadas } from '../lib/geocode.js';
 import { pontoNaEstrada } from '../lib/estrada.js';
@@ -82,7 +82,7 @@ export default function EscolherPonto({ visivel, titulo, onEscolher, onFechar })
 
   return (
     <Modal visible={!!visivel} animationType="slide" onRequestClose={onFechar}>
-      <SafeAreaView style={styles.cheio} edges={['top', 'bottom']}>
+      <MolduraModal style={styles.cheio} edges={['top', 'bottom']}>
         <View style={{ flex: 1 }}>
           <Mapa fill modoEscolha="destino" onCentro={centroMudou} />
         </View>
@@ -125,7 +125,7 @@ export default function EscolherPonto({ visivel, titulo, onEscolher, onFechar })
             <Text style={styles.cancelar}>{t('cancel')}</Text>
           </Pressable>
         </View>
-      </SafeAreaView>
+      </MolduraModal>
     </Modal>
   );
 }
