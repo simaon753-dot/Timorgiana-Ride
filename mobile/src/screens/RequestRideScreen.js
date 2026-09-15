@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Alert,
+  AppState,
   View,
   Text,
   Image,
@@ -9,6 +10,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 // O mapa. A SAÍDA DE EMERGÊNCIA DEIXOU DE VIVER AQUI DENTRO.
@@ -97,6 +99,13 @@ export default function RequestRideScreen({ navigation, route }) {
   const [aProcurar, setAProcurar] = useState(false);
   const [ultimaProcura, setUltimaProcura] = useState(null);
   const soProcuraRef = useRef(false);
+  // A PROCURA AUTOMÁTICA, de 20 em 20 segundos (16/09/2026). `silenciosaRef`
+  // marca a próxima cotação como sem roda; `emCursoRef` impede outra enquanto
+  // a anterior não respondeu (numa rede lenta acumulavam-se); `cotacaoRef`
+  // numera os pedidos, para só o último poder dizer que acabou.
+  const silenciosaRef = useRef(false);
+  const emCursoRef = useRef(false);
+  const cotacaoRef = useRef(0);
   // O VEÍCULO CHEGA JÁ ESCOLHIDO do primeiro passo, e fica PRÉ-SELECCIONADO —
   // não fechado.
   //
@@ -281,9 +290,15 @@ export default function RequestRideScreen({ navigation, route }) {
     // para quando muda o que se pede. A rota vem da memória do servidor
     // (rotas.js), por isso procurar outra vez não gasta rotas do Google.
     const soProcura = soProcuraRef.current;
+    const silenciosa = silenciosaRef.current;
     soProcuraRef.current = false;
+    silenciosaRef.current = false;
+    // A automática não mostra roda nenhuma: a lista fica, e só muda se a
+    // resposta mudar.
     if (soProcura) setAProcurar(true);
-    else setACalcular(true);
+    else if (!silenciosa) setACalcular(true);
+    const meu = ++cotacaoRef.current;
+    emCursoRef.current = true;
     api
       .quote(token, {
         originLat: origem.lat,
@@ -314,8 +329,11 @@ export default function RequestRideScreen({ navigation, route }) {
         setOrcamento(q);
         setUltimaProcura(new Date());
       })
-      .catch(() => !cancelado && setOrcamento(null))
+      // Numa nova procura, manual ou automática, uma falha de rede NÃO apaga o
+      // que está no ecrã: fica a última resposta boa, e tenta-se outra vez.
+      .catch(() => !cancelado && !soProcura && !silenciosa && setOrcamento(null))
       .finally(() => {
+        if (cotacaoRef.current === meu) emCursoRef.current = false;
         if (cancelado) return;
         setACalcular(false);
         setAProcurar(false);
@@ -348,6 +366,34 @@ export default function RequestRideScreen({ navigation, route }) {
     // O botão "Procurar outra vez": cada toque soma um e refaz a cotação.
     procuras,
   ]);
+
+  // A PROCURA AUTOMÁTICA. Os motoristas ligam-se e desligam-se a qualquer
+  // momento, e o ecrã mostrava a fotografia da última cotação: um motorista que
+  // já se tinha desligado continuava "a 1 min" (visto pelo Simão a 16/09/2026).
+  // De 20 em 20 segundos a app volta a perguntar, em silêncio, e o ecrã acerta
+  // nos dois sentidos: o que se liga aparece, o que se desliga desaparece.
+  //
+  // Só com este ecrã à frente e a app aberta. Em segundo plano, ou com outro
+  // ecrã por cima, ninguém está a ver, e cada pergunta são dados de quem paga
+  // ao megabyte. Pára durante o pedido, e salta a vez se a anterior ainda não
+  // respondeu. A rota vem da memória do servidor (rotas.js): não gasta rotas do
+  // Google.
+  const focado = useIsFocused();
+  const [appAberta, setAppAberta] = useState(AppState.currentState === 'active');
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (estado) => setAppAberta(estado === 'active'));
+    return () => sub.remove();
+  }, []);
+  const procurarSozinha = !!origem && !!destino && !!orcamento && !aPedir && focado && appAberta;
+  useEffect(() => {
+    if (!procurarSozinha) return;
+    const relogio = setInterval(() => {
+      if (emCursoRef.current) return;
+      silenciosaRef.current = true;
+      setProcuras((n) => n + 1);
+    }, 20000);
+    return () => clearInterval(relogio);
+  }, [procurarSozinha]);
 
   useEffect(() => {
     origemRef.current = origem;
@@ -1295,6 +1341,62 @@ export default function RequestRideScreen({ navigation, route }) {
             {origem && destino ? t('confirmaTitulo') : t('whereTo')}
           </Text>
           {origem && destino ? <Text style={styles.folhaSub}>{t('confirmaSub')}</Text> : null}
+          {/* SEM MOTORISTAS POR PERTO, dito ANTES de pedir e não depois.
+              Um botão "Pedir por $3.25" com ninguém por perto promete o que o
+              sistema não pode cumprir. Aqui diz-se a verdade — o preço é o
+              estimado, e o pedido fica aberto dez minutos para o primeiro que
+              aceitar — e o botão passa a dizer "Procurar motorista".
+
+              DENTRO DA LISTA e não no rodapé fixo (16/09/2026). No rodapé,
+              cada linha do cartão era tirada à lista, e com o botão de procurar
+              os detalhes da viagem ficaram numa tira fina. O rodapé fica só com
+              as duas acções. */}
+          {semMotorista && podePedir ? (
+            <View style={styles.semMotoristaAviso}>
+              <Icone nome="info" tamanho={22} cor={colors.coralDark} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.semMotoristaTitulo}>{t('semMotoristaTitulo')}</Text>
+                <Text style={styles.semMotoristaTexto}>
+                  {t('semMotoristaTexto', { preco: `$${opcao.fareUsd.toFixed(2)}` })}
+                </Text>
+                {/* PROCURAR OUTRA VEZ, com a hora da última resposta na mesma
+                    linha. A app já pergunta sozinha de 20 em 20 segundos (ver a
+                    procura automática); o botão é para quem quer saber já. */}
+                <View style={styles.procurarLinha}>
+                  <Pressable
+                    style={({ pressed }) => [styles.procurarOutraVez, pressed && { opacity: 0.7 }]}
+                    onPress={() => {
+                      soProcuraRef.current = true;
+                      setProcuras((n) => n + 1);
+                    }}
+                    disabled={aProcurar}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityState={{ busy: aProcurar }}
+                  >
+                    {aProcurar ? (
+                      <ActivityIndicator size="small" color={colors.coralDark} />
+                    ) : (
+                      <Icone nome="atualizar" tamanho={18} cor={colors.coralDark} />
+                    )}
+                    <Text style={styles.procurarOutraVezTexto}>
+                      {aProcurar ? t('aProcurarMotoristas') : t('procurarOutraVez')}
+                    </Text>
+                  </Pressable>
+                  {ultimaProcura ? (
+                    <View
+                      style={styles.horaProcura}
+                      accessible
+                      accessibilityLabel={t('ultimaProcura', { hora: hhmm(ultimaProcura) })}
+                    >
+                      <Icone nome="relogio" tamanho={14} cor={colors.textMuted} />
+                      <Text style={styles.ultimaProcura}>{hhmm(ultimaProcura)}</Text>
+                    </View>
+                  ) : null}
+                </View>
+              </View>
+            </View>
+          ) : null}
 
           {/* RECOLHA E DESTINO NUM CARTÃO, como na referência: são as duas
               pontas de uma coisa só, e lidas juntas. O ! aparece nos dois
@@ -1568,51 +1670,6 @@ export default function RequestRideScreen({ navigation, route }) {
           {erro ? <Text style={styles.erro}>{erro}</Text> : null}
         </ScrollView>
 
-        {/* SEM MOTORISTAS POR PERTO, dito ANTES de pedir e não depois.
-            Um botão "Pedir por $3.25" com ninguém por perto promete o que o
-            sistema não pode cumprir. Aqui diz-se a verdade — o preço é o
-            estimado, e o pedido fica aberto dez minutos para o primeiro que
-            aceitar — e o botão passa a dizer "Procurar motorista". */}
-        {semMotorista && podePedir ? (
-          <View style={styles.semMotoristaAviso}>
-            <Icone nome="info" tamanho={22} cor={colors.coralDark} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.semMotoristaTitulo}>{t('semMotoristaTitulo')}</Text>
-              <Text style={styles.semMotoristaTexto}>
-                {t('semMotoristaTexto', { preco: `$${opcao.fareUsd.toFixed(2)}` })}
-              </Text>
-              {/* PROCURAR OUTRA VEZ: um motorista pode ficar disponível a
-                  qualquer momento. Um botão e não "puxar para baixo", porque
-                  este painel já se arrasta pela pega e os dois gestos
-                  atrapalhavam-se (pedido do Simão, 16/09/2026). */}
-              <Pressable
-                style={({ pressed }) => [styles.procurarOutraVez, pressed && { opacity: 0.7 }]}
-                onPress={() => {
-                  soProcuraRef.current = true;
-                  setProcuras((n) => n + 1);
-                }}
-                disabled={aProcurar}
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityState={{ busy: aProcurar }}
-              >
-                {aProcurar ? (
-                  <ActivityIndicator size="small" color={colors.coralDark} />
-                ) : (
-                  <Icone nome="atualizar" tamanho={18} cor={colors.coralDark} />
-                )}
-                <Text style={styles.procurarOutraVezTexto}>
-                  {aProcurar ? t('aProcurarMotoristas') : t('procurarOutraVez')}
-                </Text>
-              </Pressable>
-              {ultimaProcura ? (
-                <Text style={styles.ultimaProcura}>
-                  {t('ultimaProcura', { hora: hhmm(ultimaProcura) })}
-                </Text>
-              ) : null}
-            </View>
-          </View>
-        ) : null}
         {/* AVISAR QUANDO HOUVER MOTORISTA (14/09/26): em vez de pedir às cegas,
             fica um aviso de duas horas. Quando aparecer um motorista adequado
             perto, chega uma notificação — e a pessoa volta e pede com o preço à
@@ -2187,17 +2244,25 @@ const criarEstilos = () =>
     },
     semMotoristaTitulo: { ...tipo.corpoForte, color: colors.coralDark },
     semMotoristaTexto: { ...tipo.pequeno, color: colors.text, marginTop: 2 },
+    // O botão e a hora lado a lado; num ecrã estreito a hora desce, em vez de
+    // cortar o botão.
+    procurarLinha: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      columnGap: spacing.md,
+      marginTop: spacing.xs,
+    },
     // Alvo de toque com pelo menos 44 de altura (6 + 18 + 6 e o hitSlop de 8).
     procurarOutraVez: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.xs,
-      alignSelf: 'flex-start',
-      marginTop: spacing.sm,
       paddingVertical: 6,
     },
     procurarOutraVezTexto: { ...tipo.corpoForte, color: colors.coralDark },
-    ultimaProcura: { ...tipo.pequeno, color: colors.textMuted, marginTop: 2 },
+    horaProcura: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    ultimaProcura: { ...tipo.pequeno, color: colors.textMuted },
     botaoTexto: { ...tipo.subtitulo, color: colors.white },
   });
 
