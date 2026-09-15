@@ -64,11 +64,7 @@ quoteRouter.post(
     const carryPessoas = req.body?.carryModo === 'pessoas';
     // As paragens contam no preço do Carry (a taxa por paragem do painel).
     carga.paragens = paragens.length;
-    const viagem = await rotaCompleta(
-      { lat: oLat, lng: oLng },
-      { lat: dLat, lng: dLng },
-      paragens
-    );
+    const viagem = await rotaCompleta({ lat: oLat, lng: oLng }, { lat: dLat, lng: dLng }, paragens);
 
     // Para cada tipo de veículo: preço e quanto falta até chegar o mais
     // próximo. Sem motoristas disponíveis, a opção aparece indisponível

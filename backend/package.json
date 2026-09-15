@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "verificar": "node scripts/verificar.mjs && node scripts/verificar-sql.mjs && node scripts/verificar-nomes.mjs",
+    "verificar": "node scripts/verificar.mjs && node scripts/verificar-sql.mjs && node scripts/verificar-nomes.mjs && node scripts/verificar-mensagens.mjs",
     "verificar-google": "node scripts/verificar-google.mjs",
     "copia": "node scripts/copia-de-seguranca.mjs"
   },

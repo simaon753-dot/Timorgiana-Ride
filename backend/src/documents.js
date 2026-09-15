@@ -6,7 +6,15 @@ const MAX_BYTES = 4 * 1024 * 1024; // 4 MB por documento
 // 'cartaverso' (14/09/26): o VERSO da carta de condução, onde estão as categorias
 // que dizem se a pessoa pode conduzir mota pequena ou grande, carro ou pickup.
 // Obrigatório, sem data própria — a validade está na frente ('licence').
-const TIPOS = ['licence', 'cartaverso', 'vehicle', 'photo', 'inspection', 'identity', 'fotoveiculo'];
+const TIPOS = [
+  'licence',
+  'cartaverso',
+  'vehicle',
+  'photo',
+  'inspection',
+  'identity',
+  'fotoveiculo',
+];
 
 // O dia em Díli, e não o dia do servidor.
 //

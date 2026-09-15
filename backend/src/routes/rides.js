@@ -472,8 +472,8 @@ ridesRouter.post(
     });
     notify(req.app.get('io'), updated, 'ride:update');
     // A notificação ao passageiro, sem esperar: a etapa já está marcada.
-    one('SELECT push_token FROM users WHERE id = $1', [updated.passenger_id])
-      .then((p) => notificarEtapaCarga(p?.push_token, etapa, rideId))
+    one('SELECT push_token, lingua FROM users WHERE id = $1', [updated.passenger_id])
+      .then((p) => notificarEtapaCarga(p, etapa, rideId))
       .catch(() => {});
     return res.json({ ride: toPublicRide(updated) });
   })
@@ -590,8 +590,8 @@ ridesRouter.post(
       .catch(() => {});
 
     // Avisar o passageiro, que pode ter fechado a app à espera
-    one('SELECT push_token FROM users WHERE id = $1', [row.passenger_id])
-      .then((u) => notificarAceite(u?.push_token, ride))
+    one('SELECT push_token, lingua FROM users WHERE id = $1', [row.passenger_id])
+      .then((u) => notificarAceite(u, ride))
       .catch(() => {});
 
     return res.json({ ride });

@@ -9,6 +9,8 @@ import { Server as SocketServer } from 'socket.io';
 
 import { config } from './config.js';
 import { podeTrabalhar } from './documents.js';
+import { aceitouTermosMotorista } from './termosVersao.js';
+import { traduzir, linguaDe } from './mensagens.js';
 import { temFotoDeHoje } from './turnos.js';
 import { initSchema, pool, query } from './db.js';
 import { authRouter } from './routes/auth.js';
@@ -53,6 +55,22 @@ app.set('trust proxy', 1);
 app.use(cors(corsPorPedido));
 // Limite maior: os documentos dos motoristas viajam em base64
 app.use(express.json({ limit: '6mb' }));
+
+// AS MENSAGENS NA LÍNGUA DE QUEM PERGUNTA (15/09/26) — ver mensagens.js.
+//
+// As rotas escrevem { error: '…' } em português, como sempre; aqui, à saída,
+// o texto troca-se pelo da língua que a app indicou. Nenhuma rota muda, e
+// uma mensagem sem tradução sai em português em vez de partir.
+app.use((req, res, next) => {
+  const json = res.json.bind(res);
+  res.json = (corpo) => {
+    if (corpo && typeof corpo.error === 'string') {
+      corpo = { ...corpo, error: traduzir(corpo.error, linguaDe(req)) };
+    }
+    return json(corpo);
+  };
+  next();
+});
 
 // Saúde real: confirma que a base de dados responde. Verificar apenas que
 // o processo está vivo daria "ok" com o servidor incapaz de autenticar
@@ -358,6 +376,8 @@ io.on('connection', (socket) => {
       // ficar disponível e só um verificar seria o mesmo que não
       // verificar: bastava usar o outro.
       if (online) {
+        // Os termos em vigor, como na rota HTTP (15/09/26).
+        if (!(await aceitouTermosMotorista(user.id))) return ack?.({ ok: false, motivo: 'termos' });
         const apto = await podeTrabalhar(user.id);
         if (!apto.pode) return ack?.({ ok: false, motivo: apto.motivo, qual: apto.qual });
         if (!(await temFotoDeHoje(user.id))) {

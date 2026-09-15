@@ -547,6 +547,22 @@ export async function initSchema() {
   );
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS privacy_version TEXT`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS privacy_accepted_at TIMESTAMPTZ`);
+  // A língua da app da última vez que a conta falou com o servidor
+  // (15/09/26): é a das notificações. NULL quer dizer português.
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS lingua TEXT`);
+  // IMAGENS DO SERVIÇO (15/09/26) — por agora só o QR de pagamento TUQR, que
+  // o administrador carrega no painel. Numa tabela própria e não em
+  // config_servico: é binário, e as formas de pagamento lêem-se a cada
+  // pedido — não faz sentido arrastar a imagem em cada leitura.
+  await query(`
+    CREATE TABLE IF NOT EXISTS imagens_servico (
+      chave          TEXT PRIMARY KEY,
+      mime           TEXT NOT NULL,
+      bytes          BYTEA NOT NULL,
+      atualizado_em  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      atualizado_por INTEGER
+    )
+  `);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS duration_min INTEGER`);
 
   // PARAGENS PELO CAMINHO, quando a viagem tem mais do que um sítio.

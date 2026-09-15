@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import { config } from './config.js';
 import { findUserById } from './users.js';
+import { query } from './db.js';
+import { LINGUAS } from './mensagens.js';
 
 export function signToken(user) {
   return jwt.sign({ sub: user.id, role: user.role }, config.jwtSecret, {
@@ -26,6 +28,14 @@ export async function requireAuth(req, res, next) {
     const user = await findUserById(payload.sub);
     if (!user) return res.status(401).json({ error: 'Utilizador não encontrado.' });
     req.user = user;
+    // A língua de quem pede fica na conta (15/09/26): as notificações saem
+    // sem pedido nenhum à frente, e é daqui que sabem em que língua ir. Só
+    // se escreve quando muda.
+    const lingua = String(req.headers['x-lingua'] || '').toLowerCase();
+    if (LINGUAS.includes(lingua) && user.lingua !== lingua) {
+      user.lingua = lingua;
+      query('UPDATE users SET lingua = $1 WHERE id = $2', [lingua, user.id]).catch(() => {});
+    }
     next();
   } catch (err) {
     console.error('[auth] falha a consultar utilizador:', err.message);

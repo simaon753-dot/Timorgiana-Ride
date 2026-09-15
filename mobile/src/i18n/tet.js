@@ -1,6 +1,14 @@
 // Tétum (Tétum Praça, de Díli) — PRIMEIRA VERSÃO.
 // As traduções devem ser revistas por um falante nativo antes do lançamento.
 export default {
+  termosObrigatorios: 'Se la aseita, labele sai disponível.',
+  admPagQrNota: 'QR nia imajen ne’ebé banku fó. Motorista haree bainhira hili selu ho QR.',
+  admPagQrCarregar: 'Karega QR nia imajen',
+  admPagQrTrocar: 'Troka imajen',
+  admPagQrRetirar: 'Hamoos imajen',
+  admPagQrRetirarPergunta: 'Hamoos QR nia imajen? Tenke dezliga uluk pagamentu ho QR.',
+  assinQrNota:
+    'Hasai kaptura ekrã ba QR ida-ne’e no loke iha ita-nia banku nia app — ka lee ho telemóvel seluk.',
   assinCarregarTitulo: 'Karega loron',
   assinPasso1: '1. Hili pakote',
   assinPasso2: '2. Selu liuhusi meiu ida husi hirak-ne’e',

@@ -278,15 +278,14 @@ if (!config.databaseUrl) {
 // AGORA funciona, no próximo deploy, e deitar o serviço abaixo para toda a
 // gente. Recuso só o que sei ao certo ser inseguro: os valores públicos. Um
 // segredo curto leva um aviso, nunca uma paragem.
-const SEGREDOS_PUBLICOS = new Set([
-  'dev-secret-inseguro-mudar',
-  'trocar-este-segredo-em-producao',
-]);
+const SEGREDOS_PUBLICOS = new Set(['dev-secret-inseguro-mudar', 'trocar-este-segredo-em-producao']);
 const baseLocal = /localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL || '');
 
 if (SEGREDOS_PUBLICOS.has(config.jwtSecret)) {
   if (baseLocal) {
-    console.warn('[config] AVISO: JWT_SECRET por definir. A usar o segredo de desenvolvimento (só local).');
+    console.warn(
+      '[config] AVISO: JWT_SECRET por definir. A usar o segredo de desenvolvimento (só local).'
+    );
   } else {
     console.error(
       '[config] ERRO: JWT_SECRET está com um valor público, com uma base de dados remota.\n' +
@@ -297,5 +296,7 @@ if (SEGREDOS_PUBLICOS.has(config.jwtSecret)) {
     process.exit(1);
   }
 } else if (config.jwtSecret.length < 32) {
-  console.warn('[config] AVISO: JWT_SECRET é curto. Recomenda-se 32+ caracteres (openssl rand -hex 32).');
+  console.warn(
+    '[config] AVISO: JWT_SECRET é curto. Recomenda-se 32+ caracteres (openssl rand -hex 32).'
+  );
 }

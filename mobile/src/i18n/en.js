@@ -6,6 +6,14 @@
 // code passes them by those names; changing them here would silently break
 // the substitution.
 export default {
+  termosObrigatorios: 'Until you accept them, you cannot go available.',
+  admPagQrNota: 'The QR image your bank gave you. Drivers see it when they choose to pay by QR.',
+  admPagQrCarregar: 'Upload the QR image',
+  admPagQrTrocar: 'Replace the image',
+  admPagQrRetirar: 'Remove the image',
+  admPagQrRetirarPergunta: 'Remove the QR image? You must switch QR payment off first.',
+  assinQrNota:
+    'Take a screenshot of this QR and open it in your bank’s app — or scan it with another phone.',
   assinCarregarTitulo: 'Top up days',
   assinPasso1: '1. Choose the package',
   assinPasso2: '2. Pay by one of these means',

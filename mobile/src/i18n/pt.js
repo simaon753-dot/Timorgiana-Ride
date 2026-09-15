@@ -1,5 +1,13 @@
 // Português (europeu)
 export default {
+  termosObrigatorios: 'Sem os aceitar, não pode ficar disponível.',
+  admPagQrNota: 'A imagem do QR que o banco lhe deu. O motorista vê-a quando escolhe pagar por QR.',
+  admPagQrCarregar: 'Carregar a imagem do QR',
+  admPagQrTrocar: 'Trocar a imagem',
+  admPagQrRetirar: 'Retirar a imagem',
+  admPagQrRetirarPergunta: 'Retirar a imagem do QR? Tem de desligar primeiro o pagamento por QR.',
+  assinQrNota:
+    'Faça uma captura de ecrã deste QR e abra-a na app do seu banco — ou leia-o com outro telemóvel.',
   assinCarregarTitulo: 'Carregar dias',
   assinPasso1: '1. Escolha o pacote',
   assinPasso2: '2. Pague por um destes meios',

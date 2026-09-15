@@ -119,8 +119,7 @@ export function preco(vehicleType, km, min = null, pessoas = null, carga = null)
   // quando o pedido é de pessoas — a rota só o passa nesse modo, porque a
   // cotação manda sempre um número de pessoas (o ecrã começa em 1) e, lido
   // sem o modo, um Carry de bens passaria a custar $5 sem ninguém perceber.
-  const minimo =
-    t.minimoPessoas != null && Number(pessoas) > 0 ? t.minimoPessoas : t.minimo;
+  const minimo = t.minimoPessoas != null && Number(pessoas) > 0 ? t.minimoPessoas : t.minimo;
   return Math.max(minimo, aoCentimoPermitido(bruto));
 }
 

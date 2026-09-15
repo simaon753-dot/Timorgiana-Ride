@@ -207,6 +207,18 @@ for (const l of LINGUAS) {
   }
 }
 
+// ── e a versão dos termos do motorista, igual nos dois lados (15/09/26) ──
+//
+// O servidor recusa "disponível" a quem não aceitou a versão EM VIGOR, que
+// vive em backend/src/termosVersao.js; a app pede a aceitação da de
+// src/termos/versao.js. Se divergirem, ninguém consegue ficar disponível.
+const versaoDe = (f) => readFileSync(f, 'utf8').match(/VERSAO_TERMOS_MOTORISTA = '([^']+)'/)?.[1];
+const vApp = versaoDe('src/termos/versao.js');
+const vServidor = versaoDe('../backend/src/termosVersao.js');
+if (!vApp || vApp !== vServidor) {
+  problemas.push(`versão dos termos do motorista: app ${vApp} ≠ servidor ${vServidor}`);
+}
+
 if (problemas.length) {
   console.error('  ✗ tipos de lugar:\n');
   for (const p of problemas) console.error('    ' + p);

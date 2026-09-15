@@ -66,7 +66,7 @@ export function updateLocation(userId, lat, lng) {
 // (PostGIS) só compensaria com muitos milhares de motoristas.
 export function nearestDrivers({ lat, lng, vehicleType, limit = 10, maxKm = 15 }) {
   return query(
-    `SELECT id, name, push_token, last_lat, last_lng, vehicle_capacidade,
+    `SELECT id, name, push_token, lingua, last_lat, last_lng, vehicle_capacidade,
             6371 * 2 * asin(sqrt(
               power(sin(radians($1 - last_lat) / 2), 2) +
               cos(radians(last_lat)) * cos(radians($1)) *
@@ -93,7 +93,7 @@ export function nearestDrivers({ lat, lng, vehicleType, limit = 10, maxKm = 15 }
 // que estavam de facto a trabalhar.
 export function onlineDrivers(vehicleType) {
   return query(
-    `SELECT id, name, push_token, vehicle_capacidade FROM users
+    `SELECT id, name, push_token, lingua, vehicle_capacidade FROM users
      WHERE role = 'driver' AND driver_status = 'approved' AND is_online = TRUE
        AND last_seen_at > NOW() - INTERVAL '${SINAL_FRESCO}'
        AND ($1::text IS NULL OR vehicle_type = $1)`,

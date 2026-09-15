@@ -1,5 +1,12 @@
 import { getApiUrl } from '../serverUrl.js';
 
+// A língua da app, para o servidor responder nela (15/09/26). Posta pelo
+// I18nProvider sempre que a língua muda; vai em cada pedido (X-Lingua).
+let linguaActual = null;
+export function definirLingua(l) {
+  linguaActual = l;
+}
+
 export class ApiError extends Error {
   constructor(message, status, motivo) {
     super(message);
@@ -40,6 +47,7 @@ async function request(path, { method = 'GET', body, token } = {}) {
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(linguaActual ? { 'X-Lingua': linguaActual } : {}),
     },
     body: body ? JSON.stringify(body) : undefined,
   };
@@ -222,6 +230,10 @@ export const api = {
     request(`/admin/pagamentos/${id}/recusar`, { method: 'POST', body: { motivo }, token }),
   adminFormasPagamento: (token, formas) =>
     request('/admin/pagamentos/formas', { method: 'PUT', body: { formas }, token }),
+  // A imagem do QR TUQR (15/09/26).
+  adminQr: (token, { mime, base64 }) =>
+    request('/admin/pagamentos/qr', { method: 'PUT', body: { mime, base64 }, token }),
+  adminApagarQr: (token) => request('/admin/pagamentos/qr', { method: 'DELETE', token }),
   adminDevolucao: (token, id) => request(`/admin/drivers/${id}/devolucao`, { token }),
   adminRegistarDevolucao: (token, id, motivo) =>
     request(`/admin/drivers/${id}/devolucao`, { method: 'POST', body: { motivo }, token }),

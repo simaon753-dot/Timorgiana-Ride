@@ -8,6 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { colors, spacing, radius, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 import SeccaoTitulo from '../design/SeccaoTitulo.js';
@@ -54,6 +55,8 @@ export default function GestaoPagamentos({ token, t }) {
   const [aRecusar, setARecusar] = useState(null);
   const [motivo, setMotivo] = useState('');
   const [aGravar, setAGravar] = useState(false);
+  // Muda a cada troca da imagem do QR, para a pré-visualização ir buscar a nova.
+  const [versaoQr, setVersaoQr] = useState(0);
 
   const carregar = useCallback(async () => {
     try {
@@ -124,6 +127,54 @@ export default function GestaoPagamentos({ token, t }) {
     } finally {
       setAGravar(false);
     }
+  }
+
+  // A IMAGEM DO QR (15/09/26). Só mexe no campo temQr da lista local: voltar a
+  // pedir as formas ao servidor apagava o que estivesse por guardar nas outras.
+  async function carregarQr() {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) return Alert.alert(t('errGeneric'), t('errPermissionPhotos'));
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 1, // um QR que perde nitidez deixa de se ler
+      base64: true,
+    });
+    if (res.canceled || !res.assets?.[0]?.base64) return;
+    setAGravar(true);
+    try {
+      await api.adminQr(token, {
+        mime: res.assets[0].mimeType || 'image/jpeg',
+        base64: res.assets[0].base64,
+      });
+      setFormas((fs) => fs.map((f) => (f.id === 'tuqr' ? { ...f, temQr: true } : f)));
+      setVersaoQr((v) => v + 1);
+    } catch (e) {
+      Alert.alert(t('errGeneric'), e?.message || '');
+    } finally {
+      setAGravar(false);
+    }
+  }
+
+  function retirarQr() {
+    Alert.alert(t('admPagQrRetirar'), t('admPagQrRetirarPergunta'), [
+      { text: t('cancel'), style: 'cancel' },
+      {
+        text: t('admPagQrRetirar'),
+        style: 'destructive',
+        onPress: async () => {
+          setAGravar(true);
+          try {
+            await api.adminApagarQr(token);
+            setFormas((fs) => fs.map((f) => (f.id === 'tuqr' ? { ...f, temQr: false } : f)));
+            setVersaoQr((v) => v + 1);
+          } catch (e) {
+            Alert.alert(t('errGeneric'), e?.message || '');
+          } finally {
+            setAGravar(false);
+          }
+        },
+      },
+    ]);
   }
 
   const mudarForma = (id, campo, valor) =>
@@ -290,6 +341,38 @@ export default function GestaoPagamentos({ token, t }) {
               maxLength={300}
               multiline
             />
+            {f.id === 'tuqr' ? (
+              <View style={styles.qr}>
+                <Text style={styles.meta}>{t('admPagQrNota')}</Text>
+                {f.temQr ? (
+                  <ImagemProtegida
+                    caminho="/driver/assinatura/qr"
+                    chave={versaoQr}
+                    style={styles.qrImagem}
+                    resizeMode="contain"
+                  />
+                ) : null}
+                <View style={styles.botoes}>
+                  <Button
+                    title={f.temQr ? t('admPagQrTrocar') : t('admPagQrCarregar')}
+                    variant="outline"
+                    icone="galeria"
+                    disabled={aGravar}
+                    onPress={carregarQr}
+                    style={styles.botao}
+                  />
+                  {f.temQr ? (
+                    <Button
+                      title={t('admPagQrRetirar')}
+                      variant="perigoSuave"
+                      disabled={aGravar}
+                      onPress={retirarQr}
+                      style={styles.botao}
+                    />
+                  ) : null}
+                </View>
+              </View>
+            ) : null}
           </View>
         ))}
       </Cartao>
@@ -358,6 +441,15 @@ const criarEstilos = () =>
     linhaNome: { ...tipo.corpoForte, color: colors.text },
     forma: { padding: spacing.md, gap: spacing.sm },
     seletor: { width: 190 },
+    qr: { gap: spacing.sm },
+    // Fundo branco sempre, também no tema escuro: é o que o leitor de QR espera.
+    qrImagem: {
+      width: 180,
+      height: 180,
+      alignSelf: 'center',
+      backgroundColor: '#FFFFFF',
+      borderRadius: radius.md,
+    },
   });
 
 let styles = criarEstilos();

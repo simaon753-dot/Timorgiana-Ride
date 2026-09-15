@@ -24,7 +24,9 @@ export function limparDestinos(lista) {
   if (!Array.isArray(lista)) return [];
   return lista
     .map((p) => ({
-      label: String(p?.label || '').trim().slice(0, 120),
+      label: String(p?.label || '')
+        .trim()
+        .slice(0, 120),
       lat: Number(p?.lat),
       lng: Number(p?.lng),
     }))
@@ -55,8 +57,7 @@ export async function guardarDestinos(rideId, lista) {
 }
 
 export function destinosDaViagem(rideId) {
-  return query(
-    'SELECT label, lat, lng FROM ride_destinos WHERE ride_id = $1 ORDER BY ordem ASC',
-    [rideId]
-  );
+  return query('SELECT label, lat, lng FROM ride_destinos WHERE ride_id = $1 ORDER BY ordem ASC', [
+    rideId,
+  ]);
 }

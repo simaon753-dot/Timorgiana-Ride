@@ -198,7 +198,12 @@ export async function estadoDe(userId) {
     // (número de conta, titular, morada do escritório).
     formas: formas
       .filter((f) => f.ativo)
-      .map(({ id, instrucoes }) => ({ id, instrucoes, comPedido: FORMAS_COM_PEDIDO.includes(id) })),
+      .map(({ id, instrucoes, temQr }) => ({
+        id,
+        instrucoes,
+        comPedido: FORMAS_COM_PEDIDO.includes(id),
+        ...(temQr !== undefined ? { temQr } : {}),
+      })),
     pedidos: pedidos.map((p) => ({
       id: p.id,
       dias: p.dias,
@@ -307,18 +312,24 @@ async function comprasAbertas(u) {
 // ligada ou não, e as instruções (conta, titular, morada). Guardadas em
 // config_servico, como os preços do Carry — mudam sem publicar nada.
 export async function formasConfiguradas() {
-  const r = await one(`SELECT valor FROM config_servico WHERE chave = 'assinatura.formas'`);
+  const [r, qr] = await Promise.all([
+    one(`SELECT valor FROM config_servico WHERE chave = 'assinatura.formas'`),
+    temImagemQr(),
+  ]);
   const v = r?.valor || {};
   return FORMAS_PAGAMENTO.map((id) => ({
     id,
     ativo: !!v[id]?.ativo,
     instrucoes: v[id]?.instrucoes || '',
     comPedido: FORMAS_COM_PEDIDO.includes(id),
+    // Só o QR tem imagem; as outras formas vão sem o campo.
+    ...(id === 'tuqr' ? { temQr: qr } : {}),
   }));
 }
 
 export async function gravarFormas(lista, porId) {
   const valor = {};
+  const temQr = await temImagemQr();
   for (const f of Array.isArray(lista) ? lista : []) {
     if (!FORMAS_PAGAMENTO.includes(f?.id)) continue;
     const instrucoes = String(f.instrucoes || '')
@@ -327,6 +338,10 @@ export async function gravarFormas(lista, porId) {
     // Ligada sem instruções mandava o motorista pagar sem lhe dizer onde.
     if (f.ativo && !instrucoes) {
       throw erro('Escreva as instruções (conta, titular ou morada) antes de ligar esta forma.');
+    }
+    // O QR ligado sem imagem mandava pagar por um código que não aparece.
+    if (f.id === 'tuqr' && f.ativo && !temQr) {
+      throw erro('Carregue a imagem do QR antes de ligar esta forma.');
     }
     valor[f.id] = { ativo: !!f.ativo, instrucoes };
   }
@@ -552,4 +567,45 @@ export async function registarDevolucao({ userId, motivo, adminId }) {
     await client.query(`UPDATE users SET dias_saldo = 0 WHERE id = $1`, [userId]);
     return { ...c, id: rows[0].id };
   });
+}
+
+// ── A IMAGEM DO QR TUQR (15/09/26) ───────────────────────────────────────
+//
+// A que o banco dá à Timorgiana. Guarda-se como o administrador a mandar —
+// sem reduzir nem comprimir: um QR que perde nitidez deixa de se ler.
+const MIMES_QR = ['image/jpeg', 'image/png', 'image/webp'];
+
+async function temImagemQr() {
+  const r = await one(`SELECT 1 AS tem FROM imagens_servico WHERE chave = 'assinatura.qr'`);
+  return !!r;
+}
+
+export async function gravarQr({ mime, base64, porId }) {
+  if (!MIMES_QR.includes(mime)) {
+    throw erro('Formato não aceite. Envie a imagem do QR (JPEG, PNG ou WebP).');
+  }
+  const bytes = Buffer.from(String(base64 || ''), 'base64');
+  if (!bytes.length) throw erro('Falta a imagem.');
+  if (bytes.length > 2 * 1024 * 1024) throw erro('Imagem demasiado grande (máximo 2 MB).');
+  await query(
+    `INSERT INTO imagens_servico (chave, mime, bytes, atualizado_por)
+     VALUES ('assinatura.qr', $1, $2, $3)
+     ON CONFLICT (chave) DO UPDATE
+       SET mime = EXCLUDED.mime, bytes = EXCLUDED.bytes,
+           atualizado_em = NOW(), atualizado_por = EXCLUDED.atualizado_por`,
+    [mime, bytes, porId || null]
+  );
+}
+
+export function qrDoPagamento() {
+  return one(
+    `SELECT mime, bytes, atualizado_em FROM imagens_servico WHERE chave = 'assinatura.qr'`
+  );
+}
+
+// Retirar a imagem com o QR ligado deixava os motoristas sem o que ler.
+export async function apagarQr() {
+  const tuqr = (await formasConfiguradas()).find((f) => f.id === 'tuqr');
+  if (tuqr?.ativo) throw erro('Desligue o pagamento por QR antes de retirar a imagem.');
+  await query(`DELETE FROM imagens_servico WHERE chave = 'assinatura.qr'`);
 }

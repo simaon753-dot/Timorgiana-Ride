@@ -38,7 +38,7 @@ export function cancelarAvisos(passengerId) {
 // avisa-se — uma vez — e o aviso fica cumprido.
 export async function verificarAvisos() {
   const pendentes = await query(
-    `SELECT a.id, a.vehicle_type, a.lat, a.lng, a.carga_volume, u.push_token
+    `SELECT a.id, a.vehicle_type, a.lat, a.lng, a.carga_volume, u.push_token, u.lingua
      FROM avisos_motorista a JOIN users u ON u.id = a.passenger_id
      WHERE a.avisado_em IS NULL AND a.expira_em > NOW()
      ORDER BY a.id LIMIT 50`
@@ -67,7 +67,10 @@ export async function verificarAvisos() {
     if (!livre) continue;
     await query('UPDATE avisos_motorista SET avisado_em = NOW() WHERE id = $1', [a.id]);
     if (a.push_token) {
-      await notificarMotoristaDisponivel(a.push_token, a.vehicle_type).catch(() => {});
+      await notificarMotoristaDisponivel(
+        { push_token: a.push_token, lingua: a.lingua },
+        a.vehicle_type
+      ).catch(() => {});
     }
     enviados += 1;
   }

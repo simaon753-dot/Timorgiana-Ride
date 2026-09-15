@@ -2,6 +2,7 @@ import { onlineDrivers, nearestDrivers } from './drivers.js';
 import { cabe } from './capacidade.js';
 import { query } from './db.js';
 import { config } from './config.js';
+import { notificacao as n } from './mensagens.js';
 
 const EXPO_PUSH = 'https://exp.host/--/api/v2/push/send';
 
@@ -32,6 +33,15 @@ async function enviar(mensagens) {
   }
 }
 
+// A QUEM SE MANDA, E EM QUE LÍNGUA (15/09/26). Aceita o token sozinho, como
+// as chamadas antigas, ou a linha da conta com push_token e lingua — é a
+// lingua que escolhe o texto (ver mensagens.js). Sem língua, português.
+function destino(d) {
+  if (!d) return null;
+  if (typeof d === 'string') return { to: d, lingua: 'pt' };
+  return d.push_token ? { to: d.push_token, lingua: d.lingua || 'pt' } : null;
+}
+
 // Avisa os motoristas disponíveis de que há um pedido novo
 export async function notificarPedidoNovo(ride) {
   // Se soubermos onde é a recolha, avisamos só quem está por perto: não
@@ -45,7 +55,7 @@ export async function notificarPedidoNovo(ride) {
         vehicleType: ride.vehicleType,
         maxKm: config.raioAvisoKm,
         limit: 25,
-      }).then((rows) => rows.map((r) => ({ ...r, push_token: r.push_token })))
+      })
     : await onlineDrivers(ride.vehicleType);
   const mensagens = motoristas
     // Só a quem a carga cabe no veículo — a mesma regra da lista (14/09/26).
@@ -54,7 +64,7 @@ export async function notificarPedidoNovo(ride) {
     .map((m) => ({
       to: m.push_token,
       sound: 'default',
-      title: 'Novo pedido de viagem',
+      title: n('pedidoNovoTitulo', m.lingua),
       body: `${ride.destLabel}${ride.fareUsd != null ? ` · USD ${ride.fareUsd}` : ''}`,
       data: { tipo: 'ride:new', rideId: ride.id },
       priority: 'high',
@@ -67,19 +77,20 @@ export async function notificarPedidoNovo(ride) {
 // não está a olhar para o ecrã: é a notificação que lhe diz que a carga já
 // está a caminho, ou que chegou.
 const TEXTO_ETAPA = {
-  carregada: ['Carga carregada', 'O motorista já carregou e vai a caminho do destino.'],
-  no_destino: ['Chegou ao destino', 'O motorista chegou ao destino da entrega.'],
-  descarregada: ['Descarga feita', 'A carga foi descarregada. Falta concluir a entrega.'],
+  carregada: ['etapaCarregadaTitulo', 'etapaCarregadaTexto'],
+  no_destino: ['etapaDestinoTitulo', 'etapaDestinoTexto'],
+  descarregada: ['etapaDescarregadaTitulo', 'etapaDescarregadaTexto'],
 };
-export async function notificarEtapaCarga(pushToken, etapa, rideId) {
-  const texto = TEXTO_ETAPA[etapa];
-  if (!pushToken || !texto) return { enviadas: 0 };
+export async function notificarEtapaCarga(quem, etapa, rideId) {
+  const d = destino(quem);
+  const chaves = TEXTO_ETAPA[etapa];
+  if (!d || !chaves) return { enviadas: 0 };
   return enviar([
     {
-      to: pushToken,
+      to: d.to,
       sound: 'default',
-      title: texto[0],
-      body: texto[1],
+      title: n(chaves[0], d.lingua),
+      body: n(chaves[1], d.lingua),
       data: { tipo: 'ride:etapa', rideId, etapa },
       priority: 'high',
     },
@@ -87,15 +98,17 @@ export async function notificarEtapaCarga(pushToken, etapa, rideId) {
 }
 
 // "Já há motorista" — o aviso que o passageiro pediu quando não havia ninguém.
-const NOME_TIPO = { motorbike: 'Motorizada', car: 'Carro', carry: 'Carro Pickup' };
-export async function notificarMotoristaDisponivel(pushToken, tipo) {
-  if (!pushToken) return { enviadas: 0 };
+const NOME_TIPO = { motorbike: 'veiculoMotorbike', car: 'veiculoCar', carry: 'veiculoCarry' };
+export async function notificarMotoristaDisponivel(quem, tipo) {
+  const d = destino(quem);
+  if (!d) return { enviadas: 0 };
+  const veiculo = n(NOME_TIPO[tipo] || 'veiculoQualquer', d.lingua);
   return enviar([
     {
-      to: pushToken,
+      to: d.to,
       sound: 'default',
-      title: 'Há um motorista disponível',
-      body: `Já há ${NOME_TIPO[tipo] || 'um motorista'} perto de si. Abra a app para pedir.`,
+      title: n('motoristaDisponivelTitulo', d.lingua),
+      body: n('motoristaDisponivelTexto', d.lingua, { veiculo }),
       data: { tipo: 'aviso:motorista' },
       priority: 'high',
     },
@@ -103,39 +116,48 @@ export async function notificarMotoristaDisponivel(pushToken, tipo) {
 }
 
 // Avisa o passageiro de que um motorista aceitou
-export async function notificarAceite(pushToken, ride) {
-  if (!pushToken) return { enviadas: 0 };
+export async function notificarAceite(quem, ride) {
+  const d = destino(quem);
+  if (!d) return { enviadas: 0 };
   return enviar([
     {
-      to: pushToken,
+      to: d.to,
       sound: 'default',
-      title: 'Motorista a caminho',
-      body: `${ride.driver?.name} vai buscar-te${ride.fareUsd != null ? ` · USD ${ride.fareUsd}` : ''}`,
+      title: n('aceiteTitulo', d.lingua),
+      body: n('aceiteTexto', d.lingua, {
+        nome: ride.driver?.name || '',
+        preco: ride.fareUsd != null ? ` · USD ${ride.fareUsd}` : '',
+      }),
       data: { tipo: 'ride:accepted', rideId: ride.id },
       priority: 'high',
     },
   ]);
 }
 
+function administradores() {
+  return query(
+    'SELECT push_token, lingua FROM users WHERE is_admin = TRUE AND push_token IS NOT NULL'
+  );
+}
+
 // Avisa todos os administradores de um pedido de ajuda. Vai com prioridade
 // máxima e sem `sound: 'default'` trocado por nada: isto tem de tocar mesmo
 // que o telemóvel esteja no bolso.
 export async function notificarAdminsSOS({ nome, rideId, lat, lng }) {
-  const admins = await query(
-    'SELECT push_token FROM users WHERE is_admin = TRUE AND push_token IS NOT NULL'
-  );
+  const admins = await administradores();
   if (!admins.length) return { enviadas: 0 };
-
-  const onde =
-    lat != null && lng != null
-      ? `${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}`
-      : 'sem posição';
   return enviar(
     admins.map((a) => ({
       to: a.push_token,
       sound: 'default',
-      title: '🚨 PEDIDO DE AJUDA',
-      body: `${nome || 'Alguém'} carregou no SOS · ${onde}`,
+      title: n('sosTitulo', a.lingua),
+      body: n('sosTexto', a.lingua, {
+        nome: nome || n('sosAlguem', a.lingua),
+        onde:
+          lat != null && lng != null
+            ? `${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}`
+            : n('sosSemPosicao', a.lingua),
+      }),
       data: { tipo: 'sos', rideId },
       priority: 'high',
     }))
@@ -146,16 +168,17 @@ export async function notificarAdminsSOS({ nome, rideId, lat, lng }) {
 // Sem isto, um motorista pode ficar dias à espera só porque ninguém foi
 // olhar para o painel — e um motorista que espera dois dias desiste.
 export async function notificarAdminsMotoristaPronto({ nome, telefone }) {
-  const admins = await query(
-    'SELECT push_token FROM users WHERE is_admin = TRUE AND push_token IS NOT NULL'
-  );
+  const admins = await administradores();
   if (!admins.length) return { enviadas: 0 };
   return enviar(
     admins.map((a) => ({
       to: a.push_token,
       sound: 'default',
-      title: 'Motorista à espera de aprovação',
-      body: `${nome || 'Um motorista'} enviou os documentos${telefone ? ` · ${telefone}` : ''}`,
+      title: n('prontoTitulo', a.lingua),
+      body: n('prontoTexto', a.lingua, {
+        nome: nome || n('umMotorista', a.lingua),
+        telefone: telefone ? ` · ${telefone}` : '',
+      }),
       data: { tipo: 'driver:pronto' },
       priority: 'high',
     }))
@@ -165,16 +188,19 @@ export async function notificarAdminsMotoristaPronto({ nome, telefone }) {
 // Um pedido de carregamento novo. Os termos prometem os dias em 24 horas, e
 // o prazo só se cumpre se alguém souber que há um pedido à espera.
 export async function notificarAdminsPagamento({ nome, dias, valor, referencia }) {
-  const admins = await query(
-    'SELECT push_token FROM users WHERE is_admin = TRUE AND push_token IS NOT NULL'
-  );
+  const admins = await administradores();
   if (!admins.length) return { enviadas: 0 };
   return enviar(
     admins.map((a) => ({
       to: a.push_token,
       sound: 'default',
-      title: 'Pagamento por confirmar',
-      body: `${nome || 'Um motorista'} · ${dias} dias · $${valor} · ${referencia}`,
+      title: n('pagamentoTitulo', a.lingua),
+      body: n('pagamentoTexto', a.lingua, {
+        nome: nome || n('umMotorista', a.lingua),
+        dias,
+        valor,
+        referencia,
+      }),
       data: { tipo: 'pagamento:novo' },
       priority: 'high',
     }))
@@ -182,14 +208,17 @@ export async function notificarAdminsPagamento({ nome, dias, valor, referencia }
 }
 
 // A decisão sobre o pedido, para o motorista não ter de ir ver.
-export async function notificarMotoristaPagamento(pushToken, { confirmado, dias, motivo }) {
-  if (!pushToken) return { enviadas: 0 };
+export async function notificarMotoristaPagamento(quem, { confirmado, dias, motivo }) {
+  const d = destino(quem);
+  if (!d) return { enviadas: 0 };
   return enviar([
     {
-      to: pushToken,
+      to: d.to,
       sound: 'default',
-      title: confirmado ? 'Dias carregados' : 'Pagamento não confirmado',
-      body: confirmado ? `${dias} dias entraram na sua conta.` : `Motivo: ${motivo}`,
+      title: n(confirmado ? 'pagamentoConfirmadoTitulo' : 'pagamentoRecusadoTitulo', d.lingua),
+      body: confirmado
+        ? n('pagamentoConfirmadoTexto', d.lingua, { dias })
+        : n('pagamentoRecusadoTexto', d.lingua, { motivo }),
       data: { tipo: 'pagamento:decidido' },
     },
   ]);

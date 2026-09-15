@@ -29,6 +29,8 @@ import {
   recusarPedido,
   calcularDevolucao,
   registarDevolucao,
+  gravarQr,
+  apagarQr,
 } from '../assinatura.js';
 import { notificarMotoristaPagamento } from '../push.js';
 import { etiquetaOsm } from '../tiposDeLugar.js';
@@ -1110,8 +1112,8 @@ const respostaDePolitica = (res, e) => {
   if (e.status) return res.status(e.status).json({ error: e.message });
   throw e;
 };
-const pushDe = async (userId) =>
-  (await one('SELECT push_token FROM users WHERE id = $1', [userId]))?.push_token;
+// A conta inteira e não só o token: a língua escolhe o texto da notificação.
+const pushDe = (userId) => one('SELECT push_token, lingua FROM users WHERE id = $1', [userId]);
 
 adminRouter.get(
   '/pagamentos',
@@ -1163,6 +1165,32 @@ adminRouter.post(
         confirmado: false,
         motivo: r.motivo,
       }).catch(() => {});
+      res.json({ ok: true });
+    } catch (e) {
+      respostaDePolitica(res, e);
+    }
+  })
+);
+
+// A IMAGEM DO QR (15/09/26): a que o banco deu à Timorgiana. O motorista
+// vê-a em GET /api/driver/assinatura/qr quando escolhe pagar por QR.
+adminRouter.put(
+  '/pagamentos/qr',
+  wrap(async (req, res) => {
+    try {
+      await gravarQr({ mime: req.body?.mime, base64: req.body?.base64, porId: req.user.id });
+      res.json({ ok: true });
+    } catch (e) {
+      respostaDePolitica(res, e);
+    }
+  })
+);
+
+adminRouter.delete(
+  '/pagamentos/qr',
+  wrap(async (_req, res) => {
+    try {
+      await apagarQr();
       res.json({ ok: true });
     } catch (e) {
       respostaDePolitica(res, e);

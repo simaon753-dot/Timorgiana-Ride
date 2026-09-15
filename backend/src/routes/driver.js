@@ -17,12 +17,14 @@ import { temFotoDeHoje, guardarFotoDeTurno, ultimaFotoDeTurno } from '../turnos.
 import { setOnline, savePushToken } from '../drivers.js';
 import { toPublicUser } from '../users.js';
 import { notificarAdminsMotoristaPronto, notificarAdminsPagamento } from '../push.js';
+import { VERSAO_TERMOS_MOTORISTA } from '../termosVersao.js';
 import {
   podeEntrarAoServico,
   estadoDe,
   resumoDe,
   criarPedido,
   cancelarPedido,
+  qrDoPagamento,
 } from '../assinatura.js';
 
 export const driverRouter = Router();
@@ -113,6 +115,15 @@ driverRouter.post(
     // caducada não conseguisse desligar-se, ficaria preso a receber
     // pedidos — exactamente o contrário do que se pretende.
     if (online) {
+      // OS TERMOS EM VIGOR PRIMEIRO (15/09/26): sem aceitação, a cláusula da
+      // assinatura não obriga — e é o passo mais rápido de resolver. O aviso
+      // no ecrã leva direito aos termos.
+      if (req.user.driver_terms_version !== VERSAO_TERMOS_MOTORISTA) {
+        return res.status(403).json({
+          error: 'Os termos para motoristas mudaram. Lê-os e aceita-os para ficares disponível.',
+          motivo: 'termos',
+        });
+      }
       const apto = await podeTrabalhar(req.user.id);
       if (!apto.pode) {
         return res.status(403).json({
@@ -483,6 +494,21 @@ driverRouter.post(
       if (e.status) return res.status(e.status).json({ error: e.message });
       throw e;
     }
+  })
+);
+
+// GET /api/driver/assinatura/qr — a imagem do QR de pagamento (15/09/26)
+//
+// A que o banco deu à Timorgiana, carregada pelo administrador. Não é segredo
+// — é para pagar —, mas fica atrás da sessão como tudo o resto da app.
+driverRouter.get(
+  '/assinatura/qr',
+  wrap(async (_req, res) => {
+    const qr = await qrDoPagamento();
+    if (!qr) return res.status(404).json({ error: 'Ainda não há imagem do QR.' });
+    res.setHeader('Content-Type', qr.mime);
+    res.setHeader('Cache-Control', 'private, no-cache');
+    res.send(qr.bytes);
   })
 );
 

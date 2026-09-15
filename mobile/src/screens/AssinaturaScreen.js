@@ -18,6 +18,7 @@ import { colors, spacing, radius, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 import BarraEstado from '../design/BarraEstado.js';
 import Aviso from '../design/Aviso.js';
+import ImagemProtegida from '../design/ImagemProtegida.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
@@ -253,6 +254,19 @@ export default function AssinaturaScreen({ navigation }) {
                         <Text selectable style={styles.formaInstrucoes}>
                           {f.instrucoes}
                         </Text>
+                        {/* O QR do banco (15/09/26). O motorista está a olhar
+                            para ele no mesmo telemóvel que tem a app do banco:
+                            a nota diz como o levar até lá. */}
+                        {f.id === 'tuqr' && f.temQr ? (
+                          <>
+                            <ImagemProtegida
+                              caminho="/driver/assinatura/qr"
+                              style={styles.qr}
+                              resizeMode="contain"
+                            />
+                            <Text style={styles.nota}>{t('assinQrNota')}</Text>
+                          </>
+                        ) : null}
                         {!f.comPedido ? (
                           <Text style={styles.nota}>{t('assinNoBalcao')}</Text>
                         ) : null}
@@ -453,6 +467,15 @@ const criarEstilos = () =>
       borderColor: colors.border,
     },
     radioActivo: { borderColor: colors.teal, backgroundColor: colors.teal },
+    // Fundo branco sempre, também no tema escuro: é o que o leitor de QR espera.
+    qr: {
+      width: 220,
+      height: 220,
+      alignSelf: 'center',
+      backgroundColor: '#FFFFFF',
+      borderRadius: radius.md,
+      marginVertical: spacing.sm,
+    },
 
     referencia: {
       borderWidth: 1.5,

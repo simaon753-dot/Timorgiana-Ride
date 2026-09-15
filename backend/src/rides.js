@@ -326,7 +326,11 @@ export async function createRide({
     : [];
   // "Outros" pode vir como segundo tipo: o texto do quê conta na mesma.
   const temOutros = tipoCarga === 'outros' || extrasCarga.includes('outros');
-  const outroCarga = temOutros ? String(cargaOutro || '').trim().slice(0, 80) || null : null;
+  const outroCarga = temOutros
+    ? String(cargaOutro || '')
+        .trim()
+        .slice(0, 80) || null
+    : null;
   const inserted = await one(
     `INSERT INTO rides
        (passenger_id, dest_label, dest_lat, dest_lng, origin_label, origin_lat, origin_lng,

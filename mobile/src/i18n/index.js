@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { definirLingua } from '../api/client.js';
 import pt from './pt.js';
 import tet from './tet.js';
 import en from './en.js';
@@ -50,6 +51,11 @@ export function I18nProvider({ children }) {
       if (saved && dictionaries[saved]) setLangState(saved);
     });
   }, []);
+
+  // O servidor responde na língua da app (15/09/26): cada pedido leva-a.
+  useEffect(() => {
+    definirLingua(lang);
+  }, [lang]);
 
   const setLang = useCallback((code) => {
     if (!dictionaries[code]) return;

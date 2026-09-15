@@ -252,7 +252,9 @@ export default function DriverHomeScreen({ navigation }) {
             trabalhar, pede que se leia. */}
         {!activeRide && (faltaTermosMotorista || faltaPrivacidade) ? (
           <Pressable
-            style={styles.avisoValidade}
+            // Vermelho nos termos do motorista: desde 15/09/26 impedem de ficar
+            // disponível. A privacidade continua a ser só um pedido.
+            style={faltaTermosMotorista ? styles.avisoDocs : styles.avisoValidade}
             // Um de cada vez, os termos primeiro — como no ecrã do passageiro.
             // Aceite o primeiro, o aviso volta com o segundo.
             onPress={() =>
@@ -265,11 +267,23 @@ export default function DriverHomeScreen({ navigation }) {
             }
             accessibilityRole="button"
           >
-            <Text style={styles.avisoValidadeTitulo}>
+            <Text
+              style={faltaTermosMotorista ? styles.avisoDocsTitulo : styles.avisoValidadeTitulo}
+            >
               {t(faltaTermosMotorista ? 'termosNovosTitulo' : 'privacidadeNovaTitulo')}
             </Text>
-            <Text style={styles.avisoValidadeTexto}>{t('termosNovosTexto')}</Text>
-            <Text style={[styles.avisoValidadeTexto, { fontWeight: '700' }]}>
+            <Text style={faltaTermosMotorista ? styles.avisoDocsTexto : styles.avisoValidadeTexto}>
+              {t('termosNovosTexto')}
+            </Text>
+            {faltaTermosMotorista ? (
+              <Text style={styles.avisoDocsTexto}>{t('termosObrigatorios')}</Text>
+            ) : null}
+            <Text
+              style={[
+                faltaTermosMotorista ? styles.avisoDocsTexto : styles.avisoValidadeTexto,
+                { fontWeight: '700' },
+              ]}
+            >
               {t('driverTermsRead')} ›
             </Text>
           </Pressable>

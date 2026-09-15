@@ -173,7 +173,11 @@ authRouter.post('/login', async (req, res) => {
           error:
             faltam < 60
               ? `Demasiadas tentativas. Espera ${faltam} segundos.`
-              : `Demasiadas tentativas. Espera ${minutos} minuto${minutos > 1 ? 's' : ''}.`,
+              : // Frases inteiras e não um "s" colado: o plural por sufixo não se
+                // traduz (15/09/26), e o tétum nem sequer o tem.
+                minutos === 1
+                ? 'Demasiadas tentativas. Espera 1 minuto.'
+                : `Demasiadas tentativas. Espera ${minutos} minutos.`,
           segundos: faltam,
         });
       }
