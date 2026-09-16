@@ -1,5 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, ImageBackground, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  Pressable,
+  ImageBackground,
+  ScrollView,
+} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
@@ -156,12 +164,15 @@ export default function WelcomeScreen({ navigation }) {
               tem nada a ver com desenho. */}
             <View style={styles.registos}>
               <Escolha
-                emoji="🧍"
+                figuras={[{ fonte: FIGURA.passageiro }]}
                 texto={t('passenger')}
                 onPress={() => navigation.navigate('Register', { role: 'passenger' })}
               />
               <Escolha
-                emoji="🚗 🛵"
+                figuras={[
+                  { fonte: FIGURA.carro, tinta: colors.teal },
+                  { fonte: FIGURA.mota, tinta: colors.teal },
+                ]}
                 texto={t('driver')}
                 onPress={() => navigation.navigate('Register', { role: 'driver' })}
               />
@@ -196,16 +207,37 @@ function segundaMetade(s) {
 // emoji: não cabiam, e o Android cortava o segundo — daí a motorizada ter
 // desaparecido e ficar só o carro. Sem contentor de largura fixa, o texto
 // ocupa o que precisa e os dois aparecem.
-function Escolha({ emoji, texto, onPress }) {
+// AS FIGURAS DOS DOIS CARTÕES (16/09/2026), desenhos do Simão. O passageiro
+// vai a cores, como ele o desenhou; o motorista leva as duas silhuetas de
+// veículo que já existem na app, pintadas de teal.
+//
+// Substituem os emojis. A nota acima explicava porque é que os emojis tinham
+// ganho às ilustrações da maqueta: elas vinham esticadas de um ficheiro
+// pequeno. Estas não têm esse problema — vêm dos ficheiros dele, nas três
+// densidades, e são sempre nítidas.
+const FIGURA = {
+  passageiro: require('../../assets/ilustracoes/passageiro.png'),
+  carro: require('../../assets/icones/veiculo-carro.png'),
+  mota: require('../../assets/icones/veiculo-mota.png'),
+};
+
+function Escolha({ figuras, texto, onPress }) {
   return (
     <Pressable
       style={({ pressed }) => [styles.escolha, pressed && styles.premido]}
       onPress={onPress}
       accessibilityRole="button"
     >
-      <Text style={styles.emoji} numberOfLines={1}>
-        {emoji}
-      </Text>
+      <View style={styles.figuras}>
+        {figuras.map((f, i) => (
+          <Image
+            key={i}
+            source={f.fonte}
+            style={[styles.figura, f.tinta ? { tintColor: f.tinta } : null]}
+            resizeMode="contain"
+          />
+        ))}
+      </View>
       <Text style={styles.escolhaTexto}>{texto}</Text>
     </Pressable>
   );
@@ -306,7 +338,13 @@ const criarEstilos = () =>
     },
     // `lineHeight` fixo para as duas caixas terem a mesma altura mesmo que um
     // emoji tenha métricas diferentes do outro no telemóvel.
-    emoji: { fontSize: 26, lineHeight: 34, marginBottom: spacing.xs },
+    figuras: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      marginBottom: spacing.xs,
+    },
+    figura: { width: 34, height: 34 },
     escolhaTexto: { ...tipo.corpoForte, color: colors.text },
 
     lema: {

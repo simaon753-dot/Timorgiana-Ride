@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Text } from 'react-native';
+import { Image } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import PassengerHomeScreen from '../screens/PassengerHomeScreen.js';
 import DriverHomeScreen from '../screens/DriverHomeScreen.js';
@@ -14,11 +14,24 @@ import { useAuth } from '../context/AuthContext.js';
 
 const Tab = createBottomTabNavigator();
 
-// Ícones em texto e não uma biblioteca de ícones: poupa uma dependência e
-// um tipo de letra inteiro no APK, e nestes tamanhos lê-se igual.
+// AS ILUSTRAÇÕES DO SIMÃO, e não emojis (16/09/2026). Os emojis eram
+// desenhados pelo sistema: mudavam de forma conforme o telemóvel e não eram
+// da app. Estas são dele, iguais em todo o lado, e ficam a cores — o separador
+// escolhido distingue-se por ficar opaco, e os outros esbatidos.
+const ILUSTRACAO = {
+  inicio: require('../../assets/ilustracoes/inicio.png'),
+  ganhos: require('../../assets/ilustracoes/rendimento.png'),
+  viagens: require('../../assets/ilustracoes/viagens.png'),
+};
 const icone =
-  (glifo) =>
-  ({ color }) => <Text style={{ fontSize: 20, color, lineHeight: 24 }}>{glifo}</Text>;
+  (qual) =>
+  ({ focused }) => (
+    <Image
+      source={ILUSTRACAO[qual]}
+      style={{ width: 26, height: 26, opacity: focused ? 1 : 0.55 }}
+      resizeMode="contain"
+    />
+  );
 
 export default function Tabuladores() {
   const { t } = useI18n();
@@ -59,7 +72,7 @@ export default function Tabuladores() {
       <Tab.Screen
         name="Inicio"
         component={motorista ? DriverHomeScreen : PassengerHomeScreen}
-        options={{ title: t('tabHome'), tabBarIcon: icone('🏠') }}
+        options={{ title: t('tabHome'), tabBarIcon: icone('inicio') }}
       />
       {/* Os ganhos só existem para quem os tem. Um separador vazio na app
           do passageiro seria ruído. */}
@@ -67,13 +80,13 @@ export default function Tabuladores() {
         <Tab.Screen
           name="Ganhos"
           component={GanhosScreen}
-          options={{ title: t('tabEarnings'), tabBarIcon: icone('💵') }}
+          options={{ title: t('tabEarnings'), tabBarIcon: icone('ganhos') }}
         />
       ) : null}
       <Tab.Screen
         name="Viagens"
         component={HistoryScreen}
-        options={{ title: t('tabTrips'), tabBarIcon: icone('🕘') }}
+        options={{ title: t('tabTrips'), tabBarIcon: icone('viagens') }}
       />
     </Tab.Navigator>
   );

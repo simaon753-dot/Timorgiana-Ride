@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Ver a nota em RequestRideScreen.js: os mapas de reserva saíram do APK a
@@ -75,7 +75,12 @@ export default function MapaExpandivel({
         />
         {cracha()}
         <Pressable style={styles.expandir} onPress={() => setAberto(true)} hitSlop={8}>
-          <Text style={styles.expandirIcone}>⤢</Text>
+          {/* A seta do Simão, pintada de teal: o botão branco já existia. */}
+          <Image
+            source={require('../../assets/icones/expandir.png')}
+            style={styles.expandirIcone}
+            resizeMode="contain"
+          />
         </Pressable>
       </View>
 
@@ -173,7 +178,7 @@ const criarEstilos = () =>
       shadowOffset: { width: 0, height: 2 },
       elevation: 4,
     },
-    expandirIcone: { fontSize: 17, color: colors.teal, fontWeight: '700' },
+    expandirIcone: { width: 18, height: 18, tintColor: colors.teal },
     cheio: { flex: 1, backgroundColor: colors.paper },
     // NA MESMA COLUNA DOS BOTÕES DO MAPA, e não por cima deles.
     //
