@@ -1,8 +1,7 @@
 import React from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, spacing, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
-import Icone from '../design/Icone.js';
 import { useI18n } from '../i18n/index.js';
 
 // Ligar e desligar o trabalho — sistema de design TGA (14/09/26).
@@ -17,7 +16,16 @@ import { useI18n } from '../i18n/index.js';
 // A cor está no ANEL e não no preenchimento: um botão inteiramente vermelho
 // lê-se como "carrega aqui, é urgente", quando o que ele quer dizer é "estás
 // parado". O anel informa sem dar ordens.
-export default function BotaoPower({ ligado, aMudar, onPress }) {
+// O COMANDO DE CADA VEÍCULO (16/09/2026, desenhos do Simão): o guiador da
+// scooter, o volante do carro, o volante da pickup. Guardados em branco, com a
+// transparência a guardar a forma, e pintados aqui conforme o estado.
+const VOLANTE = {
+  motorbike: require('../../assets/volante/volante-motorbike.png'),
+  car: require('../../assets/volante/volante-car.png'),
+  carry: require('../../assets/volante/volante-carry.png'),
+};
+
+export default function BotaoPower({ ligado, aMudar, onPress, veiculo }) {
   const { t } = useI18n();
   const cor = ligado ? colors.success : colors.danger;
   const halo = ligado ? colors.tintaTeal : colors.tintaPerigo;
@@ -36,7 +44,11 @@ export default function BotaoPower({ ligado, aMudar, onPress }) {
           {aMudar ? (
             <ActivityIndicator color={cor} />
           ) : (
-            <Icone nome="volante" tamanho={52} cor={ligado ? colors.teal : colors.textMuted} />
+            <Image
+              source={VOLANTE[veiculo] || VOLANTE.car}
+              style={[styles.volante, { tintColor: cor }]}
+              resizeMode="contain"
+            />
           )}
         </Pressable>
       </View>
@@ -58,16 +70,19 @@ const criarEstilos = () =>
       alignItems: 'center',
       justifyContent: 'center',
     },
+    // O ANEL VEIO PARA DENTRO DO DESENHO (16/09/2026). O desenho do Simão já
+    // traz o seu anel; somar-lhe o anel do botão dava três círculos à volta do
+    // mesmo símbolo. Fica o desenho, pintado com a cor do estado, e o halo.
     botao: {
       width: 120,
       height: 120,
       borderRadius: 60,
-      borderWidth: 7,
       backgroundColor: colors.white,
       alignItems: 'center',
       justifyContent: 'center',
     },
     premido: { opacity: 0.6 },
+    volante: { width: 104, height: 104 },
     estado: { ...tipo.titulo, marginTop: spacing.sm, letterSpacing: 1 },
     sub: { ...tipo.pequeno, color: colors.textMuted, marginTop: 2, textAlign: 'center' },
   });

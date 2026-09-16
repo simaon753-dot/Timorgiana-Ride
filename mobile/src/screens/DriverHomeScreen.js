@@ -293,7 +293,13 @@ export default function DriverHomeScreen({ navigation }) {
         {/* Ligar e desligar o trabalho. Um motorista a almoçar não deve
             receber pedidos: para o passageiro, um pedido que ninguém
             atende é pior do que nenhum. */}
-        {!activeRide ? <BotaoPower ligado={online} onPress={() => toggleOnline(!online)} /> : null}
+        {!activeRide ? (
+          <BotaoPower
+            ligado={online}
+            veiculo={user?.vehicle?.type}
+            onPress={() => toggleOnline(!online)}
+          />
+        ) : null}
 
         {/* O mapa também do lado do motorista: sem ele, ele sabe o NOME do
             sítio de recolha mas não onde fica em relação a si. Com viagem
