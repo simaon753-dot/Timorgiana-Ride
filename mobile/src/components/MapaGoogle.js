@@ -357,8 +357,8 @@ export default function MapaGoogle({
   botoesAoMeio = false,
   // O SATÉLITE FORA DO MODO DE APONTAR (16/09/2026, pedido do Simão): com a
   // recolha e o destino já postos, o passageiro liga a fotografia para
-  // confirmar os dois sítios antes de carregar em "Pedir por…". Aí o botão
-  // aparece ao pé do logótipo do Google, em baixo à esquerda, e não na coluna.
+  // confirmar os dois sítios antes de carregar em "Pedir por…". O botão é o
+  // mesmo e fica no mesmo sítio: o quarto da coluna, com os outros três.
   mostrarSatelite = false,
 }) {
   const { t } = useI18n();
@@ -874,7 +874,7 @@ export default function MapaGoogle({
   // `topoDosBotoes`; com `botoesAoMeio` fica centrada na altura do mapa. Cada
   // botão fica 48 abaixo do anterior. `null` quer dizer "onde o estilo já o
   // põe", e é o caso normal, que fica exactamente como estava.
-  const nBotoes = modoEscolha ? 4 : 3;
+  const nBotoes = modoEscolha || mostrarSatelite ? 4 : 3;
   const topoColuna =
     botoesAoMeio && altura
       ? Math.max(spacing.sm, Math.round(altura / 2 - (nBotoes * 48) / 2))
@@ -1268,23 +1268,19 @@ export default function MapaGoogle({
           serviço o motorista perdeu o pacote de dados sem perceber onde. Aqui
           o modo dura o tempo de apontar, e acaba com ele.
 
-          O SEGUNDO SÍTIO, desde 16/09/2026: com a viagem já definida, antes de
-          pedir. É o mesmo propósito — reconhecer o portão ou o telhado, que um
-          nome de rua não mostra — e dura o mesmo tempo: o botão desaparece
+          O SEGUNDO MOMENTO, desde 16/09/2026: com a viagem já definida, antes
+          de pedir. É o mesmo propósito — reconhecer o portão ou o telhado, que
+          um nome de rua não mostra — e dura o mesmo tempo: o botão desaparece
           quando a viagem sai do ecrã, e o satélite desliga-se com ele.
 
-          Em baixo à esquerda, ao lado do logótipo do Google e nunca por cima
-          dele: o logótipo é condição de uso do mapa.
+          Esteve ao pé do logótipo do Google durante umas horas; o Simão viu-o
+          e preferiu-o na coluna, com os outros três (16/09/2026).
 
           Durante a viagem a fotografia não acrescenta nada: vê-se a linha e a
           rua, e o resto só pesa. */}
       {modoEscolha || mostrarSatelite ? (
         <Pressable
-          style={[
-            modoEscolha ? styles.botaoSatelite : styles.botaoSateliteBaixo,
-            satelite && styles.botaoSateliteActivo,
-            modoEscolha ? naColuna(3) : null,
-          ]}
+          style={[styles.botaoSatelite, satelite && styles.botaoSateliteActivo, naColuna(3)]}
           onPress={() => setSatelite((v) => !v)}
           hitSlop={8}
           accessibilityRole="button"
@@ -1479,27 +1475,6 @@ const criarEstilos = () =>
       position: 'absolute',
       right: spacing.sm,
       top: spacing.sm + 144,
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: colors.white,
-      borderWidth: 3,
-      borderColor: TINTA.coral,
-      alignItems: 'center',
-      justifyContent: 'center',
-      shadowColor: '#000',
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-      shadowOffset: { width: 0, height: 2 },
-      elevation: 3,
-    },
-    // O MESMO BOTÃO, ao pé do logótipo do Google. A distância da esquerda
-    // deixa o logótipo à vista: tapá-lo não é permitido pelas condições do
-    // mapa, e é a assinatura de quem o desenha.
-    botaoSateliteBaixo: {
-      position: 'absolute',
-      left: 84,
-      bottom: spacing.sm,
       width: 40,
       height: 40,
       borderRadius: 20,
