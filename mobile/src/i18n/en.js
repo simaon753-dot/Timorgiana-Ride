@@ -408,6 +408,7 @@ export default {
   entregaPagamentoNota: 'Pay {preco} to the driver',
   avisarQuando: 'Notify when a driver is available',
   procurarOutraVez: 'Search again',
+  procuraAutomatica: 'The app checks again every 20 seconds.',
   aProcurarMotoristas: 'Searching…',
   ultimaProcura: 'Last checked at {hora}',
   avisoPedidoOk: "We'll let you know when a driver is nearby (for the next 2 hours).",

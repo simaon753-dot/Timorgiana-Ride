@@ -1411,6 +1411,11 @@ export default function RequestRideScreen({ navigation, route }) {
                     </View>
                   ) : null}
                 </View>
+                {/* DIZER QUE A APP TAMBÉM PROCURA SOZINHA. Sem isto, quem vê o
+                    botão pensa que só há motorista se ele carregar — e fica a
+                    carregar, ou desiste. Com a frase, o botão passa a ser o
+                    atalho de quem não quer esperar (Simão, 16/09/2026). */}
+                <Text style={styles.procuraAutomatica}>{t('procuraAutomatica')}</Text>
               </View>
             </View>
           ) : null}
@@ -2270,14 +2275,25 @@ const criarEstilos = () =>
       columnGap: spacing.md,
       marginTop: spacing.xs,
     },
-    // Alvo de toque com pelo menos 44 de altura (6 + 18 + 6 e o hitSlop de 8).
+    // UMA PASTILHA COM CONTORNO, e não texto com um ícone ao lado. Assim
+    // lido, não se percebia que era para tocar (Simão, 16/09/2026): sobre o
+    // cartão laranja, o fundo branco e o fio coral dizem "botão" antes de
+    // alguém ler a palavra. Alvo de toque de 44, com o hitSlop de 8 por fora.
     procurarOutraVez: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'center',
       gap: spacing.xs,
-      paddingVertical: 6,
+      minHeight: 44,
+      paddingVertical: 8,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.md,
+      borderWidth: 1.5,
+      borderColor: colors.coralDark,
+      backgroundColor: colors.white,
     },
     procurarOutraVezTexto: { ...tipo.corpoForte, color: colors.coralDark },
+    procuraAutomatica: { ...tipo.pequeno, color: colors.textMuted, marginTop: 6 },
     horaProcura: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     ultimaProcura: { ...tipo.pequeno, color: colors.textMuted },
     botaoTexto: { ...tipo.subtitulo, color: colors.white },

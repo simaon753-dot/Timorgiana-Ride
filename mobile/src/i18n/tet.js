@@ -406,6 +406,7 @@ export default {
   entregaPagamentoNota: 'Selu {preco} ba motorista',
   avisarQuando: 'Fó hatene bainhira iha motorista',
   procurarOutraVez: 'Buka fali',
+  procuraAutomatica: 'Aplikasaun buka rasik kada segundu 20.',
   aProcurarMotoristas: 'Hela buka…',
   ultimaProcura: 'Buka ikus iha oras {hora}',
   avisoPedidoOk: 'Ami fó hatene bainhira iha motorista besik (oras 2 nia laran).',

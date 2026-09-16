@@ -406,6 +406,7 @@ export default {
   entregaPagamentoNota: 'Pague {preco} ao motorista',
   avisarQuando: 'Avisar quando houver motorista',
   procurarOutraVez: 'Procurar outra vez',
+  procuraAutomatica: 'A app procura sozinha a cada 20 segundos.',
   aProcurarMotoristas: 'A procurar…',
   ultimaProcura: 'Última procura às {hora}',
   avisoPedidoOk: 'Avisamos quando houver um motorista por perto (nas próximas 2 horas).',
