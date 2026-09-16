@@ -98,7 +98,15 @@ const IMAGEM = {
 //
 // Um marcador anda com o mapa sem ninguém calcular nada. O que faltava era
 // uma forma de o desenhar que funcionasse — e é a mesma dos pinos.
-const CARRO = require('../../assets/mapa/carro.png');
+// UM DISTINTIVO POR TIPO DE VEÍCULO (16/09/2026), dos desenhos do Simão:
+// motorizada, carro e pickup. Antes era um carro para todos, e quem esperava
+// uma mota via um carro a aproximar-se. Recortados por
+// scripts/recortar-veiculos.py; as chaves são os tipos do TIPOS_VEICULO.
+const VEICULO_IMAGEM = {
+  motorbike: require('../../assets/mapa/veiculo-motorbike.png'),
+  car: require('../../assets/mapa/veiculo-car.png'),
+  carry: require('../../assets/mapa/veiculo-carry.png'),
+};
 // O ponto onde o carro encosta. IMAGEM e não vista por cima do mapa: uma
 // vista tem de ser recolocada a cada movimento, e recolocar depois do
 // movimento é vê-la a flutuar durante ele. Um marcador com imagem é
@@ -333,6 +341,9 @@ export default function MapaGoogle({
   onRoute,
   liveMarker,
   liveLabel,
+  // O TIPO do veículo que se mexe, para o distintivo ser o certo. Sem ele,
+  // fica o carro: é o que a conta devolve por omissão no servidor.
+  veiculoVivo,
   fill = false,
   // QUANTO DESCER A COLUNA DE BOTÕES.
   //
@@ -1137,7 +1148,7 @@ export default function MapaGoogle({
             coordinate={{ latitude: liveMarker.lat, longitude: liveMarker.lng }}
             anchor={{ x: 0.5, y: 0.5 }}
             zIndex={1000}
-            image={CARRO}
+            image={VEICULO_IMAGEM[veiculoVivo] || VEICULO_IMAGEM.car}
           />
         ) : null}
       </MapView>

@@ -308,6 +308,9 @@ export default function DriverHomeScreen({ navigation }) {
               markers={activeRide ? rideMarkers(activeRide) : []}
               center={activeRide ? undefined : centroMapa}
               liveMarker={minhaPosicao}
+              // O distintivo do veículo DELE: da viagem quando há uma, e da
+              // conta quando está parado à espera de pedidos.
+              veiculoVivo={activeRide?.vehicleType || user?.vehicle?.type}
               liveLabel={t('myLocation')}
               height={activeRide ? 220 : 190}
               info={
@@ -500,6 +503,7 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
             // passageiro vê o carro a aproximar-se. Aqui é ele próprio, e é o
             // ponto que dá sentido aos outros dois.
             liveMarker={minhaPosicao}
+            veiculoVivo={ride.vehicleType}
             liveLabel={t('youAreHere')}
             height={150}
             info={

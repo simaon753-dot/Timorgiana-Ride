@@ -95,6 +95,7 @@ export default function ViagemPassageiro({ ride, navigation }) {
             markers={markers}
             height={220}
             liveMarker={driverLocation}
+            veiculoVivo={ride.vehicleType}
             liveLabel={driverPlace}
             info={{ km: ride.distanceKm, min: ride.durationMin }}
             aviso={minChegada != null ? t('etaArrivalShort', { min: minChegada }) : null}

@@ -19,6 +19,8 @@ export default function MapaExpandivel({
   markers,
   liveMarker,
   liveLabel,
+  // O tipo do veículo que se mexe, para o distintivo certo no mapa.
+  veiculoVivo,
   // Onde centrar quando não há marcadores de viagem — o caso do motorista
   // parado, que só quer ver onde está.
   center,
@@ -68,6 +70,7 @@ export default function MapaExpandivel({
           center={center}
           liveMarker={liveMarker}
           liveLabel={liveLabel}
+          veiculoVivo={veiculoVivo}
           height={height}
         />
         {cracha()}
@@ -112,6 +115,7 @@ export default function MapaExpandivel({
                 center={center}
                 liveMarker={liveMarker}
                 liveLabel={liveLabel}
+                veiculoVivo={veiculoVivo}
                 fill
                 // Desce a coluna do mapa em 48 — exactamente o intervalo entre
                 // dois botões — para o ✕ ficar no lugar vago no topo dela, e
