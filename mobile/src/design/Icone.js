@@ -1,4 +1,5 @@
 import React from 'react';
+import { Image } from 'react-native';
 import Svg, { Path, Circle, Rect, Line, Polyline, Ellipse } from 'react-native-svg';
 import { colors } from '../theme.js';
 
@@ -23,8 +24,35 @@ import { colors } from '../theme.js';
 // cantos redondos. É a família do desenho das maquetas.
 const CAIXA = 24;
 
+// OS TRÊS VEÍCULOS SÃO SILHUETAS, e não traço (16/09/2026). Desenhou-as o
+// Simão (desenho/imagens/branco 1..3.jpeg) e entram como imagem branca, com a
+// transparência a guardar a forma: aqui pintam-se com a cor pedida, tal como
+// o traço fazia. Recortadas por scripts/recortar-icones-veiculo.py.
+//
+// PORQUE NÃO SÃO SVG COMO OS OUTROS: uma scooter com espelhos, guiador e
+// carenagem não se escreve em cinco linhas de caminho sem deixar de ser o
+// desenho dele. Cheias, lêem-se melhor em pequeno do que o traço fino que
+// substituem — visto aos 18 pontos, o tamanho das pastilhas.
+const VEICULO = {
+  mota: require('../../assets/icones/veiculo-mota.png'),
+  carro: require('../../assets/icones/veiculo-carro.png'),
+  carry: require('../../assets/icones/veiculo-carry.png'),
+};
+
 export default function Icone({ nome, tamanho = 24, cor, traco = 2, preenchido = false }) {
   const c = cor || colors.teal;
+
+  // As silhuetas dos veículos não passam pelo desenho em traço: a caixa é a
+  // mesma (quadrada, do tamanho pedido) e o desenho encaixa-se lá dentro.
+  if (VEICULO[nome]) {
+    return (
+      <Image
+        source={VEICULO[nome]}
+        style={{ width: tamanho, height: tamanho, tintColor: c }}
+        resizeMode="contain"
+      />
+    );
+  }
   // Propriedades comuns a todos os traços: definidas aqui e não repetidas em
   // cada figura, senão bastaria esquecer uma para aquele ícone ficar de
   // pontas quadradas no meio dos outros.
@@ -414,47 +442,9 @@ function desenho(nome, p, cheio, preenchido, c) {
       );
 
     // ---- veículos ----
-    case 'carro':
-      return (
-        <>
-          <Path
-            d="M4 15.5v-2.2l1.8-4.4A2 2 0 0 1 7.7 7.5h8.6a2 2 0 0 1 1.9 1.4l1.8 4.4v2.2"
-            {...p}
-          />
-          <Line x1="4" y1="12.8" x2="20" y2="12.8" {...p} />
-          <Circle cx="7.5" cy="15.5" r="1.8" {...p} />
-          <Circle cx="16.5" cy="15.5" r="1.8" {...p} />
-        </>
-      );
-    case 'carry':
-      // CABINA À FRENTE, CAIXA ABERTA ATRÁS.
-      //
-      // Tem de se distinguir do `carro` de relance, senão a terceira opção da
-      // Home lê-se como "outro carro". O que a distingue não é o tamanho — é
-      // a silhueta partida em dois: um bloco alto onde vai o motorista, e uma
-      // plataforma baixa e aberta onde vão os bens.
-      return (
-        <>
-          <Path d="M3.2 15.4V8.6a1.6 1.6 0 0 1 1.6-1.6h3.4v8.4" {...p} />
-          <Path d="M8.2 11.4h10.2a1.6 1.6 0 0 1 1.6 1.6v2.4" {...p} />
-          <Line x1="3.2" y1="15.4" x2="20" y2="15.4" {...p} />
-          <Line x1="12" y1="11.4" x2="12" y2="15.4" {...p} />
-          <Circle cx="7" cy="17.8" r="2" {...p} />
-          <Circle cx="16.6" cy="17.8" r="2" {...p} />
-        </>
-      );
-    case 'mota':
-      return (
-        <>
-          <Circle cx="5.5" cy="16" r="3.2" {...p} />
-          <Circle cx="18.5" cy="16" r="3.2" {...p} />
-          <Path d="M5.5 16l3.5-4.5h5l2.5 4.5" {...p} />
-          <Path d="M9 11.5l-1.5-3h3" {...p} />
-          <Line x1="14" y1="11.5" x2="16.5" y2="8" {...p} />
-        </>
-      );
+    // 'carro', 'carry' e 'mota' saíram daqui a 16/09/2026: passaram a ser as
+    // silhuetas do VEICULO, lá em cima.
 
-    // ---- barra de baixo ----
     case 'casa':
       return (
         <>
