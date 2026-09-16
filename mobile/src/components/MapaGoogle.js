@@ -51,6 +51,13 @@ const COR = {
 // nos ficheiros novos. Era 6.
 const FURO = 7.8;
 
+// AS CORES DOS BOTÕES DO MAPA (16/09/2026), medidas dos desenhos do Simão
+// (desenho/imagens/novo 1..4.jpeg): um anel de cor à volta do branco, e o
+// desenho na mesma família. Teal no que diz ONDE ESTOU (mira, seguir), coral
+// no que diz PARA ONDE ESTÁ VIRADO e no que troca a vista (bússola,
+// satélite). O anel é mais claro do que o traço, como nos ficheiros.
+const TINTA = { teal: '#007E78', tealAnel: '#009490', coral: '#FC5430' };
+
 // O pino tem 30x45 no ecrã. O ponto que marca o sítio está em y=50 de 54 no
 // sistema do desenho, o que dá 42 dos 45 — é essa fracção que diz ao mapa
 // onde assentar o marcador.
@@ -191,14 +198,14 @@ function metrosEntre(a, b) {
 function Mira() {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24">
-      <Bola cx={12} cy={12} r={6.5} fill="none" stroke="#0E5C54" strokeWidth={2} />
-      <Bola cx={12} cy={12} r={2} fill="#0E5C54" />
+      <Bola cx={12} cy={12} r={6.5} fill="none" stroke={TINTA.teal} strokeWidth={2} />
+      <Bola cx={12} cy={12} r={2} fill={TINTA.teal} />
       <Line
         x1={12}
         y1={1.5}
         x2={12}
         y2={5}
-        stroke="#0E5C54"
+        stroke={TINTA.teal}
         strokeWidth={2}
         strokeLinecap="round"
       />
@@ -207,7 +214,7 @@ function Mira() {
         y1={19}
         x2={12}
         y2={22.5}
-        stroke="#0E5C54"
+        stroke={TINTA.teal}
         strokeWidth={2}
         strokeLinecap="round"
       />
@@ -216,7 +223,7 @@ function Mira() {
         y1={12}
         x2={5}
         y2={12}
-        stroke="#0E5C54"
+        stroke={TINTA.teal}
         strokeWidth={2}
         strokeLinecap="round"
       />
@@ -225,7 +232,7 @@ function Mira() {
         y1={12}
         x2={22.5}
         y2={12}
-        stroke="#0E5C54"
+        stroke={TINTA.teal}
         strokeWidth={2}
         strokeLinecap="round"
       />
@@ -239,8 +246,10 @@ function Mira() {
 function Agulha() {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24">
-      <Path d="M12 2 L16.5 13 L12 11 Z" fill="#E85531" />
-      <Path d="M12 22 L7.5 11 L12 13 Z" fill="#7C8A85" />
+      <Path d="M12 2 L16.5 13 L12 11 Z" fill={TINTA.coral} />
+      <Path d="M12 22 L7.5 11 L12 13 Z" fill={TINTA.teal} />
+      {/* O miolo branco separa as duas metades, como no desenho do Simão. */}
+      <Bola cx={12} cy={12} r={2.2} fill="#FFFFFF" />
     </Svg>
   );
 }
@@ -252,7 +261,7 @@ function Agulha() {
 // como o botão de seguir a bússola: é um MODO e não uma acção, e um modo tem
 // de se ver que está a correr.
 function Camadas({ activo }) {
-  const cor = activo ? '#FFFFFF' : '#0E5C54';
+  const cor = activo ? '#FFFFFF' : TINTA.coral;
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24">
       <Path d="M12 3 L21 8 L12 13 L3 8 Z" fill={cor} />
@@ -280,7 +289,7 @@ function Camadas({ activo }) {
 // figura que o Google usa, e que se distingue da AGULHA da bússola: a agulha
 // diz onde é o norte, esta diz para onde EU estou virado.
 function Seta({ activo }) {
-  const cor = activo ? '#FFFFFF' : '#0E5C54';
+  const cor = activo ? '#FFFFFF' : TINTA.teal;
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24">
       <Bola cx={12} cy={12} r={9.2} fill="none" stroke={cor} strokeWidth={1.8} />
@@ -1435,6 +1444,8 @@ const criarEstilos = () =>
       height: 40,
       borderRadius: 20,
       backgroundColor: colors.white,
+      borderWidth: 3,
+      borderColor: TINTA.tealAnel,
       alignItems: 'center',
       justifyContent: 'center',
       shadowColor: '#000',
@@ -1452,6 +1463,8 @@ const criarEstilos = () =>
       height: 40,
       borderRadius: 20,
       backgroundColor: colors.white,
+      borderWidth: 3,
+      borderColor: TINTA.tealAnel,
       alignItems: 'center',
       justifyContent: 'center',
       shadowColor: '#000',
@@ -1460,7 +1473,7 @@ const criarEstilos = () =>
       shadowOffset: { width: 0, height: 2 },
       elevation: 3,
     },
-    botaoSeguirActivo: { backgroundColor: colors.teal },
+    botaoSeguirActivo: { backgroundColor: colors.teal, borderColor: colors.teal },
     // O quarto da coluna: 8 + 48 + 48 + 48.
     botaoSatelite: {
       position: 'absolute',
@@ -1470,6 +1483,8 @@ const criarEstilos = () =>
       height: 40,
       borderRadius: 20,
       backgroundColor: colors.white,
+      borderWidth: 3,
+      borderColor: TINTA.coral,
       alignItems: 'center',
       justifyContent: 'center',
       shadowColor: '#000',
@@ -1489,6 +1504,8 @@ const criarEstilos = () =>
       height: 40,
       borderRadius: 20,
       backgroundColor: colors.white,
+      borderWidth: 3,
+      borderColor: TINTA.coral,
       alignItems: 'center',
       justifyContent: 'center',
       shadowColor: '#000',
@@ -1497,7 +1514,7 @@ const criarEstilos = () =>
       shadowOffset: { width: 0, height: 2 },
       elevation: 3,
     },
-    botaoSateliteActivo: { backgroundColor: colors.teal },
+    botaoSateliteActivo: { backgroundColor: colors.teal, borderColor: colors.teal },
     botaoBussola: {
       position: 'absolute',
       right: spacing.sm,
@@ -1507,6 +1524,8 @@ const criarEstilos = () =>
       height: 40,
       borderRadius: 20,
       backgroundColor: colors.white,
+      borderWidth: 3,
+      borderColor: TINTA.coral,
       alignItems: 'center',
       justifyContent: 'center',
       shadowColor: '#000',
