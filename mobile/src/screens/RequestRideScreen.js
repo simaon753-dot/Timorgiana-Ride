@@ -1174,6 +1174,13 @@ export default function RequestRideScreen({ navigation, route }) {
           arrastavel={!aEscolherNoMapa && !(origem && destino)}
           onArrastar={arrastouPino}
           modoEscolha={aEscolherNoMapa}
+          // O SATÉLITE PARA CONFIRMAR, depois de a recolha e o destino
+          // estarem postos: na fotografia reconhece-se o portão ou o
+          // telhado, que um nome de rua não mostra. Só aqui, e não a
+          // pesquisar nem a apontar — nesses o mapa já tem o seu botão.
+          mostrarSatelite={
+            !!origem && !!destino && !aEscolherNoMapa && !pesquisa && !aEscolherParagem
+          }
           onCentro={centroMudou}
         />
         {!pesquisa && !aEscolherNoMapa ? (
