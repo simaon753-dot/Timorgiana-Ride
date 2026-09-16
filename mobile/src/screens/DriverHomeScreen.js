@@ -358,7 +358,15 @@ export default function DriverHomeScreen({ navigation }) {
                 está logo acima. */}
             {!online ? (
               <View style={styles.empty}>
-                <Icone nome="volante" tamanho={52} cor={colors.textMuted} traco={1.6} />
+                {/* O ÍCONE É O DO VEÍCULO DELE, como no botão de ficar
+                    disponível (16/09/2026): quem conduz uma mota via aqui um
+                    volante de carro. Sem veículo na conta, fica o volante. */}
+                <Icone
+                  nome={VEICULOS[user?.vehicle?.type]?.icone || 'volante'}
+                  tamanho={52}
+                  cor={colors.textMuted}
+                  traco={1.6}
+                />
                 <Text style={[styles.emptyTitle, { marginTop: spacing.sm }]}>
                   {t('indisponivelTitulo')}
                 </Text>
