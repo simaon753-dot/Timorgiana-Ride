@@ -35,14 +35,21 @@ const DILI = { lat: -8.5569, lng: 125.5603 };
 // camada que traduza um no outro. Se um dia a forma mudar, mudam-se os
 // dois — e este comentário está aqui para que ninguém se esqueça do outro.
 const GOTA = 'M2 18 A16 16 0 1 1 34 18 C34 26 26 32 18 41 C10 32 2 26 2 18 Z';
+// AS CORES DOS PINOS NOVOS (16/09/2026), medidas dos ficheiros que o Simão
+// desenhou: mais vivas do que as da paleta, e sem contorno escuro — os pinos
+// passam a ser lisos, com um furo branco maior. Os mesmos valores estão em
+// scripts/desenhar-pinos.py, que gera as imagens a partir deste caminho.
 const COR = {
-  origem: { fill: '#0E5C54', risco: '#08403A' },
-  destino: { fill: '#E85531', risco: '#8C2E14' },
+  origem: { fill: '#006870' },
+  destino: { fill: '#F85038' },
   // Coral mais claro do que o destino final: uma paragem é uma entrega —
-  // só não é a última. Os mesmos valores estão em scripts/desenhar-pinos.py,
-  // que gera a imagem a partir deste mesmo caminho SVG.
-  paragem: { fill: '#F0855D', risco: '#9C4A28' },
+  // só não é a última.
+  paragem: { fill: '#FF8064' },
 };
+
+// O FURO BRANCO no meio da cabeça: 7,8 de um raio de 16, quase metade, como
+// nos ficheiros novos. Era 6.
+const FURO = 7.8;
 
 // O pino tem 30x45 no ecrã. O ponto que marca o sítio está em y=50 de 54 no
 // sistema do desenho, o que dá 42 dos 45 — é essa fracção que diz ao mapa
@@ -119,11 +126,14 @@ function Pino({ tipo: qual }) {
     // faz parecer que a actualização não chegou.
     <View style={{ width: PINO_L, height: PINO_A }} collapsable={false}>
       <Svg width={PINO_L} height={PINO_A} viewBox="0 0 36 54">
-        <Path d={GOTA} fill="none" stroke="#FFF" strokeWidth={5.6} strokeLinejoin="round" />
-        <Path d={GOTA} fill={c.fill} stroke={c.risco} strokeWidth={2.6} strokeLinejoin="round" />
-        <Bola cx={18} cy={18} r={6} fill="#FFF" />
+        {/* O halo branco fino fica: no desenho do Simão o fundo é branco e
+            não se vê, mas no mapa é ele que impede o pino de desaparecer
+            sobre um telhado escuro. O contorno escuro saiu. */}
+        <Path d={GOTA} fill="none" stroke="#FFF" strokeWidth={2.4} strokeLinejoin="round" />
+        <Path d={GOTA} fill={c.fill} strokeLinejoin="round" />
+        <Bola cx={18} cy={18} r={FURO} fill="#FFF" />
         <Bola cx={18} cy={50} r={2.4} fill="#FFF" />
-        <Bola cx={18} cy={50} r={1.7} fill={c.risco} />
+        <Bola cx={18} cy={50} r={1.7} fill={c.fill} />
       </Svg>
     </View>
   );
@@ -1340,11 +1350,11 @@ const criarEstilos = () =>
     },
     // Um risco da cor à esquerda, para se saber qual é a recolha e qual é o
     // destino sem ter de olhar para o pino.
-    risco_origem: { borderLeftColor: '#0E5C54' },
-    risco_destino: { borderLeftColor: '#E85531' },
+    risco_origem: { borderLeftColor: '#006870' },
+    risco_destino: { borderLeftColor: '#F85038' },
     // Sem esta linha, `styles['risco_paragem']` era `undefined` e o cartão
     // saía sem risco — nada rebentava, e a paragem ficava sem cor.
-    risco_paragem: { borderLeftColor: '#F0855D' },
+    risco_paragem: { borderLeftColor: '#FF8064' },
     cartaoAgora: { backgroundColor: '#14201D', borderLeftColor: '#FF6B4A' },
     cartaoNome: { fontSize: 12.5, fontWeight: '700', color: '#14201D', letterSpacing: -0.1 },
     cartaoNomeAgora: { color: '#EAF2EF' },

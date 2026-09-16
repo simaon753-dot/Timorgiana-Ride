@@ -33,17 +33,26 @@ TAMANHO = (30, 45)
 # contorno suave sem depender de uma biblioteca de desenho vectorial.
 S = 30
 
+# AS CORES DOS PINOS NOVOS (16/09/2026), medidas dos ficheiros que o Simão
+# desenhou (desenho/imagens/novo pino {teal,coral}.jpeg): mais vivas do que as
+# da paleta, e sem o contorno escuro que a versão anterior tinha. Os pinos
+# passam a ser lisos, como no desenho dele, e o furo branco é maior.
 COR = {
-    'origem': ('#0E5C54', '#08403A'),
-    'destino': ('#E85531', '#8C2E14'),
+    'origem': '#006870',
+    'destino': '#F85038',
     # A PARAGEM É CORAL MAIS CLARO, e não uma terceira cor.
     #
     # A paleta é teal e coral, por decisao do Simao, e inventar um terceiro
     # tom para isto seria contraria-la. Um coral claro diz o que e preciso
     # dizer: isto e uma entrega — mas nao a ultima. O escuro do contorno
     # mantem-se proximo do destino final, para as duas se lerem como familia.
-    'paragem': ('#F0855D', '#9C4A28'),
+    'paragem': '#FF8064',
 }
+
+# O FURO BRANCO, em unidades da caixa: 7,8 de um raio de cabeça de 16 — quase
+# metade, como nos ficheiros novos. Antes eram 6. É o furo que dá a forma
+# quando a cor do pino se encontra com uma parecida no mapa.
+FURO = 7.8
 
 
 def caminho():
@@ -130,30 +139,30 @@ def desenhar_ponto_alternativo():
     return img
 
 
-def desenhar(fill, risco):
+def desenhar(fill):
     img = Image.new('RGBA', (CAIXA[0] * S, CAIXA[1] * S), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     pts = [(x * S, y * S) for x, y in caminho()]
     fechado = pts + [pts[0]]
 
     # A ordem importa e é a mesma do SVG:
-    # 1. o halo branco por fora, traço largo centrado no caminho;
-    # 2. o corpo, que tapa a metade de dentro do halo;
-    # 3. o contorno escuro, mais estreito, por cima da borda do corpo.
+    # 1. o halo branco por fora, traço fino centrado no caminho;
+    # 2. o corpo, liso, que tapa a metade de dentro do halo.
     #
-    # O halo custa dois pixéis e é o que faz o pino ler-se sobre um telhado
-    # escuro do mapa. Fica um pouco cortado no bordo — o caminho começa em
-    # x=2 e o halo pede 2.8 — exactamente como já ficava no Leaflet.
-    d.line(fechado, fill='#FFFFFF', width=int(5.6 * S), joint='curve')
+    # O CONTORNO ESCURO SAIU (16/09/2026): os pinos que o Simão desenhou são
+    # de uma cor só. O halo branco fica, mais fino do que era: não está no
+    # desenho dele porque ali o fundo é branco, mas no mapa é o que impede um
+    # pino de desaparecer sobre um telhado escuro.
+    d.line(fechado, fill='#FFFFFF', width=int(2.4 * S), joint='curve')
     d.polygon(pts, fill=fill)
-    d.line(fechado, fill=risco, width=int(2.6 * S), joint='curve')
 
     # O furo branco: é ele que dá a forma quando a cor se confunde com o
     # que está por baixo.
-    d.ellipse([(18 - 6) * S, (18 - 6) * S, (18 + 6) * S, (18 + 6) * S], fill='#FFFFFF')
-    # O ponto por baixo marca o sítio exacto; o pino flutua sobre ele.
+    d.ellipse([(18 - FURO) * S, (18 - FURO) * S, (18 + FURO) * S, (18 + FURO) * S], fill='#FFFFFF')
+    # O ponto por baixo marca o sítio exacto; o pino flutua sobre ele. O miolo
+    # leva a cor do pino, que era a do contorno quando ele existia.
     d.ellipse([(18 - 2.4) * S, (50 - 2.4) * S, (18 + 2.4) * S, (50 + 2.4) * S], fill='#FFFFFF')
-    d.ellipse([(18 - 1.7) * S, (50 - 1.7) * S, (18 + 1.7) * S, (50 + 1.7) * S], fill=risco)
+    d.ellipse([(18 - 1.7) * S, (50 - 1.7) * S, (18 + 1.7) * S, (50 + 1.7) * S], fill=fill)
     return img
 
 
@@ -203,8 +212,8 @@ def main():
     pasta = os.path.join(aqui, '..', 'assets', 'mapa')
     os.makedirs(pasta, exist_ok=True)
 
-    for nome, (fill, risco) in COR.items():
-        img = desenhar(fill, risco)
+    for nome, fill in COR.items():
+        img = desenhar(fill)
         for sufixo, escala in (('', 1), ('@2x', 2), ('@3x', 3)):
             alvo = img.resize((TAMANHO[0] * escala, TAMANHO[1] * escala), Image.LANCZOS)
             caminho_ficheiro = os.path.join(pasta, f'pino-{nome}{sufixo}.png')
