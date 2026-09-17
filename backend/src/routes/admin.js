@@ -31,6 +31,9 @@ import {
   registarDevolucao,
   gravarQr,
   apagarQr,
+  GRATUITO_ATE,
+  COMPRAS_ABREM,
+  emPeriodoGratuito,
 } from '../assinatura.js';
 import { notificarMotoristaPagamento } from '../push.js';
 import { etiquetaOsm } from '../tiposDeLugar.js';
@@ -1009,7 +1012,7 @@ adminRouter.get(
     const dias = Math.min(90, Math.max(1, Number(req.query.dias) || 7));
     const intervalo = `${dias} days`;
 
-    const [cancelamentos, tempos, docs, notas] = await Promise.all([
+    const [cancelamentos, tempos, docs, notas, porDia] = await Promise.all([
       // Motivos de cancelamento, do mais frequente ao menos. É a lista que
       // diz o que corrigir a seguir.
       query(
@@ -1055,6 +1058,41 @@ adminRouter.get(
          FROM ratings WHERE created_at > NOW() - $1::interval`,
         [intervalo]
       ),
+      // A SÉRIE DIÁRIA, para os gráficos do painel (17/09/2026).
+      //
+      // Um dia de cada vez, contado em Díli e não em UTC: o UTC muda de dia às
+      // nove da manhã em Timor-Leste, e o trabalho de uma manhã caía no dia
+      // anterior. Os dias sem nenhuma viagem vêm a zero — sem eles o gráfico
+      // saltava por cima e parecia que não tinha havido dia nenhum.
+      //
+      // "Ativos" são pessoas diferentes com pelo menos uma viagem CONCLUÍDA no
+      // dia: é a mesma medida que conta os dias da Taxa de Acesso.
+      query(
+        `WITH dias AS (
+           SELECT generate_series(
+                    (NOW() AT TIME ZONE 'Asia/Dili')::date - ($1::int - 1),
+                    (NOW() AT TIME ZONE 'Asia/Dili')::date,
+                    INTERVAL '1 day'
+                  )::date AS dia
+         ),
+         v AS (
+           SELECT (created_at AT TIME ZONE 'Asia/Dili')::date AS dia, status, driver_id, passenger_id
+             FROM rides
+            WHERE created_at > NOW() - ($1::int + 1) * INTERVAL '1 day'
+         )
+         SELECT TO_CHAR(d.dia, 'YYYY-MM-DD') AS dia,
+                COUNT(v.status)::int AS pedidos,
+                COUNT(v.status) FILTER (WHERE v.status = 'completed')::int AS concluidas,
+                COUNT(v.status) FILTER (WHERE v.status = 'cancelled' AND v.driver_id IS NOT NULL)::int AS canceladas,
+                COUNT(v.status) FILTER (WHERE v.status = 'cancelled' AND v.driver_id IS NULL)::int AS sem_motorista,
+                COUNT(DISTINCT v.driver_id) FILTER (WHERE v.status = 'completed')::int AS motoristas,
+                COUNT(DISTINCT v.passenger_id) FILTER (WHERE v.status = 'completed')::int AS passageiros
+           FROM dias d
+           LEFT JOIN v ON v.dia = d.dia
+          GROUP BY d.dia
+          ORDER BY d.dia`,
+        [dias]
+      ),
     ]);
 
     res.json({
@@ -1072,6 +1110,15 @@ adminRouter.get(
         telefone: d.phone,
         tipo: d.kind,
         ate: d.ate,
+      })),
+      porDia: porDia.map((d) => ({
+        dia: d.dia,
+        pedidos: d.pedidos,
+        concluidas: d.concluidas,
+        canceladas: d.canceladas,
+        semMotorista: d.sem_motorista,
+        motoristas: d.motoristas,
+        passageiros: d.passageiros,
       })),
     });
   })
@@ -1130,6 +1177,69 @@ adminRouter.get(
   wrap(async (_req, res) => {
     const [pedidos, formas] = await Promise.all([pedidosParaAdmin(), formasConfiguradas()]);
     res.json({ ...pedidos, formas, prazoHoras: PRAZO_HORAS });
+  })
+);
+
+// GET /api/admin/pagamentos/resumo — a receita da TimorgianaRide (17/09/2026)
+//
+// A ÚNICA RECEITA É A TAXA DE ACESSO: o que entrou em carregamentos. O preço
+// das viagens é do motorista, pago em mão, e não entra aqui — somá-lo seria
+// dizer, no painel da própria empresa, o contrário do que os termos afirmam.
+//
+// As devoluções vão ao lado e não descontadas: "recebemos X e devolvemos Y" diz
+// mais do que um número só, e cada um confere com o seu extracto.
+adminRouter.get(
+  '/pagamentos/resumo',
+  wrap(async (_req, res) => {
+    const [somas, devolvido, ultimos, gratuito] = await Promise.all([
+      one(
+        `SELECT
+           COALESCE(SUM(valor_usd) FILTER (
+             WHERE (created_at AT TIME ZONE 'Asia/Dili')::date = (NOW() AT TIME ZONE 'Asia/Dili')::date
+           ), 0)::float8 AS hoje,
+           COALESCE(SUM(valor_usd) FILTER (
+             WHERE date_trunc('month', created_at AT TIME ZONE 'Asia/Dili')
+                 = date_trunc('month', NOW() AT TIME ZONE 'Asia/Dili')
+           ), 0)::float8 AS mes,
+           COALESCE(SUM(valor_usd), 0)::float8 AS total,
+           COUNT(*) FILTER (WHERE valor_usd > 0)::int AS carregamentos
+         FROM carregamentos`
+      ),
+      one(`SELECT COALESCE(SUM(valor_usd), 0)::float8 AS total FROM devolucoes`),
+      query(
+        `SELECT c.id, c.user_id, u.name AS nome, u.vehicle_type, c.dias, c.valor_usd, c.metodo,
+                c.referencia, c.created_at, a.name AS por
+           FROM carregamentos c
+           LEFT JOIN users u ON u.id = c.user_id
+           LEFT JOIN users a ON a.id = c.admin_id
+          ORDER BY c.created_at DESC, c.id DESC
+          LIMIT 20`
+      ),
+      emPeriodoGratuito(),
+    ]);
+    res.json({
+      gratuitoAte: GRATUITO_ATE,
+      comprasAbrem: COMPRAS_ABREM,
+      emPeriodoGratuito: gratuito,
+      hoje: somas.hoje,
+      mes: somas.mes,
+      total: somas.total,
+      devolvido: devolvido.total,
+      carregamentos: somas.carregamentos,
+      pacotes: PACOTES,
+      ultimos: ultimos.map((c) => ({
+        id: c.id,
+        userId: c.user_id,
+        nome: c.nome,
+        tipo: c.vehicle_type,
+        dias: c.dias,
+        valorUsd: c.valor_usd == null ? null : Number(c.valor_usd),
+        metodo: c.metodo,
+        referencia: c.referencia,
+        quando: c.created_at,
+        por: c.por,
+      })),
+    });
   })
 );
 

@@ -1,0 +1,105 @@
+@import 'tailwindcss';
+
+@import '@fontsource/plus-jakarta-sans/400.css';
+@import '@fontsource/plus-jakarta-sans/500.css';
+@import '@fontsource/plus-jakarta-sans/600.css';
+@import '@fontsource/plus-jakarta-sans/700.css';
+
+/*
+ * O SISTEMA DE DESENHO, num sítio só.
+ *
+ * As cores são as da especificação do Simão (17/09/2026), com duas correções
+ * de contraste medidas e não adivinhadas:
+ *
+ *   - O CORAL (#FF6B57) dá 2,8:1 sobre branco — abaixo dos 4,5 que o texto
+ *     precisa. Serve para pontos, ícones e fundos com texto escuro; o TEXTO
+ *     coral usa `coral-texto` (#B93A26, 5,1:1 sobre o coral claro).
+ *   - O CINZENTO SECUNDÁRIO dá 4,5:1 sobre o fundo e 4,8 sobre branco, mas só
+ *     4,16 sobre o teal claro. Sobre teal claro, o texto é teal escuro.
+ */
+@theme {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --color-teal-escuro: #0b6b63;
+  --color-teal: #0f766e;
+  --color-teal-claro: #dff3f0;
+  --color-teal-suave: #f1f9f7;
+  --color-coral: #ff6b57;
+  --color-coral-claro: #fff0ec;
+  --color-coral-texto: #b93a26;
+  --color-fundo: #f7f8f7;
+  --color-texto: #17211f;
+  --color-secundario: #687572;
+  --color-borda: #e5eae8;
+  --color-borda-forte: #d3dbd8;
+  --color-perigo: #c2362b;
+  --color-perigo-claro: #fdecea;
+  --color-sucesso: #1e7d4f;
+  --color-sucesso-claro: #e6f4ec;
+  --color-aviso: #a15c00;
+  --color-aviso-claro: #fff4e0;
+  --color-azul: #2f5fb3;
+  --color-azul-claro: #e9f0fb;
+
+  --radius-cartao: 16px;
+  --radius-botao: 10px;
+  --radius-campo: 10px;
+
+  --shadow-subtil: 0 1px 2px rgb(23 33 31 / 0.04), 0 1px 3px rgb(23 33 31 / 0.03);
+  --shadow-cartao: 0 1px 2px rgb(23 33 31 / 0.04), 0 4px 14px rgb(23 33 31 / 0.04);
+  --shadow-flutuante: 0 8px 30px rgb(23 33 31 / 0.12), 0 2px 6px rgb(23 33 31 / 0.06);
+
+  --animate-brilho: brilho 1.6s ease-in-out infinite;
+  --animate-entrar: entrar 0.2s ease-out;
+  --animate-subir: subir 0.2s ease-out;
+  --animate-deslizar: deslizar 0.25s ease-out;
+
+  @keyframes brilho {
+    0% { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+  }
+  @keyframes entrar {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes subir {
+    from { opacity: 0; transform: translateY(6px) scale(0.99); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes deslizar {
+    from { transform: translateX(-100%); }
+    to { transform: none; }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-fundo font-sans text-[15px] leading-normal text-texto antialiased;
+  }
+  /* O anel de foco é o mesmo em tudo o que se usa com o teclado, e só
+     aparece a quem anda de Tab — quem clica com o rato já sabe onde clicou. */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-teal;
+  }
+  ::selection {
+    @apply bg-teal-claro text-teal-escuro;
+  }
+  /* Números que se comparam de linha para linha alinham pela casa. */
+  .numeros {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Quem pediu ao sistema para reduzir o movimento não leva nenhum. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

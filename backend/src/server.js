@@ -240,17 +240,53 @@ for (const [caminho, ficheiro] of [
   });
 }
 
-app.get('/painel', (req, res) => {
+// O PAINEL NOVO (17/09/2026): React, compilado a partir de painel/ para
+// publico/painel/. O Render não compila nada — serve o que está no
+// repositório, como sempre serviu o ficheiro único.
+//
+// `fileURLToPath` e não `.pathname`: o `.pathname` de uma URL devolve o caminho
+// CODIFICADO, e a pasta deste projecto chama-se "Claude Code", com um espaço —
+// saía ".../Claude%20Code/...", que o sistema de ficheiros não encontra.
+const PASTA_PAINEL = fileURLToPath(new URL('../publico/painel/', import.meta.url));
+const PASTA_ASSETS = `${PASTA_PAINEL}assets`;
+
+// Os ficheiros com o conteúdo no nome (assets/index-3f9a1c.js) nunca mudam:
+// um ano em cache, e a segunda visita numa rede de Díli não descarrega nada.
+// Os outros (o ícone) uma hora. A página em si nunca fica em cache — é ela que
+// diz que ficheiros novos pedir depois de uma publicação.
+app.use(
+  '/painel',
+  express.static(PASTA_PAINEL, {
+    index: false,
+    setHeaders(res, caminho) {
+      res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+      res.setHeader(
+        'Cache-Control',
+        caminho.endsWith('index.html')
+          ? 'no-store'
+          : caminho.startsWith(PASTA_ASSETS)
+            ? 'public, max-age=31536000, immutable'
+            : 'public, max-age=3600'
+      );
+    },
+  })
+);
+
+// Qualquer endereço do painel devolve a mesma página: é o React que decide o
+// ecrã (/painel/viagens, /painel/contas?conta=12). Um endereço colado ou
+// recarregado não pode dar 404.
+app.get(['/painel', '/painel/*'], (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   res.setHeader('X-Robots-Tag', 'noindex, nofollow');
-  // `fileURLToPath` e não `.pathname`.
-  //
-  // O `.pathname` de uma URL devolve o caminho CODIFICADO: a pasta deste
-  // projecto chama-se "Claude Code", com um espaço, e saía
-  // ".../Claude%20Code/..." — que o sistema de ficheiros não encontra.
-  // No servidor do Render o caminho não tem espaços e isto nunca teria dado
-  // erro; só se via no computador de quem o escreveu.
-  res.sendFile(fileURLToPath(new URL('../publico/painel.html', import.meta.url)));
+  res.sendFile(`${PASTA_PAINEL}index.html`);
+});
+
+// O PAINEL ANTIGO fica disponível enquanto o novo se estreia — se alguma coisa
+// falhar no novo, o trabalho de aprovar não pára. Sai quando o Simão o disser.
+app.get('/painel-antigo', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  res.sendFile(fileURLToPath(new URL('../publico/painel-antigo.html', import.meta.url)));
 });
 
 app.use('/api/auth', authRouter);
