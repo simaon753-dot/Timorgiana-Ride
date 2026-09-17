@@ -5,156 +5,260 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
 <title>TimorgianaRide · Aprovações</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAwFBMVEXxUz0JVVgdHx4GPUBpNCtWIhujPC8GXmLgVEBZZ2SqPS++RjY9ODUFf4NWUUwBpKtagHwAAAACiY/7W0QCk5kEIyX/YUkFV1oGSEtWIRoDFhcENTczFA/WTjsEZWnJSjgFd3sFa3AEc3dIGhS0RDMCm6GFMyfZUDsHLS8EfIJjJh2YOSwEQUQDgYV3LiRuKiEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD9qmDMAAAAMHRSTlPrahs4Tip5gtjPgqVH4Iz//wD3+/4V/21PJgksD8aRsMWmtRmS/1TKJNcxazzTRztJ/IgbAAACUklEQVR42u1V2XajMAwlWydtZ8OWwdiO2QnZ///vRlIgJRkyTV7mqfecQLB1tVgXEYRPIvgiMNzpJQ2kXFdN+QjhlEopow5y5z4hNJJRNduyLJNjJaPqX4RkGaH1WzJYKiu5vUvYkfnLbRKuau4QKsw9HavzdBwlvEcy2o0fpXMjhBe0Pz7RhxPmf3qmcc4593ink5Sx6rGmHwKvS3TTHrLDZEhI5F1QWUYAgBgQkmhoIYMgQGl0j9SCDIQQYAcEBnZBrreLcv7z9ffrnJcWCZX1jewFxLfHukICdm1yEGI/LFKzvYDshkB5paGh8Gpor8he5SDAXBNSGciEwoPGp33MaLFgTl936x8EhwmteJuOI6uBocICOHuMA/6K8IYBtmF83p7VnLbwvJDT/o+zpwthigGCcwBM1ShlKGtlsYCNmRRFQZmpAaHhFuneHwINcnag/K8aNpngItqegO+8DEP0Kg5WESiApSOwqoj3ioJDgWfcEbYobexpwS0V5wt4qvQioQ0VYW1HwEGxxJuFAXzoQfhLP6h8HffiQ+mwtpWOO+gpPtlYI6bTlveUyWxPaJq/3gUz81kWz74vyonuetxmV1qyQz3oAqCwYRm6qdcXkagrgrrka3NRwwTd7uZY1oe9vpkadsMeLDqHAv/OcZ7Zundje30P5hJ5M56OlXxVKWYNvXTjOh6ZfKiEDauZ5cjtJqWERotaj85WQ63LyKZ6794db/de1If23vTWIjtPWexDmHPT61roT79ApevkgDHyvXn0k5WLPJ6Zr+/0/yD8AXazqvuAnLMRAAAAAElFTkSuQmCC" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" />
 <style>
+  /* O DESENHO DA APP, trazido para o painel (17/09/2026).
+     O painel ficou com o aspeto da primeira versão enquanto a app ganhou
+     logótipo, letra e cartões novos. As cores já eram quase as mesmas; faltava
+     o resto. Os valores vêm de mobile/src/theme.js — se lá mudarem, mudam aqui.
+     O cinzento passou a ser o da app (#68726C), que dá 4,5:1 sobre o creme; o
+     de antes (#6B6B6B) ficava no limite. */
   :root {
-    --teal: #0e5c54; --teal-claro: #e7f0ee; --coral: #ff6b4a;
-    --papel: #faf7f2; --branco: #fff; --texto: #1a1a1a; --suave: #6b6b6b;
-    --borda: #e2ddd5; --mau: #c0392b; --bom: #1e7d4f;
+    --teal: #0e5c54; --teal-escuro: #0a463f; --teal-claro: #e7f0ee; --coral: #ff6b4a;
+    --papel: #f7f4ef; --branco: #fff; --texto: #1c2421; --suave: #68726c;
+    --borda: #e2ddd4; --mau: #c0392b; --mau-claro: #fdf3f2; --bom: #1e7d4f;
+    --sombra: 0 1px 2px rgba(28,36,33,.05), 0 6px 20px rgba(28,36,33,.06);
   }
   * { box-sizing: border-box; }
+  /* A letra da app. Enquanto não chega (ou se nunca chegar, numa rede má de
+     Díli), o texto aparece logo na letra do sistema: `display=swap` no
+     endereço da fonte. Um painel que espera pela letra para mostrar quem está
+     à espera de aprovação é um painel vazio. */
   body { margin: 0; background: var(--papel); color: var(--texto);
-    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  header { background: var(--teal); color: #fff; padding: 14px 20px;
-    display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-  header h1 { font-size: 17px; margin: 0; font-weight: 600; }
+    font: 15px/1.5 "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  /* Os botões e os campos não herdam a letra da página por omissão. */
+  button, input { font-family: inherit; }
+  /* Os ícones são linhas, na cor do texto à volta — sem disco nem fundo. */
+  .ico { width: 18px; height: 18px; flex: 0 0 auto; fill: none; stroke: currentColor;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* O LOGÓTIPO, desenhado uma vez só e usado em dois sítios.
+     Vai dentro do ficheiro (2 KB) e não num pedido à parte: o servidor não
+     serve imagens soltas para o painel, e esta página não fica em cache. */
+  .marca { width: 57px; height: 44px; flex: 0 0 auto;
+    background: url(data:image/png;base64,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) center / contain no-repeat; }
+
+  header { background: var(--branco); border-bottom: 1px solid var(--borda);
+    padding: 10px 24px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  header .nome { display: flex; flex-direction: column; line-height: 1.2; }
+  header h1 { font-size: 18px; margin: 0; font-weight: 800; letter-spacing: -.3px; }
+  header .sub { font-size: 13px; color: var(--suave); font-weight: 500; }
   header .espaco { flex: 1; }
+  header #quem { color: var(--suave); font-size: 13.5px; font-weight: 500; }
   /* 44 px DE ALTURA MÍNIMA em tudo o que se toca.
      Isto é usado ao telemóvel, muitas vezes de pé e à pressa. Os botões
      tinham 31 px; a ponta de um dedo cobre uns 44, e quem falha o toque não
      conclui que falhou — conclui que o botão não responde, e volta a tocar
      com mais força no mesmo sítio. */
-  header button { background: rgba(255,255,255,.15); color: #fff; border: 0;
-    padding: 7px 13px; border-radius: 7px; cursor: pointer; font-size: 13px;
-    min-height: 44px; }
-  main { max-width: 1200px; margin: 0 auto; padding: 20px; }
+  header button { background: var(--branco); color: var(--teal); border: 1px solid var(--borda);
+    padding: 8px 14px; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 600;
+    min-height: 44px; display: inline-flex; align-items: center; gap: 8px;
+    transition: background .15s, border-color .15s; }
+  header button:hover { background: var(--teal-claro); border-color: var(--teal); }
+  main { max-width: 1200px; margin: 0 auto; padding: 24px 24px 64px; }
+  /* NO TELEMÓVEL, O CABEÇALHO CABE NUMA LINHA.
+     Com o nome e os dois botões por extenso, "Sair" caía para uma segunda
+     linha e o cabeçalho ocupava 115 px — um sétimo do ecrã, antes de se ver
+     um único motorista. Os botões ficam só com o ícone; o nome continua lá,
+     escondido aos olhos e não aos leitores de ecrã.
+     E os separadores apertam o suficiente para se ver o COMEÇO do terceiro:
+     a barra cortava certinho depois do segundo, e nada dizia que havia mais
+     três para o lado. */
+  @media (max-width: 600px) {
+    header { padding: 8px 16px; gap: 8px; flex-wrap: nowrap; }
+    header .sub, header #quem { display: none; }
+    header button { width: 44px; padding: 0; justify-content: center; }
+    header button .rotulo { position: absolute; width: 1px; height: 1px; overflow: hidden;
+      clip: rect(0 0 0 0); white-space: nowrap; }
+    .separadores button { padding: 8px 12px; gap: 6px; font-size: 14px; }
+    main { padding: 16px 16px 48px; }
+  }
 
-  .entrar { max-width: 340px; margin: 12vh auto; background: var(--branco);
-    border: 1px solid var(--borda); border-radius: 14px; padding: 26px; }
-  .entrar h2 { margin: 0 0 4px; font-size: 19px; }
-  .entrar p { margin: 0 0 18px; color: var(--suave); font-size: 13px; }
-  label { display: block; font-size: 12px; color: var(--suave);
-    text-transform: uppercase; letter-spacing: .5px; margin: 12px 0 5px; }
+  .entrar { max-width: 380px; margin: 10vh auto; background: var(--branco);
+    border: 1px solid var(--borda); border-radius: 20px; padding: 32px 28px; box-shadow: var(--sombra); }
+  @media (max-width: 440px) { .entrar { margin: 6vh 16px; padding: 28px 20px; } }
+  .entrar .marca { width: 72px; height: 56px; margin: 0 auto 14px; }
+  .entrar h2 { margin: 0 0 4px; font-size: 22px; font-weight: 800; letter-spacing: -.3px; text-align: center; }
+  .entrar p { margin: 0 0 18px; color: var(--suave); font-size: 14px; text-align: center; }
+  label { display: block; font-size: 13.5px; font-weight: 600; color: var(--texto); margin: 14px 0 6px; }
   /* 16 px e não 15: abaixo de 16, o Safari do telemóvel dá zoom sozinho ao
      tocar num campo, e a página fica torta até se sair dele. */
-  input { width: 100%; padding: 11px 12px; border: 1px solid var(--borda);
-    border-radius: 9px; font-size: 16px; background: var(--branco); color: var(--texto); }
-  .principal { width: 100%; margin-top: 18px; padding: 12px; background: var(--coral);
-    color: #22100a; border: 0; border-radius: 9px; font-size: 15px; font-weight: 600;
-    cursor: pointer; }
+  input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--borda);
+    border-radius: 12px; font-size: 16px; background: var(--branco); color: var(--texto);
+    transition: border-color .15s, box-shadow .15s; }
+  /* O foco de um campo continua a VER-SE — muda de anel, não desaparece: a
+     borda passa a teal com uma auréola, como na app. O anel coral fica para
+     os botões, lá em baixo. */
+  input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(14,92,84,.16); }
+  .principal { width: 100%; margin-top: 20px; padding: 12px; min-height: 48px; background: var(--coral);
+    color: #22100a; border: 0; border-radius: 12px; font-size: 16px; font-weight: 700;
+    cursor: pointer; transition: filter .15s; }
+  .principal:hover { filter: brightness(.95); }
 
   /* A BARRA ROLA DE LADO, e não passa para a linha de baixo.
-     Os quatro nomes medem cerca de 424 px; um telemóvel tem 375. Sem isto,
+     Os cinco nomes, com os ícones, medem mais do que um telemóvel. Sem isto,
      "Dados" ficava fora do ecrã e a PÁGINA INTEIRA ganhava rolamento
      horizontal — o texto todo a fugir para o lado ao tocar. Com `wrap` os
      separadores caíam para duas linhas, o que parece avaria. Rolar de lado
      é o que uma barra de separadores faz num telemóvel.
      A barra de rolamento fica escondida: ocupa espaço e não diz nada que o
      corte do último separador já não diga. */
-  .separadores { display: flex; gap: 8px; margin-bottom: 18px;
-    border-bottom: 1px solid var(--borda);
+  .separadores { display: flex; gap: 4px; margin-bottom: 22px; padding: 5px;
+    width: fit-content; max-width: 100%; background: var(--branco);
+    border: 1px solid var(--borda); border-radius: 16px;
     flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .separadores::-webkit-scrollbar { display: none; }
-  .separadores button { background: none; border: 0; border-bottom: 3px solid transparent;
-    padding: 10px 4px; margin-right: 18px; cursor: pointer; font-size: 15px; color: var(--suave);
-    flex: 0 0 auto; white-space: nowrap; min-height: 44px; }
-  .separadores button[aria-pressed="true"] { color: var(--teal); border-bottom-color: var(--teal);
-    font-weight: 600; }
-  .explica { color: var(--suave); font-size: 14px; margin: 0 0 14px; max-width: 640px; }
-  .caixaDados { background: var(--branco); border: 1px solid var(--borda);
-    border-radius: 14px; padding: 20px; max-width: 640px; }
-  .caixaDados h3 { margin: 0 0 6px; font-size: 17px; }
-  .caixaDados label { display: block; margin: 14px 0 4px; }
-  .caixaDados input[type=date] { padding: 9px 11px; border: 1px solid var(--borda);
-    border-radius: 8px; font-size: 15px; font-family: inherit; }
+  /* UMA SOMBRA DO LADO PARA ONDE AINDA HÁ SEPARADORES.
+     A barra cortava certinho entre dois separadores e nada dizia que havia
+     mais para o lado. As duas camadas `local` andam com o conteúdo e tapam a
+     sombra quando se chega à ponta; as duas `scroll` ficam presas às bordas.
+     Só se vê sombra onde há mais para deslizar — sem JavaScript. */
+  .separadores {
+    background:
+      linear-gradient(to right, var(--branco) 30%, rgba(255,255,255,0)) left center / 32px 100% no-repeat local,
+      linear-gradient(to left, var(--branco) 30%, rgba(255,255,255,0)) right center / 32px 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%, rgba(28,36,33,.18), transparent) left center / 14px 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%, rgba(28,36,33,.18), transparent) right center / 14px 100% no-repeat scroll,
+      var(--branco);
+  }
+  .separadores button { background: none; border: 0; padding: 8px 16px; border-radius: 12px;
+    cursor: pointer; font-size: 14.5px; font-weight: 600; color: var(--suave);
+    flex: 0 0 auto; white-space: nowrap; min-height: 44px;
+    display: inline-flex; align-items: center; gap: 8px; transition: background .15s, color .15s; }
+  .separadores button:hover { color: var(--teal); background: var(--teal-claro); }
+  .separadores button[aria-pressed="true"] { color: #fff; background: var(--teal); }
+  .explica { color: var(--suave); font-size: 14.5px; line-height: 1.6; margin: 0 0 16px; max-width: 680px; }
+  .caixaDados { background: var(--branco); border: 1px solid var(--borda); box-shadow: var(--sombra);
+    border-radius: 16px; padding: 20px 22px; max-width: 680px; }
+  .caixaDados h3 { margin: 0 0 6px; font-size: 18px; font-weight: 700; letter-spacing: -.2px; }
+  .caixaDados label { display: block; margin: 14px 0 6px; }
+  .caixaDados input[type=date] { width: auto; }
+  /* As listas de viagens e de paragens são cartões seguidos. Estavam colados
+     uns aos outros, sem intervalo, e liam-se como uma caixa só. */
+  #listaViagens, #listaParagens { display: grid; gap: 12px; max-width: 860px; }
+  #listaViagens .caixaDados, #listaParagens .caixaDados { max-width: none; }
+  #listaParagens { margin-top: 18px; }
+  #listaViagens .caixaDados > b:first-child, #listaParagens .caixaDados > b:first-child { font-size: 15.5px; }
+  #listaParagens button[data-apagar] { margin-top: 10px; padding: 8px 16px; min-height: 44px;
+    border-radius: 12px; border: 1.5px solid var(--mau); background: var(--branco); color: var(--mau);
+    font-size: 14px; font-weight: 600; cursor: pointer; }
+  #listaParagens button[data-apagar]:hover { background: var(--mau-claro); }
   .linhaBotoes { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 4px; }
-  .linhaBotoes button { padding: 10px 16px; border-radius: 8px; border: 1px solid var(--teal);
-    background: var(--teal); color: #fff; font-size: 14px; cursor: pointer; font-family: inherit; }
+  .linhaBotoes button { padding: 10px 18px; min-height: 44px; border-radius: 12px; border: 1px solid var(--teal);
+    background: var(--teal); color: #fff; font-size: 14.5px; font-weight: 600; cursor: pointer; }
   /* O apagar é vermelho e começa apagado. A cor não é decoração: é a única
      diferença visível entre um botão que transfere e um que destrói. */
   .linhaBotoes button.perigo { background: var(--mau); border-color: var(--mau); }
   .linhaBotoes button:disabled { background: var(--borda); border-color: var(--borda);
     color: var(--suave); cursor: not-allowed; }
-  #procura { max-width: 420px; margin-bottom: 16px; }
-  .pessoa { background: var(--branco); border: 1px solid var(--borda); border-radius: 12px;
-    padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center;
-    gap: 14px; flex-wrap: wrap; }
+  #procura { max-width: 460px; margin-bottom: 16px; }
+  .pessoa { background: var(--branco); border: 1px solid var(--borda); border-radius: 16px;
+    box-shadow: var(--sombra); padding: 14px 18px; margin-bottom: 10px; display: flex;
+    align-items: center; gap: 14px; flex-wrap: wrap; max-width: 860px; }
   .pessoa .quem { flex: 1; min-width: 200px; }
-  .pessoa .quem b { display: block; font-size: 16px; }
-  .codigoCaixa { text-align: center; padding: 28px 34px; }
-  .codigoCaixa .n { font-size: 46px; font-weight: 700; letter-spacing: 8px;
+  .pessoa .quem b { display: block; font-size: 16px; font-weight: 700; }
+  .codigoCaixa { text-align: center; padding: 30px 34px; }
+  .codigoCaixa .n { font-size: 46px; font-weight: 800; letter-spacing: 8px;
     color: var(--teal); font-variant-numeric: tabular-nums; margin: 14px 0; }
   .filtros { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
   .filtros button { background: var(--branco); border: 1px solid var(--borda);
-    padding: 7px 16px; border-radius: 999px; cursor: pointer; font-size: 13px; color: var(--texto);
-    min-height: 44px; display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 18px; border-radius: 999px; cursor: pointer; font-size: 14px; font-weight: 600;
+    color: var(--texto); min-height: 44px; display: inline-flex; align-items: center; gap: 8px;
     transition: background .15s, border-color .15s; }
+  .filtros button:hover { border-color: var(--teal); }
   .filtros button[aria-pressed="true"] { background: var(--teal); border-color: var(--teal); color: #fff; }
 
-  .conta { background: var(--branco); border: 1px solid var(--borda); border-radius: 14px;
-    padding: 18px; margin-bottom: 16px; display: grid; gap: 16px;
-    grid-template-columns: 220px 1fr 210px; align-items: start; }
-  @media (max-width: 900px) { .conta { grid-template-columns: 1fr; } }
-  .conta h3 { margin: 0 0 2px; font-size: 17px; }
-  .meta { color: var(--suave); font-size: 13px; }
+  .conta { background: var(--branco); border: 1px solid var(--borda); border-radius: 18px;
+    box-shadow: var(--sombra); padding: 20px 22px; margin-bottom: 16px; display: grid; gap: 22px;
+    grid-template-columns: 220px 1fr 230px; align-items: start; }
+  @media (max-width: 900px) { .conta { grid-template-columns: 1fr; gap: 16px; } }
+  .conta h3 { margin: 0 0 4px; font-size: 18px; font-weight: 700; letter-spacing: -.2px; }
+  .meta { color: var(--suave); font-size: 13.5px; }
   /* OS NÚMEROS QUE NINGUÉM VIA. Ver a nota no mostrarResumo. */
-  .resumo { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
-  .numero { background: var(--branco); border: 1px solid var(--borda);
-    border-radius: 10px; padding: 8px 12px; min-width: 96px; }
-  .numero b { display: block; font-size: 20px; color: var(--teal); line-height: 1.2; }
-  .numero span { color: var(--suave); font-size: 12px; }
+  .resumo { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px; margin-bottom: 20px; max-width: 1200px; }
+  .numero { background: var(--branco); border: 1px solid var(--borda); box-shadow: var(--sombra);
+    border-radius: 16px; padding: 14px 16px; }
+  .numero b { display: block; font-size: 28px; font-weight: 800; color: var(--teal); line-height: 1.15;
+    letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
+  .numero span { color: var(--suave); font-size: 13px; font-weight: 500; }
   /* A CARGA DE UM CARRY, dentro da linha da viagem.
      Sem fundo próprio: a linha já é uma caixa branca, e uma segunda caixa
      branca lá dentro não se via. Uma barra teal à esquerda separa sem
      acrescentar mais uma moldura. */
-  .caixaCarga { border-left: 3px solid var(--teal); padding: 2px 0 2px 10px;
-    margin-top: 8px; font-size: 14px; }
+  .caixaCarga { border-left: 3px solid var(--teal); padding: 2px 0 2px 12px;
+    margin-top: 10px; font-size: 14px; }
   .fotosCarga { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-  /* O MESMO TAMANHO DOS DOCUMENTOS (116x88). Numa lista de sessenta viagens
-     o que importa é reconhecer a carga de relance; uma fotografia ao tamanho
-     natural são três megabytes a empurrar a linha seguinte para fora do ecrã.
-     O fundo cinzento é o que se vê enquanto o observador não a foi buscar. */
-  .fotoCarga { width: 116px; height: 88px; object-fit: cover; border-radius: 8px;
+  /* O TAMANHO MAIS PEQUENO DOS DOCUMENTOS (116x88). Numa lista de sessenta
+     viagens o que importa é reconhecer a carga de relance; uma fotografia ao
+     tamanho natural são três megabytes a empurrar a linha seguinte para fora
+     do ecrã. O fundo cinzento é o que se vê enquanto o observador não a foi
+     buscar. */
+  .fotoCarga { width: 116px; height: 88px; object-fit: cover; border-radius: 10px;
     background: var(--borda); }
-  .docs { display: flex; gap: 10px; flex-wrap: wrap; }
-  .doc { width: 116px; }
-  .doc img { width: 116px; height: 88px; object-fit: cover; border-radius: 8px;
-    border: 1px solid var(--borda); background: var(--teal-claro); cursor: zoom-in; display: block; }
-  .doc .falta { width: 116px; height: 88px; border-radius: 8px; border: 1px dashed var(--mau);
-    display: flex; align-items: center; justify-content: center; color: var(--mau); font-size: 12px; }
-  .doc b { display: block; font-size: 11.5px; margin-top: 5px; font-weight: 600; }
-  .doc span { display: block; font-size: 11.5px; color: var(--suave); }
+  /* OS DOCUMENTOS EM TRÊS COLUNAS no computador, e não numa fila que parte.
+     Seis miniaturas de 116 px não cabiam numa linha e a sexta caía sozinha
+     para baixo, a parecer esquecida. Em grelha 3×2 lêem-se como um conjunto
+     — e ficam maiores, que é o que se quer de uma fotografia de um documento
+     que se está a decidir se é verdadeiro. No telemóvel, as que couberem. */
+  .docs { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); }
+  @media (min-width: 901px) { .docs { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .doc { min-width: 0; }
+  .doc img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 10px;
+    border: 1px solid var(--borda); background: var(--teal-claro); cursor: zoom-in; display: block;
+    transition: box-shadow .15s, border-color .15s; }
+  .doc img:hover { border-color: var(--teal); box-shadow: 0 4px 14px rgba(28,36,33,.16); }
+  /* Enquanto a fotografia não chega, vê-se só a caixa de cor — e não o nome
+     do documento ao lado de um ícone de imagem partida, que parece avaria. */
+  .doc img:not([src]), .fotoCarga:not([src]) { font-size: 0; color: transparent; }
+  .doc .falta { width: 100%; aspect-ratio: 4 / 3; border-radius: 10px; border: 1.5px dashed var(--mau);
+    background: var(--mau-claro); display: flex; align-items: center; justify-content: center;
+    color: var(--mau); font-size: 13px; font-weight: 600; }
+  .doc b { display: block; font-size: 12.5px; margin-top: 6px; font-weight: 600; line-height: 1.3; }
+  .doc span { display: block; font-size: 12px; color: var(--suave); }
   .doc span.mau { color: var(--mau); font-weight: 600; }
 
-  .checklist { list-style: none; margin: 0 0 12px; padding: 0; font-size: 13px; }
-  .checklist li { padding: 3px 0; }
-  .checklist .ok::before { content: "✓ "; color: var(--bom); font-weight: 700; }
-  .checklist .no::before { content: "✗ "; color: var(--mau); font-weight: 700; }
-  .checklist .duvida::before { content: "! "; color: var(--coral); font-weight: 700; }
+  .checklist { list-style: none; margin: 0 0 14px; padding: 12px 14px; font-size: 13.5px;
+    background: var(--papel); border-radius: 12px; }
+  .checklist li { position: relative; padding: 3px 0 3px 22px; line-height: 1.4; }
+  .checklist li::before { position: absolute; left: 1px; top: 3px; font-weight: 800; }
+  .checklist .ok::before { content: "✓"; color: var(--bom); }
+  .checklist .no::before { content: "✕"; color: var(--mau); }
+  /* Coral escurecido: o coral da marca, num ponto de exclamação pequeno sobre
+     o creme, ficava abaixo de 3:1 e parecia desbotado. */
+  .checklist .duvida::before { content: "!"; color: #b8431f; left: 4px; }
   .accoes { display: flex; flex-direction: column; gap: 8px; }
-  .aprovar { padding: 11px; background: var(--teal); color: #fff; border: 0;
-    border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .confirmar { padding: 10px; background: var(--teal-claro); color: var(--teal);
-    border: 1px solid var(--teal); border-radius: 9px; font-size: 13px; cursor: pointer; }
-  .feito { padding: 11px; text-align: center; border-radius: 9px;
-    background: var(--teal-claro); color: var(--teal); font-weight: 600; font-size: 14px; }
-  .recusar { padding: 11px; background: var(--branco); color: var(--mau);
-    border: 1px solid var(--mau); border-radius: 9px; font-size: 14px; cursor: pointer; }
-  .vazio { text-align: center; padding: 60px 20px; color: var(--suave); }
-  .erro { background: #fdecea; border: 1px solid var(--mau); color: var(--mau);
-    padding: 11px 13px; border-radius: 9px; margin-bottom: 14px; font-size: 14px; }
+  .aprovar { padding: 11px; min-height: 46px; background: var(--teal); color: #fff; border: 0;
+    border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background .15s; }
+  .aprovar:hover { background: var(--teal-escuro); }
+  .confirmar { padding: 10px 14px; min-height: 44px; background: var(--teal-claro); color: var(--teal);
+    border: 1px solid var(--teal); border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .feito { padding: 11px; text-align: center; border-radius: 12px;
+    background: var(--teal-claro); color: var(--teal); font-weight: 700; font-size: 14.5px; }
+  .recusar { padding: 11px; min-height: 44px; background: var(--branco); color: var(--mau);
+    border: 1.5px solid var(--mau); border-radius: 12px; font-size: 14.5px; font-weight: 600; cursor: pointer;
+    transition: background .15s; }
+  .recusar:hover { background: var(--mau-claro); }
+  .vazio { text-align: center; padding: 60px 20px; color: var(--suave); font-size: 15px;
+    background: var(--branco); border: 1px dashed var(--borda); border-radius: 18px; }
+  .erro { background: var(--mau-claro); border: 1px solid var(--mau); color: var(--mau);
+    padding: 11px 13px; border-radius: 12px; margin-bottom: 14px; font-size: 14px; }
   /* O aviso é FIXO e não fica no topo da página.
      A primeira versão punha as mensagens numa div no cimo do <main>. Quem
      estivesse a decidir o quinto candidato, com a página a meio, não via
      nada — nem o sucesso nem o erro. Uma mensagem que só se lê depois de
      rolar para cima é uma mensagem que não existe. */
   #aviso { position: fixed; left: 50%; transform: translateX(-50%); bottom: 24px;
-    z-index: 50; padding: 13px 20px; border-radius: 10px; font-size: 15px;
-    font-weight: 600; box-shadow: 0 6px 24px rgba(0,0,0,.22); }
+    z-index: 50; padding: 14px 22px; border-radius: 14px; font-size: 15px;
+    font-weight: 600; box-shadow: 0 8px 28px rgba(0,0,0,.22); max-width: calc(100vw - 32px); }
   #aviso.bom { background: var(--teal); color: #fff; }
   #aviso.mau { background: var(--mau); color: #fff; }
   button[disabled] { opacity: .6; cursor: progress; }
-  dialog { border: 0; border-radius: 14px; padding: 0; max-width: 94vw; max-height: 94vh; }
-  dialog::backdrop { background: rgba(0,0,0,.75); }
+  dialog { border: 0; border-radius: 20px; padding: 0; max-width: 94vw; max-height: 94vh; }
+  dialog::backdrop { background: rgba(10,20,18,.72); }
   dialog img { display: block; max-width: 94vw; max-height: 88vh;
     transition: transform .15s; transform-origin: center; }
   dialog img.r90  { transform: rotate(90deg)  scale(.72); }
@@ -163,7 +267,7 @@
   .lupaBarra { display: flex; gap: 8px; justify-content: flex-end; padding: 10px;
     background: var(--papel); border-bottom: 1px solid var(--borda); }
   .lupaBarra button { background: var(--teal); color: #fff; border: 0;
-    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px;
+    padding: 8px 16px; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 600;
     min-height: 44px; }
 
   /* O ANEL DE FOCO, com a cor da casa.
@@ -197,9 +301,19 @@
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-aprovacoes" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-contas" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-viagens" viewBox="0 0 24 24"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></symbol>
+  <symbol id="i-paragens" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
+  <symbol id="i-dados" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></symbol>
+  <symbol id="i-atualizar" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol>
+  <symbol id="i-sair" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></symbol>
+</svg>
 
 <div id="ecraEntrar" class="entrar" hidden>
-  <h2>Aprovações</h2>
+  <div class="marca" role="img" aria-label="TimorgianaRide"></div>
+  <h2>Painel de administração</h2>
   <p>TimorgianaRide · entre com a sua conta de administrador.</p>
   <div id="erroEntrar"></div>
   <label for="tel">Telemóvel</label>
@@ -211,19 +325,23 @@
 
 <div id="ecraPainel" hidden>
   <header>
-    <h1>TimorgianaRide · Aprovações</h1>
+    <div class="marca" role="img" aria-label="TimorgianaRide"></div>
+    <div class="nome">
+      <h1>TimorgianaRide</h1>
+      <span class="sub">Painel de administração</span>
+    </div>
     <span class="espaco"></span>
-    <span id="quem" class="meta" style="color:rgba(255,255,255,.8)"></span>
-    <button id="btAtualizar">Atualizar</button>
-    <button id="btSair">Sair</button>
+    <span id="quem" class="meta"></span>
+    <button id="btAtualizar"><svg class="ico" aria-hidden="true"><use href="#i-atualizar"/></svg><span class="rotulo">Atualizar</span></button>
+    <button id="btSair"><svg class="ico" aria-hidden="true"><use href="#i-sair"/></svg><span class="rotulo">Sair</span></button>
   </header>
   <main>
     <div class="separadores">
-      <button data-sec="aprovacoes" aria-pressed="true">Aprovações</button>
-      <button data-sec="contas" aria-pressed="false">Contas e acessos</button>
-      <button data-sec="viagens" aria-pressed="false">Viagens</button>
-      <button data-sec="paragens" aria-pressed="false">Paragens</button>
-      <button data-sec="dados" aria-pressed="false">Dados</button>
+      <button data-sec="aprovacoes" aria-pressed="true"><svg class="ico" aria-hidden="true"><use href="#i-aprovacoes"/></svg>Aprovações</button>
+      <button data-sec="contas" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-contas"/></svg>Contas e acessos</button>
+      <button data-sec="viagens" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-viagens"/></svg>Viagens</button>
+      <button data-sec="paragens" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-paragens"/></svg>Paragens</button>
+      <button data-sec="dados" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-dados"/></svg>Dados</button>
     </div>
 
     <div id="secAprovacoes">
