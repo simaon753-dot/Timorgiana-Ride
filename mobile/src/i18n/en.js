@@ -211,7 +211,7 @@ export default {
   acaoLiga: 'Call',
   acaoMensajen: 'Message',
   recusaPedidu: 'Decline',
-  simuPedidu: 'Accept request',
+  simuPedidu: 'Accept',
   pedidoNovo: 'New',
   offlineSub: 'Go online to receive requests.',
   estadoOnline: 'Online',

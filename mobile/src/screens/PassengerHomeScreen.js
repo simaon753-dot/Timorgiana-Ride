@@ -182,7 +182,7 @@ export default function PassengerHomeScreen({ navigation }) {
                       <View style={[styles.veiculoIcone, { backgroundColor: colors[v.acento] }]}>
                         <Icone nome={v.icone} tamanho={18} cor={colors.onAcento} />
                       </View>
-                      <Text style={styles.veiculoNome} numberOfLines={1}>
+                      <Text style={styles.veiculoNome} numberOfLines={2}>
                         {t(v.chaveNome)}
                       </Text>
                     </View>
@@ -261,7 +261,11 @@ const criarEstilos = () =>
     },
     veiculoFoto: { width: 120, height: 92 },
     veiculoTextos: { flex: 1 },
-    veiculoNome: { ...tipo.titulo, color: colors.text, flex: 1 },
+    // 17 px e até DUAS linhas, e não 21 numa só. Ao lado da fotografia, do
+    // ícone e da seta sobravam uns 100 px: "Motorizada" saía "Motor…" e
+    // "Carro Pickup" saía "Carro …" — e foi assim que apareceu nas capturas
+    // para a Google Play (17/09/2026). Duas linhas partem entre palavras.
+    veiculoNome: { ...tipo.titulo, fontSize: 17, lineHeight: 21, color: colors.text, flex: 1 },
     veiculoNota: { ...tipo.pequeno, color: colors.textMuted, marginTop: 2 },
     heroi: { minHeight: 176, justifyContent: 'flex-end', marginBottom: spacing.xs },
     // No escuro o céu claro da ilustração destacava-se como um rectângulo

@@ -208,8 +208,10 @@ export default {
   avisoChegaTexto: 'Por favor, aguarde em local seguro.',
   acaoLiga: 'Ligar',
   acaoMensajen: 'Mensagem',
-  recusaPedidu: 'Recusar pedido',
-  simuPedidu: 'Aceitar pedido',
+  // Curtos: os dois botões dividem o cartão ao meio, e "Recusar pedido" /
+  // "Aceitar pedido" saíam cortados. O cartão já se chama "Pedidos de viagem".
+  recusaPedidu: 'Recusar',
+  simuPedidu: 'Aceitar',
   pedidoNovo: 'Novo',
   offlineSub: 'Ligue para receber pedidos.',
   estadoOnline: 'Online',
