@@ -117,7 +117,9 @@ for (const x of naAppMotivos) {
 // ── e os tipos de carga, pela quarta vez ──
 //
 // Vivem em QUATRO sítios: o servidor (config.js), o ecrã do pedido
-// (CargaDoPedido), o cartão do motorista (CHAVE_CARGA) e o painel (CARGA). A
+// (CargaDoPedido), o cartão do motorista (CHAVE_CARGA) e o painel (as chaves
+// 'carga.*' do dicionário em painel/src/i18n/pt/comum.ts desde 17/09/26, quando
+// o painel passou a React; antes era a tabela CARGA do painel.html). A
 // "Mudança" entrou nos quatro a 13/09/26. Se um dia entrar só num, o servidor
 // recusa-a em silêncio ou o motorista lê "Outro" — e o `t(o.chave)` dos
 // mosaicos é invisível ao verificar-traducoes, como os tipos de lugar.
@@ -135,7 +137,9 @@ const chavesCarga = [...blocoCargaFim.matchAll(/chave: '(\w+)'/g)].map((m) => m[
 const listasCarga = {
   'ecrã do pedido': naAppCarga,
   'cartão do motorista': chavesDe('src/screens/DriverHomeScreen.js', 'const CHAVE_CARGA = {'),
-  painel: chavesDe('../backend/publico/painel.html', 'const CARGA = {'),
+  painel: [
+    ...readFileSync('../painel/src/i18n/pt/comum.ts', 'utf8').matchAll(/'carga\.([a-z]+)':/g),
+  ].map((m) => m[1]),
 };
 if (!noServidorCarga.length || !naAppCarga.length)
   problemas.push('não encontrei as listas de tipos de carga');
