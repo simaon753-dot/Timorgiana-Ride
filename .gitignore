@@ -55,3 +55,7 @@ loja/capturas-originais/
 # computador do Simão; na app entram só as versões preparadas em
 # mobile/assets/. O repositório é público.
 desenho/imagens/
+
+# --- Capturas para a loja com dados pessoais (o repositório é público) ---
+loja/capturas/por-refazer/
+loja/capturas/antigas/
