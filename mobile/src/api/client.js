@@ -112,6 +112,13 @@ export const api = {
   rideHistory: (token) => request('/rides/history', { token }),
   availableRides: (token) => request('/rides/available', { token }),
   // As etapas da entrega (carregada / no_destino / descarregada), pelo motorista.
+  // ── Encomenda (jastip), 20/09/2026 ──
+  regrasDaEncomenda: (token) => request('/quote/jastip', { token }),
+  marcarComprado: (token, id, valorUsd) =>
+    request(`/rides/${id}/comprado`, { method: 'POST', body: { valorUsd }, token }),
+  enviarTalao: (token, id, { mime, base64 }) =>
+    request(`/rides/${id}/talao`, { method: 'POST', body: { mime, base64 }, token }),
+
   marcarEtapaCarga: (token, id, etapa) =>
     request(`/rides/${id}/etapa-carga`, { method: 'POST', body: { etapa }, token }),
   // "Avisar quando houver motorista", e desistir do aviso.

@@ -39,6 +39,14 @@ export default function TextField({
   sucesso = false,
   maxLength,
   onBlur,
+  // VÁRIAS LINHAS, por pedido explícito de quem chama.
+  //
+  // O campo nunca cresceu em altura porque tudo o que a app perguntava cabia
+  // numa linha — um nome, um número, uma senha. A lista de compras não cabe:
+  // são três ou quatro coisas, e vê-las todas é o que permite corrigi-las.
+  // Fica opcional para nenhum dos campos antigos mudar de forma.
+  multiline = false,
+  linhas = 4,
 }) {
   const { t } = useI18n();
   const [focused, setFocused] = useState(false);
@@ -64,6 +72,7 @@ export default function TextField({
         style={[
           styles.inputRow,
           icone && styles.comIcone,
+          multiline && [styles.inputAlto, { minHeight: 32 + 22 * linhas }],
           focused && styles.inputFocused,
           certo && styles.inputCerto,
           error && styles.inputError,
@@ -89,6 +98,10 @@ export default function TextField({
           autoCapitalize={autoCapitalize}
           autoCorrect={false}
           maxLength={maxLength}
+          multiline={multiline}
+          // No Android o texto de várias linhas nasce centrado na vertical;
+          // sem isto, a primeira linha aparece a meio da caixa.
+          textAlignVertical={multiline ? 'top' : 'auto'}
           onFocus={() => setFocused(true)}
           onBlur={() => {
             setFocused(false);
@@ -138,6 +151,10 @@ const criarEstilos = () =>
       paddingHorizontal: spacing.md,
     },
     comIcone: { paddingLeft: 0 },
+    // A altura vem do número de linhas pedido (22 px por linha, mais o ar de
+    // cima e de baixo): o campo abre já com o tamanho do que se espera lá
+    // dentro, em vez de crescer enquanto se escreve e empurrar o ecrã.
+    inputAlto: { alignItems: 'flex-start' },
     inputFocused: { borderColor: colors.teal },
     inputCerto: { borderColor: colors.teal },
     inputError: { borderColor: colors.danger },

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bike, Car, CreditCard, HardHat, ImageUp, Lock, QrCode, RotateCcw, Save, ToggleRight, Trash2, Truck, User } from 'lucide-react';
+import { Bike, Car, CreditCard, HardHat, ImageUp, Lock, Package, Plus, QrCode, RotateCcw, Save, ToggleRight, Trash2, Truck, User } from 'lucide-react';
 import { t, tl, type Chave } from '@/i18n';
 import { api } from '@/services/admin';
 import { useDados } from '@/hooks/useDados';
 import { useSessao } from '@/lib/sessao';
 import { dataHora, dolares } from '@/lib/formato';
 import { cn } from '@/lib/utils';
-import type { FormaPagamento, Servico } from '@/types/api';
+import type { FormaPagamento, RegrasJastip, Servico } from '@/types/api';
 import { CabecalhoPagina } from '@/components/ui/cabecalho-pagina';
 import { Cartao, CartaoCabecalho, CartaoConteudo, CartaoDescricao, CartaoTitulo } from '@/components/ui/cartao';
 import { Botao } from '@/components/ui/botao';
@@ -24,6 +24,7 @@ const SECCOES = [
   { id: 'conta', rotulo: 'def.conta' as Chave, icone: User },
   { id: 'servicos', rotulo: 'def.servicos' as Chave, icone: ToggleRight },
   { id: 'carry', rotulo: 'def.carry' as Chave, icone: Truck },
+  { id: 'encomenda', rotulo: 'def.encomenda' as Chave, icone: Package },
   { id: 'formas', rotulo: 'def.formas' as Chave, icone: CreditCard },
 ];
 
@@ -50,6 +51,7 @@ export function Definicoes() {
           <SeccaoConta />
           <SeccaoServicos />
           <SeccaoCarry />
+          <SeccaoEncomenda />
           <SeccaoFormas />
         </div>
       </div>
@@ -191,6 +193,189 @@ function SeccaoServicos() {
           avisar.sucesso(
             aMudar.ativo ? t('def.servicoDesligadoAviso', { nome }) : t('def.servicoLigadoAviso', { nome })
           );
+        }}
+      />
+    </Cartao>
+  );
+}
+
+// AS REGRAS DA ENCOMENDA (20/09/2026).
+//
+// Três números e uma tabela, e cada um responde a uma pergunta que se faz em
+// voz alta: até quanto se adianta, quanto rende comprar, e a quem se confia
+// dinheiro de um motorista.
+//
+// OS ESCALÕES SÃO UMA TABELA E NÃO UMA PERCENTAGEM porque a lista de compras
+// não é uma factura: "2 kg de arroz e óleo" não tem valor até alguém chegar à
+// loja. Um escalão diz-se em voz alta à porta de um carro; uma percentagem de
+// um valor desconhecido, não.
+function SeccaoEncomenda() {
+  const { dados, erro, aCarregar, recarregar, setDados } = useDados(() => api.jastip(), []);
+  const [regras, setRegras] = useState<RegrasJastip | null>(null);
+  const [confirmar, setConfirmar] = useState(false);
+
+  useEffect(() => {
+    if (dados) setRegras(JSON.parse(JSON.stringify(dados.regras)) as RegrasJastip);
+  }, [dados]);
+
+  const lim = dados?.limites;
+  const foraDeLimites =
+    !!regras &&
+    !!lim &&
+    (regras.tetoUsd < lim.tetoUsd.min ||
+      regras.tetoUsd > lim.tetoUsd.max ||
+      regras.viagensMinimas < lim.viagensMinimas.min ||
+      regras.viagensMinimas > lim.viagensMinimas.max ||
+      regras.escaloes.some((e) => !Number.isFinite(e.ate) || e.ate < 1 || e.taxa < lim.taxa.min || e.taxa > lim.taxa.max));
+  const mudou = !!dados && !!regras && JSON.stringify(regras) !== JSON.stringify(dados.regras);
+
+  function mudarEscalao(i: number, campo: 'ate' | 'taxa', valor: string) {
+    if (!regras) return;
+    const escaloes = regras.escaloes.map((e, n) => (n === i ? { ...e, [campo]: Number(valor) } : e));
+    setRegras({ ...regras, escaloes });
+  }
+
+  return (
+    <Cartao id="encomenda" className="scroll-mt-24">
+      <CartaoCabecalho>
+        <div>
+          <CartaoTitulo>{t('def.encomenda')}</CartaoTitulo>
+          <CartaoDescricao className="max-w-3xl">{t('def.encomendaNota')}</CartaoDescricao>
+        </div>
+      </CartaoCabecalho>
+      {erro && !dados ? (
+        <EstadoErro mensagem={erro} aoTentar={recarregar} />
+      ) : aCarregar || !dados || !regras || !lim ? (
+        <CartaoConteudo className="space-y-3">
+          <Esqueleto className="h-6 w-64" />
+          <Esqueleto className="h-40 w-full" />
+        </CartaoConteudo>
+      ) : (
+        <CartaoConteudo className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Rotulo htmlFor="jastip-teto">{t('def.encomendaTeto')}</Rotulo>
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-secundario">US$</span>
+                <Campo
+                  id="jastip-teto"
+                  type="number"
+                  inputMode="decimal"
+                  step="1"
+                  min={lim.tetoUsd.min}
+                  max={lim.tetoUsd.max}
+                  value={regras.tetoUsd}
+                  onChange={(e) => setRegras({ ...regras, tetoUsd: Number(e.target.value) })}
+                  className="numeros pl-11"
+                />
+              </div>
+              <Ajuda>{t('def.encomendaTetoNota')}</Ajuda>
+            </div>
+            <div>
+              <Rotulo htmlFor="jastip-viagens">{t('def.encomendaViagens')}</Rotulo>
+              <Campo
+                id="jastip-viagens"
+                type="number"
+                inputMode="numeric"
+                step="1"
+                min={lim.viagensMinimas.min}
+                max={lim.viagensMinimas.max}
+                value={regras.viagensMinimas}
+                onChange={(e) => setRegras({ ...regras, viagensMinimas: Number(e.target.value) })}
+                className="numeros"
+              />
+              <Ajuda>{t('def.encomendaViagensNota')}</Ajuda>
+            </div>
+          </div>
+
+          <fieldset>
+            <legend className="text-sm font-semibold">{t('def.encomendaEscaloes')}</legend>
+            <p className="mb-3 text-xs text-secundario">{t('def.encomendaEscaloesNota')}</p>
+            <ul className="space-y-3">
+              {regras.escaloes.map((e, i) => (
+                <li key={i} className="flex flex-wrap items-end gap-3">
+                  <div className="w-36">
+                    <Rotulo htmlFor={`jastip-ate-${i}`}>{t('def.encomendaAte')}</Rotulo>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-secundario">US$</span>
+                      <Campo
+                        id={`jastip-ate-${i}`}
+                        type="number"
+                        inputMode="decimal"
+                        step="1"
+                        min={1}
+                        value={e.ate}
+                        onChange={(ev) => mudarEscalao(i, 'ate', ev.target.value)}
+                        className="numeros pl-11"
+                      />
+                    </div>
+                  </div>
+                  <div className="w-36">
+                    <Rotulo htmlFor={`jastip-taxa-${i}`}>{t('def.encomendaTaxa')}</Rotulo>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-secundario">US$</span>
+                      <Campo
+                        id={`jastip-taxa-${i}`}
+                        type="number"
+                        inputMode="decimal"
+                        step="0.25"
+                        min={lim.taxa.min}
+                        max={lim.taxa.max}
+                        value={e.taxa}
+                        onChange={(ev) => mudarEscalao(i, 'taxa', ev.target.value)}
+                        className="numeros pl-11"
+                      />
+                    </div>
+                  </div>
+                  {/* O ÚLTIMO ESCALÃO NÃO SE RETIRA: sem escalão nenhum não há
+                      taxa, e o servidor repunha os de fábrica sem ninguém
+                      perceber porquê. */}
+                  {regras.escaloes.length > 1 ? (
+                    <Botao
+                      variante="secundario"
+                      onClick={() => setRegras({ ...regras, escaloes: regras.escaloes.filter((_, n) => n !== i) })}
+                    >
+                      <Trash2 /> {t('def.encomendaRetirar')}
+                    </Botao>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+            <Botao
+              variante="secundario"
+              className="mt-3"
+              onClick={() =>
+                setRegras({
+                  ...regras,
+                  escaloes: [...regras.escaloes, { ate: regras.tetoUsd, taxa: regras.escaloes[regras.escaloes.length - 1]?.taxa ?? 1 }],
+                })
+              }
+            >
+              <Plus /> {t('def.encomendaJuntar')}
+            </Botao>
+          </fieldset>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-borda pt-5">
+            <p className="text-xs text-secundario">
+              {t('def.padrao', { v: `${dolares(dados.padrao.tetoUsd)} · ${dados.padrao.viagensMinimas}` })}
+            </p>
+            <Botao disabled={!mudou} onClick={() => (foraDeLimites ? avisar.erro(t('def.valorInvalido')) : setConfirmar(true))}>
+              <Save /> {t('def.encomendaGuardar')}
+            </Botao>
+          </div>
+        </CartaoConteudo>
+      )}
+
+      <DialogoConfirmacao
+        aberto={confirmar}
+        aoMudar={(v) => !v && setConfirmar(false)}
+        titulo={t('def.encomendaGuardarTitulo')}
+        texto={t('def.encomendaGuardarTexto')}
+        rotuloConfirmar={t('comum.confirmar')}
+        aoConfirmar={async () => {
+          if (!regras) return;
+          setDados(await api.gravarJastip(regras));
+          avisar.sucesso(t('def.encomendaGuardada'));
         }}
       />
     </Cartao>

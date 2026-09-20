@@ -7,8 +7,11 @@ import {
   gravarCarryAtivo,
   estadoDosServicos,
   gravarServicoAtivo,
+  estadoJastip,
+  gravarRegrasJastip,
 } from '../configServico.js';
 import { historicoDe } from '../eventos.js';
+import { jastipPublico } from '../jastip.js';
 import { listarParadas, criarParada, apagarParada } from '../paradas.js';
 import { requireAuth } from '../auth.js';
 import { query, one, tx } from '../db.js';
@@ -388,6 +391,26 @@ adminRouter.put(
     } catch (e) {
       respostaDePolitica(res, e);
     }
+  })
+);
+
+// ── AS REGRAS DA ENCOMENDA (jastip) ─────────────────────────────────────
+//
+// O teto, os escalões da taxa e quantas viagens se exigem a quem encomenda.
+// Editáveis aqui e não escritas no código porque são preço e política, e
+// mudam com a cidade — mas dentro de limites (`LIMITES_JASTIP`): o que o
+// painel manda é validado outra vez do lado de cá.
+adminRouter.get(
+  '/jastip',
+  wrap(async (_req, res) => res.json(estadoJastip()))
+);
+
+adminRouter.put(
+  '/jastip',
+  wrap(async (req, res) => {
+    await gravarRegrasJastip(req.body || {}, req.user.id);
+    registarAcesso(req.user.id, 'mudou as regras da encomenda', null);
+    res.json(estadoJastip());
   })
 );
 
@@ -922,6 +945,12 @@ adminRouter.get(
               fotos: nFotos,
             }
           : null,
+        // A ENCOMENDA, com o que já se sabe dela: a lista, o teto autorizado,
+        // a taxa do serviço e — depois de o motorista comprar — o valor do
+        // talão e o total em dinheiro. As fotografias contam-se do mesmo sítio
+        // que as da carga: numa encomenda o que lá está é o talão, que é
+        // exactamente a prova que se vem cá procurar.
+        jastip: r.servico === 'jastip' ? { ...jastipPublico(r), fotos: nFotos } : null,
         // O código de recolha só faz sentido enquanto a viagem não começou;
         // depois disso é um segredo gasto que não precisa de ser mostrado.
         codigoRecolha: ['requested', 'accepted', 'arriving'].includes(r.status)

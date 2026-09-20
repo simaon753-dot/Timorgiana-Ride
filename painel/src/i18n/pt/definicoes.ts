@@ -18,6 +18,7 @@ export const definicoes = {
   'def.emConstrucaoNota': 'Ainda não se pode ligar: o serviço não está pronto.',
   'def.familia.viagem': 'Transporte de pessoas',
   'def.familia.entrega': 'Transporte de bens',
+  'def.familia.encomenda': 'Compras por conta do passageiro',
   'def.servicoAlterado': 'Alterado a {data}',
   'def.ligarTitulo': 'Ligar «{nome}»?',
   'def.ligarTexto': 'Os passageiros passam a poder pedir este serviço de imediato.',
@@ -29,6 +30,7 @@ export const definicoes = {
   'servico.motorbike': 'Motorizada',
   'servico.car': 'Carro',
   'servico.carry': 'Pickup',
+  'servico.jastip': 'Encomenda',
 
   'def.carry': 'Preços do Pickup',
   'def.carryOndeLigar': 'Ligar e desligar o Pickup faz-se em Serviços, aqui em cima.',
@@ -74,6 +76,25 @@ export const definicoes = {
   'def.pedidos7d': 'Pedidos de Pickup (7 dias)',
   'def.motoristasCarry': 'Motoristas Pickup por capacidade',
   'def.nOnline': '{n} online',
+
+  'def.encomenda': 'Encomenda',
+  'def.encomendaNota':
+    'Quem encomenda pede ao motorista que compre uma coisa e lha entregue. O dinheiro da compra sai do bolso do motorista, e é por isso que estas três regras existem: um teto ao que se adianta, uma taxa pelo trabalho e um mínimo de viagens a quem pede.',
+  'def.encomendaTeto': 'Máximo que se pode adiantar',
+  'def.encomendaTetoNota': 'O passageiro escolhe um valor até este. Nunca se compra acima do que ele autorizou.',
+  'def.encomendaViagens': 'Viagens concluídas exigidas',
+  'def.encomendaViagensNota': 'Contam as viagens em que a pessoa foi passageiro. Zero abre a encomenda a contas acabadas de criar.',
+  'def.encomendaEscaloes': 'Taxa do serviço, por escalão',
+  'def.encomendaEscaloesNota':
+    'Cobra-se pelo escalão em que o talão cair — e nunca mais do que o escalão do teto que o passageiro viu ao pedir.',
+  'def.encomendaAte': 'Compras até',
+  'def.encomendaTaxa': 'Taxa',
+  'def.encomendaJuntar': 'Juntar escalão',
+  'def.encomendaRetirar': 'Retirar',
+  'def.encomendaGuardar': 'Guardar regras da encomenda',
+  'def.encomendaGuardada': 'Regras da encomenda guardadas.',
+  'def.encomendaGuardarTitulo': 'Guardar as regras da encomenda?',
+  'def.encomendaGuardarTexto': 'Valem para as encomendas pedidas a partir de agora. As que já estão em curso mantêm o que foi combinado.',
 
   'def.formas': 'Formas de pagamento',
   'def.formasNota': 'Como os motoristas pagam a Taxa de Acesso. Só aparecem na app as formas ligadas, com as instruções que escrever aqui.',

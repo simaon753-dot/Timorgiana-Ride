@@ -31,6 +31,7 @@ import { api } from '../api/client.js';
 import { paraMostrar } from '../lib/datas.js';
 import SosButton from '../components/SosButton.js';
 import RatingPanel from '../components/RatingPanel.js';
+import { ResumoEncomenda, RegistarCompra } from '../components/Encomenda.js';
 import { rideMarkers } from '../lib/rideMarkers.js';
 import { VEICULOS, nomeDoVeiculo } from '../dados/tiposDeVeiculo.js';
 import { useI18n } from '../i18n/index.js';
@@ -576,6 +577,17 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
           ) : null}
         </View>
       ) : null}
+      {/* A ENCOMENDA, ANTES DE ACEITAR — pela mesma razão que a carga, e com
+          uma a mais: aqui o motorista vai adiantar dinheiro DELE. O teto é o
+          número que o faz decidir, e tem de estar à vista antes do "Simu", não
+          depois. */}
+      {ride.jastip ? (
+        <ResumoEncomenda
+          lista={ride.jastip.lista}
+          teto={ride.jastip.teto}
+          taxa={ride.jastip.taxa}
+        />
+      ) : null}
       {/* CARRY COM PESSOAS: quantas, antes de aceitar. Um grupo de doze na
           caixa é outra decisão do que uma máquina de lavar. */}
       {ride.vehicleType === 'carry' && !ride.carga && ride.passengers ? (
@@ -633,7 +645,10 @@ function ActiveRideCard({
 }) {
   const { t } = useI18n();
   const { unread } = useRides();
+  const { token } = useAuth();
   const [aCancelar, setACancelar] = useState(false);
+  const [aRegistarCompra, setARegistarCompra] = useState(false);
+  const [aGuardarCompra, setAGuardarCompra] = useState(false);
   const [aPedirCodigo, setAPedirCodigo] = useState(false);
   const [erroCodigo, setErroCodigo] = useState(null);
   const [aIniciar, setAIniciar] = useState(false);
@@ -670,6 +685,29 @@ function ActiveRideCard({
       Alert.alert(t('errGeneric'), e?.message || '');
     }
   }
+  // A COMPRA REGISTA-SE EM DOIS PEDIDOS, e o valor vai primeiro.
+  //
+  // É o valor que muda a tarifa e que o passageiro recebe por notificação; a
+  // fotografia do talão é prova, e prova pode chegar um segundo depois. Se a
+  // fotografia falhar (rede fraca à porta de uma loja é o normal), a compra
+  // fica registada na mesma — o contrário obrigaria o motorista a repetir o
+  // valor e arriscava-se a registá-lo duas vezes.
+  async function registarCompra({ valorUsd, foto }) {
+    setAGuardarCompra(true);
+    try {
+      await api.marcarComprado(token, ride.id, valorUsd);
+      if (foto) {
+        await api.enviarTalao(token, ride.id, foto).catch(() => {});
+      }
+      setARegistarCompra(false);
+      Alert.alert(t('encomendaGuardada'));
+    } catch (e) {
+      Alert.alert(t('errGeneric'), e?.message === 'NETWORK' ? t('errNetwork') : e?.message || '');
+    } finally {
+      setAGuardarCompra(false);
+    }
+  }
+
   const active = ['accepted', 'arriving', 'in_progress'].includes(ride.status);
   const aIrBuscar = ride.status === 'accepted' || ride.status === 'arriving';
   const tipoV = VEICULOS[ride.vehicleType];
@@ -789,6 +827,16 @@ function ActiveRideCard({
         />
       </View>
 
+      {ride.jastip ? (
+        <ResumoEncomenda
+          lista={ride.jastip.lista}
+          teto={ride.jastip.teto}
+          taxa={ride.jastip.taxa}
+          compras={ride.jastip.compras}
+          total={ride.jastip.total}
+        />
+      ) : null}
+
       {/* A GRELHA DE ACÇÕES, arrumada pelo Simão a 16/09/2026:
           1. A ACÇÃO DE TRABALHO em cima, sozinha e maior: Iha dalan ona,
              Hahú ona viajen, Viajen remata ona. Carrega-se em todas as
@@ -803,6 +851,22 @@ function ActiveRideCard({
           disputar o olhar com ela. */}
       {active ? (
         <View style={styles.accoes}>
+          {/* "JÁ COMPREI" ACIMA DA ACÇÃO DE TRABALHO, e só enquanto não houver
+              compra registada. Na encomenda é este o passo que acontece
+              primeiro, à porta da loja; deixá-lo por baixo do "Viagem
+              terminada" era pôr a ordem ao contrário. Depois de registado
+              desaparece: o valor já mudou a tarifa e não se corrige aqui. */}
+          {ride.jastip && !ride.jastip.compradoEm ? (
+            <View style={styles.accoesLinha}>
+              <BotaoAccao
+                icone="caixa"
+                titulo={t('encomendaJaComprei')}
+                variante="cheio"
+                grande
+                onPress={() => setARegistarCompra(true)}
+              />
+            </View>
+          ) : null}
           <View style={styles.accoesLinha}>
             <BotaoAccao
               icone={principal.icone}
@@ -871,6 +935,14 @@ function ActiveRideCard({
           setErroCodigo(null);
         }}
         onConfirmar={comecar}
+      />
+
+      <RegistarCompra
+        visivel={aRegistarCompra}
+        teto={ride.jastip?.teto}
+        aGuardar={aGuardarCompra}
+        onFechar={() => setARegistarCompra(false)}
+        onGuardar={registarCompra}
       />
 
       <MotivoCancelamento

@@ -15,6 +15,7 @@ import CodigoRecolha from './CodigoRecolha.js';
 import MotivoCancelamento from './MotivoCancelamento.js';
 import ShareTripButton from './ShareTripButton.js';
 import RatingPanel from './RatingPanel.js';
+import { ResumoEncomenda } from './Encomenda.js';
 import { statusMeta } from './StatusBadge.js';
 import { rideMarkers } from '../lib/rideMarkers.js';
 import { minutosAte, horaDeChegada } from '../lib/estimativa.js';
@@ -115,6 +116,27 @@ export default function ViagemPassageiro({ ride, navigation }) {
           paragens={ride.destinos || []}
         />
       </View>
+
+      {/* A ENCOMENDA, ao lado do percurso: numa encomenda o percurso sozinho
+          não diz nada — "da loja para casa" é meia frase sem a lista.
+          Enquanto o motorista não comprar, `compras` é `null` e o cartão
+          mostra só o teto: o total não se inventa antes do talão. */}
+      {ride.jastip ? (
+        <>
+          <ResumoEncomenda
+            lista={ride.jastip.lista}
+            teto={ride.jastip.teto}
+            taxa={ride.jastip.taxa}
+            compras={ride.jastip.compras}
+            total={ride.jastip.total}
+          />
+          {ride.jastip.compradoEm ? (
+            <Text style={styles.encomendaComprou}>
+              {t('encomendaComprou', { v: `$${Number(ride.jastip.total || 0).toFixed(2)}` })}
+            </Text>
+          ) : null}
+        </>
+      ) : null}
 
       {/* O ROSTO AO LADO DO NOME, e não um nome sozinho.
           A política de segurança manda confirmar "a matrícula, o modelo do
@@ -282,6 +304,11 @@ function AcaoRedonda({ icone, rotulo, contagem, onPress }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
+    encomendaComprou: {
+      ...tipo.corpoForte,
+      color: colors.text,
+      marginTop: spacing.sm,
+    },
     cabeca: {
       flexDirection: 'row',
       alignItems: 'center',

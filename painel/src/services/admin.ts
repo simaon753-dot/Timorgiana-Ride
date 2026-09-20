@@ -3,12 +3,14 @@ import type {
   AcessoRegistado,
   Devolucao,
   EstadoCarry,
+  EstadoJastip,
   EstadoLugar,
   EstadoMotorista,
   Estatisticas,
   FormaPagamento,
   LugarProposto,
   Parada,
+  RegrasJastip,
   RespostaCarry,
   RespostaContaDetalhe,
   RespostaMotoristas,
@@ -117,6 +119,10 @@ export const api = {
   servicos: () => pedir<{ servicos: Servico[] }>('/admin/servicos'),
   ligarServico: (id: string, ativo: boolean) =>
     pedir<{ servicos: Servico[] }>(`/admin/servicos/${id}/ativo`, { method: 'PUT', corpo: { ativo } }),
+
+  // Regras da encomenda (jastip)
+  jastip: () => pedir<EstadoJastip>('/admin/jastip'),
+  gravarJastip: (regras: RegrasJastip) => pedir<EstadoJastip>('/admin/jastip', { method: 'PUT', corpo: regras }),
 
   // Definições do Carry
   carry: () => pedir<RespostaCarry>('/admin/carry'),

@@ -12,6 +12,7 @@ import RecuperarScreen from '../screens/RecuperarScreen.js';
 import RequestRideScreen from '../screens/RequestRideScreen.js';
 import EscolherDestinoScreen from '../screens/EscolherDestinoScreen.js';
 import EscolherCarryScreen from '../screens/EscolherCarryScreen.js';
+import EncomendaScreen from '../screens/EncomendaScreen.js';
 import DriverPendingScreen from '../screens/DriverPendingScreen.js';
 import ChatScreen from '../screens/ChatScreen.js';
 import ServerScreen from '../screens/ServerScreen.js';
@@ -71,6 +72,10 @@ export default function RootNavigator() {
                 viagem, incluindo quem também conduz. */}
               <Stack.Screen name="EscolherCarry" component={EscolherCarryScreen} />
               <Stack.Screen name="EscolherDestino" component={EscolherDestinoScreen} />
+              {/* A encomenda vem ANTES do preço: é o teto dela que decide a
+                taxa do serviço. Por isso é ecrã próprio e não um passo do
+                RequestRide — que a recebe já feita, por parâmetro. */}
+              <Stack.Screen name="Encomenda" component={EncomendaScreen} />
               <Stack.Screen name="RequestRide" component={RequestRideScreen} />
               {/* O registo de motorista deixou de ser uma prisão: quem
                 espera aprovação continua a poder pedir viagens, e chega

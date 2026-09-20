@@ -204,6 +204,46 @@ export function DetalheViagem({ id, aoFechar }: { id: number | null; aoFechar: (
             </Bloco>
           ) : null}
 
+          {v.jastip ? (
+            <Bloco titulo={t('det.encomenda')}>
+              <p className="text-xs text-secundario">{t('det.encomendaLista')}</p>
+              <p className="mt-0.5 whitespace-pre-line text-sm">«{v.jastip.lista}»</p>
+              <dl className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <Dado rotulo={t('det.encomendaTeto')}>
+                  <span className="numeros">{dolares(v.jastip.teto)}</span>
+                </Dado>
+                <Dado rotulo={t('det.encomendaTaxa')}>
+                  <span className="numeros">{dolares(v.jastip.taxa)}</span>
+                </Dado>
+                <Dado rotulo={t('det.encomendaCompras')}>
+                  <span className="numeros">{v.jastip.compras == null ? '—' : dolares(v.jastip.compras)}</span>
+                </Dado>
+                <Dado rotulo={t('det.encomendaTotal')}>
+                  <span className="numeros font-semibold">{v.jastip.total == null ? '—' : dolares(v.jastip.total)}</span>
+                </Dado>
+              </dl>
+              <p className="mt-2 text-xs text-secundario">
+                {v.jastip.compradoEm ? t('det.encomendaComprada', { data: dataHora(v.jastip.compradoEm) }) : t('det.encomendaPorComprar')}
+              </p>
+              {/* O TALÃO é a prova de quanto saiu do bolso do motorista, e por
+                  isso mostra-se aqui e não entre as fotografias da carga: numa
+                  encomenda não há carga nenhuma. */}
+              {v.jastip.fotos ? (
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  {Array.from({ length: v.jastip.fotos }).map((_, i) => (
+                    <ImagemProtegida
+                      key={i}
+                      caminho={caminhos.fotoCarga(v.id, i)}
+                      alt={`${t('det.encomendaTalao')} ${i + 1}`}
+                      className="aspect-[4/3]"
+                      aoAbrir={setLupa}
+                    />
+                  ))}
+                </div>
+              ) : null}
+            </Bloco>
+          ) : null}
+
           <Bloco titulo={t('det.cronologia')}>
             <ol className="relative space-y-4 border-l border-borda pl-5">
               {eventos.map((e, i) => (

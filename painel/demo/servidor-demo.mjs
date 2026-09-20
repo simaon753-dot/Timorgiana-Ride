@@ -123,6 +123,20 @@ const viagens = Array.from({ length: 28 }).map((_, i) => {
     canceladoPeloPassageiro: estado === 'cancelled' ? true : null,
     veiculo,
     paragens: i % 7 === 0 ? ['Colmera'] : [],
+    // Uma viagem em cada sete é uma encomenda, para o detalhe ter o que
+    // mostrar. As que já terminaram têm talão; as outras ainda não compraram.
+    jastip:
+      i % 7 === 3
+        ? {
+            lista: '2 kg de arroz, 1 garrafa de óleo, pão',
+            teto: 25,
+            taxa: 1.5,
+            compras: estado === 'completed' ? 18.4 : null,
+            compradoEm: estado === 'completed' ? ha(i * 2.7) : null,
+            total: estado === 'completed' ? Math.round((1.5 + km * 0.5 + 18.4) * 100) / 100 : null,
+            fotos: estado === 'completed' ? 1 : 0,
+          }
+        : null,
     carga: veiculo === 'carry' && i % 2 === 1
       ? { tipo: 'moveis', tipos: ['moveis'], volume: 'grande', ajuda: 'ambas', notas: 'Um armário e duas cadeiras.', outro: null, fotos: 2 }
       : null,
@@ -184,8 +198,24 @@ const servicos = [
   { id: 'carry', familia: 'entrega', emConstrucao: false, ativo: true, atualizado: { em: ha(300), por: 99 } },
   // Só na demonstração: serve para ver o estado "em construção" — o
   // interruptor fica bloqueado e o servidor recusa ligá-lo.
-  { id: 'jastip', familia: 'entrega', emConstrucao: true, ativo: false, atualizado: null },
+  { id: 'jastip', familia: 'encomenda', emConstrucao: true, ativo: false, atualizado: null },
 ];
+
+// As regras da encomenda, iguais às de fábrica do servidor a sério.
+const JASTIP_PADRAO = {
+  tetoUsd: 25,
+  viagensMinimas: 3,
+  escaloes: [
+    { ate: 10, taxa: 1 },
+    { ate: 25, taxa: 1.5 },
+  ],
+};
+const LIMITES_JASTIP = {
+  tetoUsd: { min: 1, max: 100 },
+  viagensMinimas: { min: 0, max: 20 },
+  taxa: { min: 0, max: 10 },
+};
+let jastip = JSON.parse(JSON.stringify(JASTIP_PADRAO));
 
 const carry = {
   ativo: true,
@@ -338,6 +368,7 @@ async function api(req, res, url) {
         preco: v.preco, km: v.km, min: v.min, veiculo: v.veiculo, pessoas: 1,
         paragens: v.paragens.map((n) => ({ nome: n, lat: -8.5580, lng: 125.5790 })),
         carga: v.carga ? { ...v.carga, declaradoEm: v.quando } : null,
+        jastip: v.jastip,
         codigoRecolha: ['requested', 'accepted', 'arriving'].includes(v.estado) ? '4821' : null,
         pedida: v.quando, comecou: ['in_progress', 'completed'].includes(v.estado) ? em(9) : null, actualizada: em(9 + v.min),
         cancelamento: v.estado === 'cancelled' && v.motorista ? { por: v.passageiro, motivo: v.motivoCancelamento, quem: 'passageiro' } : null,
@@ -511,6 +542,10 @@ async function api(req, res, url) {
     s.ativo = !!(await corpoDe(req)).ativo;
     if (s.id === 'carry') carry.ativo = s.ativo;
     return json(res, { servicos });
+  }
+  if (p === '/admin/jastip') {
+    if (req.method === 'PUT') jastip = { ...JASTIP_PADRAO, ...((await corpoDe(req)) || {}) };
+    return json(res, { regras: jastip, padrao: JASTIP_PADRAO, limites: LIMITES_JASTIP });
   }
   if (p === '/admin/carry') {
     return json(res, {

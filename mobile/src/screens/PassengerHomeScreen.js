@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BarraEstado from '../design/BarraEstado.js';
 import { TIPOS_VEICULO, VEICULOS } from '../dados/tiposDeVeiculo.js';
+import { SERVICOS_EXTRA } from '../dados/servicos.js';
 import Icone from '../design/Icone.js';
 import { tipo } from '../design/tipografia.js';
 import AvisoTeste from '../components/AvisoTeste.js';
@@ -198,6 +199,47 @@ export default function PassengerHomeScreen({ navigation }) {
                 </Pressable>
               ))}
             </View>
+
+            {/* OS SERVIÇOS QUE NÃO SÃO VEÍCULOS (encomenda, e o que vier).
+                Só aparecem quando o servidor os diz LIGADOS — repare-se que
+                a condição é `=== true` e não `!== false`, ao contrário da
+                dos veículos acima. A diferença é deliberada: um veículo que
+                sempre existiu não deve desaparecer por falta de rede, mas um
+                serviço novo não deve aparecer por ela. Sem resposta, mostra-se
+                o que já se conhecia. */}
+            {SERVICOS_EXTRA.filter((s) => servicos?.[s.id]?.ativo === true).length ? (
+              <>
+                <Text style={styles.maisTitulo}>{t('maisServicos')}</Text>
+                <View style={styles.extras}>
+                  {SERVICOS_EXTRA.filter((s) => servicos?.[s.id]?.ativo === true).map((s) => (
+                    <Pressable
+                      key={s.id}
+                      style={({ pressed }) => [
+                        styles.extra,
+                        { backgroundColor: colors[s.tinta] || colors.white },
+                        pressed && styles.premido,
+                      ]}
+                      onPress={() => navigation.navigate(s.ecra)}
+                      accessibilityRole="button"
+                      accessibilityLabel={t(s.chaveNome)}
+                    >
+                      <View style={[styles.veiculoIcone, { backgroundColor: colors[s.acento] }]}>
+                        <Icone nome={s.icone} tamanho={18} cor={colors.onAcento} />
+                      </View>
+                      <View style={styles.veiculoTextos}>
+                        <Text style={styles.veiculoNome} numberOfLines={1}>
+                          {t(s.chaveNome)}
+                        </Text>
+                        <Text style={styles.veiculoNota} numberOfLines={2}>
+                          {t(s.chaveNota)}
+                        </Text>
+                      </View>
+                      <Icone nome="seta" tamanho={18} cor={colors[s.acento]} traco={2.5} />
+                    </Pressable>
+                  ))}
+                </View>
+              </>
+            ) : null}
           </View>
         )}
 
@@ -281,6 +323,18 @@ const criarEstilos = () =>
     saudacao: { ...tipo.display, color: colors.text },
     saudacaoNome: { ...tipo.display, color: colors.teal },
     convite: { ...tipo.corpo, color: colors.textMuted, marginTop: spacing.xs },
+    // Os serviços extra são cartões BAIXOS, sem fotografia: a hierarquia do
+    // ecrã tem de continuar a dizer que o principal é escolher um veículo.
+    maisTitulo: { ...tipo.subtitulo, color: colors.text, marginTop: spacing.lg },
+    extras: { gap: spacing.sm, marginTop: spacing.sm },
+    extra: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      ...elevacao.plana,
+    },
     premido: { opacity: 0.92, transform: [{ scale: 0.995 }] },
     veiculoDesligado: { opacity: 0.5 },
 

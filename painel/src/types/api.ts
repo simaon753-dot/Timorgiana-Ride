@@ -139,6 +139,19 @@ export interface Carga {
   declaradoEm?: string | null;
 }
 
+// A encomenda (jastip) de uma viagem. `compras` e `total` só existem depois
+// de o motorista registar o talão: antes disso ninguém sabe o valor, e um
+// zero ali seria uma afirmação falsa.
+export interface Jastip {
+  lista: string;
+  teto: number;
+  taxa: number;
+  compras: number | null;
+  compradoEm: string | null;
+  total: number | null;
+  fotos?: number;
+}
+
 export interface ViagemLinha {
   id: number;
   estado: EstadoViagem;
@@ -190,6 +203,7 @@ export interface ViagemDetalhe {
   pessoas: number | null;
   paragens: Ponto[];
   carga: Carga | null;
+  jastip: Jastip | null;
   codigoRecolha: string | null;
   pedida: string;
   comecou: string | null;
@@ -403,6 +417,24 @@ export interface Servico {
   emConstrucao: boolean;
   ativo: boolean;
   atualizado: { em: string; por: number | null } | null;
+}
+
+// GET /api/admin/jastip — as regras da encomenda, os valores de fábrica e os
+// limites dentro dos quais o painel pode mexer.
+export interface RegrasJastip {
+  tetoUsd: number;
+  viagensMinimas: number;
+  escaloes: { ate: number; taxa: number }[];
+}
+
+export interface EstadoJastip {
+  regras: RegrasJastip;
+  padrao: RegrasJastip;
+  limites: {
+    tetoUsd: { min: number; max: number };
+    viagensMinimas: { min: number; max: number };
+    taxa: { min: number; max: number };
+  };
 }
 
 export interface EstadoCarry {

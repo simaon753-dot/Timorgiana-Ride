@@ -39,6 +39,7 @@ import Cartao from '../design/Cartao.js';
 import { LinhaInfo } from '../design/LinhaMenu.js';
 import NomearLugar from '../components/NomearLugar.js';
 import SegmentedPicker from '../components/SegmentedPicker.js';
+import { ResumoEncomenda } from '../components/Encomenda.js';
 import { LUGARES, LUGARES_CARRY } from '../dados/veiculos.js';
 import { nomeDoLugar, rotuloCoordenadas } from '../lib/geocode.js';
 import { seguirPosicao } from '../lib/posicao.js';
@@ -83,7 +84,11 @@ export default function RequestRideScreen({ navigation, route }) {
     [t]
   );
 
-  const [origem, setOrigem] = useState(null); // { lat, lng, label }
+  // A ENCOMENDA (jastip, 20/09/2026) chega feita do ecrã anterior: a lista, o
+  // teto, a loja (que é a ORIGEM — é lá que o motorista compra) e onde
+  // entregar (o destino). Numa viagem normal isto é tudo nulo e nada muda.
+  const encomenda = route?.params?.jastip || null;
+  const [origem, setOrigem] = useState(route?.params?.origem || null); // { lat, lng, label }
   // Um destino pode chegar já escolhido — de um lugar guardado ou de um
   // recente no ecrã inicial. Poupa a pesquisa inteira, que numa rede
   // lenta é a parte que custa.
@@ -323,6 +328,10 @@ export default function RequestRideScreen({ navigation, route }) {
               ...(modoCarry === 'bens' ? { cargaVolume, cargaAjuda } : {}),
             }
           : {}),
+        // A TAXA DA ENCOMENDA vai na cotação, e não só no pedido. O passageiro
+        // compara mota e carro pelos números do ecrã; se a taxa aparecesse só
+        // no fim, escolhia por um preço e pagava outro.
+        ...(encomenda ? { servico: 'jastip', jastipTeto: encomenda.teto } : {}),
       })
       .then((q) => {
         if (cancelado) return;
@@ -534,9 +543,14 @@ export default function RequestRideScreen({ navigation, route }) {
 
   // Pedir a localização logo à entrada: quase sempre a recolha é onde a
   // pessoa está, e poupa-lhe um toque.
+  //
+  // NUMA ENCOMENDA NÃO. A origem é a loja escolhida no ecrã anterior, e o
+  // satélite não tem nada que a corrigir: quem escolheu o mercado de Taibessi
+  // não quer o pino na rua onde está a olhar para o telemóvel.
   useEffect(() => {
+    if (encomenda) return;
     usarLocalizacao();
-  }, [usarLocalizacao]);
+  }, [usarLocalizacao, encomenda]);
 
   // Alguém arrastou um pino para o sítio certo.
   //
@@ -769,6 +783,12 @@ export default function RequestRideScreen({ navigation, route }) {
               // suspensórios de propósito — um telemóvel modificado manda o
               // que quiser, e o preço é calculado do lado de lá.
               destinos: paragensActivas,
+            }
+          : {}),
+        ...(encomenda
+          ? {
+              servico: 'jastip',
+              jastip: { lista: encomenda.lista, teto: encomenda.teto },
             }
           : {}),
         ...(paraOutra
@@ -1515,6 +1535,19 @@ export default function RequestRideScreen({ navigation, route }) {
                   Aqui e não antes, porque no Timor Plaza só o carro paga —
                   o aviso muda conforme o que se escolhe. */}
               <TaxasDeEntrada taxas={orcamento.taxasDeEntrada} tipoVeiculo={veiculoAtual} t={t} />
+
+              {/* O QUE FOI ENCOMENDADO, à vista enquanto se escolhe o veículo.
+                  A taxa mostrada é a que o servidor devolveu com a cotação
+                  (`taxaJastip`) e não a que o ecrã anterior previu: quem cobra
+                  é o servidor, e duas contas paralelas acabam a discordar. */}
+              {encomenda ? (
+                <ResumoEncomenda
+                  lista={encomenda.lista}
+                  teto={encomenda.teto}
+                  taxa={orcamento.taxaJastip}
+                  onAlterar={() => navigation.goBack()}
+                />
+              ) : null}
 
               {/* Só em carro: numa motorizada vai sempre uma pessoa, e
                   perguntar seria fazer perder tempo com uma resposta que
