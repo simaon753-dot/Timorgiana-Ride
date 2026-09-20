@@ -171,9 +171,30 @@ const ERRO_TOLERAVEL_M = 45;
 //
 // `precisaoM` é o erro que o próprio GPS declara. Sem ele, nomear um edifício
 // é adivinhar qual dos que estão dentro do círculo de incerteza.
-export async function nomeDoLugar(lat, lng, precisaoM) {
+export async function nomeDoLugar(lat, lng, precisaoM, token) {
   const k = `l:${chave(lat, lng, 4)}`;
   if (memoria.has(k)) return memoria.get(k);
+
+  // PELO NOSSO SERVIDOR PRIMEIRO (20/09/2026), como já acontece na pesquisa.
+  //
+  // O que se ganha: os lugares que alguém baptizou vêm à frente do nome da
+  // rua, a memória é partilhada por toda a gente (o segundo passageiro no
+  // mesmo quarteirão recebe o nome sem sair do país), e quem pergunta ao
+  // OpenStreetMap passa a ser um servidor com boa ligação, e não um telemóvel
+  // numa rua de Díli.
+  //
+  // PORQUÊ. Numa conta nova, noutro telemóvel, o ecrã mostrava a coordenada
+  // ("-8.55692, 125.56021") onde a outra conta mostrava o nome: a resposta do
+  // OpenStreetMap não chegava nos nove segundos e ficava o que havia.
+  //
+  // Se o nosso servidor não responder, segue-se para o OpenStreetMap como
+  // sempre se fez. O que é novo tem de poder falhar sem levar o resto atrás.
+  if (token) {
+    const p = new URLSearchParams({ lat: String(lat), lng: String(lng) });
+    if (typeof precisaoM === 'number') p.set('precisao', String(Math.round(precisaoM)));
+    const nosso = await buscar(`${getApiUrl()}/lugares/nome?${p}`, null, token);
+    if (nosso?.nome) return lembrar(k, nosso.nome);
+  }
 
   const j = await buscar(
     `${BASE}/reverse?format=json&zoom=18&addressdetails=1&lat=${lat}&lon=${lng}`

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { requireAuth } from '../auth.js';
-import { procurar } from '../lugares.js';
+import { procurar, nomeDoPonto } from '../lugares.js';
 import { query } from '../db.js';
 import { tipoValido } from '../tiposDeLugar.js';
 import { normalizar } from '../texto.js';
@@ -67,6 +67,29 @@ lugaresRouter.get(
       Number.isFinite(raio) ? raio : undefined
     );
     res.json({ lugares });
+  })
+);
+
+// GET /api/lugares/nome?lat=&lng=&precisao= — como se chama este ponto
+//
+// Chamado ao fixar a recolha ou ao largar o pino. Devolve um nome só, e a
+// fonte dele: um lugar nosso, a memória do servidor, ou o OpenStreetMap.
+//
+// Ver `nomeDoPonto` em lugares.js para o porquê de isto ter saído do
+// telemóvel. A app sabe perguntar sozinha se isto falhar.
+lugaresRouter.get(
+  '/nome',
+  wrap(async (req, res) => {
+    const lat = Number(req.query.lat);
+    const lng = Number(req.query.lng);
+    const precisao = Number(req.query.precisao);
+    const r = await nomeDoPonto(
+      Number.isFinite(lat) ? lat : null,
+      Number.isFinite(lng) ? lng : null,
+      req.user.id,
+      Number.isFinite(precisao) ? precisao : null
+    );
+    res.json(r);
   })
 );
 

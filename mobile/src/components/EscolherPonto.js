@@ -55,7 +55,7 @@ export default function EscolherPonto({ visivel, titulo, onEscolher, onFechar })
       if (relogio.current) clearTimeout(relogio.current);
       relogio.current = setTimeout(async () => {
         const [n, r] = await Promise.all([
-          nomeDoLugar(lat, lng, 0).catch(() => null),
+          nomeDoLugar(lat, lng, 0, token).catch(() => null),
           token ? api.lugaresPerto(token, lat, lng).catch(() => null) : null,
         ]);
         setNome(n || null);

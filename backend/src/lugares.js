@@ -58,7 +58,7 @@
 // segunda pessoa a procurar "Timor Plaza" recebe a resposta sem sair do
 // país.
 
-import { procurarNossos } from './lugaresNossos.js';
+import { procurarNossos, lugaresPerto } from './lugaresNossos.js';
 
 const UA = 'TimorgianaRide/1.0 (app de transporte, Dili, Timor-Leste)';
 
@@ -101,6 +101,100 @@ function guardar(q, lugares) {
   if (memoria.size >= MAX) memoria.delete(memoria.keys().next().value);
   memoria.set(q, { lugares, quando: Date.now() });
   return lugares;
+}
+
+// ── O NOME DE UM PONTO, pelo nosso servidor (20/09/2026) ────────────────
+//
+// PORQUE MUDOU DE SÍTIO. O nome do ponto de recolha era perguntado pelo
+// PRÓPRIO TELEMÓVEL ao OpenStreetMap. Quando essa resposta não chegava em
+// nove segundos — rede fraca em Díli, ou o serviço a demorar, o que também
+// acontece — a app mostrava a coordenada: "-8.55692, 125.56021". Foi o que o
+// Simão viu numa conta nova, noutro telemóvel, no mesmo sítio onde a conta
+// dele mostrava o nome.
+//
+// Aqui ganha-se o que o telemóvel não tem:
+//
+//   1. MEMÓRIA PARTILHADA. O segundo passageiro no mesmo quarteirão recebe o
+//      nome sem ninguém sair do país. O telemóvel só se lembrava do que ELE
+//      próprio tinha perguntado, e esquecia-o ao fechar a app.
+//   2. UMA LIGAÇÃO BOA. O servidor está num centro de dados; o telemóvel está
+//      numa rua de Díli com 3G.
+//   3. OS NOSSOS LUGARES PRIMEIRO. Um sítio que alguém baptizou vale mais do
+//      que o nome da rua onde ele fica.
+//
+// A app continua a saber perguntar sozinha: se isto falhar, ela vai ao
+// OpenStreetMap como sempre foi. O que é novo tem de poder falhar sem levar o
+// resto atrás.
+const TTL_NOMES_MS = 7 * 24 * 60 * 60 * 1000;
+const MAX_NOMES = 1000;
+const nomes = new Map();
+
+// Quatro casas decimais são ~11 metros: a largura de um prédio. Com três
+// (~110 m) dois edifícios diferentes recebiam o mesmo nome.
+const chaveDoPonto = (lat, lng) => `${lat.toFixed(4)},${lng.toFixed(4)}`;
+
+// OS MESMOS NÚMEROS DA APP (ver lib/geocode.js), e não outros: estes foram
+// afinados com um caso real — o Simão estava no Centro de Formação Jurídica e
+// a app disse "Tribunal da Primeira Instância", a 93 metros. Dois sítios a
+// decidir o mesmo com limites diferentes acabam a discordar, e nesse dia
+// ninguém saberia qual dos dois estava certo.
+//
+// 35 m é o fundo de um quintal em Díli: mais do que isso, o edifício é o do
+// VIZINHO. Com um erro de GPS acima de 45 m, escolher um edifício dentro do
+// círculo de incerteza é escolher à sorte — diz-se a rua, que é verdade em
+// qualquer ponto dele.
+const PERTO_M = 35;
+const ERRO_TOLERAVEL_M = 45;
+
+function metros(a, b) {
+  const dLat = (a.lat - b.lat) * 111320;
+  const dLng = (a.lng - b.lng) * 111320 * Math.cos((a.lat * Math.PI) / 180);
+  return Math.hypot(dLat, dLng);
+}
+
+// A mesma leitura que a app fazia, agora num sítio só.
+function nomeDaResposta(j, lat, lng, precisaoM) {
+  if (!j) return null;
+  const a = j.address || {};
+  const rua = a.road || a.pedestrian || a.residential || a.neighbourhood || a.suburb;
+  const eSitio = j.addresstype && !['road', 'suburb', 'neighbourhood'].includes(j.addresstype);
+  const longe =
+    eSitio && metros({ lat, lng }, { lat: Number(j.lat), lng: Number(j.lon) }) > PERTO_M;
+  const gpsVago = typeof precisaoM === 'number' && precisaoM > ERRO_TOLERAVEL_M;
+  if (eSitio && !longe && !gpsVago && j.name) return j.name;
+  if (rua) return rua;
+  if (!j.display_name) return null;
+  return j.display_name.split(',').slice(0, 2).join(',').trim();
+}
+
+export async function nomeDoPonto(lat, lng, userId, precisaoM) {
+  if (typeof lat !== 'number' || typeof lng !== 'number') return { nome: null, fonte: 'nada' };
+
+  // 1. Os nossos, primeiro — e NÃO se guardam na memória: a lista depende de
+  //    quem pergunta (um lugar proposto e ainda por rever só o vê quem o
+  //    propôs), e uma memória partilhada mostrá-lo-ia a toda a gente.
+  const perto = await lugaresPerto(lat, lng, userId, 60);
+  const nosso = perto.find((l) => l.nome);
+  if (nosso) return { nome: nosso.nome, fonte: 'nossos' };
+
+  const chave = chaveDoPonto(lat, lng);
+  const guardado = nomes.get(chave);
+  if (guardado && Date.now() - guardado.quando < TTL_NOMES_MS) {
+    return { nome: guardado.nome, fonte: 'memoria' };
+  }
+  if (guardado) nomes.delete(chave);
+
+  const j = await comPrazo(
+    `https://nominatim.openstreetmap.org/reverse?format=json&zoom=18&addressdetails=1&lat=${lat}&lon=${lng}`,
+    { headers: { Accept: 'application/json', 'User-Agent': UA } }
+  );
+  const nome = nomeDaResposta(j, lat, lng, precisaoM);
+  // Falhas não se guardam: da próxima pode correr bem, e um vazio guardado
+  // fazia o sítio ficar sem nome durante uma semana.
+  if (!nome) return { nome: null, fonte: 'nada' };
+  if (nomes.size >= MAX_NOMES) nomes.delete(nomes.keys().next().value);
+  nomes.set(chave, { nome, quando: Date.now() });
+  return { nome, fonte: 'osm' };
 }
 
 // O último erro do Google, para o /api/health o poder mostrar.

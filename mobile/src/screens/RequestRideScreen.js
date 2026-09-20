@@ -473,7 +473,7 @@ export default function RequestRideScreen({ navigation, route }) {
         // dar um nome de edifício é escolher à sorte entre os que cabem no
         // círculo.
         setPrecisao(pos.coords.accuracy ?? null);
-        const nome = await nomeDoLugar(lat, lng, pos.coords.accuracy);
+        const nome = await nomeDoLugar(lat, lng, pos.coords.accuracy, token);
         if (nome) {
           setOrigem((p) =>
             p && p.lat === lat && p.lng === lng ? { ...p, label: nome, provisorio: false } : p
@@ -516,7 +516,7 @@ export default function RequestRideScreen({ navigation, route }) {
       meu.lat = naEstrada.lat;
       meu.lng = naEstrada.lng;
       if (!naEstrada.rua) {
-        const nome = await nomeDoLugar(naEstrada.lat, naEstrada.lng, null);
+        const nome = await nomeDoLugar(naEstrada.lat, naEstrada.lng, null, token);
         if (nome) {
           setOrigem((pp) =>
             pp && pp.lat === naEstrada.lat && pp.lng === naEstrada.lng
@@ -552,8 +552,8 @@ export default function RequestRideScreen({ navigation, route }) {
     }
     const nome =
       tipo === 'destino'
-        ? await comNomeEmVoo(nomeDoLugar(lat, lng, 0))
-        : await nomeDoLugar(lat, lng, 0);
+        ? await comNomeEmVoo(nomeDoLugar(lat, lng, 0, token))
+        : await nomeDoLugar(lat, lng, 0, token);
     if (!nome) return;
     // Bate certo com o ponto TAL COMO FOI ESCOLHIDO, mesmo que ele já tenha
     // sido encostado à estrada entretanto. Ver `escolhido` no efeito de
@@ -593,7 +593,7 @@ export default function RequestRideScreen({ navigation, route }) {
       // independentes, e numa rede de Díli esperar por um para começar o
       // outro duplica o tempo até a lista aparecer.
       const [nome, perto, cobertura, naEstrada] = await Promise.all([
-        nomeDoLugar(lat, lng, 0),
+        nomeDoLugar(lat, lng, 0, token),
         api.lugaresPerto(token, lat, lng).catch(() => ({ lugares: [] })),
         // A mesma pergunta que o servidor volta a fazer ao criar a viagem.
         api.cobertura(token, lat, lng).catch(() => null),
@@ -707,8 +707,8 @@ export default function RequestRideScreen({ navigation, route }) {
     // for este. Sem essa verificação, um nome lento de um toque antigo
     // sobrescrevia um ponto que a pessoa entretanto já tinha mudado.
     const nome = ehDestino
-      ? await comNomeEmVoo(nomeDoLugar(lat, lng))
-      : await nomeDoLugar(lat, lng);
+      ? await comNomeEmVoo(nomeDoLugar(lat, lng, null, token))
+      : await nomeDoLugar(lat, lng, null, token);
     if (!nome) return;
     // Bate certo com o ponto TAL COMO FOI ESCOLHIDO, mesmo que ele já tenha
     // sido encostado à estrada entretanto. Ver `escolhido` no efeito de
