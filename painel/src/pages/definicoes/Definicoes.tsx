@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { CreditCard, ImageUp, Lock, QrCode, RotateCcw, Save, Trash2, Truck, User } from 'lucide-react';
+import { Bike, Car, CreditCard, HardHat, ImageUp, Lock, QrCode, RotateCcw, Save, ToggleRight, Trash2, Truck, User } from 'lucide-react';
 import { t, tl, type Chave } from '@/i18n';
 import { api } from '@/services/admin';
 import { useDados } from '@/hooks/useDados';
 import { useSessao } from '@/lib/sessao';
 import { dataHora, dolares } from '@/lib/formato';
 import { cn } from '@/lib/utils';
-import type { FormaPagamento } from '@/types/api';
+import type { FormaPagamento, Servico } from '@/types/api';
 import { CabecalhoPagina } from '@/components/ui/cabecalho-pagina';
 import { Cartao, CartaoCabecalho, CartaoConteudo, CartaoDescricao, CartaoTitulo } from '@/components/ui/cartao';
 import { Botao } from '@/components/ui/botao';
@@ -22,6 +22,7 @@ import { Dado } from '@/components/comuns';
 
 const SECCOES = [
   { id: 'conta', rotulo: 'def.conta' as Chave, icone: User },
+  { id: 'servicos', rotulo: 'def.servicos' as Chave, icone: ToggleRight },
   { id: 'carry', rotulo: 'def.carry' as Chave, icone: Truck },
   { id: 'formas', rotulo: 'def.formas' as Chave, icone: CreditCard },
 ];
@@ -47,6 +48,7 @@ export function Definicoes() {
         </nav>
         <div className="min-w-0 space-y-6">
           <SeccaoConta />
+          <SeccaoServicos />
           <SeccaoCarry />
           <SeccaoFormas />
         </div>
@@ -94,6 +96,107 @@ function SeccaoConta() {
   );
 }
 
+const ICONE_SERVICO: Record<string, typeof Bike> = { motorbike: Bike, car: Car, carry: Truck };
+
+// OS SERVIÇOS, num sítio só (20/09/2026).
+//
+// Antes só o Pickup se ligava e desligava, por um caminho feito à medida dele.
+// Agora é o mesmo mecanismo para todos — e é aqui que um serviço novo aparece
+// quando for construído.
+//
+// Um serviço EM CONSTRUÇÃO mostra-se mas não se liga: o interruptor está
+// bloqueado, e o servidor recusa-o também. Duas fechaduras para a mesma porta,
+// porque esconder o botão não impede ninguém de chamar a rota à mão.
+function SeccaoServicos() {
+  const { dados, erro, aCarregar, recarregar, setDados } = useDados(() => api.servicos(), []);
+  const [aMudar, setAMudar] = useState<Servico | null>(null);
+
+  return (
+    <Cartao id="servicos" className="scroll-mt-24">
+      <CartaoCabecalho>
+        <div>
+          <CartaoTitulo>{t('def.servicos')}</CartaoTitulo>
+          <CartaoDescricao className="max-w-3xl">{t('def.servicosNota')}</CartaoDescricao>
+        </div>
+      </CartaoCabecalho>
+      {erro && !dados ? (
+        <EstadoErro mensagem={erro} aoTentar={recarregar} />
+      ) : aCarregar || !dados ? (
+        <CartaoConteudo className="space-y-3">
+          <Esqueleto className="h-14 w-full" />
+          <Esqueleto className="h-14 w-full" />
+        </CartaoConteudo>
+      ) : (
+        <ul className="divide-y divide-borda">
+          {dados.servicos.map((s) => {
+            const Icone = ICONE_SERVICO[s.id] ?? HardHat;
+            const nome = tl('servico', s.id);
+            return (
+              <li key={s.id} className="flex flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-6">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span
+                    className={cn(
+                      'flex size-10 shrink-0 items-center justify-center rounded-xl',
+                      s.emConstrucao ? 'bg-fundo text-secundario' : s.ativo ? 'bg-teal-claro text-teal-escuro' : 'bg-fundo text-secundario'
+                    )}
+                  >
+                    <Icone className="size-5" aria-hidden />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                      {nome}
+                      {s.emConstrucao ? <Distintivo cor="aviso">{t('def.emConstrucao')}</Distintivo> : null}
+                    </p>
+                    <p className="mt-0.5 text-xs text-secundario">
+                      {t(`def.familia.${s.familia}` as Chave)}
+                      {s.atualizado ? ` · ${t('def.servicoAlterado', { data: dataHora(s.atualizado.em) })}` : ''}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={cn('text-xs font-medium', s.ativo ? 'text-teal-escuro' : 'text-secundario')}>
+                    {s.emConstrucao ? t('def.emConstrucaoNota') : s.ativo ? t('def.servicoLigado') : t('def.servicoDesligado')}
+                  </span>
+                  <Interruptor
+                    checked={s.ativo}
+                    disabled={s.emConstrucao}
+                    onCheckedChange={() => setAMudar(s)}
+                    aria-label={nome}
+                  />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      <DialogoConfirmacao
+        aberto={!!aMudar}
+        aoMudar={(v) => !v && setAMudar(null)}
+        titulo={
+          aMudar
+            ? aMudar.ativo
+              ? t('def.desligarTitulo', { nome: tl('servico', aMudar.id) })
+              : t('def.ligarTitulo', { nome: tl('servico', aMudar.id) })
+            : ''
+        }
+        texto={aMudar?.ativo ? t('def.desligarTexto') : t('def.ligarTexto')}
+        rotuloConfirmar={t('comum.confirmar')}
+        perigo={aMudar?.ativo}
+        aoConfirmar={async () => {
+          if (!aMudar) return;
+          const r = await api.ligarServico(aMudar.id, !aMudar.ativo);
+          setDados(r);
+          const nome = tl('servico', aMudar.id);
+          avisar.sucesso(
+            aMudar.ativo ? t('def.servicoDesligadoAviso', { nome }) : t('def.servicoLigadoAviso', { nome })
+          );
+        }}
+      />
+    </Cartao>
+  );
+}
+
 const GRUPOS_CARRY: { rotulo: Chave; chaves: string[]; dinheiro: boolean }[] = [
   { rotulo: 'def.grupoTarifa', chaves: ['base', 'porKm', 'porMinuto', 'minimo', 'minimoPessoas', 'porParagem'], dinheiro: true },
   { rotulo: 'def.grupoVolume', chaves: ['volume.pequeno', 'volume.medio', 'volume.grande'], dinheiro: false },
@@ -101,9 +204,8 @@ const GRUPOS_CARRY: { rotulo: Chave; chaves: string[]; dinheiro: boolean }[] = [
 ];
 
 function SeccaoCarry() {
-  const { dados, erro, aCarregar, recarregar, setDados } = useDados(() => api.carry(), []);
+  const { dados, erro, aCarregar, recarregar } = useDados(() => api.carry(), []);
   const [valores, setValores] = useState<Record<string, string>>({});
-  const [confirmarAtivo, setConfirmarAtivo] = useState(false);
   const [confirmarGuardar, setConfirmarGuardar] = useState(false);
   const [confirmarRepor, setConfirmarRepor] = useState(false);
 
@@ -137,13 +239,7 @@ function SeccaoCarry() {
         </CartaoConteudo>
       ) : (
         <CartaoConteudo className="space-y-6">
-          <div className="flex items-start justify-between gap-4 rounded-xl border border-borda p-4">
-            <div>
-              <p className="text-sm font-semibold">{t('def.carryEstado')}</p>
-              <p className="mt-0.5 text-xs text-secundario">{t('def.carryEstadoNota')}</p>
-            </div>
-            <Interruptor checked={dados.ativo} onCheckedChange={() => setConfirmarAtivo(true)} aria-label={t('def.carryEstado')} />
-          </div>
+          <p className="text-xs text-secundario">{t('def.carryOndeLigar')}</p>
 
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="rounded-xl bg-fundo px-4 py-3">
@@ -239,20 +335,6 @@ function SeccaoCarry() {
         </CartaoConteudo>
       )}
 
-      <DialogoConfirmacao
-        aberto={confirmarAtivo}
-        aoMudar={setConfirmarAtivo}
-        titulo={dados?.ativo ? t('def.carryDesligar') : t('def.carryLigar')}
-        texto={dados?.ativo ? t('def.carryDesligarTexto') : t('def.carryLigarTexto')}
-        rotuloConfirmar={t('comum.confirmar')}
-        perigo={dados?.ativo}
-        aoConfirmar={async () => {
-          if (!dados) return;
-          const r = await api.carryAtivo(!dados.ativo);
-          setDados({ ...dados, ...r });
-          avisar.sucesso(r.ativo ? t('def.carryLigado') : t('def.carryDesligado'));
-        }}
-      />
       <DialogoConfirmacao
         aberto={confirmarGuardar}
         aoMudar={setConfirmarGuardar}

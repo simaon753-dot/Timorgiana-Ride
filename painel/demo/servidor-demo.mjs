@@ -177,6 +177,16 @@ let lugares = [
   editar: `https://www.openstreetmap.org/edit#map=19/${(-8.55 - i * 0.004).toFixed(5)}/${(125.57 + i * 0.01).toFixed(5)}`,
 }));
 
+// Na demonstração há um serviço por acabar, para se ver que não se liga.
+const servicos = [
+  { id: 'motorbike', familia: 'viagem', emConstrucao: false, ativo: true, atualizado: null },
+  { id: 'car', familia: 'viagem', emConstrucao: false, ativo: true, atualizado: null },
+  { id: 'carry', familia: 'entrega', emConstrucao: false, ativo: true, atualizado: { em: ha(300), por: 99 } },
+  // Só na demonstração: serve para ver o estado "em construção" — o
+  // interruptor fica bloqueado e o servidor recusa ligá-lo.
+  { id: 'jastip', familia: 'entrega', emConstrucao: true, ativo: false, atualizado: null },
+];
+
 const carry = {
   ativo: true,
   tarifa: { base: 3, porKm: 0.6, porMinuto: 0.05, minimo: 5, minimoPessoas: 8, porParagem: 1, 'volume.pequeno': 1, 'volume.medio': 1.3, 'volume.grande': 1.7, 'ajuda.carregar': 3, 'ajuda.descarregar': 3, 'ajuda.ambas': 5 },
@@ -491,6 +501,17 @@ async function api(req, res, url) {
     return json(res, { ok: true });
   }
 
+  if (p === '/admin/servicos') {
+    return json(res, { servicos: servicos.map((x) => ({ ...x, ativo: x.emConstrucao ? false : x.ativo })) });
+  }
+  if ((x = m(/^\/admin\/servicos\/([a-z]+)\/ativo$/))) {
+    const s = servicos.find((y) => y.id === x[1]);
+    if (!s) return json(res, { error: 'Serviço desconhecido.' }, 400);
+    if (s.emConstrucao) return json(res, { error: 'Este serviço ainda está em construção.' }, 400);
+    s.ativo = !!(await corpoDe(req)).ativo;
+    if (s.id === 'carry') carry.ativo = s.ativo;
+    return json(res, { servicos });
+  }
   if (p === '/admin/carry') {
     return json(res, {
       ativo: carry.ativo, tarifa: carry.tarifa, padrao: PADRAO_CARRY, campos: CAMPOS_CARRY, atualizado: null, atualizadoPorNome: null,

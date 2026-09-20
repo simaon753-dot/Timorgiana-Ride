@@ -1,4 +1,4 @@
-import { config } from './config.js';
+import { config, SERVICOS } from './config.js';
 import { query } from './db.js';
 
 // OS PREÇOS DO CARRY, EDITÁVEIS NO PAINEL (14/09/26).
@@ -35,8 +35,12 @@ export const CAMPOS_CARRY = [
   { chave: 'ajuda.ambas', min: 0, max: 50 },
 ];
 
-let carryAtivo = true;
+// O estado de cada serviço, lido da base ao arrancar e a cada gravação.
+// Em memória porque é consultado em cada cotação e em cada pedido — uma ida à
+// base de dados por viagem, para ler um booleano, não se justifica.
+const ativos = new Map();
 let atualizado = null;
+let atualizadoServicos = new Map();
 
 function lerCampo(obj, chave) {
   return chave.split('.').reduce((o, k) => (o == null ? o : o[k]), obj);
@@ -88,27 +92,54 @@ export async function carregarConfigServico() {
   try {
     const rows = await query(
       `SELECT chave, valor, atualizado_em, atualizado_por FROM config_servico
-       WHERE chave IN ('carry.tarifa', 'carry.ativo')`
+        WHERE chave = 'carry.tarifa' OR chave LIKE '%.ativo'`
     );
     const tarifa = rows.find((r) => r.chave === 'carry.tarifa');
-    const ativo = rows.find((r) => r.chave === 'carry.ativo');
     aplicar(tarifa?.valor || {});
-    carryAtivo = ativo ? ativo.valor !== false : true;
     atualizado = tarifa ? { em: tarifa.atualizado_em, por: tarifa.atualizado_por } : null;
+
+    ativos.clear();
+    atualizadoServicos = new Map();
+    for (const r of rows) {
+      if (!r.chave.endsWith('.ativo')) continue;
+      const id = r.chave.slice(0, -'.ativo'.length);
+      ativos.set(id, r.valor !== false);
+      atualizadoServicos.set(id, { em: r.atualizado_em, por: r.atualizado_por });
+    }
   } catch (e) {
     // Sem a tabela ou sem rede, ficam os valores de partida: o serviço
     // continua a funcionar com os preços que sempre teve.
-    console.error('[config] não foi possível ler a configuração do Carry:', e.message);
+    console.error('[config] não foi possível ler a configuração dos serviços:', e.message);
   }
 }
 
+// Um serviço só está ligado se ESTIVER PRONTO e ninguém o ter desligado.
+//
+// A ordem importa: `emConstrucao` ganha sempre, e nem uma linha escrita à mão
+// na base de dados o liga. Por omissão, um serviço pronto está ligado — foi
+// assim que o Carry sempre se comportou.
+export function servicoEstaAtivo(id) {
+  const s = SERVICOS.find((x) => x.id === id);
+  if (!s || s.emConstrucao) return false;
+  return ativos.get(id) !== false;
+}
+
 export function carryEstaAtivo() {
-  return carryAtivo;
+  return servicoEstaAtivo('carry');
+}
+
+// Para o painel: todos os serviços, com o estado e quem o mudou.
+export function estadoDosServicos() {
+  return SERVICOS.map((s) => ({
+    ...s,
+    ativo: servicoEstaAtivo(s.id),
+    atualizado: atualizadoServicos.get(s.id) || null,
+  }));
 }
 
 export function estadoCarry() {
   return {
-    ativo: carryAtivo,
+    ativo: carryEstaAtivo(),
     tarifa: plano(config.tarifas.carry),
     padrao: plano(PADRAO_CARRY),
     campos: CAMPOS_CARRY,
@@ -131,5 +162,24 @@ export function gravarTarifaCarry(valores, porId) {
   return gravar('carry.tarifa', valores, porId);
 }
 export function gravarCarryAtivo(ativo, porId) {
-  return gravar('carry.ativo', !!ativo, porId);
+  return gravarServicoAtivo('carry', ativo, porId);
+}
+
+// Um erro de POLÍTICA, com o estado que a rota deve devolver — o mesmo molde
+// da assinatura. Não é uma avaria: é uma resposta, e quem a recebe tem de a
+// poder ler. Escrito com `erro(...)` porque é assim que o verificador das
+// mensagens encontra as frases que precisam de tétum e inglês.
+function erro(mensagem, status = 400) {
+  const e = new Error(mensagem);
+  e.status = status;
+  return e;
+}
+
+// Ligar ou desligar um serviço. Devolve a lista já com o estado novo.
+export async function gravarServicoAtivo(id, ativo, porId) {
+  const s = SERVICOS.find((x) => x.id === id);
+  if (!s) throw erro('Serviço desconhecido.');
+  if (s.emConstrucao) throw erro('Este serviço ainda está em construção.');
+  await gravar(`${id}.ativo`, !!ativo, porId);
+  return estadoDosServicos();
 }

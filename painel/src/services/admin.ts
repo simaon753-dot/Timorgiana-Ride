@@ -20,6 +20,7 @@ import type {
   ResumoPagamentos,
   Retencao,
   Saude,
+  Servico,
   AlertaSos,
   TipoVeiculo,
   UtilizadorPublico,
@@ -111,6 +112,11 @@ export const api = {
   lugares: (estado: EstadoLugar | 'todos') => pedir<{ lugares: LugarProposto[] }>('/admin/lugares' + q({ estado })),
   estadoLugar: (id: number, estado: EstadoLugar) =>
     pedir<{ ok: true }>(`/admin/lugares/${id}/estado`, { method: 'POST', corpo: { estado } }),
+
+  // Serviços da plataforma
+  servicos: () => pedir<{ servicos: Servico[] }>('/admin/servicos'),
+  ligarServico: (id: string, ativo: boolean) =>
+    pedir<{ servicos: Servico[] }>(`/admin/servicos/${id}/ativo`, { method: 'PUT', corpo: { ativo } }),
 
   // Definições do Carry
   carry: () => pedir<RespostaCarry>('/admin/carry'),

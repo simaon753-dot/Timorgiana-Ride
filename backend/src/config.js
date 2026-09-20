@@ -10,6 +10,29 @@ import 'dotenv/config';
 // A ORDEM é a que o passageiro vê: da mais barata para a mais especial.
 export const TIPOS_VEICULO = ['motorbike', 'car', 'carry'];
 
+// OS SERVIÇOS DA PLATAFORMA, e o que se pode ligar e desligar (20/09/2026).
+//
+// PORQUE EXISTE. O Pickup já se desligava no painel, mas por um caminho só
+// dele: uma chave à parte no código, uma função com o nome dele, um `if` em
+// cada sítio que o recusa. Acrescentar um serviço novo obrigava a repetir os
+// três — e o Simão quer acrescentar serviços (jastip, comida, mart, pulsa e
+// contas, saúde) e experimentá-los desligados antes de os abrir.
+//
+// `emConstrucao` é a parte que importa. Um serviço por acabar NÃO se liga:
+// nem pelo painel, nem por engano, nem por uma linha na base de dados. A
+// promessa é dupla — quem instala a app não vê um serviço que não funciona, e
+// quem o está a construir não tem de o esconder à mão.
+//
+// O interruptor guarda-se em `config_servico`, na chave `<id>.ativo`, que é a
+// mesma que o Carry já usava. Nada migra e não há duas verdades.
+export const SERVICOS = [
+  { id: 'motorbike', familia: 'viagem', emConstrucao: false },
+  { id: 'car', familia: 'viagem', emConstrucao: false },
+  { id: 'carry', familia: 'entrega', emConstrucao: false },
+];
+
+export const servicoConhecido = (id) => SERVICOS.some((s) => s.id === id);
+
 // CARRY COM PESSOAS: até 15, decidido pelo Simão (13/09/26). As pessoas vão na
 // caixa; é para grupos que não cabem num carro. O número de 15 é dele — é o
 // que uma caixa de Carry leva em Díli sem ser perigoso, e isso sabe-se da rua.

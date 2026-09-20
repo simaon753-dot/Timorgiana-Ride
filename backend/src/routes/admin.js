@@ -5,6 +5,8 @@ import {
   validarTarifa,
   gravarTarifaCarry,
   gravarCarryAtivo,
+  estadoDosServicos,
+  gravarServicoAtivo,
 } from '../configServico.js';
 import { historicoDe } from '../eventos.js';
 import { listarParadas, criarParada, apagarParada } from '../paradas.js';
@@ -360,6 +362,32 @@ adminRouter.put(
   wrap(async (req, res) => {
     await gravarCarryAtivo(!!req.body?.ativo, req.user.id);
     res.json(estadoCarry());
+  })
+);
+
+// ── OS SERVIÇOS DA PLATAFORMA (20/09/2026) ──────────────────────────────
+//
+// Um sítio para ligar e desligar cada serviço, em vez de um caminho só para o
+// Pickup. Os que estão em construção aparecem na lista — para se ver o que aí
+// vem — mas não se ligam: ver `SERVICOS` em config.js.
+adminRouter.get(
+  '/servicos',
+  wrap(async (_req, res) => res.json({ servicos: estadoDosServicos() }))
+);
+
+adminRouter.put(
+  '/servicos/:id/ativo',
+  wrap(async (req, res) => {
+    const ativo = !!req.body?.ativo;
+    try {
+      const servicos = await gravarServicoAtivo(req.params.id, ativo, req.user.id);
+      // Ligar ou desligar um serviço é mexer no que a cidade inteira pode
+      // pedir. Fica no registo, como as outras decisões com peso.
+      registarAcesso(req.user.id, `${ativo ? 'ligou' : 'desligou'} o serviço ${req.params.id}`, null);
+      res.json({ servicos });
+    } catch (e) {
+      respostaDePolitica(res, e);
+    }
   })
 );
 

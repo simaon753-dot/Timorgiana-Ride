@@ -396,6 +396,15 @@ export interface Devolucao {
   partes: { quando: string | null; dias: number; porDia: number; valor: number }[];
 }
 
+// GET /api/admin/servicos — o que a plataforma oferece e o que está ligado.
+export interface Servico {
+  id: string;
+  familia: 'viagem' | 'entrega' | string;
+  emConstrucao: boolean;
+  ativo: boolean;
+  atualizado: { em: string; por: number | null } | null;
+}
+
 export interface EstadoCarry {
   ativo: boolean;
   tarifa: Record<string, number | null>;

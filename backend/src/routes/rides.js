@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { marcarEtapaCarga } from '../rides.js';
 import { notificarEtapaCarga } from '../push.js';
 import { criarAviso, cancelarAvisos } from '../avisos.js';
-import { carryEstaAtivo } from '../configServico.js';
+import { servicoEstaAtivo } from '../configServico.js';
 import {
   TIPOS_CARGA,
   TIPOS_VEICULO,
@@ -149,11 +149,19 @@ ridesRouter.post(
       return res.status(400).json({ error: 'Indica o destino.' });
     }
 
-    // O CARRY DESLIGADO NO PAINEL não aceita pedidos novos. As viagens já a
+    // UM SERVIÇO DESLIGADO NO PAINEL não aceita pedidos novos. As viagens já a
     // decorrer continuam: desligar é para parar de receber, não para largar
     // ninguém a meio.
-    if (vehicleType === 'carry' && !carryEstaAtivo()) {
-      return res.status(503).json({ error: 'O Pickup está temporariamente indisponível.' });
+    //
+    // Vale para qualquer serviço e não só para o Pickup — é a mesma regra, e
+    // duas cópias dela acabariam a divergir no dia em que uma mudasse.
+    if (!servicoEstaAtivo(vehicleType)) {
+      return res.status(503).json({
+        error:
+          vehicleType === 'carry'
+            ? 'O Pickup está temporariamente indisponível.'
+            : 'Este serviço está temporariamente indisponível.',
+      });
     }
 
     // ── Transporte de bens ─────────────────────────────────────────

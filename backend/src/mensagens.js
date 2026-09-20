@@ -323,6 +323,16 @@ export const MENSAGENS = {
     'Pickup la disponível ba tempu badak.',
     'The Pickup is temporarily unavailable.',
   ],
+  // Para os serviços que não têm frase própria (20/09/2026).
+  'Este serviço está temporariamente indisponível.': [
+    'Servisu ne\'e la disponível ba tempu badak.',
+    'This service is temporarily unavailable.',
+  ],
+  'Serviço desconhecido.': ['Servisu la rekoñese.', 'Unknown service.'],
+  'Este serviço ainda está em construção.': [
+    'Servisu ne\'e sei iha konstrusaun.',
+    'This service is still being built.',
+  ],
   'Indica o que vais transportar.': [
     'Hakerek saida mak ita atu tula.',
     'Say what you are going to carry.',

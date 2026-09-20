@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { carryEstaAtivo } from '../configServico.js';
+import { servicoEstaAtivo } from '../configServico.js';
 import { requireAuth } from '../auth.js';
 import { preco, etaMinutos, straightKm } from '../routing.js';
 import { rotaCompleta } from '../rotas.js';
@@ -11,7 +11,7 @@ import { taxasPara } from '../taxasDeEntrada.js';
 // cotação rebentava com ReferenceError e a app ficava sem preço — só o pedido
 // (routes/rides.js, que a importa) calculava o valor. Ver
 // scripts/verificar-nomes.mjs, que nasceu disto.
-import { TIPOS_VEICULO } from '../config.js';
+import { TIPOS_VEICULO, SERVICOS } from '../config.js';
 
 export const quoteRouter = Router();
 quoteRouter.use(requireAuth);
@@ -81,9 +81,9 @@ quoteRouter.post(
     // nenhuma.
     // O CARRY DESLIGADO NO PAINEL não aparece na cotação: mostrar um preço
     // de um serviço que não aceita pedidos seria prometer o que não há.
-    const tiposPossiveis = (paragens.length ? ['carry'] : TIPOS_VEICULO).filter(
-      (tipo) => tipo !== 'carry' || carryEstaAtivo()
-    );
+    // Qualquer serviço desligado no painel sai da cotação: mostrar um preço de
+    // um serviço que não aceita pedidos seria prometer o que não há.
+    const tiposPossiveis = (paragens.length ? ['carry'] : TIPOS_VEICULO).filter(servicoEstaAtivo);
     const opcoes = await Promise.all(
       tiposPossiveis.map(async (tipo) => {
         const perto = await nearestDrivers({
@@ -137,7 +137,11 @@ quoteRouter.post(
 // cotação porque é a mesma pergunta: "o que posso pedir?".
 quoteRouter.get(
   '/servicos',
-  wrap(async (_req, res) => res.json({ servicos: { carry: { ativo: carryEstaAtivo() } } }))
+  wrap(async (_req, res) =>
+    res.json({
+      servicos: Object.fromEntries(SERVICOS.map((s) => [s.id, { ativo: servicoEstaAtivo(s.id) }])),
+    })
+  )
 );
 
 // POST /api/quote/linha — só a linha da viagem.
