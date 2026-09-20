@@ -3,6 +3,7 @@ import { View, Text, Pressable, StyleSheet, Image, Alert, Modal, ScrollView } fr
 import Icone from '../design/Icone.js';
 import Button from './Button.js';
 import * as ImagePicker from 'expo-image-picker';
+import { encolherFoto } from '../lib/encolherFoto.js';
 import TextField from './TextField.js';
 import { colors, radius, spacing, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
@@ -171,9 +172,11 @@ export default function CargaDoPedido({
         : await ImagePicker.launchCameraAsync(opcoes);
       if (r.canceled || !r.assets?.[0]?.base64) return;
       const a = r.assets[0];
-      // Guardadas EM MEMÓRIA e não enviadas já: a viagem ainda não existe, e
-      // sem `id` não há a que agarrar a fotografia. Sobem no fim, no ecrã.
-      onFotos?.([...fotos, { uri: a.uri, base64: a.base64 }]);
+      // ENCOLHIDA ANTES DE GUARDAR: ver lib/encolherFoto.js. Guardadas EM
+      // MEMÓRIA e não enviadas já — a viagem ainda não existe, e sem `id` não
+      // há a que agarrar a fotografia. Sobem no fim, no ecrã.
+      const pequena = await encolherFoto(a.uri, { base64Original: a.base64 });
+      onFotos?.([...fotos, pequena]);
     } finally {
       setATirar(false);
     }

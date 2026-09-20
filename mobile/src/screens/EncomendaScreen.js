@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
+import { encolherFoto } from '../lib/encolherFoto.js';
 import BarraEstado from '../design/BarraEstado.js';
 import Icone from '../design/Icone.js';
 import RodapeMarca from '../design/RodapeMarca.js';
@@ -113,9 +114,8 @@ export default function EncomendaScreen({ navigation }) {
       ? await ImagePicker.launchCameraAsync({ quality: 0.6, base64: true })
       : await ImagePicker.launchImageLibraryAsync({ quality: 0.6, base64: true });
     if (r.canceled || !r.assets?.[0]?.base64) return;
-    setFotos((f) =>
-      [...f, { uri: r.assets[0].uri, base64: r.assets[0].base64 }].slice(0, MAX_FOTOS)
-    );
+    const pequena = await encolherFoto(r.assets[0].uri, { base64Original: r.assets[0].base64 });
+    setFotos((f) => [...f, pequena].slice(0, MAX_FOTOS));
   }
 
   function mudarArtigo(chave, campo, valor) {

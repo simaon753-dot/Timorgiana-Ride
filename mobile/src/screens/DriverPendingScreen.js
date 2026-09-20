@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
+import { encolherFoto } from '../lib/encolherFoto.js';
 import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
 import LanguageToggle from '../components/LanguageToggle.js';
@@ -208,10 +209,15 @@ export default function DriverPendingScreen({ navigation }) {
     //
     // A data vai junto na mesma janela porque é a outra coisa que se engana:
     // o cartão tem três datas, e a que interessa é a da validade.
+    // Encolhida aqui, antes de entrar em memória: a partir deste ponto ela é
+    // copiada mais duas vezes (o JSON do pedido e a pré-visualização).
+    const pequena = await encolherFoto(res.assets[0].uri, {
+      base64Original: res.assets[0].base64,
+    });
     setPorConfirmar({
       kind,
-      mime: res.assets[0].mimeType || 'image/jpeg',
-      base64: res.assets[0].base64,
+      mime: 'image/jpeg',
+      base64: pequena.base64,
       expiresOn: validade,
       motivo: motivos[kind] || null,
     });

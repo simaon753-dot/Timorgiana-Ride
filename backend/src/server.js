@@ -19,7 +19,8 @@ import { driverRouter } from './routes/driver.js';
 import { adminRouter } from './routes/admin.js';
 import { quoteRouter } from './routes/quote.js';
 import { verifyToken } from './auth.js';
-import { setOnline, updateLocation, marcarAusentesOffline } from './drivers.js';
+import { setOnline, marcarAusentesOffline } from './drivers.js';
+import { guardarPosicao } from './posicaoMotorista.js';
 import { one } from './db.js';
 import { lugaresRouter } from './routes/lugares.js';
 import { estadoDaBusca, marcarPorPerguntar } from './lugares.js';
@@ -445,37 +446,14 @@ io.on('connection', (socket) => {
     if (user.role !== 'driver') return;
     if (typeof lat !== 'number' || typeof lng !== 'number') return;
     try {
-      await updateLocation(user.id, lat, lng);
-      // Mudou de município? Muda de sala, e passa a ver os pedidos de lá.
+      // O que se faz com a posição vive em posicaoMotorista.js: o serviço em
+      // primeiro plano manda-a por HTTP quando não há socket, e as duas
+      // portas têm de fazer exactamente o mesmo.
+      await guardarPosicao(io, user.id, lat, lng);
+      // Isto fica SÓ aqui: as salas são do socket. Quem não tem socket também
+      // não está em sala nenhuma, e o aviso chega-lhe por notificação — que
+      // escolhe os motoristas pela posição na base de dados, não pela sala.
       ajustarMunicipio(municipioDe(lat, lng));
-      // 'in_progress' TAMBÉM, e faltava.
-      //
-      // A posição do motorista só era enviada ao passageiro enquanto a
-      // viagem estivesse 'accepted' ou 'arriving'. No instante em que a
-      // viagem COMEÇA, o envio parava — e o mapa do passageiro congelava no
-      // último ponto antes de entrar no carro.
-      //
-      // Ou seja: durante a viagem inteira, que é justamente quando alguém
-      // quer ver por onde vai, o mapa não mostrava nada. Descoberto a
-      // percorrer 6,6 km de teste até Cristo Rei sem que o Simão visse o
-      // carro sair do sítio.
-      //
-      // É também o que alimenta o "estou na Avenida X" e o que a pessoa com
-      // quem a viagem foi partilhada vê — os dois estavam mortos pela mesma
-      // razão.
-      const viagem = await one(
-        `SELECT id, passenger_id FROM rides
-         WHERE driver_id = $1 AND status = ANY($2)
-         ORDER BY id DESC LIMIT 1`,
-        [user.id, ACTIVE_DRIVER]
-      );
-      if (viagem) {
-        io.to(`user:${viagem.passenger_id}`).emit('ride:driverLocation', {
-          rideId: viagem.id,
-          lat,
-          lng,
-        });
-      }
     } catch (e) {
       console.error('[socket] driver:location', e.message);
     }

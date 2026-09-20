@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { encolherFoto } from '../lib/encolherFoto.js';
 import Button from './Button.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
@@ -35,7 +36,8 @@ export default function FotoDeTurno({ feita, onFeita }) {
     const a = r.assets[0];
     setAEnviar(true);
     try {
-      await api.shiftPhoto(token, { mime: 'image/jpeg', base64: a.base64 });
+      const pequena = await encolherFoto(a.uri, { base64Original: a.base64 });
+      await api.shiftPhoto(token, { mime: 'image/jpeg', base64: pequena.base64 });
       setPrevia(a.uri);
       onFeita?.();
     } catch (e) {

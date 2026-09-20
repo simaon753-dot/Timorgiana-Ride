@@ -4,6 +4,11 @@ import { nomeDaRua, metrosEntre } from '../lib/geocode.js';
 import * as Location from 'expo-location';
 import { api } from '../api/client.js';
 import { createSocket } from '../socket.js';
+import {
+  comecarAEnviarPosicao,
+  pararDeEnviarPosicao,
+  ouvirPosicao,
+} from '../lib/servicoLocalizacao.js';
 import { registarParaNotificacoes } from '../push.js';
 import { useAuth } from './AuthContext.js';
 
@@ -279,7 +284,8 @@ export function RideProvider({ children }) {
   useEffect(() => {
     if (!isDriver || !online) return undefined;
     let parado = false;
-    let sub = null;
+    let sub = null; // só no caminho de recurso (ver abaixo)
+    let servicoACorrer = false;
     let ultima = null;
 
     function enviar(pos) {
@@ -290,20 +296,21 @@ export function RideProvider({ children }) {
       socketRef.current?.emit('driver:location', aqui);
     }
 
-    // A BATIDA DE QUEM ESTÁ PARADO.
-    //
-    // Sem isto, a mudança acima trazia um defeito novo e sorrateiro: o
-    // servidor tira do serviço quem não dá sinal há dez minutos
-    // (`SINAL_FRESCO`), e quem dá sinal é justamente esta posição. Um
-    // motorista à espera de pedidos, parado à sombra, deixava de andar —
-    // logo deixava de enviar — logo desaparecia do serviço sozinho ao fim
-    // de dez minutos, à espera de pedidos que já não lhe podiam chegar.
-    //
-    // De quatro em quatro minutos repete-se a ÚLTIMA posição conhecida. Não
-    // toca no GPS (não há nada de novo para ler) e são quinze envios por
-    // hora, contra os trezentos de antes.
+    // O serviço em primeiro plano avisa por aqui: corre fora do ciclo do
+    // React e não pode mexer em estado directamente.
+    const deixarDeOuvir = ouvirPosicao((aqui) => {
+      if (parado) return;
+      ultima = aqui;
+      setMinhaPosicao(aqui);
+    });
+
+    // A BATIDA DO CAMINHO DE RECURSO. Ver a nota mais abaixo: só serve quando
+    // não há permissão de segundo plano, e aí a app está à frente — é o único
+    // estado em que um temporizador de JavaScript corre de certeza.
     const batida = setInterval(() => {
-      if (!parado && ultima) socketRef.current?.emit('driver:location', ultima);
+      if (!parado && !servicoACorrer && ultima) {
+        socketRef.current?.emit('driver:location', ultima);
+      }
     }, 240000);
 
     (async () => {
@@ -312,12 +319,36 @@ export function RideProvider({ children }) {
         if (status !== 'granted' || parado) return;
 
         // A primeira vai já: quem acaba de ficar disponível tem de entrar na
-        // lista dos que estão perto, sem esperar por andar 120 metros.
+        // lista dos que estão perto sem esperar pelo primeiro aviso do
+        // sistema, que pode demorar minutos.
         const agora = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
         });
         enviar(agora);
+        if (parado) return;
 
+        // A PERMISSÃO DE SEGUNDO PLANO, pedida aqui e não no registo.
+        //
+        // É pedida no momento em que passa a fazer sentido — quando ele fica
+        // ao serviço — e não à entrada, onde seria uma pergunta sem contexto
+        // a que quase toda a gente responde «não». No Android 10 para cima
+        // isto abre as definições do sistema com a opção «Sempre».
+        const bg = await Location.requestBackgroundPermissionsAsync().catch(() => ({
+          status: 'denied',
+        }));
+        if (parado) return;
+
+        if (bg.status === 'granted') {
+          await comecarAEnviarPosicao({ emViagem: emViagemRef.current });
+          servicoACorrer = true;
+          return;
+        }
+
+        // CAMINHO DE RECURSO: sem permissão de segundo plano, faz-se o que se
+        // fazia antes — seguir a posição dentro da app. Continua a funcionar
+        // enquanto ela estiver à frente, e pára quando o telemóvel vai para o
+        // bolso. É pior, mas é melhor do que nada: negar a permissão não pode
+        // impedir alguém de trabalhar.
         sub = await Location.watchPositionAsync(
           {
             accuracy: emViagemRef.current ? Location.Accuracy.High : Location.Accuracy.Balanced,
@@ -338,11 +369,17 @@ export function RideProvider({ children }) {
     return () => {
       parado = true;
       clearInterval(batida);
+      deixarDeOuvir();
       sub?.remove();
       sub = null;
+      // PARAR É TÃO IMPORTANTE COMO COMEÇAR: um serviço em primeiro plano
+      // que ficasse a correr depois de o motorista se desligar seria uma
+      // notificação permanente a dizer que ele está ao serviço quando não
+      // está — e bateria gasta por nada.
+      if (servicoACorrer) pararDeEnviarPosicao();
     };
     // `emViagem` entra nas dependências para a cadência mudar quando a viagem
-    // começa ou acaba: a subscrição é refeita com o filtro do outro trabalho.
+    // começa ou acaba: o serviço é refeito com o filtro do outro trabalho.
   }, [isDriver, online, emViagem]);
 
   // Quando a viagem ativa muda: repor chat/avaliação e carregar histórico

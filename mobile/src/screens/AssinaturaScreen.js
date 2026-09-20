@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
+import { encolherFoto } from '../lib/encolherFoto.js';
 import BarraTopo from '../components/BarraTopo.js';
 import Button from '../components/Button.js';
 import { colors, spacing, radius, registarEstilos } from '../theme.js';
@@ -88,7 +89,8 @@ export default function AssinaturaScreen({ navigation }) {
     });
     if (res.canceled || !res.assets?.[0]?.base64) return;
     const f = res.assets[0];
-    setComprovativo({ mime: f.mimeType || 'image/jpeg', base64: f.base64, uri: f.uri });
+    const pequena = await encolherFoto(f.uri, { base64Original: f.base64 });
+    setComprovativo({ mime: 'image/jpeg', base64: pequena.base64, uri: pequena.uri });
   }
 
   async function enviarPedido() {

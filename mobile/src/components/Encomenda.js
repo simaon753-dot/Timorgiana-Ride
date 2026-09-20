@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Image, Alert, Modal } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { encolherFoto } from '../lib/encolherFoto.js';
 import Icone from '../design/Icone.js';
 import Button from './Button.js';
 import TextField from './TextField.js';
@@ -113,11 +114,8 @@ export function RegistarCompra({ visivel, teto, aGuardar, onFechar, onGuardar })
       ? await ImagePicker.launchCameraAsync({ quality: 0.6, base64: true })
       : await ImagePicker.launchImageLibraryAsync({ quality: 0.6, base64: true });
     if (r.canceled || !r.assets?.[0]?.base64) return;
-    setFoto({
-      mime: r.assets[0].mimeType || 'image/jpeg',
-      base64: r.assets[0].base64,
-      uri: r.assets[0].uri,
-    });
+    const pequena = await encolherFoto(r.assets[0].uri, { base64Original: r.assets[0].base64 });
+    setFoto({ mime: 'image/jpeg', base64: pequena.base64, uri: pequena.uri });
   }
 
   function guardar() {

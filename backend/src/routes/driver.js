@@ -15,6 +15,7 @@ import {
 } from '../documents.js';
 import { temFotoDeHoje, guardarFotoDeTurno, ultimaFotoDeTurno } from '../turnos.js';
 import { setOnline, savePushToken } from '../drivers.js';
+import { guardarPosicao } from '../posicaoMotorista.js';
 import { toPublicUser } from '../users.js';
 import { notificarAdminsMotoristaPronto, notificarAdminsPagamento } from '../push.js';
 import { VERSAO_TERMOS_MOTORISTA } from '../termosVersao.js';
@@ -95,6 +96,34 @@ driverRouter.post(
     } catch (e) {
       res.status(400).json({ error: e.message });
     }
+  })
+);
+
+// POST /api/driver/localizacao — a posição vinda do serviço em primeiro plano
+//
+// O SOCKET NÃO CHEGA, e é essa a razão desta rota existir (21/09/2026).
+//
+// Enquanto a app está à frente, a posição vai pelo socket e é o caminho mais
+// barato. Mas um motorista trabalha com o telemóvel no bolso: o ecrã apaga,
+// o Android adormece o processo, o socket morre — e o carro congelava no
+// mapa de quem estava à espera na rua.
+//
+// O serviço em primeiro plano continua a receber posições do sistema mesmo
+// aí, e manda-as por aqui. Um pedido HTTP não precisa de ligação permanente:
+// abre, entrega, fecha.
+//
+// SEM CORPO VÁLIDO NÃO SE FAZ NADA, e responde-se 204: quem está a conduzir
+// não tem nada a ganhar com um erro no ecrã, e quem manda isto é a própria
+// app.
+driverRouter.post(
+  '/localizacao',
+  wrap(async (req, res) => {
+    if (req.user.driver_status !== 'approved') return res.status(204).end();
+    const lat = Number(req.body?.lat);
+    const lng = Number(req.body?.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return res.status(204).end();
+    await guardarPosicao(req.app.get('io'), req.user.id, lat, lng);
+    return res.status(204).end();
   })
 );
 
