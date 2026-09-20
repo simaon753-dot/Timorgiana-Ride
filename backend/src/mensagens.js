@@ -324,6 +324,7 @@ export const MENSAGENS = {
     'The Pickup is temporarily unavailable.',
   ],
   // Para os serviços que não têm frase própria (20/09/2026).
+  'Encomenda não encontrada.': ['Enkomenda la hetan.', 'Order not found.'],
   'Já tens uma encomenda a decorrer.': [
     'Ita iha ona enkomenda ida la\'o hela.',
     'You already have an order in progress.',
