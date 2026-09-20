@@ -10,7 +10,10 @@
       "android": {
         "buildType": "apk"
       },
-      "channel": "development"
+      "channel": "development",
+      "env": {
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+      }
     },
     "preview": {
       "distribution": "internal",
@@ -18,7 +21,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://timorgiana-ride.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://timorgiana-ride.onrender.com",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       },
       "ios": {
         "resourceClass": "m-medium"
@@ -30,7 +34,8 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://timorgiana-ride.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://timorgiana-ride.onrender.com",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       },
       "ios": {
         "resourceClass": "m-medium"
@@ -43,7 +48,8 @@
         "simulator": true
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://timorgiana-ride.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://timorgiana-ride.onrender.com",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       },
       "channel": "ios-simulador"
     }
