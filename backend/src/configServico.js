@@ -158,9 +158,21 @@ export async function carregarConfigServico() {
 // A ordem importa: `emConstrucao` ganha sempre, e nem uma linha escrita à mão
 // na base de dados o liga. Por omissão, um serviço pronto está ligado — foi
 // assim que o Carry sempre se comportou.
-export function servicoEstaAtivo(id) {
+// UM SERVIÇO EM CONSTRUÇÃO EXISTE PARA OS ADMINISTRADORES (21/09/2026).
+//
+// Sem isto não havia forma de experimentar um serviço novo com um telemóvel
+// a sério: a trava é do lado do servidor, por isso compilar a app não chegava
+// — o telemóvel pergunta, e o servidor responde "desligado". A única
+// alternativa era ligá-lo para Díli inteira e desligar a correr.
+//
+// Quem passa por aqui é a CONTA de quem pergunta, não um interruptor: não há
+// nada para ligar e portanto nada para esquecer ligado. No dia em que o
+// serviço estiver pronto tira-se `emConstrucao` e esta excepção deixa de ter
+// efeito nenhum — para administradores como para toda a gente.
+export function servicoEstaAtivo(id, paraQuem = null) {
   const s = SERVICOS.find((x) => x.id === id);
-  if (!s || s.emConstrucao) return false;
+  if (!s) return false;
+  if (s.emConstrucao) return !!paraQuem?.is_admin;
   return ativos.get(id) !== false;
 }
 

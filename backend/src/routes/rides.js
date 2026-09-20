@@ -159,7 +159,7 @@ ridesRouter.post(
     //
     // Vale para qualquer serviço e não só para o Pickup — é a mesma regra, e
     // duas cópias dela acabariam a divergir no dia em que uma mudasse.
-    if (!servicoEstaAtivo(vehicleType)) {
+    if (!servicoEstaAtivo(vehicleType, req.user)) {
       return res.status(503).json({
         error:
           vehicleType === 'carry'
@@ -177,7 +177,7 @@ ridesRouter.post(
     // ela ter pago a primeira.
     const ehEncomenda = servico === 'jastip';
     if (ehEncomenda) {
-      if (!servicoEstaAtivo('jastip')) {
+      if (!servicoEstaAtivo('jastip', req.user)) {
         return res.status(503).json({ error: 'Este serviço está temporariamente indisponível.' });
       }
       const impede = await porqueNaoPode({

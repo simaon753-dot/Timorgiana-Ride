@@ -84,7 +84,9 @@ quoteRouter.post(
     // de um serviço que não aceita pedidos seria prometer o que não há.
     // Qualquer serviço desligado no painel sai da cotação: mostrar um preço de
     // um serviço que não aceita pedidos seria prometer o que não há.
-    const tiposPossiveis = (paragens.length ? ['carry'] : TIPOS_VEICULO).filter(servicoEstaAtivo);
+    const tiposPossiveis = (paragens.length ? ['carry'] : TIPOS_VEICULO).filter((tipo) =>
+      servicoEstaAtivo(tipo, req.user)
+    );
 
     // A TAXA DA ENCOMENDA entra em TODAS as opções, e não à parte.
     //
@@ -94,7 +96,7 @@ quoteRouter.post(
     //
     // Calculada pelo TETO que ele autorizou; se as compras ficarem num escalão
     // mais barato, é esse que se cobra (ver `taxaCobrada` em jastip.js).
-    const encomenda = req.body?.servico === 'jastip' && servicoEstaAtivo('jastip');
+    const encomenda = req.body?.servico === 'jastip' && servicoEstaAtivo('jastip', req.user);
     const taxaEncomenda = encomenda ? taxaDe(req.body?.jastipTeto) : 0;
     const opcoes = await Promise.all(
       tiposPossiveis.map(async (tipo) => {
@@ -157,9 +159,13 @@ quoteRouter.post(
 // cotação porque é a mesma pergunta: "o que posso pedir?".
 quoteRouter.get(
   '/servicos',
-  wrap(async (_req, res) =>
+  wrap(async (req, res) =>
     res.json({
-      servicos: Object.fromEntries(SERVICOS.map((s) => [s.id, { ativo: servicoEstaAtivo(s.id) }])),
+      // A conta de quem pergunta entra aqui: um serviço em construção está
+      // ligado para um administrador e desligado para todos os outros.
+      servicos: Object.fromEntries(
+        SERVICOS.map((s) => [s.id, { ativo: servicoEstaAtivo(s.id, req.user) }])
+      ),
     })
   )
 );
@@ -174,12 +180,12 @@ quoteRouter.get(
   wrap(async (req, res) => {
     const feitas = await viagensDoPassageiro(req.user.id);
     res.json({
-      ativo: servicoEstaAtivo('jastip'),
+      ativo: servicoEstaAtivo('jastip', req.user),
       tetoMax: config.jastip.tetoUsd,
       escaloes: config.jastip.escaloes,
       viagensMinimas: config.jastip.viagensMinimas,
       viagensFeitas: feitas,
-      podePedir: servicoEstaAtivo('jastip') && feitas >= config.jastip.viagensMinimas,
+      podePedir: servicoEstaAtivo('jastip', req.user) && feitas >= config.jastip.viagensMinimas,
     });
   })
 );

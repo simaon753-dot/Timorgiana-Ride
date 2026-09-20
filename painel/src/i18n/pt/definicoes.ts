@@ -15,7 +15,7 @@ export const definicoes = {
   'def.servicoLigado': 'A aceitar pedidos',
   'def.servicoDesligado': 'Desligado',
   'def.emConstrucao': 'Em construção',
-  'def.emConstrucaoNota': 'Ainda não se pode ligar: o serviço não está pronto.',
+  'def.emConstrucaoNota': 'Ainda não se liga. Aparece na app só às contas de administrador, para se poder experimentar.',
   'def.familia.viagem': 'Transporte de pessoas',
   'def.familia.entrega': 'Transporte de bens',
   'def.familia.encomenda': 'Compras por conta do passageiro',
