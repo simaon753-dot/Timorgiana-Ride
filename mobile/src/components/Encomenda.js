@@ -23,7 +23,7 @@ import { useI18n } from '../i18n/index.js';
 
 const dolares = (v) => `$${Number(v || 0).toFixed(2)}`;
 
-export function ResumoEncomenda({ lista, teto, taxa, compras, total, onAlterar }) {
+export function ResumoEncomenda({ lista, itens, loja, teto, taxa, compras, total, onAlterar }) {
   const { t } = useI18n();
   return (
     <View style={styles.caixa}>
@@ -39,7 +39,36 @@ export function ResumoEncomenda({ lista, teto, taxa, compras, total, onAlterar }
         ) : null}
       </View>
 
-      <Text style={styles.lista}>{lista}</Text>
+      {/* ARTIGO A ARTIGO, cada um na sua linha, com a quantidade destacada.
+          É o que o motorista lê dentro da loja, com uma mão no telemóvel: um
+          parágrafo corrido obriga-o a procurar onde acaba uma coisa e começa
+          a outra, e é assim que se esquece a terceira.
+          As encomendas pedidas antes de 21/09/2026 não têm artigos — dessas
+          mostra-se o texto, que é tudo o que delas se sabe. */}
+      {Array.isArray(itens) && itens.length ? (
+        <View style={styles.itens}>
+          {itens.map((i, n) => (
+            <View key={n} style={styles.item}>
+              <Text style={styles.quantos}>{i.quantos}×</Text>
+              <Text style={styles.itemNome}>
+                {i.nome}
+                {i.detalhe ? <Text style={styles.itemDetalhe}> · {i.detalhe}</Text> : null}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ) : lista ? (
+        <Text style={styles.lista}>{lista}</Text>
+      ) : null}
+
+      {/* A LOJA PELO NOME. O ponto no mapa já está no percurso da viagem; o que
+          falta ali é qual das lojas daquele quarteirão. */}
+      {loja ? (
+        <View style={styles.loja}>
+          <Icone nome="pin" tamanho={16} cor={colors.acentoCarry} />
+          <Text style={styles.lojaTexto}>{loja}</Text>
+        </View>
+      ) : null}
 
       <View style={styles.linhas}>
         <Linha rotulo={t('encomendaTeto')} valor={dolares(teto)} />
@@ -175,6 +204,13 @@ const criarEstilos = () =>
     titulo: { ...tipo.corpoForte, color: colors.text, flex: 1 },
     alterar: { ...tipo.corpoForte, color: colors.acentoCarry },
     lista: { ...tipo.corpo, color: colors.text },
+    itens: { gap: spacing.xs },
+    item: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+    quantos: { ...tipo.corpoForte, color: colors.acentoCarry, minWidth: 28 },
+    itemNome: { ...tipo.corpo, color: colors.text, flex: 1 },
+    itemDetalhe: { ...tipo.legenda, color: colors.textMuted },
+    loja: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+    lojaTexto: { ...tipo.legenda, color: colors.text, flex: 1 },
     linhas: { gap: 2 },
     linha: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     linhaRotulo: { ...tipo.legenda, color: colors.textMuted },

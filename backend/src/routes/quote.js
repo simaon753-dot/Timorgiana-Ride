@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { servicoEstaAtivo } from '../configServico.js';
-import { taxaDe, viagensDoPassageiro } from '../jastip.js';
+import { MAX_ITENS, taxaDe, viagensDoPassageiro } from '../jastip.js';
 import { requireAuth } from '../auth.js';
 import { preco, etaMinutos, straightKm } from '../routing.js';
 import { rotaCompleta } from '../rotas.js';
@@ -179,13 +179,24 @@ quoteRouter.get(
   '/jastip',
   wrap(async (req, res) => {
     const feitas = await viagensDoPassageiro(req.user.id);
+    const ativo = servicoEstaAtivo('jastip', req.user);
+    const exigeEmail = !!config.jastip.exigeEmailConfirmado;
+    const emailConfirmado = !!req.user.email_confirmado;
     res.json({
-      ativo: servicoEstaAtivo('jastip', req.user),
+      ativo,
       tetoMax: config.jastip.tetoUsd,
       escaloes: config.jastip.escaloes,
       viagensMinimas: config.jastip.viagensMinimas,
       viagensFeitas: feitas,
-      podePedir: servicoEstaAtivo('jastip', req.user) && feitas >= config.jastip.viagensMinimas,
+      maxItens: MAX_ITENS,
+      // O QUE FALTA À CONTA, e não só um "não podes": o ecrã precisa de saber
+      // se manda a pessoa ao perfil confirmar o email ou se lhe diz quantas
+      // viagens faltam. Dizer só que não pode era uma porta sem maçaneta.
+      exigeEmail,
+      temEmail: !!req.user.email,
+      emailConfirmado,
+      podePedir:
+        ativo && feitas >= config.jastip.viagensMinimas && (!exigeEmail || emailConfirmado),
     });
   })
 );

@@ -92,6 +92,7 @@ function aplicarJastip(valor) {
   if (dentro(v.viagensMinimas, LIMITES_JASTIP.viagensMinimas)) {
     r.viagensMinimas = Math.round(Number(v.viagensMinimas));
   }
+  if (typeof v.exigeEmailConfirmado === 'boolean') r.exigeEmailConfirmado = v.exigeEmailConfirmado;
   if (Array.isArray(v.escaloes) && v.escaloes.length) {
     const limpos = v.escaloes
       .filter((e) => dentro(e?.ate, { min: 1, max: 100 }) && dentro(e?.taxa, LIMITES_JASTIP.taxa))

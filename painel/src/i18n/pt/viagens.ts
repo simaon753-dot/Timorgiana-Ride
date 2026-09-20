@@ -57,6 +57,7 @@ export const viagens = {
   'det.cargaDeclarada': 'Declaração aceite a {data}',
   'det.encomenda': 'Encomenda',
   'det.encomendaLista': 'Lista de compras',
+  'det.encomendaLoja': 'Loja',
   'det.encomendaTeto': 'Autorizado até',
   'det.encomendaTaxa': 'Serviço de compra',
   'det.encomendaCompras': 'Valor do talão',

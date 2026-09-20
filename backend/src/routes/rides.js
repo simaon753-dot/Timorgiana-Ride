@@ -3,7 +3,7 @@ import { marcarEtapaCarga } from '../rides.js';
 import { notificarComprado, notificarEtapaCarga } from '../push.js';
 import { criarAviso, cancelarAvisos } from '../avisos.js';
 import { servicoEstaAtivo } from '../configServico.js';
-import { jaTemEncomendaAberta, marcarComprado, porqueNaoPode, taxaDe } from '../jastip.js';
+import { marcarComprado, exigirQuePode, taxaDe } from '../jastip.js';
 import {
   TIPOS_CARGA,
   TIPOS_VEICULO,
@@ -180,14 +180,19 @@ ridesRouter.post(
       if (!servicoEstaAtivo('jastip', req.user)) {
         return res.status(503).json({ error: 'Este serviço está temporariamente indisponível.' });
       }
-      const impede = await porqueNaoPode({
-        userId: req.user.id,
-        lista: jastip?.lista,
-        tetoUsd: jastip?.teto,
-      });
-      if (impede) return res.status(400).json({ error: impede });
-      if (await jaTemEncomendaAberta(req.user.id)) {
-        return res.status(409).json({ error: 'Já tens uma encomenda a decorrer.' });
+      // As portas da encomenda vivem em jastip.js e respondem com o seu
+      // próprio estado — 400 para o que se corrige escrevendo, 409 para a
+      // encomenda que já está a decorrer.
+      try {
+        await exigirQuePode({
+          user: req.user,
+          itens: jastip?.itens,
+          loja: jastip?.loja,
+          tetoUsd: jastip?.teto,
+        });
+      } catch (e) {
+        if (!e.status) throw e;
+        return res.status(e.status).json({ error: e.message });
       }
     }
 
@@ -356,7 +361,8 @@ ridesRouter.post(
       vehicleType,
       fareUsd: precoFinal,
       servico: ehEncomenda ? 'jastip' : null,
-      jastipLista: ehEncomenda ? jastip?.lista : null,
+      jastipItens: ehEncomenda ? jastip?.itens : null,
+      jastipLoja: ehEncomenda ? jastip?.loja : null,
       jastipTeto: ehEncomenda ? jastip?.teto : null,
       jastipTaxa: taxaEncomenda,
       distanceKm: kmViagem,

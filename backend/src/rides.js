@@ -1,5 +1,5 @@
 import { query, one } from './db.js';
-import { jastipPublico, MAX_LISTA } from './jastip.js';
+import { jastipPublico, MAX_LOJA, validarItens } from './jastip.js';
 import {
   TIPOS_VEICULO,
   TIPOS_CARGA,
@@ -285,7 +285,8 @@ export async function createRide({
   // A ENCOMENDA (jastip, 20/09/2026). Tudo nulo numa viagem normal: o que
   // manda é o `servico`, como o tipo manda na carga.
   servico = null,
-  jastipLista = null,
+  jastipItens = null,
+  jastipLoja = null,
   jastipTeto = null,
   jastipTaxa = null,
 }) {
@@ -345,10 +346,17 @@ export async function createRide({
   // há lista nem teto, mesmo que venham preenchidos. Uma viagem que diz "gasta
   // até $25" sem dizer em quê manda o motorista decidir às cegas.
   const ehEncomenda = servico === 'jastip';
-  const listaJastip = ehEncomenda
-    ? String(jastipLista || '')
+  // A LISTA VEM EM ARTIGOS e é aqui que se transforma nas duas formas em que
+  // vive: `jastip_itens` para quem a lê linha a linha, e `jastip_lista` para
+  // quem só quer a frase. A conversão está num sítio só — duas cópias dela
+  // acabariam a mostrar coisas diferentes no ecrã do motorista e no painel.
+  const validos = ehEncomenda ? validarItens(jastipItens) : { erro: true };
+  const itensJastip = validos.erro ? null : validos.itens;
+  const listaJastip = itensJastip ? validos.texto : null;
+  const lojaJastip = itensJastip
+    ? String(jastipLoja || '')
         .trim()
-        .slice(0, MAX_LISTA) || null
+        .slice(0, MAX_LOJA) || null
     : null;
   const tetoJastip = listaJastip ? num(jastipTeto) : null;
   const taxaJastip = tetoJastip != null ? num(jastipTaxa) : null;
@@ -360,9 +368,10 @@ export async function createRide({
         pickup_code, municipio,
         viajante_nome, viajante_telefone, viajante_menor, consentimento_em,
         carga_tipo, carga_volume, carga_ajuda, carga_notas, carga_declarado_em, carga_outro,
-        carga_extra, servico, jastip_lista, jastip_teto, jastip_taxa, status)
+        carga_extra, servico, jastip_lista, jastip_itens, jastip_loja, jastip_teto, jastip_taxa,
+        status)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,
-             $19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,'requested')
+             $19,$20,$21,$22,$23,$24,$25,$26,$27,$28::jsonb,$29,$30,$31,'requested')
      RETURNING id`,
     [
       passengerId,
@@ -409,6 +418,8 @@ export async function createRide({
       extrasCarga.length ? extrasCarga.join(',') : null,
       listaJastip ? servico : null,
       listaJastip,
+      itensJastip ? JSON.stringify(itensJastip) : null,
+      lojaJastip,
       tetoJastip,
       taxaJastip,
     ]

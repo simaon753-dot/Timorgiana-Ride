@@ -1,7 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  ActivityIndicator,
+  Image,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
+import * as ImagePicker from 'expo-image-picker';
 import BarraEstado from '../design/BarraEstado.js';
 import Icone from '../design/Icone.js';
 import RodapeMarca from '../design/RodapeMarca.js';
@@ -25,24 +34,38 @@ import { colors, spacing, radius, registarEstilos } from '../theme.js';
 // OS DOIS LUGARES PERGUNTAM-SE AQUI, e é a diferença que mais confunde se
 // ficar por explicar: numa encomenda a ORIGEM é a LOJA (é lá que o motorista
 // vai comprar) e o DESTINO é onde entregar. Numa viagem normal a origem é
-// quem pede; aqui, não. Por isso o ecrã pergunta os dois pelo nome — "onde
-// comprar" e "onde entregar" — e o ecrã do preço recebe-os feitos.
+// quem pede; aqui, não.
 //
-// QUEM AINDA NÃO PODE, SABE QUANTO FALTA. Quem adianta dinheiro é o motorista;
-// a app pede um historial de viagens a quem encomenda. Dizer só "não podes"
-// seria uma porta sem maçaneta: diz-se quantas faltam.
+// A LISTA POR LINHAS (21/09/2026), depois da primeira encomenda a sério. O
+// Simão viu o problema à primeira: uma caixa de texto solta produz «2 kg de
+// arroz e óleo», e o motorista fica a decidir dentro da loja coisas que não
+// são dele — que marca, que tamanho, quantos. O que ele decide mal é dinheiro
+// dele adiantado, e uma discussão à porta do carro no fim.
+//
+// Por isso cada artigo tem QUANTOS e O QUÊ, e um detalhe para a marca ou o
+// tamanho. E a loja passou a ter NOME além do ponto: um ponto no mapa diz onde
+// é, não diz qual é — num mercado de Díli são coisas muito diferentes.
 
 const TETOS = [5, 10, 15, 25, 50];
 const dolares = (v) => `$${Number(v || 0).toFixed(2)}`;
+const MAX_FOTOS = 2;
+const artigoVazio = () => ({
+  chave: String(Date.now() + Math.random()),
+  nome: '',
+  quantos: '1',
+  detalhe: '',
+});
 
 export default function EncomendaScreen({ navigation }) {
   const { t } = useI18n();
   const { token } = useAuth();
   const [regras, setRegras] = useState(null);
-  const [lista, setLista] = useState('');
+  const [itens, setItens] = useState([artigoVazio()]);
   const [teto, setTeto] = useState(null);
-  const [loja, setLoja] = useState(null);
+  const [loja, setLoja] = useState('');
+  const [lojaPonto, setLojaPonto] = useState(null);
   const [entrega, setEntrega] = useState(null);
+  const [fotos, setFotos] = useState([]);
   const [aApontar, setAApontar] = useState(null); // 'loja' | 'entrega'
   const [aLocalizar, setALocalizar] = useState(false);
 
@@ -81,15 +104,49 @@ export default function EncomendaScreen({ navigation }) {
     }
   }
 
+  // A FOTOGRAFIA TENTA A CÂMARA PRIMEIRO. Quem está a encomendar está quase
+  // sempre a olhar para a embalagem vazia que quer repetir; a galeria fica
+  // para quem recebeu a fotografia de outra pessoa.
+  async function juntarFotografia() {
+    const permissao = await ImagePicker.requestCameraPermissionsAsync();
+    const r = permissao.granted
+      ? await ImagePicker.launchCameraAsync({ quality: 0.6, base64: true })
+      : await ImagePicker.launchImageLibraryAsync({ quality: 0.6, base64: true });
+    if (r.canceled || !r.assets?.[0]?.base64) return;
+    setFotos((f) =>
+      [...f, { uri: r.assets[0].uri, base64: r.assets[0].base64 }].slice(0, MAX_FOTOS)
+    );
+  }
+
+  function mudarArtigo(chave, campo, valor) {
+    setItens((lista) => lista.map((i) => (i.chave === chave ? { ...i, [campo]: valor } : i)));
+  }
+
   const taxa = escalaoDe(regras, teto);
-  const faltam = regras && !regras.erro ? regras.viagensMinimas - regras.viagensFeitas : 0;
+  const maxItens = regras?.maxItens || 15;
+  const artigosFeitos = itens.filter((i) => i.nome.trim());
   const podePedir = !!regras && !regras.erro && regras.podePedir;
-  const pronto = podePedir && lista.trim() && teto && loja && entrega;
+  // O EMAIL POR CONFIRMAR TEM RESPOSTA PRÓPRIA, e não se mistura com as
+  // viagens que faltam: uma resolve-se esperando, a outra resolve-se agora,
+  // com um toque no perfil. Dizer as duas com a mesma frase era esconder a
+  // que tem solução.
+  const faltaEmail = !!regras && !regras.erro && regras.exigeEmail && !regras.emailConfirmado;
+  const pronto =
+    podePedir && artigosFeitos.length > 0 && teto && loja.trim() && lojaPonto && entrega;
 
   function continuar() {
     navigation.navigate('RequestRide', {
-      jastip: { lista: lista.trim(), teto },
-      origem: loja,
+      jastip: {
+        itens: artigosFeitos.map((i) => ({
+          nome: i.nome.trim(),
+          quantos: Math.max(1, Math.min(99, Number(i.quantos) || 1)),
+          detalhe: i.detalhe.trim(),
+        })),
+        loja: loja.trim(),
+        teto,
+        fotos: fotos.map((f) => ({ base64: f.base64 })),
+      },
+      origem: lojaPonto,
       destino: entrega,
     });
   }
@@ -126,7 +183,19 @@ export default function EncomendaScreen({ navigation }) {
           </View>
         ) : (
           <>
-            {!podePedir ? (
+            {faltaEmail ? (
+              <View style={styles.aviso}>
+                <Icone nome="aviso" tamanho={18} cor={colors.danger} />
+                <View style={styles.avisoTextos}>
+                  <Text style={styles.avisoTexto}>{t('encomendaEmailFalta')}</Text>
+                  <Button
+                    title={t('encomendaIrPerfil')}
+                    variant="ghost"
+                    onPress={() => navigation.navigate('Perfil')}
+                  />
+                </View>
+              </View>
+            ) : !podePedir ? (
               <View style={styles.aviso}>
                 <Icone nome="aviso" tamanho={18} cor={colors.danger} />
                 <Text style={styles.avisoTexto}>
@@ -138,15 +207,53 @@ export default function EncomendaScreen({ navigation }) {
               </View>
             ) : null}
 
-            <Text style={styles.seccao}>{t('encomendaLista')}</Text>
-            <TextField
-              value={lista}
-              onChangeText={setLista}
-              placeholder={t('encomendaListaExemplo')}
-              multiline
-              linhas={4}
-              maxLength={500}
-            />
+            <Text style={styles.seccao}>{t('encomendaArtigos')}</Text>
+            {itens.map((i, n) => (
+              <Artigo
+                key={i.chave}
+                artigo={i}
+                podeRetirar={itens.length > 1}
+                onMudar={(campo, valor) => mudarArtigo(i.chave, campo, valor)}
+                onRetirar={() => setItens((l) => l.filter((x) => x.chave !== i.chave))}
+                numero={n + 1}
+                t={t}
+              />
+            ))}
+            {itens.length < maxItens ? (
+              <Button
+                title={t('encomendaJuntarArtigo')}
+                variant="secondary"
+                icone="+"
+                onPress={() => setItens((l) => [...l, artigoVazio()])}
+              />
+            ) : (
+              <Text style={styles.nota}>{t('encomendaMaxItens', { n: maxItens })}</Text>
+            )}
+
+            <Text style={styles.seccao}>{t('encomendaFoto')}</Text>
+            <Text style={styles.nota}>{t('encomendaFotoNota')}</Text>
+            {fotos.length ? (
+              <View style={styles.fotos}>
+                {fotos.map((f, n) => (
+                  <Pressable
+                    key={f.uri}
+                    onPress={() => setFotos((l) => l.filter((x) => x.uri !== f.uri))}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${t('encomendaFoto')} ${n + 1}`}
+                  >
+                    <Image source={{ uri: f.uri }} style={styles.foto} resizeMode="cover" />
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+            {fotos.length < MAX_FOTOS ? (
+              <Button
+                title={t('encomendaFotoJuntar')}
+                variant="secondary"
+                icone="📷"
+                onPress={juntarFotografia}
+              />
+            ) : null}
 
             <Text style={styles.seccao}>{t('encomendaTeto')}</Text>
             <Text style={styles.nota}>{t('encomendaTetoNota')}</Text>
@@ -173,7 +280,16 @@ export default function EncomendaScreen({ navigation }) {
             ) : null}
 
             <Text style={styles.seccao}>{t('encomendaOndeComprar')}</Text>
-            <Lugar lugar={loja} onEscolher={() => setAApontar('loja')} icone="pin" t={t} />
+            <TextField
+              label={t('encomendaLojaNome')}
+              value={loja}
+              onChangeText={setLoja}
+              placeholder={t('encomendaLojaExemplo')}
+              maxLength={80}
+              obrigatorio
+            />
+            <Text style={styles.nota}>{t('encomendaLojaPonto')}</Text>
+            <Lugar lugar={lojaPonto} onEscolher={() => setAApontar('loja')} icone="pin" t={t} />
 
             <Text style={styles.seccao}>{t('encomendaOndeEntregar')}</Text>
             <Lugar lugar={entrega} onEscolher={() => setAApontar('entrega')} icone="casa" t={t} />
@@ -202,12 +318,55 @@ export default function EncomendaScreen({ navigation }) {
         titulo={aApontar === 'loja' ? t('encomendaOndeComprar') : t('encomendaOndeEntregar')}
         onFechar={() => setAApontar(null)}
         onEscolher={(lugar) => {
-          if (aApontar === 'loja') setLoja(lugar);
+          if (aApontar === 'loja') setLojaPonto(lugar);
           else setEntrega(lugar);
           setAApontar(null);
         }}
       />
     </SafeAreaView>
+  );
+}
+
+// Uma linha da lista: quantos, o quê, e o detalhe que evita a pergunta.
+//
+// A QUANTIDADE À ESQUERDA e estreita, o nome a ocupar o resto: é a ordem em
+// que a frase se diz («dois arrozes»), e a caixa pequena diz sozinha que ali
+// vai um número e não uma descrição.
+function Artigo({ artigo, podeRetirar, onMudar, onRetirar, numero, t }) {
+  return (
+    <View style={styles.artigo}>
+      <View style={styles.artigoTopo}>
+        <View style={styles.artigoQuantos}>
+          <TextField
+            label={t('encomendaArtigoQuantos')}
+            value={String(artigo.quantos)}
+            onChangeText={(v) => onMudar('quantos', v.replace(/[^0-9]/g, '').slice(0, 2))}
+            keyboardType="number-pad"
+          />
+        </View>
+        <View style={styles.artigoNome}>
+          <TextField
+            label={`${t('encomendaArtigoNome')} ${numero}`}
+            value={artigo.nome}
+            onChangeText={(v) => onMudar('nome', v)}
+            placeholder={t('encomendaArtigoExemplo')}
+            maxLength={60}
+          />
+        </View>
+      </View>
+      <TextField
+        label={t('encomendaArtigoDetalhe')}
+        value={artigo.detalhe}
+        onChangeText={(v) => onMudar('detalhe', v)}
+        placeholder={t('encomendaArtigoDetalheExemplo')}
+        maxLength={60}
+      />
+      {podeRetirar ? (
+        <Pressable onPress={onRetirar} hitSlop={8} accessibilityRole="button">
+          <Text style={styles.retirar}>{t('encomendaRetirarArtigo')}</Text>
+        </Pressable>
+      ) : null}
+    </View>
   );
 }
 
@@ -273,6 +432,7 @@ const criarEstilos = () =>
       padding: spacing.md,
       marginTop: spacing.lg,
     },
+    avisoTextos: { flex: 1, gap: spacing.xs },
     avisoTexto: { ...tipo.corpo, color: colors.text, flex: 1 },
     seccao: {
       ...tipo.subtitulo,
@@ -281,6 +441,20 @@ const criarEstilos = () =>
       marginBottom: spacing.xs,
     },
     nota: { ...tipo.legenda, color: colors.textMuted, marginBottom: spacing.sm },
+    // Cada artigo num cartão: com as caixas soltas umas debaixo das outras,
+    // cinco artigos liam-se como quinze campos sem princípio nem fim.
+    artigo: {
+      backgroundColor: colors.white,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    artigoTopo: { flexDirection: 'row', gap: spacing.sm },
+    artigoQuantos: { width: 92 },
+    artigoNome: { flex: 1 },
+    retirar: { ...tipo.corpoForte, color: colors.danger, marginTop: spacing.xs },
+    fotos: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+    foto: { width: 96, height: 96, borderRadius: radius.md },
     tetos: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     teto: {
       paddingHorizontal: spacing.lg,

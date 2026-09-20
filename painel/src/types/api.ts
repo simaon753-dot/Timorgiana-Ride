@@ -142,8 +142,18 @@ export interface Carga {
 // A encomenda (jastip) de uma viagem. `compras` e `total` só existem depois
 // de o motorista registar o talão: antes disso ninguém sabe o valor, e um
 // zero ali seria uma afirmação falsa.
+export interface ItemEncomenda {
+  nome: string;
+  quantos: number;
+  detalhe?: string;
+}
+
 export interface Jastip {
   lista: string;
+  // Só as encomendas pedidas a partir de 21/09/2026 têm artigos; as de antes
+  // têm apenas o texto corrido que a pessoa escreveu.
+  itens: ItemEncomenda[] | null;
+  loja: string | null;
   teto: number;
   taxa: number;
   compras: number | null;
@@ -424,6 +434,7 @@ export interface Servico {
 export interface RegrasJastip {
   tetoUsd: number;
   viagensMinimas: number;
+  exigeEmailConfirmado: boolean;
   escaloes: { ate: number; taxa: number }[];
 }
 

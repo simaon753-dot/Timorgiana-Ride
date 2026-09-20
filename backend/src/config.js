@@ -53,6 +53,14 @@ export const JASTIP_PADRAO = {
     { ate: 10, taxa: 1 },
     { ate: 25, taxa: 1.5 },
   ],
+  // Quem encomenda tem de ter o email confirmado, além das viagens feitas.
+  //
+  // É a única verificação de identidade que a app tem hoje que não se apaga
+  // com uma desinstalação: o telefone repete-se em cartões novos, o nome
+  // escreve-se como se quiser, e quem cria uma conta para levar o dinheiro de
+  // um motorista não deixa atrás um email que já usou. Fica editável no painel
+  // porque é uma trava, e uma trava tem de poder abrir-se sem publicar código.
+  exigeEmailConfirmado: true,
 };
 
 // CARRY COM PESSOAS: até 15, decidido pelo Simão (13/09/26). As pessoas vão na

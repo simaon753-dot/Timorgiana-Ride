@@ -84,6 +84,9 @@ export const definicoes = {
   'def.encomendaTetoNota': 'O passageiro escolhe um valor até este. Nunca se compra acima do que ele autorizou.',
   'def.encomendaViagens': 'Viagens concluídas exigidas',
   'def.encomendaViagensNota': 'Contam as viagens em que a pessoa foi passageiro. Zero abre a encomenda a contas acabadas de criar.',
+  'def.encomendaEmail': 'Exigir email confirmado',
+  'def.encomendaEmailNota':
+    'O email confirmado é a única marca de identidade que não se apaga ao desinstalar a app: o número repete-se num cartão novo e o nome escreve-se como se quiser. Desligar isto abre a encomenda a contas sem email verificado.',
   'def.encomendaEscaloes': 'Taxa do serviço, por escalão',
   'def.encomendaEscaloesNota':
     'Cobra-se pelo escalão em que o talão cair — e nunca mais do que o escalão do teto que o passageiro viu ao pedir.',

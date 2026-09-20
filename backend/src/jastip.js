@@ -25,6 +25,54 @@ import { one, query } from './db.js';
 
 export const MAX_LISTA = 500;
 
+// A LISTA POR LINHAS (21/09/2026), depois da primeira encomenda a sério.
+//
+// Um parágrafo escrito à pressa — «2 kg de arroz e óleo» — obriga o motorista
+// a decidir dentro da loja coisas que não são dele: que marca, que tamanho,
+// quantos. O que ele decide mal é dinheiro que adiantou, e uma discussão à
+// porta do carro no fim.
+//
+// Cada artigo passa a ter QUANTOS e O QUÊ, e um detalhe opcional para a marca
+// ou o tamanho. Os limites são baixos de propósito: uma encomenda não é uma
+// mudança de casa, e uma lista de trinta linhas faz-se com um Pickup.
+export const MAX_ITENS = 15;
+export const MAX_NOME_ITEM = 60;
+export const MAX_DETALHE_ITEM = 60;
+export const MAX_LOJA = 80;
+
+// Devolve `{ erro }` ou `{ itens, texto }` — o texto é a mesma lista escrita
+// de seguida, que é o que `jastip_lista` guarda e o que as viagens antigas já
+// têm. Uma só fonte: nenhum ecrã volta a montar esta frase à sua maneira.
+export function validarItens(lista) {
+  if (!Array.isArray(lista) || lista.length === 0) {
+    throw erro('Escreve o que queres que o motorista compre.');
+  }
+  if (lista.length > MAX_ITENS) throw erro(`Uma encomenda leva até ${MAX_ITENS} artigos.`);
+
+  const itens = [];
+  for (const cru of lista) {
+    const nome = String(cru?.nome || '').trim();
+    if (!nome) throw erro('Há um artigo sem nome na lista.');
+    if (nome.length > MAX_NOME_ITEM) throw erro('O nome de um artigo é demasiado longo.');
+
+    const quantos = Math.round(Number(cru?.quantos));
+    if (!Number.isFinite(quantos) || quantos < 1 || quantos > 99) {
+      throw erro('A quantidade de cada artigo vai de 1 a 99.');
+    }
+    const detalhe = String(cru?.detalhe || '')
+      .trim()
+      .slice(0, MAX_DETALHE_ITEM);
+    itens.push({ nome, quantos, ...(detalhe ? { detalhe } : {}) });
+  }
+  return { itens, texto: itens.map(linhaDoItem).join('\n').slice(0, MAX_LISTA) };
+}
+
+// «2 × Arroz (Bola Mas, 5 kg)» — a mesma linha na app, na notificação e no
+// painel.
+export function linhaDoItem(i) {
+  return `${i.quantos} × ${i.nome}${i.detalhe ? ` (${i.detalhe})` : ''}`;
+}
+
 // Quanto se cobra pelo trabalho de comprar, por escalão de valor.
 //
 // ESCALÕES E NÃO PERCENTAGEM. Uma percentagem obriga a saber o valor antes de
@@ -65,23 +113,58 @@ export async function viagensDoPassageiro(userId) {
   return r?.n ?? 0;
 }
 
-// O que impede este pedido de existir, em palavras que o passageiro possa ler.
-// `null` quer dizer que pode avançar.
-export async function porqueNaoPode({ userId, lista, tetoUsd }) {
-  if (!String(lista || '').trim()) return 'Escreve o que queres que o motorista compre.';
-  if (String(lista).length > MAX_LISTA) return 'A lista de compras é demasiado longa.';
+// AS PORTAS DA ENCOMENDA, todas no mesmo sítio e todas a LANÇAR o recado.
+//
+// Antes devolvia a frase e a rota respondia com ela. Parecia mais simples e
+// tinha um custo escondido: o verificador das mensagens só encontra os textos
+// escritos dentro de `erro(...)`, de `new Error(...)` ou de um `error:`, e
+// estas frases passavam-lhe ao lado — saíam em português a quem tem a app em
+// tétum, sem ninguém dar por isso. Lançar põe cada frase onde o verificador a
+// vê e obriga a traduzi-la.
+export async function exigirQuePode({ user, itens, loja, tetoUsd }) {
+  const validos = validarItens(itens);
+
+  // A LOJA POR NOME, e não só o ponto no mapa. Um ponto diz onde é; o nome diz
+  // qual é — e num mercado de Díli são coisas muito diferentes.
+  if (!String(loja || '').trim()) throw erro('Escreve em que loja se compra.');
+  if (String(loja).length > MAX_LOJA) throw erro('O nome da loja é demasiado longo.');
+
+  // A CONTA DE QUEM PEDE. Quem adianta o dinheiro é o motorista, e o email
+  // confirmado é hoje a única marca que não se apaga ao desinstalar a app: o
+  // número repete-se num cartão novo e o nome escreve-se como se quiser.
+  if (config.jastip.exigeEmailConfirmado && !user?.email_confirmado) {
+    throw erro('Confirma o teu email no perfil antes de encomendar.');
+  }
 
   const teto = Number(tetoUsd);
-  if (!Number.isFinite(teto) || teto <= 0) return 'Indica até quanto se pode gastar.';
+  if (!Number.isFinite(teto) || teto <= 0) throw erro('Indica até quanto se pode gastar.');
   if (teto > config.jastip.tetoUsd) {
-    return `O máximo que se pode adiantar é ${dolares(config.jastip.tetoUsd)}.`;
+    throw erro(`O máximo que se pode adiantar é ${dolares(config.jastip.tetoUsd)}.`);
   }
 
-  const feitas = await viagensDoPassageiro(userId);
+  const feitas = await viagensDoPassageiro(user?.id);
   if (feitas < config.jastip.viagensMinimas) {
-    return `Esta encomenda pede ${config.jastip.viagensMinimas} viagens concluídas na tua conta. Já tens ${feitas}.`;
+    throw erro(
+      `Esta encomenda pede ${config.jastip.viagensMinimas} viagens concluídas na tua conta. Já tens ${feitas}.`
+    );
   }
-  return null;
+
+  // UMA DE CADA VEZ. Cada encomenda é dinheiro de um motorista na rua; três
+  // pedidas ao mesmo tempo são três motoristas a arriscar pela mesma pessoa
+  // antes de ela ter pago a primeira.
+  if (await jaTemEncomendaAberta(user?.id)) {
+    throw erro('Já tens uma encomenda a decorrer.', 409);
+  }
+  return validos;
+}
+
+// Um recado com estado, para a rota responder com ele. Escrito com `erro(...)`
+// porque é assim que o verificador das mensagens encontra as frases que
+// precisam de tétum e inglês.
+function erro(mensagem, status = 400) {
+  const e = new Error(mensagem);
+  e.status = status;
+  return e;
 }
 
 const dolares = (v) => `$${Number(v).toFixed(2)}`;
@@ -133,6 +216,10 @@ export function jastipPublico(row) {
   const compras = row.jastip_valor == null ? null : Number(row.jastip_valor);
   return {
     lista: row.jastip_lista || '',
+    // As viagens pedidas antes de 21/09/2026 não têm itens; a app e o painel
+    // mostram-lhes o texto, que é tudo o que delas se sabe.
+    itens: Array.isArray(row.jastip_itens) ? row.jastip_itens : null,
+    loja: row.jastip_loja || null,
     teto: Number(row.jastip_teto),
     taxa: Number(row.jastip_taxa) || 0,
     compras,

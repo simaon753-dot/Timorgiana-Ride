@@ -324,6 +324,50 @@ export const MENSAGENS = {
     'The Pickup is temporarily unavailable.',
   ],
   // Para os serviços que não têm frase própria (20/09/2026).
+  // As portas da encomenda (jastip.js, 21/09/2026). Estavam em português para
+  // toda a gente: saíam de uma função que devolvia a frase, e o verificador
+  // não vê frases que não estejam dentro de `erro(...)` ou de um `error:`.
+  'Escreve o que queres que o motorista compre.': [
+    'Hakerek buat ne\'ebé ita hakarak motorista sosa.',
+    'Write what you want the driver to buy.',
+  ],
+  'Uma encomenda leva até {0} artigos.': [
+    'Enkomenda ida bele iha to\'o sasán {0}.',
+    'An order takes up to {0} items.',
+  ],
+  'Há um artigo sem nome na lista.': [
+    'Iha sasán ida la iha naran iha lista.',
+    'There is an item with no name on the list.',
+  ],
+  'O nome de um artigo é demasiado longo.': [
+    'Sasán ida nia naran naruk liu.',
+    'An item name is too long.',
+  ],
+  'A quantidade de cada artigo vai de 1 a 99.': [
+    'Sasán ida-idak nia kuantidade husi 1 to\'o 99.',
+    'Each item quantity goes from 1 to 99.',
+  ],
+  'Escreve em que loja se compra.': [
+    'Hakerek loja ne\'ebé atu sosa.',
+    'Write which shop to buy from.',
+  ],
+  'O nome da loja é demasiado longo.': ['Loja nia naran naruk liu.', 'The shop name is too long.'],
+  'Confirma o teu email no perfil antes de encomendar.': [
+    'Konfirma ita-nia email iha perfil molok halo enkomenda.',
+    'Confirm your email in your profile before ordering.',
+  ],
+  'Indica até quanto se pode gastar.': [
+    'Hatete to\'o osan hira mak bele gasta.',
+    'Say how much can be spent.',
+  ],
+  'O máximo que se pode adiantar é {0}.': [
+    'Osan máximu ne\'ebé bele avansa mak {0}.',
+    'The most that can be advanced is {0}.',
+  ],
+  'Esta encomenda pede {0} viagens concluídas na tua conta. Já tens {1}.': [
+    'Enkomenda ne\'e presiza viajen {0} remata ona iha ita-nia konta. Ita iha ona {1}.',
+    'This order needs {0} completed trips on your account. You have {1}.',
+  ],
   'Encomenda não encontrada.': ['Enkomenda la hetan.', 'Order not found.'],
   'Já tens uma encomenda a decorrer.': [
     'Ita iha ona enkomenda ida la\'o hela.',

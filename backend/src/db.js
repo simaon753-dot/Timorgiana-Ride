@@ -660,6 +660,18 @@ export async function initSchema() {
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS jastip_taxa NUMERIC(8,2)`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS jastip_valor NUMERIC(8,2)`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS jastip_comprado_em TIMESTAMPTZ`);
+  // A LISTA PASSOU A SER UMA LISTA (21/09/2026).
+  //
+  // Nasceu como um parágrafo escrito à mão, e o Simão viu logo o problema à
+  // primeira encomenda: «2 kg de arroz e óleo» manda o motorista adivinhar a
+  // marca, o tamanho e quantos. Agora cada artigo é uma linha com quantidade e
+  // detalhe, e `jastip_lista` guarda a mesma coisa em texto — para as viagens
+  // antigas continuarem a ler-se e para quem só quer a frase de relance.
+  //
+  // O NOME DA LOJA à parte do ponto no mapa: um ponto diz onde é, não diz
+  // qual é. «Kmanek de Comoro» é o que o motorista precisa de ouvir.
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS jastip_itens JSONB`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS jastip_loja TEXT`);
 
   // O TERCEIRO TIPO DE VEÍCULO: 'carry', para transporte de bens.
   //

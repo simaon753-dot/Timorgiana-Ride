@@ -128,7 +128,13 @@ const viagens = Array.from({ length: 28 }).map((_, i) => {
     jastip:
       i % 7 === 3
         ? {
-            lista: '2 kg de arroz, 1 garrafa de óleo, pão',
+            lista: '2 × Arroz (Bola Mas, 5 kg)\n1 × Óleo (1 litro)\n3 × Pão',
+            itens: [
+              { nome: 'Arroz', quantos: 2, detalhe: 'Bola Mas, 5 kg' },
+              { nome: 'Óleo', quantos: 1, detalhe: '1 litro' },
+              { nome: 'Pão', quantos: 3 },
+            ],
+            loja: 'Kmanek de Comoro',
             teto: 25,
             taxa: 1.5,
             compras: estado === 'completed' ? 18.4 : null,
@@ -205,6 +211,7 @@ const servicos = [
 const JASTIP_PADRAO = {
   tetoUsd: 25,
   viagensMinimas: 3,
+  exigeEmailConfirmado: true,
   escaloes: [
     { ate: 10, taxa: 1 },
     { ate: 25, taxa: 1.5 },

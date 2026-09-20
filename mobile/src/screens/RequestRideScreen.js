@@ -788,7 +788,11 @@ export default function RequestRideScreen({ navigation, route }) {
         ...(encomenda
           ? {
               servico: 'jastip',
-              jastip: { lista: encomenda.lista, teto: encomenda.teto },
+              jastip: {
+                itens: encomenda.itens,
+                loja: encomenda.loja,
+                teto: encomenda.teto,
+              },
             }
           : {}),
         ...(paraOutra
@@ -810,8 +814,13 @@ export default function RequestRideScreen({ navigation, route }) {
       //
       // Uma a uma e não em paralelo: são três no máximo, e três envios ao
       // mesmo tempo numa rede de Díli acabam a falhar os três.
-      if (criada?.id && cargaFotos.length && !carryPessoas) {
-        for (const f of cargaFotos) {
+      // As da ENCOMENDA sobem pelo mesmo caminho, e é a mesma porta de
+      // propósito: são fotografias de quem pede, desta viagem, e apagam-se com
+      // o mesmo prazo. Um segundo armazém seria a mesma coisa escrita duas
+      // vezes.
+      const fotosASubir = encomenda ? encomenda.fotos || [] : carryPessoas ? [] : cargaFotos;
+      if (criada?.id && fotosASubir.length) {
+        for (const f of fotosASubir) {
           try {
             await api.enviarFotoDaCarga(token, criada.id, {
               mime: 'image/jpeg',
@@ -1542,7 +1551,8 @@ export default function RequestRideScreen({ navigation, route }) {
                   é o servidor, e duas contas paralelas acabam a discordar. */}
               {encomenda ? (
                 <ResumoEncomenda
-                  lista={encomenda.lista}
+                  itens={encomenda.itens}
+                  loja={encomenda.loja}
                   teto={encomenda.teto}
                   taxa={orcamento.taxaJastip}
                   onAlterar={() => navigation.goBack()}

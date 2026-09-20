@@ -207,7 +207,29 @@ export function DetalheViagem({ id, aoFechar }: { id: number | null; aoFechar: (
           {v.jastip ? (
             <Bloco titulo={t('det.encomenda')}>
               <p className="text-xs text-secundario">{t('det.encomendaLista')}</p>
-              <p className="mt-0.5 whitespace-pre-line text-sm">«{v.jastip.lista}»</p>
+              {/* Artigo a artigo quando os há; as encomendas de antes de
+                  21/09/2026 só têm o texto que a pessoa escreveu. */}
+              {v.jastip.itens?.length ? (
+                <ul className="mt-1 space-y-1">
+                  {v.jastip.itens.map((i, n) => (
+                    <li key={n} className="flex gap-2 text-sm">
+                      <span className="numeros font-semibold text-teal-escuro">{i.quantos}×</span>
+                      <span>
+                        {i.nome}
+                        {i.detalhe ? <span className="text-secundario"> · {i.detalhe}</span> : null}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-0.5 whitespace-pre-line text-sm">«{v.jastip.lista}»</p>
+              )}
+              {v.jastip.loja ? (
+                <p className="mt-2 text-sm">
+                  <span className="text-xs text-secundario">{t('det.encomendaLoja')}: </span>
+                  {v.jastip.loja}
+                </p>
+              ) : null}
               <dl className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
                 <Dado rotulo={t('det.encomendaTeto')}>
                   <span className="numeros">{dolares(v.jastip.teto)}</span>

@@ -125,6 +125,8 @@ export default function ViagemPassageiro({ ride, navigation }) {
         <>
           <ResumoEncomenda
             lista={ride.jastip.lista}
+            itens={ride.jastip.itens}
+            loja={ride.jastip.loja}
             teto={ride.jastip.teto}
             taxa={ride.jastip.taxa}
             compras={ride.jastip.compras}

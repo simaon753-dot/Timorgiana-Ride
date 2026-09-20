@@ -288,6 +288,18 @@ function SeccaoEncomenda() {
             </div>
           </div>
 
+          <div className="flex flex-wrap items-start justify-between gap-4 rounded-xl bg-fundo px-4 py-3">
+            <div className="min-w-0 max-w-2xl">
+              <p className="text-sm font-semibold">{t('def.encomendaEmail')}</p>
+              <p className="mt-0.5 text-xs text-secundario">{t('def.encomendaEmailNota')}</p>
+            </div>
+            <Interruptor
+              checked={regras.exigeEmailConfirmado}
+              onCheckedChange={(v) => setRegras({ ...regras, exigeEmailConfirmado: v })}
+              aria-label={t('def.encomendaEmail')}
+            />
+          </div>
+
           <fieldset>
             <legend className="text-sm font-semibold">{t('def.encomendaEscaloes')}</legend>
             <p className="mb-3 text-xs text-secundario">{t('def.encomendaEscaloesNota')}</p>
