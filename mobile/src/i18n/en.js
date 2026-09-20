@@ -565,6 +565,10 @@ export default {
   outraPessoaMotoristaEscolhe: 'The driver sees it is a minor before accepting, and may decline.',
   outraPessoaAviso:
     'The pickup code and the emergency button stay with you. Give the code to the traveller before the driver arrives.',
+  updateProcurar: 'Check for update',
+  updateNenhuma: 'You are on the latest version.',
+  updateADescarregar: 'Downloading. The app restarts by itself when it finishes.',
+  updateDesligado: 'There are no updates to check for in development mode.',
   versaoTitulo: 'Running version',
   versaoEmbutida: 'shipped in the APK',
   versaoAtualizada: 'update received',

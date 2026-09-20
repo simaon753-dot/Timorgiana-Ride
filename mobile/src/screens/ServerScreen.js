@@ -37,7 +37,43 @@ export default function ServerScreen({ navigation }) {
   const [url, setUrl] = useState(getBaseUrl());
   const [result, setResult] = useState(null); // { ok, error }
   const [testing, setTesting] = useState(false);
+  const [aProcurar, setAProcurar] = useState(false);
+  const [recado, setRecado] = useState(null); // { ok, texto }
   const [saved, setSaved] = useState(false);
+
+  // PROCURAR ACTUALIZAÇÃO À MÃO (21/09/2026).
+  //
+  // A app está configurada para arrancar SEM esperar (`fallbackToCacheTimeout:
+  // 0`) e procurar a actualização por trás — o que é o que se quer em Díli,
+  // onde uma rede lenta transformaria cada arranque numa sala de espera. O
+  // preço é que a actualização descarregada numa abertura só corre na
+  // SEGUINTE, e a pessoa fica a olhar para o ecrã antigo sem perceber porquê.
+  //
+  // Este botão troca essa espera por uma decisão: descarrega agora e reinicia
+  // a app. Existe porque quem está a testar precisa de saber se está a ver a
+  // versão nova ou a velha — e essa pergunta não se responde com paciência.
+  async function procurarActualizacao() {
+    setRecado(null);
+    setAProcurar(true);
+    try {
+      // Em Expo Go e no modo de desenvolvimento não há actualizações; dizê-lo
+      // é melhor do que uma procura que não podia dar em nada.
+      if (!Updates.isEnabled) {
+        return setRecado({ ok: false, texto: t('updateDesligado') });
+      }
+      const r = await Updates.checkForUpdateAsync();
+      if (!r.isAvailable) return setRecado({ ok: true, texto: t('updateNenhuma') });
+
+      setRecado({ ok: true, texto: t('updateADescarregar') });
+      await Updates.fetchUpdateAsync();
+      // Não devolve: a app reinicia aqui, já com a versão nova.
+      await Updates.reloadAsync();
+    } catch (e) {
+      setRecado({ ok: false, texto: e?.message || t('errGeneric') });
+    } finally {
+      setAProcurar(false);
+    }
+  }
 
   async function onTest() {
     setTesting(true);
@@ -116,6 +152,19 @@ export default function ServerScreen({ navigation }) {
               {Updates.createdAt ? ` · ${new Date(Updates.createdAt).toLocaleString()}` : ''})
             </Text>
           </View>
+
+          <Button
+            title={t('updateProcurar')}
+            variant="secondary"
+            icone="⟳"
+            loading={aProcurar}
+            onPress={procurarActualizacao}
+          />
+          {recado ? (
+            <Text style={[styles.result, recado.ok ? styles.resultOk : styles.resultFail]}>
+              {recado.texto}
+            </Text>
+          ) : null}
 
           <TextField
             label={t('serverField')}

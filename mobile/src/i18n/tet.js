@@ -570,6 +570,10 @@ export default {
     "Motorista haree uluk katak ne'e labarik ida molok aseita, no bele rekuza.",
   outraPessoaAviso:
     "Kódigu foti no butaun emerjénsia nian sei hela ho ita. Fó kódigu ba ema ne’ebé sei halo viajen molok motorista to'o.",
+  updateProcurar: 'Buka atualizasaun',
+  updateNenhuma: 'Iha ona versaun foin-foun liu.',
+  updateADescarregar: 'Hasai hela. App sei hahú fali rasik bainhira remata.',
+  updateDesligado: 'Iha modu dezenvolvimentu la iha atualizasaun atu buka.',
   versaoTitulo: "Versaun ne’ebé la'o",
   versaoEmbutida: 'mai husi APK',
   versaoAtualizada: 'atualizasaun simu tiha ona',

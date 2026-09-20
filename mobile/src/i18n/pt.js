@@ -573,6 +573,10 @@ export default {
   outraPessoaMotoristaEscolhe: 'O motorista vê que é um menor antes de aceitar, e pode recusar.',
   outraPessoaAviso:
     'O código de recolha e o botão de emergência ficam consigo. Dê o código a quem vai viajar antes de o motorista chegar.',
+  updateProcurar: 'Procurar actualização',
+  updateNenhuma: 'Já está na versão mais recente.',
+  updateADescarregar: 'A descarregar. A app reinicia sozinha quando acabar.',
+  updateDesligado: 'Em modo de desenvolvimento não há actualizações para procurar.',
   versaoTitulo: 'Versão a correr',
   versaoEmbutida: 'a que veio no APK',
   versaoAtualizada: 'actualização recebida',
