@@ -586,6 +586,10 @@ export default function MapaGoogle({
   // demais para caberem sem se taparem, e o que se ganharia em informação
   // perdia-se em desordem. Quem está a ver Díli inteira não quer ler nomes
   // de portões.
+  // O RELÓGIO DO TRAVÃO. Ver `buscarNossos`.
+  const relogioNossos = useRef(null);
+  useEffect(() => () => clearTimeout(relogioNossos.current), []);
+
   const buscarNossos = useCallback(
     async (regiao) => {
       if (!token || !regiao) return;
@@ -855,7 +859,13 @@ export default function MapaGoogle({
       centroRef.current = { lat: regiao.latitude, lng: regiao.longitude };
       regiaoRef.current = regiao;
       recalcularCartoes();
-      buscarNossos(regiao);
+      // COM TRAVÃO (21/09/2026). Cada paragem do mapa pedia os nomes da zona
+      // ao servidor. Quem arrasta o mapa à procura de um sítio pára cinco ou
+      // seis vezes pelo caminho, e pagava seis pedidos por uma resposta que
+      // só lhe interessa no fim. Meio segundo de espera não se nota a
+      // arrastar, e é o que separa o arrasto da paragem.
+      clearTimeout(relogioNossos.current);
+      relogioNossos.current = setTimeout(() => buscarNossos(regiao), 500);
       if (modoEscolha && onCentro) {
         onCentro({ type: 'centro', lat: regiao.latitude, lng: regiao.longitude });
       }

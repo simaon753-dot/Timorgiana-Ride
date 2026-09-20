@@ -483,11 +483,25 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', async () => {
     console.log(`[socket] desligado: ${user.name} (${user.role}#${user.id})`);
-    // Se o motorista fecha a app, deixa de estar disponível. Caso
-    // contrário continuaria a receber pedidos que nunca veria.
-    if (podeReceberPedidos && user.isOnline) {
-      await setOnline(user.id, false).catch(() => {});
-    }
+    // UM SOCKET QUE CAI NÃO É UM MOTORISTA QUE PAROU (21/09/2026).
+    //
+    // Isto marcava-o indisponível na hora, e a intenção era boa: quem fecha
+    // a app não deve receber pedidos que nunca vai ver. Só que a ligação
+    // cai por muito mais do que fechar a app — o ecrã apaga, o telemóvel vai
+    // para o bolso, o Android adormece o processo, a rede de Díli falha
+    // cinco segundos. Em todos esses casos o motorista está a trabalhar, e
+    // era posto de fora do serviço sem lhe dizer nada.
+    //
+    // Quem trata dos que desapareceram mesmo é `marcarAusentesOffline`, que
+    // corre de minuto a minuto e exige sinal nos últimos dez minutos
+    // (SINAL_FRESCO). A mesma janela já governa quem entra na lista de
+    // motoristas próximos, portanto não há aqui regra nova — há uma regra a
+    // menos, e é a que estava errada.
+    //
+    // No intervalo, o motorista continua a receber o aviso por notificação,
+    // que é precisamente o que o faz voltar à app. Desligar-se de propósito
+    // continua imediato: passa pelo interruptor, que é outra porta
+    // (`driver:setOnline` e `PUT /api/drivers/availability`).
   });
 });
 

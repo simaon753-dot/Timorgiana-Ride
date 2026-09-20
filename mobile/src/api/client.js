@@ -29,6 +29,36 @@ export class ApiError extends Error {
 // resposta legítima e repeti-la não faria sentido.
 const TENTATIVAS = [15000, 30000, 35000]; // total: até 80 s
 
+// REPETIR SÓ O QUE SE PODE REPETIR (21/09/2026).
+//
+// A repetição nasceu para o servidor adormecido e resolvia isso bem. O que
+// não distinguia era LER de ESCREVER — e aí há uma diferença que só aparece
+// na rede de Díli: um pedido que CHEGOU ao servidor e cuja resposta se
+// perdeu é, visto daqui, idêntico a um que nunca chegou. Repeti-lo escreve
+// duas vezes.
+//
+// Custou duas coisas reais:
+//   1. Uma viagem criada com sucesso respondia à segunda tentativa com «Já
+//      tens uma viagem a decorrer» — o passageiro via um ERRO por uma viagem
+//      que estava a ser despachada, e podia desistir dela.
+//   2. As mensagens do chat, que não têm chave nenhuma a impedi-lo, ficavam
+//      duplicadas na conversa dos dois lados.
+//
+// Uma leitura repetida não faz mal a ninguém: pede-se outra vez a mesma
+// coisa. Por isso o GET mantém as três tentativas, e tudo o resto tem uma.
+const SO_LEITURA = ['GET', 'HEAD'];
+
+// O QUE FAZER QUANDO A SESSÃO MORRE.
+//
+// Posto pelo AuthProvider. Sem isto, um token expirado (duram 30 dias),
+// revogado, ou invalidado por uma senha mudada noutro telemóvel, deixava a
+// app num estado sem saída: cada ecrã mostrava o seu próprio erro e nenhum
+// levava a pessoa ao ecrã de entrada. Ficava a parecer avariada.
+let aoPerderSessao = null;
+export function definirAoPerderSessao(fn) {
+  aoPerderSessao = fn;
+}
+
 // Avisa a interface de que a ligação está demorada (servidor a acordar)
 let onSlow = null;
 export function setSlowHandler(fn) {
@@ -54,10 +84,17 @@ async function request(path, { method = 'GET', body, token } = {}) {
 
   let res;
 
-  for (let i = 0; i < TENTATIVAS.length; i++) {
+  // Numa escrita, uma tentativa — mas com a paciência das três somadas: o
+  // problema que a repetição resolvia era o servidor a acordar, e isso é
+  // tempo, não é número de tentativas.
+  const prazos = SO_LEITURA.includes(method.toUpperCase())
+    ? TENTATIVAS
+    : [TENTATIVAS.reduce((a, b) => a + b, 0)];
+
+  for (let i = 0; i < prazos.length; i++) {
     if (i > 0 && onSlow) onSlow(true); // a partir da 2.ª: avisar que está lento
     try {
-      res = await fetchComPrazo(`${getApiUrl()}${path}`, options, TENTATIVAS[i]);
+      res = await fetchComPrazo(`${getApiUrl()}${path}`, options, prazos[i]);
       break;
     } catch {
       // falha de rede — tentar de novo com mais paciência
@@ -78,6 +115,13 @@ async function request(path, { method = 'GET', body, token } = {}) {
   }
 
   if (!res.ok) {
+    // A SESSÃO MORREU: avisa quem sabe tratar disso, uma vez, e continua a
+    // atirar o erro para quem chamou não ficar sem resposta.
+    //
+    // Só com token: um 401 sem token é o servidor a dizer «isto precisa de
+    // sessão», não «a tua sessão acabou» — e terminar sessão a quem ainda
+    // não entrou não faz sentido nenhum.
+    if (res.status === 401 && token && aoPerderSessao) aoPerderSessao();
     throw new ApiError(data?.error || 'Erro inesperado.', res.status, data?.motivo);
   }
   return data;

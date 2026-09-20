@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { lerToken, guardarToken, apagarToken } from '../lib/cofreSessao.js';
-import { api, ApiError } from '../api/client.js';
+import { api, ApiError, definirAoPerderSessao } from '../api/client.js';
 import { loadSavedServer } from '../serverUrl.js';
 
 const AuthContext = createContext(null);
@@ -69,6 +69,25 @@ export function AuthProvider({ children }) {
       return null;
     }
   }, [token]);
+
+  // A SESSÃO QUE MORRE NO MEIO DO CAMINHO (21/09/2026).
+  //
+  // Um token dura 30 dias, mas pode acabar antes: uma senha mudada noutro
+  // telemóvel, uma conta suspensa, um segredo do servidor trocado. Até aqui
+  // o resultado era uma app que dizia «erro» em todos os ecrãs sem nunca
+  // dizer porquê, e sem caminho de saída a não ser descobrir o botão de sair.
+  //
+  // Agora o cliente da API avisa, e a app faz o que é óbvio: apaga a sessão.
+  // Como o navegador escolhe a área pública quando não há `user`, a pessoa
+  // aterra no ecrã de entrada — que é exactamente o que lhe falta fazer.
+  useEffect(() => {
+    definirAoPerderSessao(() => {
+      setUser(null);
+      setToken(null);
+      apagarToken().catch(() => {});
+    });
+    return () => definirAoPerderSessao(null);
+  }, []);
 
   const logout = useCallback(async () => {
     setUser(null);

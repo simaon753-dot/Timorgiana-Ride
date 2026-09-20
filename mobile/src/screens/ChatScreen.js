@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  AppState,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useI18n } from '../i18n/index.js';
@@ -35,13 +36,49 @@ export default function ChatScreen({ navigation }) {
     markChatRead();
   }, [markChatRead, messages.length]);
 
-  // ENQUANTO A CONVERSA ESTÁ ABERTA, pergunta-se ao servidor a cada 3 s.
+  // ENQUANTO A CONVERSA ESTÁ ABERTA E À FRENTE, pergunta-se ao servidor.
   // Ver a nota em refreshMessages (RideContext): o socket é o caminho rápido,
   // isto é a garantia de que nenhuma mensagem fica por mostrar.
+  //
+  // TRÊS CORRECÇÕES DE 21/09/2026, todas do mesmo mal — a sonda não olhava
+  // para o mundo à volta:
+  //
+  //   1. NÃO PARAVA EM SEGUNDO PLANO. Com o ecrã apagado e a app no bolso,
+  //      continuava a perguntar de 3 em 3 segundos por uma conversa que
+  //      ninguém estava a ler. São dados de quem paga ao megabyte.
+  //   2. NÃO ESPERAVA PELA ANTERIOR. Numa rede lenta um pedido pode demorar
+  //      até 80 segundos; a 3 em 3 chegavam a ficar vinte e tal a voar ao
+  //      mesmo tempo, todos a pedir a mesma coisa.
+  //   3. TRÊS SEGUNDOS ERA DEMAIS. O socket entrega em tempo real; isto é
+  //      só a rede de segurança para o que ele perca. De 8 em 8 segundos a
+  //      rede apanha o mesmo e custa um terço.
+  const aPerguntar = useRef(false);
   useEffect(() => {
-    refreshMessages();
-    const id = setInterval(refreshMessages, 3000);
-    return () => clearInterval(id);
+    let vivo = true;
+
+    async function perguntar() {
+      if (!vivo || aPerguntar.current) return;
+      if (AppState.currentState !== 'active') return;
+      aPerguntar.current = true;
+      try {
+        await refreshMessages();
+      } finally {
+        aPerguntar.current = false;
+      }
+    }
+
+    perguntar();
+    const id = setInterval(perguntar, 8000);
+    // Voltar à app pergunta já, sem esperar pelo relógio: quem regressa à
+    // conversa quer vê-la em dia no instante em que olha para ela.
+    const sub = AppState.addEventListener('change', (estado) => {
+      if (estado === 'active') perguntar();
+    });
+    return () => {
+      vivo = false;
+      clearInterval(id);
+      sub.remove();
+    };
   }, [refreshMessages]);
 
   // Rolar para o fim quando chega/envia uma mensagem
@@ -240,7 +277,10 @@ const criarEstilos = () =>
       backgroundColor: colors.coral,
       borderRadius: radius.md,
       paddingHorizontal: spacing.lg,
-      height: 44,
+      // `minHeight` e não `height`: com a letra do sistema em tamanho grande,
+      // uma caixa de altura fixa corta o texto do botão ao meio.
+      minHeight: 44,
+      paddingVertical: spacing.xs,
       alignItems: 'center',
       justifyContent: 'center',
     },

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import * as Notifications from 'expo-notifications';
 
 import { useAuth } from '../context/AuthContext.js';
 import { RideProvider } from '../context/RideContext.js';
@@ -54,11 +55,36 @@ export default function RootNavigator() {
   // as folhas de estilo já foram reconstruídas, falta obrigar os ecrãs a
   // voltar a desenhar com elas.
   const { geracao } = useTema();
+  const navRef = useRef(null);
+
+  // TOCAR NA NOTIFICAÇÃO LEVA À VIAGEM (21/09/2026).
+  //
+  // Até aqui a notificação acordava a app e deixava a pessoa exactamente
+  // onde ela estava — que podia ser o ecrã dos termos ou uma conversa
+  // antiga. Um motorista avisado de um pedido novo tinha de o ir procurar;
+  // um passageiro avisado de que o motorista aceitou não via nada mudar.
+  //
+  // Leva aos tabuladores, e não a um ecrã de viagem: é lá que tanto o
+  // pedido novo (motorista) como a viagem a decorrer (passageiro) se
+  // mostram, e é o único destino que serve os dois sem adivinhar qual deles
+  // está a olhar para o telemóvel.
+  //
+  // Só com sessão: sem ela não há para onde navegar, e o navegador está
+  // noutra árvore.
+  useEffect(() => {
+    if (!user) return undefined;
+    const sub = Notifications.addNotificationResponseReceivedListener(() => {
+      // `isReady` porque a notificação pode chegar com a app fechada, antes
+      // de o navegador existir; nesse caso a app já abre no sítio certo.
+      if (navRef.current?.isReady()) navRef.current.navigate('Tabs');
+    });
+    return () => sub.remove();
+  }, [user]);
 
   if (restoring) return <LoadingScreen />;
 
   return (
-    <NavigationContainer theme={criarNavTheme()} key={geracao}>
+    <NavigationContainer ref={navRef} theme={criarNavTheme()} key={geracao}>
       {user ? (
         // Área autenticada (com estado de viagens em tempo real)
         <ModoProvider>

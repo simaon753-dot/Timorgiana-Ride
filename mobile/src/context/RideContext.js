@@ -57,6 +57,17 @@ export function RideProvider({ children }) {
   const [minhaPosicao, setMinhaPosicao] = useState(null);
   const ultimoGeocode = useRef(null); // onde foi feita a última pergunta
 
+  // O UTILIZADOR ACTUAL PARA OS HANDLERS DO SOCKET.
+  //
+  // O efeito do socket deixou de depender do objecto `user` (ver as notas nas
+  // dependências), e isso traz o reverso da medalha: os handlers ficam com o
+  // `user` que existia quando foram criados. Para o que eles perguntam — a
+  // capacidade do veículo — isso podia ficar velho depois de o motorista a
+  // declarar pela primeira vez. Uma referência resolve as duas coisas: a
+  // ligação não se reconstrói, e quem lê vê sempre o valor de agora.
+  const userRef = useRef(user);
+  userRef.current = user;
+
   const socketRef = useRef(null);
   const rideIdRef = useRef(null); // id da viagem atual (para os handlers do socket)
   const onlineRef = useRef(false); // o mesmo, para o estado de disponível
@@ -73,7 +84,7 @@ export function RideProvider({ children }) {
         // SÓ QUEM ESTÁ AO SERVIÇO VÊ PEDIDOS (14/09/26). O servidor já
         // devolve a lista vazia a quem está indisponível; pedir aqui só
         // quando se está ligado evita mostrar pedidos que não se podem aceitar.
-        if (!cancelled && isDriver && user?.isOnline) {
+        if (!cancelled && isDriver && userRef.current?.isOnline) {
           const { rides } = await api.availableRides(token);
           if (!cancelled) setRequests(rides || []);
         }
@@ -168,7 +179,7 @@ export function RideProvider({ children }) {
       if (!onlineRef.current) return;
       // Só o que cabe no veículo — a mesma regra que o servidor aplica na
       // lista e na aceitação (14/09/26).
-      if (!cargaCabe(ride.carga?.volume, user?.vehicle?.capacidade)) return;
+      if (!cargaCabe(ride.carga?.volume, userRef.current?.vehicle?.capacidade)) return;
       setRequests((prev) => (prev.some((r) => r.id === ride.id) ? prev : [...prev, ride]));
     });
     socket.on('ride:taken', ({ id }) => {
@@ -211,37 +222,128 @@ export function RideProvider({ children }) {
       socket.close();
       socketRef.current = null;
     };
-  }, [token, user, isDriver]);
+    // AS DEPENDÊNCIAS SÃO O ID E O PAPEL, e não o objecto `user` inteiro
+    // (21/09/2026).
+    //
+    // `refreshUser()` põe um OBJECTO NOVO vindo do servidor, com os mesmos
+    // dados. Com o objecto nas dependências, cada refresh fechava o socket e
+    // abria outro — e há refreshes por todo o lado: ao confirmar o email, ao
+    // guardar o veículo, ao aceitar os termos, e de 20 em 20 segundos no ecrã
+    // de quem espera aprovação.
+    //
+    // Cada troca custa um aperto de mão, uma reautenticação e a reentrada nas
+    // salas — e no intervalo perde-se o que for anunciado. É a explicação mais
+    // provável do chat que entregava a primeira mensagem e não as seguintes.
+    //
+    // O que este efeito precisa de saber é DE QUEM é a ligação e SE recebe
+    // pedidos. Isso são dois valores simples, e valores simples só mudam
+    // quando mudam de verdade.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, user?.id, isDriver]);
 
-  // Enquanto disponível, o motorista envia a sua posição. É assim que o
-  // passageiro vê o veículo a aproximar-se — e é o que mais distingue
-  // isto de uma app de mensagens.
+  // ESTOU NUMA VIAGEM? — para o GPS saber que cadência usar.
+  //
+  // «Em viagem» aqui é tudo o que já tem passageiro do outro lado: a caminho
+  // dele, à porta dele, ou com ele dentro. Nos três casos há alguém a olhar
+  // para o mapa à espera de ver o carro mexer-se.
+  const emViagem =
+    !!activeRide &&
+    activeRide.driver?.id === user?.id &&
+    ['accepted', 'arriving', 'in_progress'].includes(activeRide.status);
+  const emViagemRef = useRef(emViagem);
+  emViagemRef.current = emViagem;
+
+  // A POSIÇÃO DO MOTORISTA, enquanto ele está ao serviço. É assim que o
+  // passageiro vê o veículo a aproximar-se — e é o que mais distingue isto
+  // de uma app de mensagens.
+  //
+  // DEIXOU DE SER UM RELÓGIO (21/09/2026). Era uma leitura de GPS de 12 em 12
+  // segundos, estivesse o carro a andar ou parado à sombra à espera de
+  // pedidos. Um turno de oito horas são 2400 leituras de satélite, e a maior
+  // parte delas dizia exactamente o mesmo que a anterior — gastava bateria
+  // do motorista, dados de quem paga ao megabyte, e escritas na base de
+  // dados, para não dizer nada de novo.
+  //
+  // Agora é o SISTEMA que avisa quando há novidade, e só há novidade quando o
+  // carro anda. O filtro é por distância e não por tempo, porque é a
+  // distância que interessa a quem está à espera na rua.
+  //
+  // DUAS CADÊNCIAS, e é a diferença entre os dois trabalhos:
+  //   • EM VIAGEM (ou a caminho de alguém): 25 metros. É o que faz o carro
+  //     mexer-se no mapa de quem espera.
+  //   • À ESPERA DE PEDIDOS: 120 metros. Aqui a posição serve para escolher
+  //     quem está mais perto do próximo pedido, e um quarteirão chega.
+  //
+  // O TEMPO MÍNIMO continua a existir como tecto: sem ele, um carro em
+  // autoestrada dispararia dezenas de envios por minuto.
   useEffect(() => {
-    if (!isDriver || !online) return;
+    if (!isDriver || !online) return undefined;
     let parado = false;
+    let sub = null;
+    let ultima = null;
 
-    async function enviarPosicao() {
+    function enviar(pos) {
+      if (parado) return;
+      const aqui = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      ultima = aqui;
+      setMinhaPosicao(aqui);
+      socketRef.current?.emit('driver:location', aqui);
+    }
+
+    // A BATIDA DE QUEM ESTÁ PARADO.
+    //
+    // Sem isto, a mudança acima trazia um defeito novo e sorrateiro: o
+    // servidor tira do serviço quem não dá sinal há dez minutos
+    // (`SINAL_FRESCO`), e quem dá sinal é justamente esta posição. Um
+    // motorista à espera de pedidos, parado à sombra, deixava de andar —
+    // logo deixava de enviar — logo desaparecia do serviço sozinho ao fim
+    // de dez minutos, à espera de pedidos que já não lhe podiam chegar.
+    //
+    // De quatro em quatro minutos repete-se a ÚLTIMA posição conhecida. Não
+    // toca no GPS (não há nada de novo para ler) e são quinze envios por
+    // hora, contra os trezentos de antes.
+    const batida = setInterval(() => {
+      if (!parado && ultima) socketRef.current?.emit('driver:location', ultima);
+    }, 240000);
+
+    (async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted' || parado) return;
-        const pos = await Location.getCurrentPositionAsync({
+
+        // A primeira vai já: quem acaba de ficar disponível tem de entrar na
+        // lista dos que estão perto, sem esperar por andar 120 metros.
+        const agora = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
         });
-        const aqui = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        setMinhaPosicao(aqui);
-        socketRef.current?.emit('driver:location', aqui);
-      } catch {
-        /* sem GPS agora — tenta outra vez no próximo ciclo */
-      }
-    }
+        enviar(agora);
 
-    enviarPosicao();
-    const id = setInterval(enviarPosicao, 12000);
+        sub = await Location.watchPositionAsync(
+          {
+            accuracy: emViagemRef.current ? Location.Accuracy.High : Location.Accuracy.Balanced,
+            distanceInterval: emViagemRef.current ? 25 : 120,
+            timeInterval: emViagemRef.current ? 8000 : 30000,
+          },
+          enviar
+        );
+        if (parado) {
+          sub.remove();
+          sub = null;
+        }
+      } catch {
+        /* sem GPS nem permissão: o servidor fica com a última posição conhecida */
+      }
+    })();
+
     return () => {
       parado = true;
-      clearInterval(id);
+      clearInterval(batida);
+      sub?.remove();
+      sub = null;
     };
-  }, [isDriver, online]);
+    // `emViagem` entra nas dependências para a cadência mudar quando a viagem
+    // começa ou acaba: a subscrição é refeita com o filtro do outro trabalho.
+  }, [isDriver, online, emViagem]);
 
   // Quando a viagem ativa muda: repor chat/avaliação e carregar histórico
   const activeId = activeRide?.id ?? null;
@@ -270,11 +372,29 @@ export function RideProvider({ children }) {
 
   // --- Ações ---------------------------------------------------------------
 
+  // PEDIR UMA VIAGEM, incluindo o caso em que ela já foi pedida (21/09/2026).
+  //
+  // Numa rede lenta o pedido pode chegar ao servidor e a RESPOSTA perder-se.
+  // O servidor faz o que deve — recusa a segunda com 409, porque cada
+  // passageiro só tem uma viagem de cada vez — mas a app mostrava essa recusa
+  // como erro. Ou seja: a viagem estava criada, um motorista podia já estar a
+  // caminho, e o ecrã dizia que tinha falhado. A pessoa desistia.
+  //
+  // Um 409 aqui não é uma falha: é a confirmação de que a viagem existe. Vai
+  // buscá-la e segue como se a primeira resposta tivesse chegado.
   const requestRide = useCallback(
     async (payload) => {
-      const { ride } = await api.createRide(token, payload);
-      setActiveRide(ride);
-      return ride;
+      try {
+        const { ride } = await api.createRide(token, payload);
+        setActiveRide(ride);
+        return ride;
+      } catch (e) {
+        if (e?.status !== 409) throw e;
+        const { ride } = await api.activeRide(token);
+        if (!ride) throw e;
+        setActiveRide(ride);
+        return ride;
+      }
     },
     [token]
   );

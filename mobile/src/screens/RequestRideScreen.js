@@ -2256,7 +2256,10 @@ const criarEstilos = () =>
     botao: {
       backgroundColor: colors.coral,
       borderRadius: radius.md,
-      height: 54,
+      // `minHeight` e não `height`, pela mesma razão do botão do chat: a
+      // letra grande do sistema não pode cortar o texto de um botão.
+      minHeight: 54,
+      paddingVertical: spacing.sm,
       alignItems: 'center',
       justifyContent: 'center',
       marginTop: spacing.md,
