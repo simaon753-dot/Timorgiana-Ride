@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { servicoEstaAtivo } from '../configServico.js';
+import { taxaDe, viagensDoPassageiro } from '../jastip.js';
 import { requireAuth } from '../auth.js';
 import { preco, etaMinutos, straightKm } from '../routing.js';
 import { rotaCompleta } from '../rotas.js';
@@ -11,7 +12,7 @@ import { taxasPara } from '../taxasDeEntrada.js';
 // cotação rebentava com ReferenceError e a app ficava sem preço — só o pedido
 // (routes/rides.js, que a importa) calculava o valor. Ver
 // scripts/verificar-nomes.mjs, que nasceu disto.
-import { TIPOS_VEICULO, SERVICOS } from '../config.js';
+import { TIPOS_VEICULO, SERVICOS, config } from '../config.js';
 
 export const quoteRouter = Router();
 quoteRouter.use(requireAuth);
@@ -84,6 +85,17 @@ quoteRouter.post(
     // Qualquer serviço desligado no painel sai da cotação: mostrar um preço de
     // um serviço que não aceita pedidos seria prometer o que não há.
     const tiposPossiveis = (paragens.length ? ['carry'] : TIPOS_VEICULO).filter(servicoEstaAtivo);
+
+    // A TAXA DA ENCOMENDA entra em TODAS as opções, e não à parte.
+    //
+    // O passageiro compara preços de mota e carro; se a taxa aparecesse só na
+    // conta final, ele escolhia por um número e pagava outro. A taxa é pelo
+    // trabalho de comprar — vai com a viagem, seja em que veículo for.
+    //
+    // Calculada pelo TETO que ele autorizou; se as compras ficarem num escalão
+    // mais barato, é esse que se cobra (ver `taxaCobrada` em jastip.js).
+    const encomenda = req.body?.servico === 'jastip' && servicoEstaAtivo('jastip');
+    const taxaEncomenda = encomenda ? taxaDe(req.body?.jastipTeto) : 0;
     const opcoes = await Promise.all(
       tiposPossiveis.map(async (tipo) => {
         const perto = await nearestDrivers({
@@ -96,13 +108,18 @@ quoteRouter.post(
         const maisPerto = perto[0];
         return {
           type: tipo,
-          fareUsd: preco(
-            tipo,
-            viagem.km,
-            viagem.min,
-            tipo === 'car' || (tipo === 'carry' && carryPessoas) ? pessoas : null,
-            tipo === 'carry' && carryPessoas ? null : carga
-          ),
+          fareUsd:
+            Math.round(
+              (preco(
+                tipo,
+                viagem.km,
+                viagem.min,
+                tipo === 'car' || (tipo === 'carry' && carryPessoas) ? pessoas : null,
+                tipo === 'carry' && carryPessoas ? null : carga
+              ) +
+                taxaEncomenda) *
+                100
+            ) / 100,
           etaMin: maisPerto ? etaMinutos(maisPerto.km) : null,
           available: !!maisPerto,
         };
@@ -120,6 +137,9 @@ quoteRouter.post(
       fonteDaRota: viagem.fonte,
       currency: 'USD',
       options: opcoes,
+      // A parcela da encomenda, à vista: o ecrã mostra "viagem + $1,50 por
+      // comprar", e não um total que ninguém sabe de onde veio.
+      ...(encomenda ? { taxaJastip: taxaEncomenda } : {}),
       // Sítios onde entrar custa dinheiro — o estacionamento do Timor Plaza, o
       // recinto do aeroporto. Vai com a tarifa e não à parte porque é aqui que
       // já se sabem as duas pontas da viagem, e porque o passageiro tem de
@@ -142,6 +162,26 @@ quoteRouter.get(
       servicos: Object.fromEntries(SERVICOS.map((s) => [s.id, { ativo: servicoEstaAtivo(s.id) }])),
     })
   )
+);
+
+// GET /api/quote/jastip — as regras da encomenda, e se esta conta já pode.
+//
+// Num pedido só, porque é o que o ecrã precisa de saber ANTES de se desenhar:
+// o teto, os escalões, e quantas viagens faltam a quem ainda não pode pedir.
+// Dizer "não podes" sem dizer quanto falta é uma porta sem maçaneta.
+quoteRouter.get(
+  '/jastip',
+  wrap(async (req, res) => {
+    const feitas = await viagensDoPassageiro(req.user.id);
+    res.json({
+      ativo: servicoEstaAtivo('jastip'),
+      tetoMax: config.jastip.tetoUsd,
+      escaloes: config.jastip.escaloes,
+      viagensMinimas: config.jastip.viagensMinimas,
+      viagensFeitas: feitas,
+      podePedir: servicoEstaAtivo('jastip') && feitas >= config.jastip.viagensMinimas,
+    });
+  })
 );
 
 // POST /api/quote/linha — só a linha da viagem.

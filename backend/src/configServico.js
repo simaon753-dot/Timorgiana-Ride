@@ -1,4 +1,4 @@
-import { config, SERVICOS } from './config.js';
+import { config, SERVICOS, JASTIP_PADRAO } from './config.js';
 import { query } from './db.js';
 
 // OS PREÇOS DO CARRY, EDITÁVEIS NO PAINEL (14/09/26).
@@ -73,6 +73,45 @@ function aplicar(alteracoes) {
 // cotação usa.
 aplicar({});
 
+// AS REGRAS DO JASTIP, com o que o painel gravou por cima das de partida.
+//
+// Os limites existem pela mesma razão dos preços do Pickup: um engano de dedo
+// no teto — 250 em vez de 25 — manda um motorista adiantar o salário de um
+// mês, e chega a toda a gente no pedido seguinte.
+export const LIMITES_JASTIP = {
+  tetoUsd: { min: 1, max: 100 },
+  viagensMinimas: { min: 0, max: 20 },
+  taxa: { min: 0, max: 10 },
+};
+
+function aplicarJastip(valor) {
+  const r = JSON.parse(JSON.stringify(JASTIP_PADRAO));
+  const v = valor || {};
+  const dentro = (n, l) => Number.isFinite(Number(n)) && Number(n) >= l.min && Number(n) <= l.max;
+  if (dentro(v.tetoUsd, LIMITES_JASTIP.tetoUsd)) r.tetoUsd = Number(v.tetoUsd);
+  if (dentro(v.viagensMinimas, LIMITES_JASTIP.viagensMinimas)) {
+    r.viagensMinimas = Math.round(Number(v.viagensMinimas));
+  }
+  if (Array.isArray(v.escaloes) && v.escaloes.length) {
+    const limpos = v.escaloes
+      .filter((e) => dentro(e?.ate, { min: 1, max: 100 }) && dentro(e?.taxa, LIMITES_JASTIP.taxa))
+      .map((e) => ({ ate: Number(e.ate), taxa: Math.round(Number(e.taxa) * 100) / 100 }))
+      .sort((a, b) => a.ate - b.ate);
+    if (limpos.length) r.escaloes = limpos;
+  }
+  config.jastip = r;
+}
+
+aplicarJastip(null);
+
+export function estadoJastip() {
+  return { regras: config.jastip, padrao: JASTIP_PADRAO, limites: LIMITES_JASTIP };
+}
+
+export function gravarRegrasJastip(valores, porId) {
+  return gravar('jastip.regras', valores || {}, porId);
+}
+
 // Só os campos conhecidos, só números, só dentro dos limites.
 export function validarTarifa(valores) {
   const limpo = {};
@@ -92,10 +131,11 @@ export async function carregarConfigServico() {
   try {
     const rows = await query(
       `SELECT chave, valor, atualizado_em, atualizado_por FROM config_servico
-        WHERE chave = 'carry.tarifa' OR chave LIKE '%.ativo'`
+        WHERE chave IN ('carry.tarifa', 'jastip.regras') OR chave LIKE '%.ativo'`
     );
     const tarifa = rows.find((r) => r.chave === 'carry.tarifa');
     aplicar(tarifa?.valor || {});
+    aplicarJastip(rows.find((r) => r.chave === 'jastip.regras')?.valor);
     atualizado = tarifa ? { em: tarifa.atualizado_em, por: tarifa.atualizado_por } : null;
 
     ativos.clear();

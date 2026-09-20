@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { marcarEtapaCarga } from '../rides.js';
-import { notificarEtapaCarga } from '../push.js';
+import { notificarComprado, notificarEtapaCarga } from '../push.js';
 import { criarAviso, cancelarAvisos } from '../avisos.js';
 import { servicoEstaAtivo } from '../configServico.js';
+import { jaTemEncomendaAberta, marcarComprado, porqueNaoPode, taxaDe } from '../jastip.js';
 import {
   TIPOS_CARGA,
   TIPOS_VEICULO,
@@ -144,6 +145,9 @@ ridesRouter.post(
       carryModo,
       cargaOutro,
       cargaTipos,
+      // A encomenda (jastip): o que comprar e até quanto gastar.
+      servico,
+      jastip,
     } = req.body || {};
     if (!destLabel || !destLabel.trim()) {
       return res.status(400).json({ error: 'Indica o destino.' });
@@ -162,6 +166,29 @@ ridesRouter.post(
             ? 'O Pickup está temporariamente indisponível.'
             : 'Este serviço está temporariamente indisponível.',
       });
+    }
+
+    // ── Comprar por encomenda (jastip) ─────────────────────────────
+    //
+    // TRÊS PORTAS, e nenhuma delas é conveniência da app: o serviço tem de
+    // estar ligado, quem pede tem de ter história na app, e uma encomenda de
+    // cada vez. Cada encomenda é dinheiro de um motorista na rua; três ao
+    // mesmo tempo eram três motoristas a arriscar pela mesma pessoa antes de
+    // ela ter pago a primeira.
+    const ehEncomenda = servico === 'jastip';
+    if (ehEncomenda) {
+      if (!servicoEstaAtivo('jastip')) {
+        return res.status(503).json({ error: 'Este serviço está temporariamente indisponível.' });
+      }
+      const impede = await porqueNaoPode({
+        userId: req.user.id,
+        lista: jastip?.lista,
+        tetoUsd: jastip?.teto,
+      });
+      if (impede) return res.status(400).json({ error: impede });
+      if (await jaTemEncomendaAberta(req.user.id)) {
+        return res.status(409).json({ error: 'Já tens uma encomenda a decorrer.' });
+      }
     }
 
     // ── Transporte de bens ─────────────────────────────────────────
@@ -309,6 +336,15 @@ ridesRouter.post(
       minViagem = viagem.min;
     }
 
+    // A TAXA DA ENCOMENDA soma-se à viagem, como a ajuda a carregar se soma
+    // no Pickup: é trabalho e risco que não dependem da distância. Calculada
+    // pelo TETO — o que o passageiro autorizou — e acertada para baixo quando
+    // o motorista disser quanto gastou (ver `taxaCobrada` em jastip.js).
+    const taxaEncomenda = ehEncomenda ? taxaDe(jastip?.teto) : null;
+    if (taxaEncomenda != null && precoFinal != null) {
+      precoFinal = Math.round((Number(precoFinal) + taxaEncomenda) * 100) / 100;
+    }
+
     const row = await createRide({
       passengerId: req.user.id,
       destLabel,
@@ -319,6 +355,10 @@ ridesRouter.post(
       originLng,
       vehicleType,
       fareUsd: precoFinal,
+      servico: ehEncomenda ? 'jastip' : null,
+      jastipLista: ehEncomenda ? jastip?.lista : null,
+      jastipTeto: ehEncomenda ? jastip?.teto : null,
+      jastipTaxa: taxaEncomenda,
       distanceKm: kmViagem,
       durationMin: minViagem,
       // Só onde se pergunta: numa motorizada vai sempre uma pessoa, e num
@@ -484,6 +524,74 @@ ridesRouter.post(
       .then((p) => notificarEtapaCarga(p, etapa, rideId))
       .catch(() => {});
     return res.json({ ride: toPublicRide(updated) });
+  })
+);
+
+// POST /api/rides/:id/comprado — o motorista diz quanto gastou na encomenda
+//
+// É o passo que o jastip tem a mais: entre aceitar e entregar há uma compra,
+// feita com dinheiro do motorista. O valor entra aqui e a fotografia do talão
+// entra pelo caminho das fotografias da carga — a mesma porta, porque é a
+// mesma coisa: prova do que se passou nesta viagem.
+//
+// O passageiro é avisado na hora. Ele autorizou um teto e tem direito a saber
+// o que foi gasto ANTES de a encomenda lhe chegar à porta.
+ridesRouter.post(
+  '/:id/comprado',
+  requireApprovedDriver,
+  wrap(async (req, res) => {
+    const rideId = Number(req.params.id);
+    const r = await marcarComprado(rideId, req.user.id, req.body?.valorUsd);
+    if (r.erro) return res.status(409).json({ error: r.erro });
+
+    const atualizada = await getRideById(rideId);
+    registarSemEsperar({
+      rideId,
+      que: EVENTOS.COMPRADO,
+      por: req.user.id,
+      lat: num2(req.user.last_lat),
+      lng: num2(req.user.last_lng),
+      detalhe: { valorUsd: Number(req.body?.valorUsd) },
+    });
+    notify(req.app.get('io'), atualizada, 'ride:update');
+    one('SELECT push_token, lingua FROM users WHERE id = $1', [atualizada.passenger_id])
+      .then((p) => notificarComprado(p, atualizada))
+      .catch(() => {});
+    return res.json({ ride: toPublicRide(atualizada) });
+  })
+);
+
+// POST /api/rides/:id/talao — a fotografia do talão da encomenda
+//
+// PELO MOTORISTA, e é essa a diferença para as fotografias da carga, que são
+// de quem pede. Aqui quem tem o papel na mão é quem comprou.
+//
+// Fica no mesmo sítio das outras (ride_fotos): é prova da mesma viagem, apaga-se
+// com o mesmo prazo, e vê-se no painel pelo mesmo caminho. Um segundo
+// armazém para fotografias seria a mesma coisa escrita duas vezes.
+ridesRouter.post(
+  '/:id/talao',
+  requireApprovedDriver,
+  wrap(async (req, res) => {
+    const { mime, base64 } = req.body || {};
+    if (!base64) return res.status(400).json({ error: 'Fotografia em falta.' });
+
+    const ride = await getRideById(Number(req.params.id));
+    // 404 e não 403 a quem não é o motorista desta viagem: um 403 confirmaria
+    // que ela existe.
+    if (!ride || ride.driver_id !== req.user.id || ride.servico !== 'jastip') {
+      return res.status(404).json({ error: 'Encomenda não encontrada.' });
+    }
+    if (ride.status === 'completed' || ride.status === 'cancelled') {
+      return res.status(409).json({ error: 'A viagem já terminou.' });
+    }
+
+    try {
+      const r = await guardarFotoDaCarga({ rideId: ride.id, mime, base64 });
+      return res.status(201).json({ ok: true, total: r.total });
+    } catch (e) {
+      return res.status(400).json({ error: e.message });
+    }
   })
 );
 

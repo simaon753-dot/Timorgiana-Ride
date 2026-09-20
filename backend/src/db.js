@@ -645,6 +645,22 @@ export async function initSchema() {
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_notas TEXT`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carga_declarado_em TIMESTAMPTZ`);
 
+  // JASTIP — comprar por encomenda (20/09/2026). Ver jastip.js para as regras.
+  //
+  // `servico` diz o QUE se pediu; `vehicle_type` continua a dizer em QUE se
+  // anda. São perguntas diferentes: uma encomenda pode ir de mota ou de carro,
+  // e um motorista continua a ser encontrado pelo veículo que tem.
+  //
+  // O valor do talão fica à parte da tarifa de propósito: a app mostra as duas
+  // contas separadas — a viagem, que a plataforma calcula, e as compras, que
+  // são dinheiro do motorista a ser devolvido.
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS servico TEXT`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS jastip_lista TEXT`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS jastip_teto NUMERIC(8,2)`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS jastip_taxa NUMERIC(8,2)`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS jastip_valor NUMERIC(8,2)`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS jastip_comprado_em TIMESTAMPTZ`);
+
   // O TERCEIRO TIPO DE VEÍCULO: 'carry', para transporte de bens.
   //
   // As duas restrições nasceram com dois tipos e recusariam 'carry' em

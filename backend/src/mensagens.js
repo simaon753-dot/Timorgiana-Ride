@@ -324,6 +324,10 @@ export const MENSAGENS = {
     'The Pickup is temporarily unavailable.',
   ],
   // Para os serviços que não têm frase própria (20/09/2026).
+  'Já tens uma encomenda a decorrer.': [
+    'Ita iha ona enkomenda ida la\'o hela.',
+    'You already have an order in progress.',
+  ],
   'Este serviço está temporariamente indisponível.': [
     'Servisu ne\'e la disponível ba tempu badak.',
     'This service is temporarily unavailable.',
@@ -441,6 +445,12 @@ export const NOTIFICACOES = {
     pt: 'Novo pedido de viagem',
     tet: 'Pedidu viajen foun',
     en: 'New ride request',
+  },
+  compradoTitulo: { pt: 'Compra feita', tet: 'Sosa tiha ona', en: 'Purchase made' },
+  compradoTexto: {
+    pt: 'O motorista gastou {valor} e vai a caminho. Paga em mão a viagem e as compras.',
+    tet: 'Motorista gasta {valor} no iha dalan. Selu ho liman viajen ho sasán sira.',
+    en: 'The driver spent {valor} and is on the way. Pay the trip and the shopping in cash.',
   },
   etapaCarregadaTitulo: { pt: 'Carga carregada', tet: 'Karga tula ona', en: 'Load on board' },
   etapaCarregadaTexto: {

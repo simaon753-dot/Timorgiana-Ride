@@ -97,6 +97,25 @@ export async function notificarEtapaCarga(quem, etapa, rideId) {
   ]);
 }
 
+// A COMPRA FEITA (jastip). O passageiro autorizou um teto e tem direito a
+// saber o que foi gasto ANTES de a encomenda lhe chegar à porta — é com esse
+// número que ele prepara o dinheiro.
+export async function notificarComprado(quem, ride) {
+  const d = destino(quem);
+  if (!d) return { enviadas: 0 };
+  const valor = `$${Number(ride.jastip_valor ?? 0).toFixed(2)}`;
+  return enviar([
+    {
+      to: d.to,
+      sound: 'default',
+      title: n('compradoTitulo', d.lingua),
+      body: n('compradoTexto', d.lingua, { valor }),
+      data: { tipo: 'ride:comprado', rideId: ride.id },
+      priority: 'high',
+    },
+  ]);
+}
+
 // "Já há motorista" — o aviso que o passageiro pediu quando não havia ninguém.
 const NOME_TIPO = { motorbike: 'veiculoMotorbike', car: 'veiculoCar', carry: 'veiculoCarry' };
 export async function notificarMotoristaDisponivel(quem, tipo) {

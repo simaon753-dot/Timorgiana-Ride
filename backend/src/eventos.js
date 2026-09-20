@@ -36,6 +36,8 @@ export const EVENTOS = {
   RECUSADA: 'recusada',
   // Uma etapa da entrega (carregada / no_destino / descarregada), em `detalhe`.
   ETAPA_CARGA: 'etapa_carga',
+  // O motorista comprou a encomenda (jastip), com o valor em `detalhe`.
+  COMPRADO: 'comprado',
 };
 
 // Regista um evento.

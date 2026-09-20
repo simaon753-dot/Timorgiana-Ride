@@ -29,9 +29,31 @@ export const SERVICOS = [
   { id: 'motorbike', familia: 'viagem', emConstrucao: false },
   { id: 'car', familia: 'viagem', emConstrucao: false },
   { id: 'carry', familia: 'entrega', emConstrucao: false },
+  // EM CONSTRUÇÃO até estar testado de ponta a ponta (20/09/2026). Enquanto
+  // isto for `true`, nem o painel nem o servidor o deixam ligar.
+  { id: 'jastip', familia: 'encomenda', emConstrucao: true },
 ];
 
 export const servicoConhecido = (id) => SERVICOS.some((s) => s.id === id);
+
+// AS REGRAS DO JASTIP, decididas pelo Simão a 20/09/2026.
+//
+// O teto é o tamanho máximo da perda de um motorista que adianta dinheiro a
+// quem não paga: US$25 é menos de dois dias de trabalho numa mota. As três
+// viagens exigidas são a única defesa que custa zero — quem cria uma conta só
+// para encomendar não as tem.
+//
+// Os escalões ficam editáveis no painel (`jastip.regras`), como os preços do
+// Pickup: um preço no código é um preço que obriga a publicar uma versão nova
+// da app para mudar.
+export const JASTIP_PADRAO = {
+  tetoUsd: Number(process.env.JASTIP_TETO) || 25,
+  viagensMinimas: Number(process.env.JASTIP_VIAGENS_MINIMAS) || 3,
+  escaloes: [
+    { ate: 10, taxa: 1 },
+    { ate: 25, taxa: 1.5 },
+  ],
+};
 
 // CARRY COM PESSOAS: até 15, decidido pelo Simão (13/09/26). As pessoas vão na
 // caixa; é para grupos que não cabem num carro. O número de 15 é dele — é o
@@ -73,6 +95,8 @@ export const MOTIVOS_RECUSA = ['agora', 'incompativel'];
 export const ETAPAS_CARGA = ['carregada', 'no_destino', 'descarregada'];
 
 export const config = {
+  // As regras do jastip, substituídas pelo que o painel gravar.
+  jastip: JASTIP_PADRAO,
   // O alojamento define a porta por variável de ambiente
   port: Number(process.env.PORT) || 4000,
 

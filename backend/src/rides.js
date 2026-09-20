@@ -1,4 +1,5 @@
 import { query, one } from './db.js';
+import { jastipPublico, MAX_LISTA } from './jastip.js';
 import {
   TIPOS_VEICULO,
   TIPOS_CARGA,
@@ -125,6 +126,9 @@ export function toPublicRide(row, opcoes = {}) {
     originLat: row.origin_lat ?? null,
     originLng: row.origin_lng ?? null,
     vehicleType: row.vehicle_type || null,
+    // O QUE se pediu, ao lado de em QUE se anda. Numa viagem normal é nulo.
+    servico: row.servico || null,
+    jastip: jastipPublico(row),
     passengers: row.passengers ?? null,
     startedAt: row.started_at ?? null,
     acceptedAt: row.accepted_at ?? null,
@@ -278,6 +282,12 @@ export async function createRide({
   // continua em `cargaTipo`: é o que as listas, o painel e as estatísticas
   // lêem, e assim nada do que já existe muda de sentido.
   cargaTipos = [],
+  // A ENCOMENDA (jastip, 20/09/2026). Tudo nulo numa viagem normal: o que
+  // manda é o `servico`, como o tipo manda na carga.
+  servico = null,
+  jastipLista = null,
+  jastipTeto = null,
+  jastipTaxa = null,
 }) {
   // Quatro dígitos, com zeros à frente. Não é um segredo criptográfico —
   // é uma senha dita em voz alta à porta do carro, e vive uns minutos.
@@ -331,6 +341,18 @@ export async function createRide({
         .trim()
         .slice(0, 80) || null
     : null;
+  // O SERVIÇO MANDA, como o tipo manda na carga: sem `servico = 'jastip'` não
+  // há lista nem teto, mesmo que venham preenchidos. Uma viagem que diz "gasta
+  // até $25" sem dizer em quê manda o motorista decidir às cegas.
+  const ehEncomenda = servico === 'jastip';
+  const listaJastip = ehEncomenda
+    ? String(jastipLista || '')
+        .trim()
+        .slice(0, MAX_LISTA) || null
+    : null;
+  const tetoJastip = listaJastip ? num(jastipTeto) : null;
+  const taxaJastip = tetoJastip != null ? num(jastipTaxa) : null;
+
   const inserted = await one(
     `INSERT INTO rides
        (passenger_id, dest_label, dest_lat, dest_lng, origin_label, origin_lat, origin_lng,
@@ -338,9 +360,9 @@ export async function createRide({
         pickup_code, municipio,
         viajante_nome, viajante_telefone, viajante_menor, consentimento_em,
         carga_tipo, carga_volume, carga_ajuda, carga_notas, carga_declarado_em, carga_outro,
-        carga_extra, status)
+        carga_extra, servico, jastip_lista, jastip_teto, jastip_taxa, status)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,
-             $19,$20,$21,$22,$23,$24,$25,'requested')
+             $19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,'requested')
      RETURNING id`,
     [
       passengerId,
@@ -385,6 +407,10 @@ export async function createRide({
       tipoCarga && cargaDeclarada ? new Date() : null,
       outroCarga,
       extrasCarga.length ? extrasCarga.join(',') : null,
+      listaJastip ? servico : null,
+      listaJastip,
+      tetoJastip,
+      taxaJastip,
     ]
   );
   // AS PARAGENS, agora que a viagem tem id: a chave estrangeira aponta para
