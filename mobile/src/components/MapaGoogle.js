@@ -102,7 +102,20 @@ const CARTAO_L = 150;
 // do percurso continuam a ser desenhados por nós. O Google não tem
 // equivalente para nenhum dos três — e foi por causa deles que este
 // componente existe.
-const FERRAMENTAS_DO_GOOGLE = true;
+const FERRAMENTAS_DO_GOOGLE = false;
+
+// O TRÂNSITO TEM INTERRUPTOR PRÓPRIO, e é a lição da experiência acima.
+//
+// Foi ligado com as outras ferramentas do Google e desligado com elas — mas
+// não é da mesma família. As outras três são BOTÕES, e para cada uma havia
+// uma nossa a fazer o mesmo trabalho; o trânsito é uma CAMADA DE INFORMAÇÃO,
+// e para essa não temos nada. Desligá-lo por arrastamento era perder o que
+// não estava em discussão.
+//
+// Fica desligado porque o Simão mandou desligar as do Google, e a instrução
+// dele vale mais do que a minha opinião sobre o trânsito. Mas fica separado:
+// no dia em que quiser só o trânsito, é esta linha e mais nenhuma.
+const TRANSITO_DO_GOOGLE = false;
 
 const IMAGEM = {
   origem: require('../../assets/mapa/pino-origem.png'),
@@ -1021,7 +1034,7 @@ export default function MapaGoogle({
         toolbarEnabled={FERRAMENTAS_DO_GOOGLE}
         // O TRÂNSITO, que nunca esteve ligado. Em Díli diz qual a avenida que
         // está parada — é a ferramenta do Google que mais falta fazia.
-        showsTraffic={FERRAMENTAS_DO_GOOGLE}
+        showsTraffic={TRANSITO_DO_GOOGLE}
         // A ROTAÇÃO ESTAVA DESLIGADA, e sem ela uma bússola não teria o
         // que mostrar. Roda-se com dois dedos, como em qualquer mapa.
         rotateEnabled
