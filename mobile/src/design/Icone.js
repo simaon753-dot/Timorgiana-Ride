@@ -340,6 +340,23 @@ function desenho(nome, p, cheio, preenchido, c) {
           <Line x1="13.5" y1="6.5" x2="17.5" y2="10.5" {...p} />
         </>
       );
+    case 'flor':
+      // Quatro pétalas em cruz, miolo e haste. Não são cinco nem seis: aos 18
+      // pontos — o tamanho a que isto se vê no mosaico — pétalas a mais
+      // fundem-se num borrão redondo e o desenho deixa de dizer "flor". A
+      // folha existe pela mesma razão, ao contrário: sem ela, a cruz de
+      // pétalas lê-se como um sinal de mais.
+      return (
+        <>
+          <Ellipse cx="12" cy="6.2" rx="2.1" ry="2.8" {...p} />
+          <Ellipse cx="12" cy="12.2" rx="2.1" ry="2.8" {...p} />
+          <Ellipse cx="8.4" cy="9.2" rx="2.8" ry="2.1" {...p} />
+          <Ellipse cx="15.6" cy="9.2" rx="2.8" ry="2.1" {...p} />
+          <Circle cx="12" cy="9.2" r="1.4" {...p} />
+          <Line x1="12" y1="15" x2="12" y2="20" {...p} />
+          <Path d="M12 18c-2 0-3.2-1-3.4-2.6 2-.2 3.2.9 3.4 2.6z" {...p} />
+        </>
+      );
     case 'caixa':
       return (
         <>
@@ -465,6 +482,21 @@ function desenho(nome, p, cheio, preenchido, c) {
       );
 
     // ---- utilitários ----
+    case 'externo':
+      // "Abre fora da app" — a caixa com um canto aberto e a seta a sair por
+      // ele. É o sinal universal, e está aqui para o mosaico da florista não
+      // levar a mesma seta dos outros: essa promete um ecrã nosso, e este
+      // abre o navegador do telemóvel.
+      return (
+        <>
+          <Path
+            d="M18 13.5V19a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 19V8a1.5 1.5 0 0 1 1.5-1.5H11"
+            {...p}
+          />
+          <Polyline points="14.5,3.5 20.5,3.5 20.5,9.5" {...p} />
+          <Line x1="20.5" y1="3.5" x2="11.5" y2="12.5" {...p} />
+        </>
+      );
     case 'seta':
       return <Polyline points="9 5 16 12 9 19" {...p} />;
     case 'engrenagem':

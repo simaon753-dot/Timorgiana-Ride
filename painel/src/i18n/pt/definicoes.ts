@@ -19,6 +19,9 @@ export const definicoes = {
   'def.familia.viagem': 'Transporte de pessoas',
   'def.familia.entrega': 'Transporte de bens',
   'def.familia.encomenda': 'Compras por conta do passageiro',
+  // A florista não é um serviço da app: é um mosaico que abre a loja na
+  // internet. O interruptor aqui faz o mosaico aparecer e desaparecer.
+  'def.familia.loja': 'Loja na internet (abre fora da app)',
   'def.servicoAlterado': 'Alterado a {data}',
   'def.ligarTitulo': 'Ligar «{nome}»?',
   'def.ligarTexto': 'Os passageiros passam a poder pedir este serviço de imediato.',

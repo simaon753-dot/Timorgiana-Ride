@@ -169,7 +169,17 @@ quoteRouter.get(
       // A conta de quem pergunta entra aqui: um serviço em construção está
       // ligado para um administrador e desligado para todos os outros.
       servicos: Object.fromEntries(
-        SERVICOS.map((s) => [s.id, { ativo: servicoEstaAtivo(s.id, req.user) }])
+        SERVICOS.map((s) => [
+          s.id,
+          {
+            ativo: servicoEstaAtivo(s.id, req.user),
+            // O ENDEREÇO VEM DAQUI, e só os serviços que são uma porta para
+            // fora o têm. A app não guarda nenhum endereço escrito no código:
+            // sem este campo, não há para onde ir e o mosaico não aparece —
+            // que é o comportamento certo se alguém apagar a variável.
+            ...(s.link ? { link: s.link } : {}),
+          },
+        ])
       ),
     })
   )

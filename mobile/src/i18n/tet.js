@@ -1026,6 +1026,11 @@ export default {
   admStatusExpired: 'Kaduku',
   privacyTitle: 'Avizu privasidade',
 
+  // ── Flores (Timorgiana Florist), 21/09/2026 ──
+  floresTitulo: 'Ai-funan',
+  floresNota: 'Ai-funan no arranju — loke website',
+  floresSemNavegador: 'La bele loke website. Koko liu husi navegador telemóvel nian.',
+
   // ── Encomenda (jastip), 20/09/2026 ──
   encomendaTitulo: 'Enkomenda',
   maisServicos: 'Servisu seluk',

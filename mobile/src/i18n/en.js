@@ -1012,6 +1012,11 @@ export default {
   admStatusExpired: 'Expired',
   privacyTitle: 'Privacy notice',
 
+  // ── Flores (Timorgiana Florist), 21/09/2026 ──
+  floresTitulo: 'Flowers',
+  floresNota: 'Bouquets and arrangements — opens the website',
+  floresSemNavegador: 'Could not open the website. Try your phone browser.',
+
   // ── Encomenda (jastip), 20/09/2026 ──
   encomendaTitulo: 'Order',
   maisServicos: 'More services',

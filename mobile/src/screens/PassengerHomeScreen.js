@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Pressable,
   Alert,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BarraEstado from '../design/BarraEstado.js';
@@ -46,6 +47,40 @@ export default function PassengerHomeScreen({ navigation }) {
   const faltaPrivacidade = user?.privacyVersion !== VERSAO_PRIVACIDADE;
   const { podeConduzir, setModo } = useModo();
   const { activeRide: viagemBruta, loading } = useRides();
+
+  // QUAIS DOS SERVIÇOS EXTRA SE MOSTRAM.
+  //
+  // Ligado pelo servidor, como sempre. E, para os que abrem fora da app, com
+  // uma condição a mais: TEM de ter vindo um endereço. A app não guarda
+  // nenhum escrito no código, por isso sem endereço não há para onde ir — e
+  // um mosaico que não faz nada é pior do que um mosaico que não existe.
+  const extrasVisiveis = SERVICOS_EXTRA.filter((s) => {
+    const estado = servicos?.[s.id];
+    if (estado?.ativo !== true) return false;
+    return s.externo ? !!estado.link : true;
+  });
+
+  // TOCAR NUM SERVIÇO: os nossos abrem um ecrã, a florista abre o site dela.
+  //
+  // SAI-SE SEM PERGUNTAR, e foi uma escolha. Um aviso "vai sair da app" a cada
+  // toque é atrito em cima de quem já percebeu — o mosaico diz "abre o site" e
+  // leva o ícone de sair para fora, em vez da seta dos outros. Quem toca sabe
+  // o que vai acontecer antes de tocar, que é melhor do que saber depois.
+  //
+  // O aviso fica para quando FALHA. Sem navegador que abra o endereço,
+  // `openURL` rejeita — e calar isso deixava o passageiro a tocar num mosaico
+  // que parece estragado.
+  async function abrirServico(servico) {
+    if (!servico.externo) {
+      navigation.navigate(servico.ecra);
+      return;
+    }
+    try {
+      await Linking.openURL(servicos[servico.id].link);
+    } catch {
+      Alert.alert(t(servico.chaveNome), t('floresSemNavegador'));
+    }
+  }
 
   // Só mostra viagens em que EU sou o passageiro. Sem isto, quem conduz e
   // caia neste ecrã por um instante veria "o teu motorista: <o próprio
@@ -207,11 +242,11 @@ export default function PassengerHomeScreen({ navigation }) {
                 sempre existiu não deve desaparecer por falta de rede, mas um
                 serviço novo não deve aparecer por ela. Sem resposta, mostra-se
                 o que já se conhecia. */}
-            {SERVICOS_EXTRA.filter((s) => servicos?.[s.id]?.ativo === true).length ? (
+            {extrasVisiveis.length ? (
               <>
                 <Text style={styles.maisTitulo}>{t('maisServicos')}</Text>
                 <View style={styles.extras}>
-                  {SERVICOS_EXTRA.filter((s) => servicos?.[s.id]?.ativo === true).map((s) => (
+                  {extrasVisiveis.map((s) => (
                     <Pressable
                       key={s.id}
                       style={({ pressed }) => [
@@ -219,7 +254,7 @@ export default function PassengerHomeScreen({ navigation }) {
                         { backgroundColor: colors[s.tinta] || colors.white },
                         pressed && styles.premido,
                       ]}
-                      onPress={() => navigation.navigate(s.ecra)}
+                      onPress={() => abrirServico(s)}
                       accessibilityRole="button"
                       accessibilityLabel={t(s.chaveNome)}
                     >
@@ -234,7 +269,12 @@ export default function PassengerHomeScreen({ navigation }) {
                           {t(s.chaveNota)}
                         </Text>
                       </View>
-                      <Icone nome="seta" tamanho={18} cor={colors[s.acento]} traco={2.5} />
+                      <Icone
+                        nome={s.externo ? 'externo' : 'seta'}
+                        tamanho={18}
+                        cor={colors[s.acento]}
+                        traco={2.5}
+                      />
                     </Pressable>
                   ))}
                 </View>

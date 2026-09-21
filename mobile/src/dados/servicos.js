@@ -21,4 +21,18 @@ export const SERVICOS_EXTRA = [
     acento: 'acentoCarry',
     ecra: 'Encomenda',
   },
+  // A FLORISTA ABRE O SITE DELA, e é o único mosaico daqui que não abre um
+  // ecrã (21/09/2026). Por isso traz `externo: true` em vez de `ecra`: o
+  // endereço não está escrito aqui nem em lado nenhum da app — vem com a
+  // resposta de `/api/quote/servicos`, para mudar de domínio não obrigar a
+  // publicar uma versão nova.
+  {
+    id: 'flores',
+    chaveNome: 'floresTitulo',
+    chaveNota: 'floresNota',
+    icone: 'flor',
+    tinta: 'tintaFlor',
+    acento: 'acentoFlor',
+    externo: true,
+  },
 ];

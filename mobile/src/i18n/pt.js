@@ -1030,6 +1030,14 @@ export default {
   admStatusExpired: 'Caducado',
   privacyTitle: 'Aviso de privacidade',
 
+  // ── Flores (Timorgiana Florist), 21/09/2026 ──
+  // Não é um serviço da app: é a porta para a loja que já existe na
+  // internet. A nota diz "abre o site" de propósito — quem toca sabe
+  // que sai da app antes de sair.
+  floresTitulo: 'Flores',
+  floresNota: 'Ramos e arranjos — abre o site',
+  floresSemNavegador: 'Não foi possível abrir o site. Tente pelo navegador do telemóvel.',
+
   // ── Encomenda (jastip), 20/09/2026 ──
   encomendaTitulo: 'Encomenda',
   maisServicos: 'Mais serviços',

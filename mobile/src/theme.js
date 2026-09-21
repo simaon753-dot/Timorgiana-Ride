@@ -67,6 +67,12 @@ export const PALETAS = {
     acentoMota: '#1A8F74',
     acentoCarro: '#E85531',
     acentoCarry: '#2B7FD1',
+    // A FLORISTA TRAZ A COR DELA (21/09/2026). O coral da marca é #F9AC80 e
+    // não serve de acento: um ícone branco em cima dele não se lê. O que se
+    // usa é o coral profundo do mesmo guia de estilo (--terracota), que é
+    // exactamente a cor com que o site dela escreve os títulos.
+    tintaFlor: '#FBEFE6',
+    acentoFlor: '#C4633A',
     onAcento: '#FFFFFF',
     degradeDe: '#12806B',
     degradePara: '#0A463F',
@@ -149,6 +155,8 @@ export const PALETAS = {
     acentoMota: '#2E9E7E',
     acentoCarro: '#E85531',
     acentoCarry: '#3B8FD9',
+    tintaFlor: '#2A1A13',
+    acentoFlor: '#D4764A',
     onAcento: '#FFFFFF',
     degradeDe: '#3DBA96',
     degradePara: '#2E9E7E',

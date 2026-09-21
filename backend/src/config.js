@@ -10,6 +10,16 @@ import 'dotenv/config';
 // A ORDEM é a que o passageiro vê: da mais barata para a mais especial.
 export const TIPOS_VEICULO = ['motorbike', 'car', 'carry'];
 
+// ONDE VIVE A LOJA DA TIMORGIANA FLORIST.
+//
+// Numa variável de ambiente e não só no código: o site está hoje em páginas
+// do GitHub e há-de mudar para um domínio próprio. Sem isto, mudar de
+// endereço obrigava a publicar uma versão nova da app e a esperar que cada
+// telemóvel a apanhasse; assim muda-se no Render e o telemóvel seguinte já vai
+// ao sítio certo — o endereço viaja com a resposta de `/api/quote/servicos`.
+export const FLORES_LINK =
+  process.env.FLORES_LINK || 'https://simaon753-dot.github.io/timorgiana-florist/';
+
 // OS SERVIÇOS DA PLATAFORMA, e o que se pode ligar e desligar (20/09/2026).
 //
 // PORQUE EXISTE. O Pickup já se desligava no painel, mas por um caminho só
@@ -32,6 +42,20 @@ export const SERVICOS = [
   // EM CONSTRUÇÃO até estar testado de ponta a ponta (20/09/2026). Enquanto
   // isto for `true`, nem o painel nem o servidor o deixam ligar.
   { id: 'jastip', familia: 'encomenda', emConstrucao: true },
+  // A FLORISTA É UMA PORTA, NÃO UM SERVIÇO (21/09/2026).
+  //
+  // Decisão do Simão: «só adicionar o ícone flores e o link». A Timorgiana
+  // Florist já tem loja na internet, com catálogo, fotografias e encomenda
+  // por WhatsApp. Construir tudo isso outra vez dentro da app — catálogo,
+  // preços, carrinho — era refazer o que já funciona para o ter em dois
+  // sítios que depois divergem.
+  //
+  // Por isso este serviço não tem ecrã, nem cotação, nem viagem: tem um
+  // `link`. É a única entrada de `SERVICOS` que leva o passageiro PARA FORA
+  // da app, e está aqui na mesma lista porque o que interessa é o que ela dá:
+  // o interruptor do painel (desliga-se sem publicar versão nova) e o
+  // `emConstrucao` (que não é preciso, porque o site já está de pé).
+  { id: 'flores', familia: 'loja', emConstrucao: false, link: FLORES_LINK },
 ];
 
 export const servicoConhecido = (id) => SERVICOS.some((s) => s.id === id);
