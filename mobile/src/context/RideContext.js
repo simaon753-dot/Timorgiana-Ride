@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import { AppState } from 'react-native';
 import { cargaCabe } from '../dados/veiculos.js';
 import { nomeDaRua, metrosEntre } from '../lib/geocode.js';
 import * as Location from 'expo-location';
@@ -381,6 +382,64 @@ export function RideProvider({ children }) {
     // `emViagem` entra nas dependências para a cadência mudar quando a viagem
     // começa ou acaba: o serviço é refeito com o filtro do outro trabalho.
   }, [isDriver, online, emViagem]);
+
+  // O QUE SE VÊ NÃO É O QUE SE ENVIA (21/09/2026).
+  //
+  // Erro meu, apanhado pelo Simão no primeiro teste a sério com o carro em
+  // movimento: o ponto azul do Google andava e o pino do veículo ficava
+  // parado.
+  //
+  // A causa foi ter-se misturado duas perguntas diferentes numa só cadência.
+  // De manhã troquei o relógio de 12 segundos por um filtro de distância, e
+  // pus a leitura à espera de pedidos em quatro minutos — certo para POUPAR
+  // BATERIA e para dizer ao servidor «continuo aqui», errado para DESENHAR o
+  // veículo no ecrã de quem está a olhar para ele. O ponto azul é nativo e
+  // atualiza-se sozinho; o nosso pino esperava pela leitura seguinte.
+  //
+  // São mesmo dois trabalhos:
+  //   • DIZER AO SERVIDOR onde estou — raro, filtrado, e tem de funcionar com
+  //     o telemóvel no bolso (é o serviço em primeiro plano, acima).
+  //   • MOSTRAR-ME onde estou — frequente, mas só enquanto alguém está a olhar.
+  //
+  // Esta leitura NÃO É ENVIADA a lado nenhum e só corre com a app à frente.
+  // Custa bateria enquanto o ecrã está aceso, que é exatamente quando a pessoa
+  // aceita gastá-la para ver o mapa mexer-se.
+  useEffect(() => {
+    if (!isDriver) return undefined;
+    let vivo = true;
+    let sub = null;
+
+    async function ligar() {
+      if (!vivo || sub || AppState.currentState !== 'active') return;
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status !== 'granted' || !vivo) return;
+        const s = await Location.watchPositionAsync(
+          { accuracy: Location.Accuracy.High, distanceInterval: 10, timeInterval: 2000 },
+          (pos) => vivo && setMinhaPosicao({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        );
+        if (vivo) sub = s;
+        else s.remove();
+      } catch {
+        /* sem GPS: fica a última posição conhecida */
+      }
+    }
+
+    function desligar() {
+      sub?.remove();
+      sub = null;
+    }
+
+    ligar();
+    const ouvinte = AppState.addEventListener('change', (estado) =>
+      estado === 'active' ? ligar() : desligar()
+    );
+    return () => {
+      vivo = false;
+      desligar();
+      ouvinte.remove();
+    };
+  }, [isDriver]);
 
   // Quando a viagem ativa muda: repor chat/avaliação e carregar histórico
   const activeId = activeRide?.id ?? null;
