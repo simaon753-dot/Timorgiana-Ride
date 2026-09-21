@@ -919,8 +919,8 @@ export default function MapaGoogle({
   // ligadas sobra o satélite, que não tem equivalente do lado deles.
   const nBotoes = FERRAMENTAS_DO_GOOGLE
     ? modoEscolha || mostrarSatelite
-      ? 1
-      : 0
+      ? 3
+      : 2
     : modoEscolha || mostrarSatelite
       ? 4
       : 3;
@@ -1006,7 +1006,18 @@ export default function MapaGoogle({
         // Fica a nossa: está na coluna com as outras duas, aparece sempre, e
         // a agulha aponta ao norte mesmo com o mapa direito — diz para onde é
         // o norte, e não só que o mapa está torto.
-        showsCompass={FERRAMENTAS_DO_GOOGLE}
+        // A BÚSSOLA DO GOOGLE FICA DESLIGADA, mesmo com as ferramentas dele.
+        //
+        // Não é preferência: no Android o SDK ancora a bússola ao canto
+        // superior ESQUERDO e não há forma de a mudar de lado — a única coisa
+        // que a move é o `mapPadding`, que empurraria tudo o resto com ela.
+        // O Simão pediu os botões todos à direita, e do lado direito só a
+        // nossa lá chega. Fica a nossa agulha, na coluna de sempre.
+        //
+        // (No iPhone o SDK já a põe à direita, mas uma app com a bússola num
+        // lado no Android e no outro no iPhone é pior do que qualquer das
+        // duas: quem explica a app a um motorista teria de explicar duas.)
+        showsCompass={false}
         toolbarEnabled={FERRAMENTAS_DO_GOOGLE}
         // O TRÂNSITO, que nunca esteve ligado. Em Díli diz qual a avenida que
         // está parada — é a ferramenta do Google que mais falta fazia.
@@ -1336,7 +1347,14 @@ export default function MapaGoogle({
           rua, e o resto só pesa. */}
       {modoEscolha || mostrarSatelite ? (
         <Pressable
-          style={[styles.botaoSatelite, satelite && styles.botaoSateliteActivo, naColuna(3)]}
+          style={[
+            styles.botaoSatelite,
+            satelite && styles.botaoSateliteActivo,
+            // Sobe um lugar: com a mira e o «seguir» escondidos, ficava um
+            // buraco entre a agulha e ele.
+            FERRAMENTAS_DO_GOOGLE && { top: spacing.sm + 104 },
+            naColuna(FERRAMENTAS_DO_GOOGLE ? 2 : 3),
+          ]}
           onPress={() => setSatelite((v) => !v)}
           hitSlop={8}
           accessibilityRole="button"
@@ -1357,19 +1375,24 @@ export default function MapaGoogle({
           que existe: quem nunca rodou o mapa nunca descobre que pode.
           A agulha aponta sempre ao norte, e por isso diz duas coisas ao
           mesmo tempo: para onde é o norte, e quanto o mapa está torto. */}
-      {FERRAMENTAS_DO_GOOGLE ? null : (
-        <Pressable
-          style={[styles.botaoBussola, naColuna(1)]}
-          onPress={aoNorte}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={t('voltarAoNorte')}
-        >
-          <View style={{ transform: [{ rotate: `${-rumo}deg` }] }}>
-            <Agulha />
-          </View>
-        </Pressable>
-      )}
+      <Pressable
+        style={[
+          styles.botaoBussola,
+          // O botão do Google ocupa o primeiro lugar da coluna e é maior do
+          // que os nossos (48 contra 40). A agulha desce oito pontos para
+          // não lhe encostar.
+          FERRAMENTAS_DO_GOOGLE && { top: spacing.sm + 56 },
+          naColuna(1),
+        ]}
+        onPress={aoNorte}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={t('voltarAoNorte')}
+      >
+        <View style={{ transform: [{ rotate: `${-rumo}deg` }] }}>
+          <Agulha />
+        </View>
+      </Pressable>
 
       {/* ── A MIRA ────────────────────────────────────────────────────
           O pino fica FIXO no centro do ecrã e o mapa é que se move por
