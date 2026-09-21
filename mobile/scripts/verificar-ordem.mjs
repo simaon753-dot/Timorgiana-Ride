@@ -48,6 +48,41 @@ async function ficheiros(dir) {
   return saida;
 }
 
+// MÉTODOS QUE CORREM A FUNÇÃO ALI MESMO (21/09/2026).
+//
+// O `.filter()` não guarda a função para depois: chama-a no próprio instante,
+// uma vez por elemento. O mesmo vale para os outros daqui. Foi este o buraco
+// que deixou passar o defeito dos mosaicos: a leitura estava dentro da função
+// do `.filter()`, o verificador viu "outra função" e presumiu que corria mais
+// tarde — quando corria uma linha acima da declaração.
+const CORREM_JA = new Set([
+  'filter',
+  'map',
+  'forEach',
+  'find',
+  'findIndex',
+  'findLast',
+  'findLastIndex',
+  'some',
+  'every',
+  'reduce',
+  'reduceRight',
+  'sort',
+  'flatMap',
+]);
+
+// Esta função é chamada no sítio onde foi escrita?
+function correAgora(caminhoFuncao) {
+  const pai = caminhoFuncao.parentPath;
+  if (!pai?.isCallExpression()) return false;
+  // (() => ...)() — chamada a si própria.
+  if (pai.node.callee === caminhoFuncao.node) return true;
+  // alguma.coisa.filter(fn) — só quando é ARGUMENTO de um destes métodos.
+  if (!pai.node.arguments.includes(caminhoFuncao.node)) return false;
+  const chamado = pai.node.callee;
+  return chamado?.type === 'MemberExpression' && CORREM_JA.has(chamado.property?.name);
+}
+
 const problemas = [];
 
 for (const caminho of await ficheiros(RAIZ)) {
@@ -82,9 +117,19 @@ for (const caminho of await ficheiros(RAIZ)) {
       // Dentro de uma função criada ANTES mas chamada DEPOIS não há problema:
       // quando ela correr, o valor já existe. É o caso normal de um
       // `useCallback` ou de um manipulador de evento.
+      //
+      // MAS NEM TODA A FUNÇÃO ANINHADA CORRE MAIS TARDE. A do `.filter()`
+      // corre ali mesmo, e nesse caso o problema é exactamente o mesmo de
+      // estar escrita à solta. Por isso, em vez de desistir à primeira
+      // diferença, subimos de função em função: se TODAS as que estão pelo
+      // meio correm no instante, o uso é imediato e conta.
       const funcaoDoUso = caminhoNo.getFunctionParent();
       const funcaoDaDecl = ligacao.path.getFunctionParent();
-      if (funcaoDoUso !== funcaoDaDecl) return;
+      if (funcaoDoUso !== funcaoDaDecl) {
+        let f = funcaoDoUso;
+        while (f && f !== funcaoDaDecl && correAgora(f)) f = f.getFunctionParent();
+        if (f !== funcaoDaDecl) return;
+      }
 
       problemas.push({
         caminho,

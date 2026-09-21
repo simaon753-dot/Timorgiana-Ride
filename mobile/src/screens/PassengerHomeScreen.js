@@ -48,7 +48,33 @@ export default function PassengerHomeScreen({ navigation }) {
   const { podeConduzir, setModo } = useModo();
   const { activeRide: viagemBruta, loading } = useRides();
 
+  // Só mostra viagens em que EU sou o passageiro. Sem isto, quem conduz e
+  // caia neste ecrã por um instante veria "o teu motorista: <o próprio
+  // nome>", que é absurdo e mina a confiança no resto.
+  const activeRide = viagemBruta && viagemBruta.driver?.id !== user?.id ? viagemBruta : null;
+
+  // QUE SERVIÇOS ESTÃO LIGADOS. O Carry pode ser desligado no painel; lido ao
+  // entrar e sempre que se volta a este ecrã. Sem resposta, fica tudo como
+  // estava — um serviço não desaparece por falta de rede.
+  const [servicos, setServicos] = useState(null);
+  useEffect(() => {
+    const ler = () =>
+      api
+        .servicos(token)
+        .then((r) => setServicos(r?.servicos || null))
+        .catch(() => {});
+    ler();
+    return navigation.addListener('focus', ler);
+  }, [navigation, token]);
+
   // QUAIS DOS SERVIÇOS EXTRA SE MOSTRAM.
+  //
+  // ESTE BLOCO TEM DE VIR DEPOIS do `useState` acima, e não antes.
+  // Escrevi-o primeiro em cima e o ecrã do passageiro rebentava a cada
+  // desenho: um `const` lido antes de existir não é indefinido, atira
+  // ReferenceError — e o `?.` não protege, porque o que falha é o NOME e
+  // não o valor. Desapareceram os dois mosaicos, o novo e o que já lá
+  // estava (21/09/2026).
   //
   // Ligado pelo servidor, como sempre. E, para os que abrem fora da app, com
   // uma condição a mais: TEM de ter vindo um endereço. A app não guarda
@@ -81,25 +107,6 @@ export default function PassengerHomeScreen({ navigation }) {
       Alert.alert(t(servico.chaveNome), t('floresSemNavegador'));
     }
   }
-
-  // Só mostra viagens em que EU sou o passageiro. Sem isto, quem conduz e
-  // caia neste ecrã por um instante veria "o teu motorista: <o próprio
-  // nome>", que é absurdo e mina a confiança no resto.
-  const activeRide = viagemBruta && viagemBruta.driver?.id !== user?.id ? viagemBruta : null;
-
-  // QUE SERVIÇOS ESTÃO LIGADOS. O Carry pode ser desligado no painel; lido ao
-  // entrar e sempre que se volta a este ecrã. Sem resposta, fica tudo como
-  // estava — um serviço não desaparece por falta de rede.
-  const [servicos, setServicos] = useState(null);
-  useEffect(() => {
-    const ler = () =>
-      api
-        .servicos(token)
-        .then((r) => setServicos(r?.servicos || null))
-        .catch(() => {});
-    ler();
-    return navigation.addListener('focus', ler);
-  }, [navigation, token]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
