@@ -84,6 +84,26 @@ const CARTAO_L = 150;
 // As imagens são geradas do MESMO caminho SVG, em scripts/desenhar-pinos.py.
 // Se a forma mudar, correr o script outra vez; mudar só o <Pino> deixa o
 // mapa com o desenho velho e o resto da app com o novo.
+// AS FERRAMENTAS SÃO AS DO GOOGLE (21/09/2026, decisão do Simão).
+//
+// Estava ao contrário: as do Google desligadas e as nossas por cima. A razão
+// era boa — duas bússolas no mesmo ecrã fazem a pessoa perguntar qual é a
+// verdadeira, e foi o que aconteceu quando liguei a rotação. Ele pediu agora
+// para experimentar as do Google: bússola, botão da localização, barra de
+// ferramentas e trânsito.
+//
+// UM INTERRUPTOR, E NADA APAGADO. As nossas continuam escritas por inteiro
+// aqui em baixo e voltam com esta linha em `false`. Apagá-las obrigava a
+// reescrevê-las, e ninguém reescreve igual o que levou semanas a afinar — a
+// agulha que aponta ao norte com o mapa direito, o modo de seguir aceso a
+// teal, o botão que não colide com o de expandir.
+//
+// O QUE NÃO MUDA, e é o essencial: o PINO, o VEÍCULO DO MOTORISTA e a LINHA
+// do percurso continuam a ser desenhados por nós. O Google não tem
+// equivalente para nenhum dos três — e foi por causa deles que este
+// componente existe.
+const FERRAMENTAS_DO_GOOGLE = true;
+
 const IMAGEM = {
   origem: require('../../assets/mapa/pino-origem.png'),
   destino: require('../../assets/mapa/pino-destino.png'),
@@ -895,7 +915,15 @@ export default function MapaGoogle({
   // `topoDosBotoes`; com `botoesAoMeio` fica centrada na altura do mapa. Cada
   // botão fica 48 abaixo do anterior. `null` quer dizer "onde o estilo já o
   // põe", e é o caso normal, que fica exactamente como estava.
-  const nBotoes = modoEscolha || mostrarSatelite ? 4 : 3;
+  // Quantos botões nossos ficam na coluna. Com as ferramentas do Google
+  // ligadas sobra o satélite, que não tem equivalente do lado deles.
+  const nBotoes = FERRAMENTAS_DO_GOOGLE
+    ? modoEscolha || mostrarSatelite
+      ? 1
+      : 0
+    : modoEscolha || mostrarSatelite
+      ? 4
+      : 3;
   const topoColuna =
     botoesAoMeio && altura
       ? Math.max(spacing.sm, Math.round(altura / 2 - (nBotoes * 48) / 2))
@@ -967,7 +995,7 @@ export default function MapaGoogle({
         // Não corrige o satélite — dá a quem está lá a forma de mandar nele.
         mapPadding={margemDoMapa}
         showsUserLocation
-        showsMyLocationButton={false}
+        showsMyLocationButton={FERRAMENTAS_DO_GOOGLE}
         // A BÚSSOLA DO GOOGLE, DESLIGADA. Nós temos a nossa.
         //
         // Vem ligada de origem e só aparece com o mapa torto — por isso
@@ -978,8 +1006,11 @@ export default function MapaGoogle({
         // Fica a nossa: está na coluna com as outras duas, aparece sempre, e
         // a agulha aponta ao norte mesmo com o mapa direito — diz para onde é
         // o norte, e não só que o mapa está torto.
-        showsCompass={false}
-        toolbarEnabled={false}
+        showsCompass={FERRAMENTAS_DO_GOOGLE}
+        toolbarEnabled={FERRAMENTAS_DO_GOOGLE}
+        // O TRÂNSITO, que nunca esteve ligado. Em Díli diz qual a avenida que
+        // está parada — é a ferramenta do Google que mais falta fazia.
+        showsTraffic={FERRAMENTAS_DO_GOOGLE}
         // A ROTAÇÃO ESTAVA DESLIGADA, e sem ela uma bússola não teria o
         // que mostrar. Roda-se com dois dedos, como em qualquer mapa.
         rotateEnabled
@@ -1246,30 +1277,34 @@ export default function MapaGoogle({
       {/* Em cima à direita, porque o canto de baixo é do botão de expandir
           no MapaExpandivel — e um mapa não pode ter dois botões no mesmo
           sítio conforme o ecrã onde está. */}
-      <Pressable
-        style={[styles.botaoMim, aLocalizar && styles.botaoMimOcupado, naColuna(0)]}
-        onPress={irParaMim}
-        hitSlop={8}
-        accessibilityRole="button"
-        accessibilityLabel={t('irParaMim')}
-      >
-        <Mira />
-      </Pressable>
+      {FERRAMENTAS_DO_GOOGLE ? null : (
+        <Pressable
+          style={[styles.botaoMim, aLocalizar && styles.botaoMimOcupado, naColuna(0)]}
+          onPress={irParaMim}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('irParaMim')}
+        >
+          <Mira />
+        </Pressable>
+      )}
 
       {/* SEGUIR A BÚSSOLA. Aceso a teal quando está ligado, como no Google:
           é um modo, não uma acção, e um modo tem de se ver que está a
           correr — senão a pessoa não percebe porque é que o mapa "mexe
           sozinho" e não sabe como o parar. */}
-      <Pressable
-        style={[styles.botaoSeguir, aSeguirBussola && styles.botaoSeguirActivo, naColuna(2)]}
-        onPress={() => setASeguirBussola((v) => !v)}
-        hitSlop={8}
-        accessibilityRole="button"
-        accessibilityState={{ selected: aSeguirBussola }}
-        accessibilityLabel={t('seguirBussola')}
-      >
-        <Seta activo={aSeguirBussola} />
-      </Pressable>
+      {FERRAMENTAS_DO_GOOGLE ? null : (
+        <Pressable
+          style={[styles.botaoSeguir, aSeguirBussola && styles.botaoSeguirActivo, naColuna(2)]}
+          onPress={() => setASeguirBussola((v) => !v)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityState={{ selected: aSeguirBussola }}
+          accessibilityLabel={t('seguirBussola')}
+        >
+          <Seta activo={aSeguirBussola} />
+        </Pressable>
+      )}
 
       {/* O SATÉLITE, E SÓ A ESCOLHER UM PONTO.
           O selector de mapa já existiu e o Simão mandou-o tirar — eram botões
@@ -1322,17 +1357,19 @@ export default function MapaGoogle({
           que existe: quem nunca rodou o mapa nunca descobre que pode.
           A agulha aponta sempre ao norte, e por isso diz duas coisas ao
           mesmo tempo: para onde é o norte, e quanto o mapa está torto. */}
-      <Pressable
-        style={[styles.botaoBussola, naColuna(1)]}
-        onPress={aoNorte}
-        hitSlop={8}
-        accessibilityRole="button"
-        accessibilityLabel={t('voltarAoNorte')}
-      >
-        <View style={{ transform: [{ rotate: `${-rumo}deg` }] }}>
-          <Agulha />
-        </View>
-      </Pressable>
+      {FERRAMENTAS_DO_GOOGLE ? null : (
+        <Pressable
+          style={[styles.botaoBussola, naColuna(1)]}
+          onPress={aoNorte}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('voltarAoNorte')}
+        >
+          <View style={{ transform: [{ rotate: `${-rumo}deg` }] }}>
+            <Agulha />
+          </View>
+        </Pressable>
+      )}
 
       {/* ── A MIRA ────────────────────────────────────────────────────
           O pino fica FIXO no centro do ecrã e o mapa é que se move por
