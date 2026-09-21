@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { servicoEstaAtivo } from '../configServico.js';
 import { MAX_ITENS, taxaDe, viagensDoPassageiro } from '../jastip.js';
+import { MINUTOS_ATE_DESISTIR } from '../rides.js';
 import { requireAuth } from '../auth.js';
 import { preco, etaMinutos, straightKm } from '../routing.js';
 import { rotaCompleta } from '../rotas.js';
@@ -139,6 +140,10 @@ quoteRouter.post(
       fonteDaRota: viagem.fonte,
       currency: 'USD',
       options: opcoes,
+      // Quanto tempo o pedido fica aberto à espera de motorista. Vem do
+      // servidor para a app não ter de o adivinhar nem repetir: a frase que
+      // o passageiro lê é escrita com este número.
+      minutosAteDesistir: MINUTOS_ATE_DESISTIR,
       // A parcela da encomenda, à vista: o ecrã mostra "viagem + $1,50 por
       // comprar", e não um total que ninguém sabe de onde veio.
       ...(encomenda ? { taxaJastip: taxaEncomenda } : {}),

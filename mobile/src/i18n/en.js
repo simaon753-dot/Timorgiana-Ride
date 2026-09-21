@@ -286,7 +286,7 @@ export default {
   motoristaAMin: 'Driver {min} min away',
   semMotoristaTitulo: 'No drivers available nearby',
   semMotoristaTexto:
-    'Estimated fare: {preco}. The request stays open for 10 minutes and the first driver to accept takes it.',
+    'Estimated fare: {preco}. The request stays open for {min} minutes and the first driver to accept takes it.',
   procurarMotoristaPreco: 'Find a driver · {preco}',
   viagemSegura: 'Safe rides with TimorgianaRide',
   destinoSub: "Choose your destination and let's go!",

@@ -284,7 +284,7 @@ export default {
   motoristaAMin: 'Motorista dook minutu {min}',
   semMotoristaTitulo: 'La iha motorista disponível ne’ebé besik',
   semMotoristaTexto:
-    'Presu estimadu: {preco}. Pedidu loke minutu 10, no motorista ne’ebé simu primeiru mak sei tula.',
+    'Presu estimadu: {preco}. Pedidu loke minutu {min}, no motorista ne’ebé simu primeiru mak sei tula.',
   procurarMotoristaPreco: 'Buka motorista · {preco}',
   viagemSegura: 'Viajen seguru ho TimorgianaRide',
   destinoSub: 'Hili destinu no ita bá!',

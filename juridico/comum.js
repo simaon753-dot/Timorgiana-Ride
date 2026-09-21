@@ -156,7 +156,10 @@ const assinaturas = (esquerda, direita) => new Table({
   })],
 });
 
-function documento(nome, subt, filhos) {
+// `versao` é opcional: os sete documentos originais usam a data comum, e os
+// documentos que nascem noutro dia — como o processo do DNTT — passam a sua.
+// Sem isto, regenerar um mudava a data dos outros sete.
+function documento(nome, subt, filhos, versao = VERSAO) {
   return new Document({
     numbering: bullets,
     styles: { default: { document: { run: { font: 'Calibri', size: 21 } } } },
@@ -173,7 +176,7 @@ function documento(nome, subt, filhos) {
           alignment: AlignmentType.CENTER, spacing: { before: 60 },
           border: { top: { style: BorderStyle.SINGLE, size: 4, color: 'D8D2C8', space: 6 } },
           children: [
-            new TextRun({ text: `${nome}  ·  ${VERSAO}  ·  página `, size: 15, color: CINZA, font: 'Calibri' }),
+            new TextRun({ text: `${nome}  ·  ${versao}  ·  página `, size: 15, color: CINZA, font: 'Calibri' }),
             new TextRun({ children: [PageNumber.CURRENT], size: 15, color: CINZA, font: 'Calibri' }),
             new TextRun({ text: ' de ', size: 15, color: CINZA, font: 'Calibri' }),
             new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 15, color: CINZA, font: 'Calibri' }),

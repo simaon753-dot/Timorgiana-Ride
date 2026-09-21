@@ -723,15 +723,23 @@ export async function setRideFare(rideId, fareUsd) {
 // sem motoristas ao serviço, o passageiro pedia, não acontecia nada — e ficava
 // impedido de pedir outra vez até perceber sozinho que tinha de cancelar à mão.
 //
-// Ao fim de MINUTOS_ATE_DESISTIR o pedido morre por si. Dez minutos são
-// generosos para quem está a acabar outra viagem e pouco para quem está à
-// espera no passeio; e cancelado é melhor do que pendurado, porque cancelado
-// deixa a pessoa pedir outra vez.
+// Ao fim de MINUTOS_ATE_DESISTIR o pedido morre por si, e cancelado é melhor
+// do que pendurado — cancelado deixa a pessoa pedir outra vez.
+//
+// CINCO MINUTOS, e não dez (decisão do Simão, 21/09/2026). Eram dez, pensados
+// para o motorista que está a acabar uma viagem e ainda pode aceitar ao oitavo
+// minuto. A decisão dele foi na direcção de quem está à espera no passeio: dez
+// minutos a olhar para um ecrã que não diz nada são muito tempo, e ao quinto a
+// pessoa já percebeu que ninguém vem.
+//
+// O número vive AQUI e mais em lado nenhum: a app recebe-o na cotação e
+// escreve-o na frase que mostra a quem pede. Escrito à mão nos dois sítios,
+// mudá-lo num deixaria o outro a mentir.
 //
 // A tabela é a autoridade e a hora é a do PostgreSQL — não a do processo. Se
 // duas instâncias corressem isto ao mesmo tempo, o `status = 'requested'` na
 // condição garante que cada viagem só é fechada uma vez.
-export const MINUTOS_ATE_DESISTIR = Number(process.env.RIDE_TIMEOUT_MIN) || 10;
+export const MINUTOS_ATE_DESISTIR = Number(process.env.RIDE_TIMEOUT_MIN) || 5;
 
 export function expirarPedidosSemResposta() {
   return query(

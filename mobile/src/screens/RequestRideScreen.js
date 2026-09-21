@@ -1390,7 +1390,7 @@ export default function RequestRideScreen({ navigation, route }) {
           {/* SEM MOTORISTAS POR PERTO, dito ANTES de pedir e não depois.
               Um botão "Pedir por $3.25" com ninguém por perto promete o que o
               sistema não pode cumprir. Aqui diz-se a verdade — o preço é o
-              estimado, e o pedido fica aberto dez minutos para o primeiro que
+              estimado, e o pedido fica aberto alguns minutos para o primeiro que
               aceitar — e o botão passa a dizer "Procurar motorista".
 
               DENTRO DA LISTA e não no rodapé fixo (16/09/2026). No rodapé,
@@ -1403,7 +1403,13 @@ export default function RequestRideScreen({ navigation, route }) {
               <View style={{ flex: 1 }}>
                 <Text style={styles.semMotoristaTitulo}>{t('semMotoristaTitulo')}</Text>
                 <Text style={styles.semMotoristaTexto}>
-                  {t('semMotoristaTexto', { preco: `$${opcao.fareUsd.toFixed(2)}` })}
+                  {t('semMotoristaTexto', {
+                    preco: `$${opcao.fareUsd.toFixed(2)}`,
+                    // O número vem do servidor (`MINUTOS_ATE_DESISTIR`), que é
+                    // quem fecha o pedido. Escrito à mão aqui, uma mudança lá
+                    // deixava esta frase a prometer um prazo que já não existe.
+                    min: orcamento.minutosAteDesistir ?? 5,
+                  })}
                 </Text>
                 {/* PROCURAR OUTRA VEZ, com a hora da última resposta na mesma
                     linha. A app já pergunta sozinha de 20 em 20 segundos (ver a

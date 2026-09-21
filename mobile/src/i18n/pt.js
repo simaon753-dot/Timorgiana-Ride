@@ -286,7 +286,7 @@ export default {
   motoristaAMin: 'Motorista a {min} min',
   semMotoristaTitulo: 'Sem motoristas disponíveis nas proximidades',
   semMotoristaTexto:
-    'Preço estimado: {preco}. O pedido fica aberto 10 minutos, e o primeiro motorista que aceitar leva-o.',
+    'Preço estimado: {preco}. O pedido fica aberto {min} minutos, e o primeiro motorista que aceitar leva-o.',
   procurarMotoristaPreco: 'Procurar motorista · {preco}',
   viagemSegura: 'Viagem segura com a TimorgianaRide',
   destinoSub: 'Escolha o destino e vamos lá!',
