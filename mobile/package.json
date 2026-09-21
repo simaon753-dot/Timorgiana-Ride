@@ -11,7 +11,9 @@
     "testar-tunel": "EXPO_PUBLIC_API_URL=https://timorgiana-ride.onrender.com expo start --clear --tunnel",
     "verificar": "npx prettier --check \"src/**/*.js\" \"App.js\" && node scripts/verificar-nomes.mjs && node scripts/verificar-ganchos.mjs && node scripts/verificar-ordem.mjs && node scripts/verificar-importacoes.mjs && node scripts/verificar-termos.mjs && node scripts/verificar-traducoes.mjs && node scripts/verificar-tipos.mjs",
     "publicar": "rm -rf dist && npm run verificar && EAS_UPDATE=1 EXPO_PUBLIC_API_URL=https://timorgiana-ride.onrender.com npx eas-cli@latest update --branch preview --non-interactive --message \"$(git log -1 --pretty=%s)\"",
-    "compilar": "rm -rf dist && EAS_NO_VCS=1 npx eas-cli@latest build --platform android --profile preview"
+    "publicar-loja": "rm -rf dist && npm run verificar && EAS_UPDATE=1 EXPO_PUBLIC_API_URL=https://timorgiana-ride.onrender.com npx eas-cli@latest update --branch production --non-interactive --message \"$(git log -1 --pretty=%s)\"",
+    "compilar": "rm -rf dist && EAS_NO_VCS=1 npx eas-cli@latest build --platform android --profile preview",
+    "compilar-loja": "rm -rf dist && EAS_NO_VCS=1 npx eas-cli@latest build --platform android --profile production"
   },
   "dependencies": {
     "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",

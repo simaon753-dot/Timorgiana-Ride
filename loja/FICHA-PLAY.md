@@ -6,6 +6,39 @@ prepara-as `python3 loja/capturas.py`.
 
 ---
 
+## Dois mundos que não se podem tocar (21/09/2026)
+
+O que está no telemóvel do Simão e o que vai estar na loja são **duas
+audiências diferentes**, e a app sabe distinguir-se por uma coisa só: o
+**canal** com que foi compilada. Cada canal aponta para um **ramo**, e é do
+ramo que vêm as actualizações pelo ar.
+
+| Compilar com | Canal | Ramo | Publicar com |
+|---|---|---|---|
+| `npm run compilar` | `preview` | `preview` | `npm run publicar` |
+| `npm run compilar-loja` | `production` | `production` | `npm run publicar-loja` |
+
+**A armadilha, e porque é que isto está escrito.** O canal `production`
+estava declarado no `eas.json` desde sempre, mas **não existia** — um canal
+só nasce quando uma compilação com esse perfil corre, e nunca correu
+nenhuma. Criado à mão a 21/09/2026, já ligado ao ramo `production`.
+
+Se a app tivesse ido para a loja sem isto, acontecia uma de duas coisas, as
+duas más: ou o canal nascia sem ramo e **esse APK nunca mais recebia
+actualização nenhuma** — nem correcções, e cada defeito passava a exigir uma
+versão nova aprovada pela Google —, ou caía no ramo `preview` e **cada ensaio
+nosso ia parar aos telemóveis do público no minuto seguinte**, sem revisão.
+
+**Nunca submeter o que sai de `npm run compilar`.** Esse é um APK do canal
+`preview`, para testar. O da loja é `npm run compilar-loja`, que sai em
+app-bundle, como a Google exige.
+
+Depois de publicada, uma correcção à loja faz-se assim: commit, e
+`npm run publicar-loja`. Uma actualização descarregada num arranque só corre
+no seguinte — é do desenho do Expo, não é avaria.
+
+---
+
 ## Ficheiros
 
 | O que | Ficheiro | Medida |
