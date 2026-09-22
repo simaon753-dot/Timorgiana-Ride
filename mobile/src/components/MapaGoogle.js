@@ -414,7 +414,10 @@ function usarDeslize(alvo) {
 // razão. Um marcador com filhos é fotografado pelo mapa e no telemóvel dele
 // não aparece de todo.
 function RotuloLocal({ qual, texto }) {
-  const cor = qual === 'origem' ? TINTA.teal : TINTA.coral;
+  // Por INCLUSÃO e não por exclusão: `destino` é coral, tudo o resto é teal.
+  // Escrito ao contrário — «origem é teal, o resto é coral» —, qualquer valor
+  // novo passava a coral em silêncio, que foi o que aconteceu com 'centro'.
+  const cor = qual === 'destino' ? TINTA.coral : TINTA.teal;
   return (
     <View style={styles.rotuloCaixa} pointerEvents="none">
       <View style={[styles.rotuloPastilha, { backgroundColor: cor }]}>
@@ -453,6 +456,25 @@ const ROTULO_CHAVE = {
   destino: 'mapaLocalDestino',
   paragem: 'mapaLocalParagem',
 };
+
+// O QUE O PONTO É, PARA EFEITOS DE DESENHO (22/09/2026).
+//
+// Enquanto se escolhe no mapa, o troço de previsão leva `qual: 'centro'`, e
+// há uma boa razão para isso escrita onde ele é criado: para a LÓGICA aquele
+// ponto ainda não é a recolha nem o destino — é o que qualquer deles vai ser
+// se a pessoa confirmar.
+//
+// Para quem está a OLHAR, porém, ele já é aquilo que vai ser. E deixá-lo em
+// 'centro' fazia o desenho cair em dois enganos ao mesmo tempo: a cor caía no
+// ramo do coral (porque 'centro' não é 'origem') e o texto caía na chave de
+// reserva, «Local de recolha». Dava uma recolha escrita a coral — errado a
+// escolher destino E errado a escolher recolha.
+//
+// Quem sabe o que ele vai ser é o `modoEscolha`, e é a ele que se pergunta.
+function qualDesenhado(qual, modoEscolha) {
+  if (qual !== 'centro') return qual;
+  return modoEscolha === 'destino' ? 'destino' : 'origem';
+}
 
 export default function MapaGoogle({
   pickable = false,
@@ -1488,7 +1510,10 @@ export default function MapaGoogle({
             pointerEvents="none"
             style={[styles.rotuloSolto, { left: p.x - ROTULO_L / 2, top: p.y - ROTULO_A }]}
           >
-            <RotuloLocal qual={p.qual} texto={t(ROTULO_CHAVE[p.qual] || ROTULO_CHAVE.origem)} />
+            <RotuloLocal
+              qual={qualDesenhado(p.qual, modoEscolha)}
+              texto={t(ROTULO_CHAVE[qualDesenhado(p.qual, modoEscolha)] || ROTULO_CHAVE.origem)}
+            />
           </View>
         ))}
 
