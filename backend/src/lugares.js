@@ -58,6 +58,7 @@
 // segunda pessoa a procurar "Timor Plaza" recebe a resposta sem sair do
 // país.
 
+import { one } from './db.js';
 import { procurarNossos, lugaresPerto } from './lugaresNossos.js';
 
 const UA = 'TimorgianaRide/1.0 (app de transporte, Dili, Timor-Leste)';
@@ -167,6 +168,81 @@ function nomeDaResposta(j, lat, lng, precisaoM) {
   return j.display_name.split(',').slice(0, 2).join(',').trim();
 }
 
+// ── O NOME DO SÍTIO PELO GOOGLE ─────────────────────────────────────
+//
+// PORQUE EXISTE (22/09/2026). O Simão apontou ao Centro de Formação Jurídica
+// e a app escreveu «Rua Palácio das Cinzas». Não estava errada: o nome que
+// ele VIA escrito no mapa é desenhado pelo SDK do Google e não é entregue ao
+// código — estávamos a olhar para uma etiqueta que a app não consegue ler. E
+// o OpenStreetMap, que é quem respondia, tem Díli com as ruas bem mapeadas e
+// quase nenhum edifício.
+//
+// A chave do Google já cá estava, para a pesquisa. Isto usa a mesma, e o
+// mesmo escalão barato de campos: só o nome e a posição.
+//
+// O TECTO DIÁRIO É A PARTE QUE IMPORTA. Isto é pago À CHAMADA, e o gatilho é
+// arrastar um mapa — o gesto mais repetido da app inteira. Sem tecto, uma
+// tarde de alguém a brincar com o mapa é uma factura. Com tecto, passado o
+// limite cai-se no OpenStreetMap como sempre, e ninguém fica sem nome.
+//
+// O contador vive na BASE, e não em memória, pela mesma razão do das rotas:
+// no plano gratuito do Render o servidor reinicia a toda a hora, e um
+// contador em memória não é tecto nenhum.
+const NOMES_POR_DIA = Number(process.env.PLACES_MAX_DIA) || 400;
+
+// Quarenta metros. Mais do que isto e começa a devolver-se o vizinho do lado
+// como se fosse o sítio apontado — e um nome errado é pior do que o nome da
+// rua, que pelo menos é verdade.
+const RAIO_NOME_M = 40;
+
+async function podePerguntarNome() {
+  if (!process.env.GOOGLE_MAPS_KEY) return false;
+  try {
+    const r = await one(
+      `INSERT INTO contadores (nome, dia, valor) VALUES ('nomes_google', CURRENT_DATE, 1)
+       ON CONFLICT (nome, dia) DO UPDATE SET valor = contadores.valor + 1
+       RETURNING valor`
+    );
+    return (r?.valor ?? 0) <= NOMES_POR_DIA;
+  } catch (e) {
+    // Uma falha a contar não pode deixar ninguém sem nome: responde-se "não"
+    // e segue-se pelo OpenStreetMap, que não custa nada. Deixar passar sem
+    // contar seria abrir a torneira no dia em que algo já está mal.
+    console.error('[lugares] não foi possível contar; vou pelo OSM —', e.message);
+    return false;
+  }
+}
+
+async function nomeNoGoogle(lat, lng) {
+  if (!(await podePerguntarNome())) return null;
+  const j = await comPrazo(
+    'https://places.googleapis.com/v1/places:searchNearby',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': process.env.GOOGLE_MAPS_KEY,
+        // Só o nome. A máscara de campos decide o escalão de preço, e pedir
+        // mais do que se usa é pagar mais do que se precisa.
+        'X-Goog-FieldMask': 'places.displayName',
+      },
+      body: JSON.stringify({
+        maxResultCount: 1,
+        // Pelo mais PROMINENTE e não pelo mais próximo: a um raio de 40
+        // metros o mais próximo pode ser um portão sem nome, e o que a
+        // pessoa reconhece é o edifício.
+        rankPreference: 'POPULARITY',
+        languageCode: 'pt',
+        locationRestriction: {
+          circle: { center: { latitude: lat, longitude: lng }, radius: RAIO_NOME_M },
+        },
+      }),
+    },
+    true
+  );
+  return j?.places?.[0]?.displayName?.text || null;
+}
+
 export async function nomeDoPonto(lat, lng, userId, precisaoM) {
   if (typeof lat !== 'number' || typeof lng !== 'number') return { nome: null, fonte: 'nada' };
 
@@ -184,6 +260,18 @@ export async function nomeDoPonto(lat, lng, userId, precisaoM) {
   }
   if (guardado) nomes.delete(chave);
 
+  // 3. O GOOGLE, que é quem sabe os nomes dos edifícios de Díli. Antes do
+  //    OpenStreetMap porque responde o que a pessoa reconhece; depois da
+  //    memória e dos nossos porque é o único que custa dinheiro.
+  const doGoogle = await nomeNoGoogle(lat, lng);
+  if (doGoogle) {
+    if (nomes.size >= MAX_NOMES) nomes.delete(nomes.keys().next().value);
+    nomes.set(chave, { nome: doGoogle, quando: Date.now() });
+    return { nome: doGoogle, fonte: 'google' };
+  }
+
+  // 4. O OpenStreetMap, como sempre. Continua a ser a rede de segurança:
+  //    sem chave, passado o tecto, ou se o Google não conhecer o sítio.
   const j = await comPrazo(
     `https://nominatim.openstreetmap.org/reverse?format=json&zoom=18&addressdetails=1&lat=${lat}&lon=${lng}`,
     { headers: { Accept: 'application/json', 'User-Agent': UA } }
@@ -462,10 +550,20 @@ export async function marcarPorPerguntar(query) {
 }
 
 // Para o painel: saber se a segunda camada está ligada, sem revelar a chave.
+// Quantos nomes se pediram ao Google hoje. Sem isto o tecto é uma promessa
+// que ninguém consegue verificar — e o que não se vê não se governa.
+export async function nomesDeHoje() {
+  const r = await one(
+    `SELECT valor FROM contadores WHERE nome = 'nomes_google' AND dia = CURRENT_DATE`
+  );
+  return r?.valor ?? 0;
+}
+
 export function estadoDaBusca() {
   return {
     google: !!process.env.GOOGLE_MAPS_KEY,
     memoria: memoria.size,
+    nomesTectoDiario: NOMES_POR_DIA,
     // `null` quer dizer que a última chamada ao Google correu bem — ou que
     // ainda não houve nenhuma desde o arranque.
     ultimoErroGoogle,

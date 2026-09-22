@@ -23,7 +23,7 @@ import { setOnline, marcarAusentesOffline } from './drivers.js';
 import { guardarPosicao } from './posicaoMotorista.js';
 import { one } from './db.js';
 import { lugaresRouter } from './routes/lugares.js';
-import { estadoDaBusca, marcarPorPerguntar } from './lugares.js';
+import { estadoDaBusca, marcarPorPerguntar, nomesDeHoje } from './lugares.js';
 import { estadoDasRotas, usoDeHoje } from './rotas.js';
 import { estadoDoEmail } from './email.js';
 import { mosaico } from './mosaicos.js';
@@ -93,7 +93,7 @@ app.get('/api/health', async (req, res) => {
     // Diz se a segunda camada da busca está ligada — nunca a chave, só se
     // ela existe. Sem isto, a única forma de saber era escrever destinos na
     // app e adivinhar pela resposta.
-    busca: estadoDaBusca(),
+    busca: { ...estadoDaBusca(), nomesHoje: await nomesDeHoje().catch(() => null) },
   };
   try {
     await query('SELECT 1');
