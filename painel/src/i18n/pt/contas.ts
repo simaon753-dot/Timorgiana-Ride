@@ -50,6 +50,7 @@ export const contas = {
   'ficha.turnos': 'Fotografias de início de turno',
   'ficha.turnosN': '{n} dia(s) com fotografia registada',
   'ficha.desde': 'Conta criada',
+  'ficha.nomeAnterior': 'Chamava-se antes',
   'ficha.termosPassageiro': 'Termos do passageiro',
   'ficha.termosMotorista': 'Termos do motorista',
   'ficha.naoAceitou': 'Não aceitou',

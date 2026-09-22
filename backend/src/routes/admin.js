@@ -782,6 +782,13 @@ adminRouter.get(
         email: u.email || null,
         desde: u.created_at,
         ultimaVez: u.last_seen_at,
+        // O NOME ANTERIOR, quando houve um (22/09/2026). Corrigir uma letra
+        // mal escrita é legítimo; num motorista aprovado, o nome é o que o
+        // passageiro confere com a carta de condução. A diferença entre as
+        // duas coisas só se vê aqui — e só se vê se aparecer.
+        ...(u.nome_anterior
+          ? { nomeAnterior: u.nome_anterior, nomeAlteradoEm: u.nome_alterado_em }
+          : {}),
         online: u.is_online,
         ultimaPosicao: u.last_lat != null ? { lat: u.last_lat, lng: u.last_lng } : null,
         // Aceitação dos termos: numa disputa, é a primeira coisa que se

@@ -7,6 +7,7 @@ import {
   toPublicUser,
   normalizePhone,
   findUserById,
+  limparNome,
 } from '../users.js';
 import { emailBemFormado } from '../email.js';
 import { emitirConfirmacao, confirmarComCodigo } from '../confirmacaoEmail.js';
@@ -36,8 +37,12 @@ authRouter.post('/register', async (req, res) => {
     const { name, phone, email, password, role, vehicle, termsVersion, privacyVersion, cidadaoTL } =
       req.body || {};
 
-    if (!name || !name.trim()) {
-      return res.status(400).json({ error: 'Nome é obrigatório.' });
+    // A MESMA REGRA DA CORREÇÃO (22/09/2026). Antes só se via se estava
+    // vazio: um nome de dez mil letras entrava tal e qual e ia partir todos
+    // os ecrãs que o mostram.
+    const nomeLimpo = limparNome(name);
+    if (nomeLimpo.error) {
+      return res.status(400).json({ error: nomeLimpo.error });
     }
     if (!phone || normalizePhone(phone).length < 7) {
       return res.status(400).json({ error: 'Número de telemóvel inválido.' });
@@ -121,7 +126,7 @@ authRouter.post('/register', async (req, res) => {
     }
 
     const created = await createUser({
-      name,
+      name: nomeLimpo.nome,
       phone,
       email,
       password,
@@ -298,6 +303,44 @@ authRouter.post('/email/reenviar', requireAuth, async (req, res) => {
   } catch (e) {
     console.error('[auth/email/reenviar]', e);
     return res.status(500).json({ error: 'Não foi possível enviar.' });
+  }
+});
+
+// POST /api/auth/nome  — { nome }  corrigir o nome
+//
+// TEM DE EXISTIR, pela mesma razão que a do email: o nome escrevia-se uma vez
+// no registo e ficava para sempre. Não havia no servidor inteiro uma
+// instrução que o mudasse — nem pela app, nem pelo painel. Quem trocava uma
+// letra ficava com ela à frente de todos os passageiros que o chamassem.
+//
+// NÃO SE PEDE A SENHA. Ao contrário do email, o nome não recupera conta
+// nenhuma: quem lhe mexe já está dentro da sessão e não ganha nada com isso.
+// Pedir a senha aqui era atrito sem defesa do outro lado.
+//
+// O QUE FICA REGISTADO. O nome anterior e a data. Num motorista aprovado o
+// nome é o que o passageiro confere com a carta de condução, e a diferença
+// entre corrigir uma letra e passar a ser outra pessoa tem de continuar
+// visível depois de acontecer.
+authRouter.post('/nome', requireAuth, async (req, res) => {
+  try {
+    const r = limparNome(req.body?.nome);
+    if (r.error) return res.status(400).json({ error: r.error });
+
+    // Igual ao que já lá está: não é erro, mas também não se escreve na base
+    // nem se gasta o campo do nome anterior com uma alteração que não houve.
+    if (r.nome === req.user.name) {
+      return res.json({ ok: true, user: toPublicUser(req.user) });
+    }
+
+    await query(
+      `UPDATE users SET name = $2, nome_anterior = name, nome_alterado_em = NOW() WHERE id = $1`,
+      [req.user.id, r.nome]
+    );
+    const u = await findUserById(req.user.id);
+    return res.json({ ok: true, user: toPublicUser(u) });
+  } catch (e) {
+    console.error('[auth/nome]', e);
+    return res.status(500).json({ error: 'Não foi possível guardar.' });
   }
 });
 

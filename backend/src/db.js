@@ -795,6 +795,23 @@ export async function initSchema() {
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS cidadao_tl BOOLEAN`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS cidadao_tl_em TIMESTAMPTZ`);
 
+  // O NOME ANTERIOR, quando alguém corrige o seu (22/09/2026).
+  //
+  // Corrigir um nome mal escrito é legítimo e até hoje era impossível. Mas
+  // num motorista APROVADO o nome deixou de ser só uma etiqueta: é o que o
+  // passageiro vê ao lado de uma matrícula verdadeira, e é o que tem de
+  // bater certo com a carta de condução que esta plataforma verificou.
+  //
+  // Por isso guarda-se o que lá estava. Não é para impedir — é para que a
+  // diferença entre "trocou uma letra" e "passou a ser outra pessoa" fique
+  // visível no painel, em vez de desaparecer no momento em que acontece.
+  // Guarda-se SÓ o imediatamente anterior: um historial completo pedia
+  // tabela própria e uma política de retenção, e a pergunta que se faz numa
+  // disputa é "como se chamava antes disto", não "todos os nomes que já
+  // teve".
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS nome_anterior TEXT`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS nome_alterado_em TIMESTAMPTZ`);
+
   // CONTADORES POR DIA. Hoje só um — as chamadas de rota ao Google — mas a
   // tabela é geral porque o próximo há-de vir.
   //

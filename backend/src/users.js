@@ -31,6 +31,38 @@ export function normalizePhone(phone) {
 }
 
 // Converte uma linha da BD no formato público (sem o hash da palavra-passe)
+// O NOME, LIMPO E MEDIDO — a mesma regra no registo e na correção
+// (22/09/2026).
+//
+// PORQUE EXISTE. Até hoje o nome escrevia-se UMA vez, no registo, e ficava
+// para sempre: não havia no servidor inteiro uma única instrução que o
+// mudasse. Quem trocava uma letra ficava com ela à frente de todos os
+// passageiros, e um motorista ficava com um nome que não bate certo com a
+// carta de condução que a plataforma aprovou.
+//
+// O registo só verificava se estava vazio. Um nome de dez mil letras entrava
+// tal e qual, e ia partir todos os ecrãs que o mostram. Agora a regra é uma
+// só, usada nos dois sítios — porque duas regras para o mesmo campo divergem,
+// e depois há nomes que o registo aceita e a correção recusa.
+//
+// Os espaços a mais colapsam antes de medir: "João   Silva" e "João Silva"
+// são a mesma pessoa, e guardar o primeiro estraga a comparação e o desenho.
+//
+// Devolve `{ nome }` ou `{ error }`. O nome da propriedade é `error` de
+// propósito: é assim que o verificador das mensagens encontra estas frases e
+// obriga a traduzi-las para tétum e inglês.
+export const MAX_NOME = 60;
+
+export function limparNome(cru) {
+  const nome = String(cru || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!nome) return { error: 'Nome é obrigatório.' };
+  if (nome.length < 2) return { error: 'O nome é demasiado curto.' };
+  if (nome.length > MAX_NOME) return { error: 'O nome é demasiado longo.' };
+  return { nome };
+}
+
 export function toPublicUser(row) {
   if (!row) return null;
   const base = {

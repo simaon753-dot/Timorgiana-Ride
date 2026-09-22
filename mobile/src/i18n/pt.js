@@ -241,6 +241,9 @@ export default {
   opcoesPainelSub: 'Abrir o painel de administração',
   perfilTitulo: 'Perfil',
   perfilInfo: 'Informação geral',
+  perfilMudarNome: 'Corrigir o nome',
+  perfilNomeAviso:
+    'Este nome aparece ao passageiro e deve bater certo com a sua carta de condução.',
   perfilVerificadoSo: 'Verificado',
   admSistemaNormal: 'Sistema normal',
   admPorTratar: '{n} por tratar',
@@ -407,6 +410,11 @@ export default {
   entregaAvaliacao: 'Avaliação',
   entregaPagamentoNota: 'Pague {preco} ao motorista',
   avisarQuando: 'Avisar quando houver motorista',
+  // ── A espera de quem pediu, 22/09/2026 ──
+  esperaRestam: 'Faltam {tempo} para desistir',
+  esperaAcabou: 'O tempo acabou',
+  esperaSemResposta:
+    'Ninguém aceitou ainda. Pode deixar um aviso para as próximas duas horas, e continuar à espera.',
   procurarOutraVez: 'Procurar outra vez',
   procuraAutomatica: 'A app procura sozinha a cada 20 segundos.',
   aProcurarMotoristas: 'A procurar…',

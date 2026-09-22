@@ -225,6 +225,8 @@ export const MENSAGENS = {
 
   // ── Registo e entrada
   'Nome é obrigatório.': ['Naran obrigatóriu.', 'Name is required.'],
+  'O nome é demasiado curto.': ['Naran badak liu.', 'That name is too short.'],
+  'O nome é demasiado longo.': ['Naran naruk liu.', 'That name is too long.'],
   'Número de telemóvel inválido.': ['Númeru telemóvel la válidu.', 'Invalid mobile number.'],
   'A palavra-passe deve ter pelo menos 6 caracteres.': [
     'Seña tenke iha pelumenus karákter 6.',
@@ -518,6 +520,25 @@ export const NOTIFICACOES = {
     pt: 'A carga foi descarregada. Falta concluir a entrega.',
     tet: 'Karga hatun tiha ona. Falta atu remata entrega.',
     en: 'The load has been unloaded. The delivery still needs to be completed.',
+  },
+  // O PEDIDO CADUCOU (22/09/2026).
+  //
+  // Até hoje o fim de um pedido só chegava pelo socket, e o socket só existe
+  // enquanto a app está aberta. Quem pedia e guardava o telemóvel no bolso
+  // ficava a achar que ainda estava à procura — e voltava ao ecrã cinco,
+  // dez, vinte minutos depois para descobrir que ninguém tinha vindo.
+  //
+  // O texto diz o que fazer a seguir, e não só o que aconteceu: "ninguém
+  // aceitou" deixa a pessoa parada, "tente outra vez" põe-na a andar.
+  pedidoCaducouTitulo: {
+    pt: 'Ninguém aceitou o seu pedido',
+    tet: 'La iha ema simu ita-nia pedidu',
+    en: 'No driver took your request',
+  },
+  pedidoCaducouTexto: {
+    pt: 'Passaram {minutos} minutos sem motorista. Pode pedir outra vez.',
+    tet: 'Liu minutu {minutos} la iha motorista. Bele husu fali.',
+    en: 'After {minutos} minutes there was no driver. You can request again.',
   },
   motoristaDisponivelTitulo: {
     pt: 'Há um motorista disponível',

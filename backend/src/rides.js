@@ -141,6 +141,16 @@ export function toPublicRide(row, opcoes = {}) {
     distanceKm: row.distance_km ?? null,
     durationMin: row.duration_min ?? null,
     createdAt: row.created_at,
+    // QUANTO TEMPO ESTE PEDIDO AINDA TEM (22/09/2026).
+    //
+    // A app precisa disto para desenhar a conta decrescente de quem espera.
+    // Vem do servidor, e não escrito na app, pela mesma razão que já vinha na
+    // cotação: o número vive em MINUTOS_ATE_DESISTIR e num sítio só. Escrito
+    // à mão no telemóvel, mudá-lo aqui deixava o relógio do passageiro a
+    // contar para um fim que já não era o verdadeiro.
+    //
+    // Só num pedido à espera: numa viagem aceite não há nada a contar.
+    ...(row.status === 'requested' ? { minutosAteDesistir: MINUTOS_ATE_DESISTIR } : {}),
     updatedAt: row.updated_at,
     // PORQUE É QUE A VIAGEM ACABOU.
     //
@@ -741,13 +751,27 @@ export async function setRideFare(rideId, fareUsd) {
 // condição garante que cada viagem só é fechada uma vez.
 export const MINUTOS_ATE_DESISTIR = Number(process.env.RIDE_TIMEOUT_MIN) || 5;
 
+// TRAZ O TOKEN DE NOTIFICAÇÃO NO MESMO COMANDO (22/09/2026).
+//
+// O varrimento passou a avisar o passageiro por notificação, e para isso
+// precisa do token e da língua dele. Ir buscá-los a seguir, um a um, seriam
+// N idas à base de dados por varrimento — e, pior, uma leitura FORA da
+// transação que fechou os pedidos.
+//
+// Com o `WITH`, o fecho e a leitura são o mesmo comando: as linhas que
+// voltam são exactamente as que esta instância fechou, mesmo que outra
+// esteja a correr o varrimento ao mesmo tempo.
 export function expirarPedidosSemResposta() {
   return query(
-    `UPDATE rides
-        SET status = 'cancelled', cancel_reason = 'sem_motorista', updated_at = NOW()
-      WHERE status = 'requested' AND driver_id IS NULL
-        AND created_at < NOW() - ($1 || ' minutes')::interval
-      RETURNING id, passenger_id`,
+    `WITH mortos AS (
+       UPDATE rides
+          SET status = 'cancelled', cancel_reason = 'sem_motorista', updated_at = NOW()
+        WHERE status = 'requested' AND driver_id IS NULL
+          AND created_at < NOW() - ($1 || ' minutes')::interval
+        RETURNING id, passenger_id
+     )
+     SELECT m.id, m.passenger_id, u.push_token, u.lingua
+       FROM mortos m JOIN users u ON u.id = m.passenger_id`,
     [String(MINUTOS_ATE_DESISTIR)]
   );
 }

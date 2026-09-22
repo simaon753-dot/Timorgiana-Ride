@@ -241,6 +241,8 @@ export default {
   opcoesPainelSub: 'Open the admin dashboard',
   perfilTitulo: 'Profile',
   perfilInfo: 'General information',
+  perfilMudarNome: 'Correct your name',
+  perfilNomeAviso: 'Passengers see this name, and it must match your driving licence.',
   perfilVerificadoSo: 'Verified',
   admSistemaNormal: 'All normal',
   admPorTratar: '{n} to handle',
@@ -407,6 +409,11 @@ export default {
   entregaAvaliacao: 'Rating',
   entregaPagamentoNota: 'Pay {preco} to the driver',
   avisarQuando: 'Notify when a driver is available',
+  // ── A espera de quem pediu, 22/09/2026 ──
+  esperaRestam: '{tempo} left before giving up',
+  esperaAcabou: 'Time is up',
+  esperaSemResposta:
+    'No driver yet. You can leave an alert for the next two hours and keep waiting.',
   procurarOutraVez: 'Search again',
   procuraAutomatica: 'The app checks again every 20 seconds.',
   aProcurarMotoristas: 'Searching…',

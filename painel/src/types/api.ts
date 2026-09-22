@@ -267,6 +267,9 @@ export interface Pacote {
 export interface ContaDetalhe extends UtilizadorPublico {
   desde: string;
   ultimaVez: string | null;
+  // Só existem quando a pessoa corrigiu o nome alguma vez.
+  nomeAnterior?: string;
+  nomeAlteradoEm?: string;
   online: boolean;
   ultimaPosicao: { lat: number; lng: number } | null;
   termos: {

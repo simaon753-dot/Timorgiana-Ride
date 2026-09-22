@@ -256,6 +256,7 @@ export const api = {
     request('/auth/email/confirmar', { method: 'POST', token, body: { codigo } }),
   reenviarEmail: (token) => request('/auth/email/reenviar', { method: 'POST', token, body: {} }),
   mudarEmail: (token, email) => request('/auth/email', { method: 'POST', token, body: { email } }),
+  mudarNome: (token, nome) => request('/auth/nome', { method: 'POST', token, body: { nome } }),
 
   cobertura: (token, lat, lng) => request(`/lugares/cobertura?lat=${lat}&lng=${lng}`, { token }),
 

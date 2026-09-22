@@ -36,6 +36,7 @@ import {
   getRideById,
   toPublicRide,
 } from './rides.js';
+import { notificarPedidoCaducado } from './push.js';
 import { registarSemEsperar, EVENTOS } from './eventos.js';
 import { limparAntigos, MESES_ACESSOS, MESES_EVENTOS } from './retencao.js';
 import { fileURLToPath } from 'node:url';
@@ -554,6 +555,13 @@ async function start() {
             'ride:update',
             toPublicRide(linha, { paraPassageiro: true })
           );
+        // E POR NOTIFICAÇÃO TAMBÉM (22/09/2026). O socket acima só chega a
+        // uma app aberta; quem pediu e guardou o telemóvel no bolso é
+        // precisamente quem fica à espera na rua sem saber que já não vem
+        // ninguém. Sem `await`: o varrimento não pode ficar preso à espera
+        // do serviço de notificações, e um pedido caducado que não avisa é
+        // mau, mas um varrimento parado deixa TODOS os pedidos pendurados.
+        notificarPedidoCaducado(p, MINUTOS_ATE_DESISTIR).catch(() => {});
         registarSemEsperar({
           rideId: p.id,
           que: EVENTOS.CANCELADA,

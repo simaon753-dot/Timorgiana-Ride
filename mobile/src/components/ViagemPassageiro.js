@@ -22,6 +22,7 @@ import { minutosAte, horaDeChegada } from '../lib/estimativa.js';
 import { useI18n } from '../i18n/index.js';
 import { useRides } from '../context/RideContext.js';
 import { colors, spacing, radius, elevacao, registarEstilos, paletaEmUso } from '../theme.js';
+import EsperaPedido from './EsperaPedido.js';
 
 // A VIAGEM DO PASSAGEIRO, da espera até à chegada — sistema de design TGA
 // (14/09/26), desenhado a partir da referência "Ecrã do passageiro com pedido
@@ -81,6 +82,11 @@ export default function ViagemPassageiro({ ride, navigation }) {
       {SUBTITULO[ride.status] ? (
         <Text style={styles.subtitulo}>{t(SUBTITULO[ride.status])}</Text>
       ) : null}
+
+      {/* Só a quem ainda não tem motorista: o relógio e, ao terceiro minuto,
+          a alternativa a ficar a olhar. Cancelar já está mais abaixo, onde
+          sempre esteve — este bloco só acrescenta o que faltava. */}
+      {ride.status === 'requested' ? <EsperaPedido ride={ride} /> : null}
 
       {/* Numa ENTREGA DE BENS, a linha do tempo vertical com as etapas da
           carga; numa viagem de pessoas, as quatro etapas de sempre. */}

@@ -99,6 +99,19 @@ export function FichaConta({ id, aoFechar }: { id: number | null; aoFechar: () =
                   )}
                 </Dado>
                 <Dado rotulo={t('ficha.desde')}>{data(c.desde)}</Dado>
+                {/* O NOME ANTERIOR só aparece quando existe (22/09/2026).
+                    Corrigir uma letra é legítimo e até há pouco era
+                    impossível; num motorista aprovado, o nome é o que o
+                    passageiro confere com a carta de condução, e a diferença
+                    entre as duas coisas tem de se poder ver depois. */}
+                {c.nomeAnterior ? (
+                  <Dado rotulo={t('ficha.nomeAnterior')}>
+                    <span title={c.nomeAlteradoEm ? dataHora(c.nomeAlteradoEm) : undefined}>
+                      {c.nomeAnterior}
+                      {c.nomeAlteradoEm ? ` · ${data(c.nomeAlteradoEm)}` : ''}
+                    </span>
+                  </Dado>
+                ) : null}
                 <Dado rotulo={t('comum.ultimaVez')}>
                   {c.online ? (
                     <Distintivo cor="sucesso" ponto>

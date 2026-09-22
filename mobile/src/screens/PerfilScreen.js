@@ -7,6 +7,7 @@ import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useModo } from '../context/ModoContext.js';
 import ConfirmarEmail from '../components/ConfirmarEmail.js';
+import EditarNome from '../components/EditarNome.js';
 import Retrato from '../design/Retrato.js';
 import BarraEstado from '../design/BarraEstado.js';
 import Icone from '../design/Icone.js';
@@ -78,9 +79,7 @@ export default function PerfilScreen({ navigation }) {
               que trata disso. */}
           <Retrato tamanho={84} />
           <View style={styles.perfilTextos}>
-            <Text style={styles.nome} numberOfLines={2}>
-              {user?.name}
-            </Text>
+            <EditarNome />
             {/* O PAPEL em pastilhas, com o selo de verificação: diz que alguém
                 olhou para os documentos desta pessoa e os aceitou. */}
             <View style={styles.papeis}>

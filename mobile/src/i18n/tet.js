@@ -238,6 +238,8 @@ export default {
   opcoesPainelSub: 'Loke painel administrasaun',
   perfilTitulo: 'Perfil',
   perfilInfo: 'Informasaun jeral',
+  perfilMudarNome: 'Hadia naran',
+  perfilNomeAviso: "Naran ne'e pasajeiru haree, no tenke hanesan ho ita-nia karta kondusaun.",
   perfilVerificadoSo: 'Verifikadu',
   admSistemaNormal: 'Sistema normal',
   admPorTratar: '{n} atu trata',
@@ -405,6 +407,11 @@ export default {
   entregaAvaliacao: 'Avaliasaun',
   entregaPagamentoNota: 'Selu {preco} ba motorista',
   avisarQuando: 'Fó hatene bainhira iha motorista',
+  // ── A espera de quem pediu, 22/09/2026 ──
+  esperaRestam: 'Sei falta {tempo} atu para',
+  esperaAcabou: 'Tempu hotu ona',
+  esperaSemResposta:
+    'Seidauk iha ema simu. Bele husik avizu ba oras rua tuir mai, no hein nafatin.',
   procurarOutraVez: 'Buka fali',
   procuraAutomatica: 'Aplikasaun buka rasik kada segundu 20.',
   aProcurarMotoristas: 'Hela buka…',

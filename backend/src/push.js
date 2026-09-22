@@ -134,6 +134,27 @@ export async function notificarMotoristaDisponivel(quem, tipo) {
   ]);
 }
 
+// Avisa o passageiro de que o pedido caducou sem motorista.
+//
+// PORQUE NÃO BASTAVA O SOCKET. O varrimento já mandava `ride:update` para o
+// ecrã se actualizar, e isso resolve o caso de quem está a olhar. Quem
+// guardou o telemóvel não recebe nada — e é exactamente essa a pessoa que
+// fica à espera na rua sem saber que já não vem ninguém.
+export async function notificarPedidoCaducado(quem, minutos) {
+  const d = destino(quem);
+  if (!d) return { enviadas: 0 };
+  return enviar([
+    {
+      to: d.to,
+      sound: 'default',
+      title: n('pedidoCaducouTitulo', d.lingua),
+      body: n('pedidoCaducouTexto', d.lingua, { minutos }),
+      data: { tipo: 'ride:expired' },
+      priority: 'high',
+    },
+  ]);
+}
+
 // Avisa o passageiro de que um motorista aceitou
 export async function notificarAceite(quem, ride) {
   const d = destino(quem);
