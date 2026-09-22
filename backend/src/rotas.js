@@ -84,6 +84,28 @@ function descomprimir(texto) {
   return pontos;
 }
 
+// O ÚLTIMO ERRO DO GOOGLE NAS ROTAS (22/09/2026).
+//
+// PORQUE EXISTE. O Simão abriu a consola do Google e viu «Routes API — 25
+// solicitações, 100% de erros». Vinte e cinco pedidos, vinte e cinco falhas,
+// e nós sem saber: a função dizia `if (!r.ok) return null` e deitava fora o
+// motivo. Caía-se no OSRM em silêncio, as viagens continuavam a ter preço, e
+// ninguém tinha como ligar uma coisa à outra.
+//
+// É a MESMA cegueira que já tínhamos corrigido na busca de lugares, e cuja
+// lição está escrita lá: «um caminho novo tem de conseguir explicar-se quando
+// falha». As rotas ficaram de fora nessa altura. Corrigir um caminho e deixar
+// o irmão é como corrigir metade de uma duplicação — já hoje me custou uma.
+//
+// Guarda-se só o ÚLTIMO, e um pedaço do corpo: chega para distinguir chave
+// recusada, API por activar, quota esgotada e facturação parada, que são as
+// quatro causas reais e pedem quatro remédios diferentes.
+let ultimoErroGoogle = null;
+
+function guardarErro(http, texto) {
+  ultimoErroGoogle = { http, quando: new Date().toISOString(), diz: String(texto).slice(0, 300) };
+}
+
 async function peloGoogle(a, b, intermedios = []) {
   const ctrl = new AbortController();
   const relogio = setTimeout(() => ctrl.abort(), 8000);
@@ -123,7 +145,11 @@ async function peloGoogle(a, b, intermedios = []) {
         routingPreference: 'TRAFFIC_UNAWARE',
       }),
     });
-    if (!r.ok) return null;
+    if (!r.ok) {
+      guardarErro(r.status, await r.text().catch(() => ''));
+      return null;
+    }
+    ultimoErroGoogle = null;
     const j = await r.json();
     const rota = j?.routes?.[0];
     const comprimida = rota?.polyline?.encodedPolyline;
@@ -136,7 +162,12 @@ async function peloGoogle(a, b, intermedios = []) {
       linha: descomprimir(comprimida),
       fonte: 'google',
     };
-  } catch {
+  } catch (e) {
+    // TAMBÉM AQUI, e não só no `!r.ok`. Este ramo apanha o que nunca chegou a
+    // ser resposta: sem rede, DNS a falhar, e sobretudo o PRAZO de 8 segundos
+    // a disparar. Um tempo esgotado não tem código HTTP — sem isto, a causa
+    // mais provável numa ligação de Díli era exactamente a única invisível.
+    guardarErro(0, e?.name === 'AbortError' ? 'prazo de 8 s esgotado' : e?.message || 'falhou');
     return null;
   } finally {
     clearTimeout(relogio);
@@ -247,7 +278,9 @@ export async function rotaCompleta(a, b, intermedios = []) {
 }
 
 export function estadoDasRotas() {
-  return { google: !!CHAVE, tectoDiario: POR_DIA };
+  // `null` quer dizer que a última chamada correu bem — ou que ainda não
+  // houve nenhuma desde o arranque.
+  return { google: !!CHAVE, tectoDiario: POR_DIA, ultimoErroGoogle };
 }
 
 export async function usoDeHoje() {
