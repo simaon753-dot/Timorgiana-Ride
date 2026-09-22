@@ -100,7 +100,22 @@ export const PALETAS = {
     // 3,3:1 — abaixo dos 4,5 que o TEXTO exige. Este token serve 261 sítios
     // em 79 ficheiros: ícones, texto, contornos e botões. O que é bom para um
     // ícone pode ser mau para uma palavra.
-    teal: '#529C7F',
+    // #11A95F — o verde do botão de telefonar que o Simão mandou
+    // (22/09/2026, à noite). Substitui o #529C7F que tinha estado aqui
+    // durante umas horas.
+    //
+    // O tema escuro TEM identidade própria — está escrito por cima, e é a
+    // razão de isto se poder fazer sem mexer no claro: «é quando os
+    // motoristas conduzem». Um esmeralda vivo sobre preto é mais legível e
+    // mais vivo do que um sálvia.
+    //
+    // Medido: ícone sobre o papel escuro 6,4:1 -> 6,9:1. Texto branco no
+    // botão 3,0:1 -> 2,8:1, que já era baixo antes e não piora de forma
+    // significativa.
+    //
+    // NO CLARO NÃO SE PODE: sobre o papel creme dá 2,8:1, abaixo dos 3,0 que
+    // um ícone exige. Esta cor precisa de fundo escuro para existir.
+    teal: '#11A95F',
     tealDark: '#0E5C54',
     tealLight: '#4FD4AC',
 
