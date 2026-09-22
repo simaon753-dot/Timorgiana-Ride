@@ -84,7 +84,23 @@ export const PALETAS = {
   // identidade própria para a noite, que é quando os motoristas conduzem.
   escuro: {
     // O verde é o "resto": botões, crachás, contornos, destaques.
-    teal: '#2E9E7E',
+    // #529C7F E NÃO #2E9E7E (22/09/2026, pedido do Simão).
+    //
+    // É a cor da maqueta das Opções que ele desenhou — e é exactamente a
+    // mesma dos ícones-imagem (barra de baixo, pinos, botões do mapa). Com
+    // esta troca, os ícones DESENHADOS e os ícones-IMAGEM passam a ser a
+    // mesma cor no tema escuro, que é a harmonização que ele pediu.
+    //
+    // Seguro porque não muda contraste nenhum: 6,3:1 -> 6,4:1 sobre o papel
+    // escuro, e 3,1:1 -> 3,0:1 no texto do botão. São a mesma cor com o
+    // vermelho um pouco acima.
+    //
+    // NO TEMA CLARO NÃO SE FAZ, e o número diz porquê: o teal claro é
+    // #0E5C54 e dá 7,8:1 ao texto branco dos botões. Com #529C7F cairia para
+    // 3,3:1 — abaixo dos 4,5 que o TEXTO exige. Este token serve 261 sítios
+    // em 79 ficheiros: ícones, texto, contornos e botões. O que é bom para um
+    // ícone pode ser mau para uma palavra.
+    teal: '#529C7F',
     tealDark: '#0E5C54',
     tealLight: '#4FD4AC',
 
