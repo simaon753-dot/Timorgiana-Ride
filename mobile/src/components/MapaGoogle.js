@@ -54,8 +54,8 @@ const TINTA = { teal: '#007E78', tealAnel: '#009490', coral: '#FC5430' };
 // O TAMANHO DA IMAGEM DO PINO, em pontos. 54x76 é o que o
 // `scripts/recortar-novos-icones.py` produz — e é aqui que tem de bater
 // certo, porque a MIRA desenha a mesma imagem numa vista com estas medidas.
-const PINO_L = 54;
-const PINO_A = 76;
+const PINO_L = 46;
+const PINO_A = 65;
 const CARTAO_L = 150;
 
 // O PINO DENTRO DO MAPA É UMA IMAGEM, e não o componente <Pino>.
@@ -137,7 +137,6 @@ const VEICULO_IMAGEM = {
 // vista tem de ser recolocada a cada movimento, e recolocar depois do
 // movimento é vê-la a flutuar durante ele. Um marcador com imagem é
 // desenhado pelo mapa, agarrado à coordenada, e nunca se descola.
-const PONTO_ESTRADA = require('../../assets/mapa/ponto-estrada.png');
 const PONTO_OUTRO = require('../../assets/mapa/ponto-outro.png');
 // ONDE, DENTRO DA IMAGEM DO PINO, ESTÁ O SÍTIO QUE ELE MARCA.
 //
@@ -150,8 +149,8 @@ const PONTO_OUTRO = require('../../assets/mapa/ponto-outro.png');
 //
 // Agora é um número medido no PRÓPRIO ficheiro: o centro do ponto de baixo,
 // que é o que assenta no chão. Medido com
-// `scripts/recortar-novos-icones.py` a produzir 42x59, deu 0,9407.
-const ANCORA_Y = 0.9408;
+// `scripts/recortar-novos-icones.py` a produzir 46x65, deu 0,941.
+const ANCORA_Y = 0.941;
 
 // QUANTO A MIRA SOBE PARA A PONTA CAIR NO CENTRO DO ECRÃ.
 //
@@ -1218,15 +1217,16 @@ export default function MapaGoogle({
           />
         ))}
 
-        {trocosAPe.map((t) => (
-          <Marker
-            key={`ponto-${t.qual}`}
-            coordinate={{ latitude: t.para.lat, longitude: t.para.lng }}
-            anchor={{ x: 0.5, y: 0.5 }}
-            zIndex={900}
-            image={PONTO_ESTRADA}
-          />
-        ))}
+        {/* O CÍRCULO NA PONTA DO TRACEJADO SAIU (22/09/2026, pedido do
+            Simão). Marcava onde o carro encosta, e a linha aos pontinhos já
+            o diz: o tracejado acaba exactamente aí. O anel era escuro e
+            grosso, e ao lado de um pino pequeno pesava mais do que aquilo
+            que servia — chamava a atenção para o sítio onde se espera em vez
+            do sítio para onde se vai.
+
+            A informação não se perdeu: mudou de quem a dá. Se um dia a linha
+            sozinha parecer vaga, ele volta mais pequeno e mais claro — o
+            ficheiro fica em assets/mapa/ponto-estrada.png. */}
 
         {/* AS OUTRAS PARAGENS. Cinzentas e por baixo da que está posta.
             `title` e não um filho: um marcador com filhos é fotografado pelo
