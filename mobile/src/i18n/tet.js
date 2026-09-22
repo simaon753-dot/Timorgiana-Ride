@@ -460,8 +460,8 @@ export default {
   // Viajen
   destination: 'Destinu',
   // ── Etiquetas dos locais no mapa, de perto (22/09/2026) ──
-  mapaLocalRecolha: 'Fatin foti',
-  mapaLocalDestino: 'Fatin destinu',
+  mapaLocalRecolha: 'Fatin tula',
+  mapaLocalDestino: 'Fatin hatun',
   mapaLocalParagem: 'Para',
   originField: 'Fatin atu hahú',
   vehicleAny: 'Kualkér',
