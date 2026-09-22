@@ -190,6 +190,23 @@ function nomeDaResposta(j, lat, lng, precisaoM) {
 // contador em memória não é tecto nenhum.
 const NOMES_POR_DIA = Number(process.env.PLACES_MAX_DIA) || 400;
 
+// DE ONDE VIERAM OS NOMES, desde o arranque (22/09/2026).
+//
+// PORQUE EXISTE. O Simão apontou a um warung e a app escreveu o nome de uma
+// escola a oitenta metros. A pergunta certa — qual das camadas respondeu? —
+// não tinha resposta: a função devolve um campo `fonte` desde sempre e
+// ninguém o estava a olhar. Construí a medição das CHAMADAS e esqueci-me da
+// medição das RESPOSTAS.
+//
+// SÓ A CONTAGEM, nunca os nomes nem as coordenadas. O /api/health é público:
+// guardar os últimos lugares procurados seria dizer a quem passar por lá
+// onde é que as pessoas andaram. Uma contagem por camada responde à pergunta
+// sem contar nada sobre ninguém.
+const fontes = { nossos: 0, memoria: 0, google: 0, osm: 0, nada: 0 };
+function contarFonte(f) {
+  if (f in fontes) fontes[f] += 1;
+}
+
 // Quarenta metros. Mais do que isto e começa a devolver-se o vizinho do lado
 // como se fosse o sítio apontado — e um nome errado é pior do que o nome da
 // rua, que pelo menos é verdade.
@@ -228,10 +245,18 @@ async function nomeNoGoogle(lat, lng) {
       },
       body: JSON.stringify({
         maxResultCount: 1,
-        // Pelo mais PROMINENTE e não pelo mais próximo: a um raio de 40
-        // metros o mais próximo pode ser um portão sem nome, e o que a
-        // pessoa reconhece é o edifício.
-        rankPreference: 'POPULARITY',
+        // PELO MAIS PRÓXIMO, e não pelo mais conhecido (corrigido a
+        // 22/09/2026).
+        //
+        // Comecei por pedir o mais PROMINENTE, com o raciocínio de que a 40
+        // metros o mais perto podia ser um portão sem nome. Estava errado por
+        // duas razões. A primeira: o Google só devolve estabelecimentos com
+        // nome — portões sem nome não entram. A segunda, que é a que importa:
+        // quando alguém APONTA a um sítio, está a dizer AQUELE. Numa
+        // competição de fama, uma escola internacional ganha sempre a um
+        // warung — e a pessoa que apontou ao warung fica com o nome da
+        // escola.
+        rankPreference: 'DISTANCE',
         languageCode: 'pt',
         locationRestriction: {
           circle: { center: { latitude: lat, longitude: lng }, radius: RAIO_NOME_M },
@@ -251,11 +276,15 @@ export async function nomeDoPonto(lat, lng, userId, precisaoM) {
   //    propôs), e uma memória partilhada mostrá-lo-ia a toda a gente.
   const perto = await lugaresPerto(lat, lng, userId, 60);
   const nosso = perto.find((l) => l.nome);
-  if (nosso) return { nome: nosso.nome, fonte: 'nossos' };
+  if (nosso) {
+    contarFonte('nossos');
+    return { nome: nosso.nome, fonte: 'nossos' };
+  }
 
   const chave = chaveDoPonto(lat, lng);
   const guardado = nomes.get(chave);
   if (guardado && Date.now() - guardado.quando < TTL_NOMES_MS) {
+    contarFonte('memoria');
     return { nome: guardado.nome, fonte: 'memoria' };
   }
   if (guardado) nomes.delete(chave);
@@ -267,6 +296,7 @@ export async function nomeDoPonto(lat, lng, userId, precisaoM) {
   if (doGoogle) {
     if (nomes.size >= MAX_NOMES) nomes.delete(nomes.keys().next().value);
     nomes.set(chave, { nome: doGoogle, quando: Date.now() });
+    contarFonte('google');
     return { nome: doGoogle, fonte: 'google' };
   }
 
@@ -279,9 +309,13 @@ export async function nomeDoPonto(lat, lng, userId, precisaoM) {
   const nome = nomeDaResposta(j, lat, lng, precisaoM);
   // Falhas não se guardam: da próxima pode correr bem, e um vazio guardado
   // fazia o sítio ficar sem nome durante uma semana.
-  if (!nome) return { nome: null, fonte: 'nada' };
+  if (!nome) {
+    contarFonte('nada');
+    return { nome: null, fonte: 'nada' };
+  }
   if (nomes.size >= MAX_NOMES) nomes.delete(nomes.keys().next().value);
   nomes.set(chave, { nome, quando: Date.now() });
+  contarFonte('osm');
   return { nome, fonte: 'osm' };
 }
 
@@ -564,6 +598,9 @@ export function estadoDaBusca() {
     google: !!process.env.GOOGLE_MAPS_KEY,
     memoria: memoria.size,
     nomesTectoDiario: NOMES_POR_DIA,
+    // Quantos nomes cada camada deu desde o arranque. Sem nomes nem
+    // coordenadas: só a contagem.
+    fontes: { ...fontes },
     // `null` quer dizer que a última chamada ao Google correu bem — ou que
     // ainda não houve nenhuma desde o arranque.
     ultimoErroGoogle,
