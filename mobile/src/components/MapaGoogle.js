@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, Platform, Pressable, Image } from 'react-native';
-import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE, Marker, Polyline, Circle as Circulo } from 'react-native-maps';
 import * as Location from 'expo-location';
 import Svg, { Path, Circle as Bola, Line } from 'react-native-svg';
 import { colors, radius, spacing, registarEstilos } from '../theme.js';
@@ -64,6 +64,11 @@ const TINTA = { teal: '#007E78', tealAnel: '#009490', coral: '#FC5430' };
 const PINO_L = 30;
 const PINO_A = 45;
 const CARTAO_L = 150;
+
+// Abaixo disto não se desenha círculo nenhum. Quinze metros é o mesmo limiar
+// a que o ecrã do pedido já mostra "arrastar o pino · ±N m": abaixo disso a
+// leitura é boa e um halo só sujava o mapa.
+const INCERTEZA_MINIMA_M = 15;
 
 // O PINO DENTRO DO MAPA É UMA IMAGEM, e não o componente <Pino>.
 //
@@ -382,6 +387,18 @@ export default function MapaGoogle({
   height = 240,
   onPick,
   onRoute,
+  // O CÍRCULO DE INCERTEZA (22/09/2026).
+  //
+  // `{ lat, lng, metros }` — onde o GPS diz que a pessoa está, e de quantos
+  // metros se pode estar a enganar. Sem isto a app desenhava um pino
+  // confiante mesmo quando o telemóvel estava a dizer "posso estar errado em
+  // oitenta metros", e quem via o pino no edifício errado concluía, com
+  // razão, que a app estava avariada.
+  //
+  // É o halo que o Google mostra no ponto azul e que nós não mostrávamos. A
+  // diferença entre "está aqui" e "está algures nesta área" é a diferença
+  // entre a pessoa arrastar o pino ou desconfiar do serviço.
+  incerteza,
   liveMarker,
   liveLabel,
   // O TIPO do veículo que se mexe, para o distintivo ser o certo. Sem ele,
@@ -1221,6 +1238,19 @@ export default function MapaGoogle({
             onPress={onEscolherParagem ? () => onEscolherParagem(p) : undefined}
           />
         ))}
+
+        {/* Primeiro o círculo, para o pino e o carro ficarem POR CIMA dele:
+            é um fundo, não um objecto. */}
+        {incerteza && incerteza.metros > INCERTEZA_MINIMA_M ? (
+          <Circulo
+            center={{ latitude: incerteza.lat, longitude: incerteza.lng }}
+            radius={incerteza.metros}
+            strokeWidth={1}
+            strokeColor={TINTA.teal + '55'}
+            fillColor={TINTA.teal + '18'}
+            zIndex={0}
+          />
+        ) : null}
 
         {carroSuave ? (
           <Marker
