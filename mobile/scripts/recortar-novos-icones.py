@@ -30,6 +30,7 @@ Correr:  python3 scripts/recortar-novos-icones.py
 Precisa: Pillow
 """
 
+import colorsys
 import os
 
 from PIL import Image, ImageFilter
@@ -124,6 +125,52 @@ VEICULO_LARGURA = 624
 #     contorno teal.
 
 
+# O TEAL DA MARCA, E NÃO O QUE A IA ESCOLHEU (22/09/2026).
+#
+# Os desenhos vieram num turquesa vivo (#08B0B8) com um segundo tom mais
+# escuro (#007880). A marca é #0E5C54 — mais escuro e mais verde. Lado a lado
+# com o resto da app, os ícones saltavam à vista por estarem fora da paleta.
+#
+# NÃO SE PINTA TUDO DE UMA COR SÓ. Os desenhos usam dois tons de teal para dar
+# profundidade — o telhado claro e a parede escura da casa, o mostrador e os
+# ponteiros do relógio. Achatá-los numa cor faria perder o desenho.
+#
+# O que se faz é mudar a MATIZ e a SATURAÇÃO para as da marca e reduzir a
+# luminosidade na mesma proporção. O tom claro cai exactamente em #0E5C54 e o
+# escuro acompanha, mais escuro na mesma medida: a relação entre os dois
+# mantém-se e o conjunto passa a ser da casa.
+#
+# O CORAL FICA. Ele só falou do teal, e o coral dos desenhos já está à
+# distância de um cabelo do da marca.
+TEAL_MARCA = (0x0E, 0x5C, 0x54)
+# A luminosidade do tom claro que veio nos desenhos (#08B0B8). É a régua: tudo
+# o que é teal encolhe por este factor.
+L_ORIGEM_CLARA = 0.3765
+
+
+def _teal(r, g, b):
+    """O pixel pertence à família do teal? Verde e azul bem acima do vermelho,
+    e os dois próximos um do outro — é isso que distingue um teal de um verde
+    de parque ou de um azul de água."""
+    return g > r + 40 and b > r + 40 and abs(g - b) < max(40, 0.35 * max(g, b))
+
+
+def para_o_teal_da_marca(im):
+    h_alvo, l_alvo, s_alvo = colorsys.rgb_to_hls(*[c / 255 for c in TEAL_MARCA])
+    escala = l_alvo / L_ORIGEM_CLARA
+    px = im.load()
+    w, h = im.size
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            if a == 0 or not _teal(r, g, b):
+                continue
+            _, l, _ = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
+            nr, ng, nb = colorsys.hls_to_rgb(h_alvo, min(1, l * escala), s_alvo)
+            px[x, y] = (round(nr * 255), round(ng * 255), round(nb * 255), a)
+    return im
+
+
 def sem_preto(caminho, miolo=None):
     """Deita fora o preto — fundo e linhas de recorte — e corta à arte.
 
@@ -149,7 +196,7 @@ def sem_preto(caminho, miolo=None):
     fora = im.convert('RGBA')
     fora.putalpha(alfa)
     caixa = alfa.getbbox()
-    return fora.crop(caixa) if caixa else fora
+    return para_o_teal_da_marca(fora.crop(caixa) if caixa else fora)
 
 
 def gravar(imagem, pasta, nome, largura):
