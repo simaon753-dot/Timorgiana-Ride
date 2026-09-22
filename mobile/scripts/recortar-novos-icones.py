@@ -86,6 +86,17 @@ ICONES = {
     # imagem sem taparem a rua.
     'pino-origem': ('novo pino recolha.jpeg', 'mapa', 46),
     'pino-destino': ('Novo pino destino.jpeg', 'mapa', 46),
+    # OS PINOS PEQUENOS, para as paragens ALTERNATIVAS (22/09/2026).
+    #
+    # Eram um círculo cinzento igual para os dois lados. O Simão pediu um
+    # pino pequeno — e assim a alternativa fica da mesma família e da mesma
+    # COR do ponto a que pertence: teal se é outra forma de ser recolhido,
+    # coral se é outra forma de ser largado. Um círculo cinzento não dizia a
+    # qual dos dois pontos se referia.
+    #
+    # 26 e não 46: tem de se ler como «também aqui», não como «é aqui».
+    'pino-origem-pequeno': ('novo pino recolha.jpeg', 'mapa', 26),
+    'pino-destino-pequeno': ('Novo pino destino.jpeg', 'mapa', 26),
 }
 
 # OS VEÍCULOS NÃO PASSAM POR AQUI, e é o sítio certo para dizer porquê.

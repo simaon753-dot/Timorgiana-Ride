@@ -6,6 +6,7 @@ import Svg, { Path, Circle as Bola, Line } from 'react-native-svg';
 import { colors, radius, spacing, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
+import { metrosEntre } from '../lib/filtroPosicao.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
 
@@ -137,7 +138,28 @@ const VEICULO_IMAGEM = {
 // vista tem de ser recolocada a cada movimento, e recolocar depois do
 // movimento é vê-la a flutuar durante ele. Um marcador com imagem é
 // desenhado pelo mapa, agarrado à coordenada, e nunca se descola.
-const PONTO_OUTRO = require('../../assets/mapa/ponto-outro.png');
+// OS PINOS PEQUENOS DAS PARAGENS ALTERNATIVAS (22/09/2026).
+//
+// Era um círculo cinzento, igual para os dois lados. O Simão pediu um pino
+// pequeno — e assim a alternativa fica da FAMÍLIA e da COR do ponto a que
+// pertence: teal se é outra forma de ser recolhido, coral se é outra forma
+// de ser largado. O círculo cinzento não dizia a qual dos dois se referia.
+const PEQUENO = {
+  origem: require('../../assets/mapa/pino-origem-pequeno.png'),
+  destino: require('../../assets/mapa/pino-destino-pequeno.png'),
+};
+
+// A PARTIR DE QUE DISTÂNCIA uma alternativa deixa de se mostrar.
+//
+// Uma paragem alternativa é «também podes ser apanhado aqui». A trezentos
+// metros deixa de ser isso e passa a ser outra viagem — e um pino a
+// trezentos metros do sítio apontado parece um erro da app, mesmo quando é
+// uma paragem correctamente definida no painel com um raio largo.
+//
+// É uma rede de segurança do lado do DESENHO, não uma correcção: quem
+// define os raios é o painel, e é lá que se arruma. Mas uma alternativa que
+// ninguém vai a pé não tem nada a fazer no ecrã.
+const ALTERNATIVA_PERTO_M = 300;
 // ONDE, DENTRO DA IMAGEM DO PINO, ESTÁ O SÍTIO QUE ELE MARCA.
 //
 // Estava escrito `42 / PINO_A` — que dava o número certo por coincidência,
@@ -262,16 +284,6 @@ function Cartao({ nome, detalhe, qual, agora = false }) {
 // e o mapa dava um salto completo de cada vez que se apontasse para lá.
 function diferencaAngular(a, b) {
   return ((((a - b) % 360) + 540) % 360) - 180;
-}
-
-function metrosEntre(a, b) {
-  const R = 6371;
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
-  const s =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(s));
 }
 
 // O BOTÃO DE VOLTAR À MINHA LOCALIZAÇÃO.
@@ -664,7 +676,18 @@ export default function MapaGoogle({
       { latitude: b.lat, longitude: b.lng },
     ];
     setRota({ linha: recta, tracejada: true });
-    if (onRoute) onRoute({ km: Math.round(metrosEntre(a, b) * 10) / 10, approx: true });
+    // `/ 1000` À VISTA, e não escondido numa função (22/09/2026).
+    //
+    // Havia aqui um `metrosEntre` local que devolvia QUILÓMETROS — o `R` era
+    // 6371, o raio da Terra em km. O nome mentia desde que foi escrito, e
+    // funcionava porque este era o único sítio a usá-lo, e trata o resultado
+    // como km. Ao pôr uma segunda regra a medir metros, o nome enganou-me: a
+    // comparação teria sido «a menos de 300 km», verdadeira sempre, e a
+    // regra nunca filtraria nada sem nada o dizer.
+    //
+    // Ficou uma conta só, a de `lib/filtroPosicao.js`, que devolve metros a
+    // sério. Quem precisa de km divide aqui, onde se vê.
+    if (onRoute) onRoute({ km: Math.round((metrosEntre(a, b) / 1000) * 10) / 10, approx: true });
 
     // Já veio de fora? Desenha-se e não se pergunta a ninguém.
     if (linhaDaRota?.length > 1) {
@@ -1355,17 +1378,29 @@ export default function MapaGoogle({
             única maneira de pôr aqui o nome do sítio sem partir o marcador.
             Sem o nome isto eram dois pontos cinzentos iguais, e escolher
             entre dois pontos iguais não é escolher. */}
-        {paragens.map((p) => (
-          <Marker
-            key={`outra-${p.qual}-${p.lat},${p.lng}`}
-            coordinate={{ latitude: p.lat, longitude: p.lng }}
-            anchor={{ x: 0.5, y: 0.5 }}
-            zIndex={880}
-            image={PONTO_OUTRO}
-            title={p.nome || undefined}
-            onPress={onEscolherParagem ? () => onEscolherParagem(p) : undefined}
-          />
-        ))}
+        {paragens
+          // SÓ AS QUE ESTÃO PERTO DO PONTO A QUE PERTENCEM. Ver
+          // `ALTERNATIVA_PERTO_M`. Sem o ponto correspondente no ecrã não há
+          // com que comparar, e aí mostra-se — não se esconde informação por
+          // falta de informação.
+          .filter((p) => {
+            const dono = pts.find((x) => x.qual === p.qual);
+            if (!dono) return true;
+            return metrosEntre({ lat: dono.lat, lng: dono.lng }, p) <= ALTERNATIVA_PERTO_M;
+          })
+          .map((p) => (
+            <Marker
+              key={`outra-${p.qual}-${p.lat},${p.lng}`}
+              coordinate={{ latitude: p.lat, longitude: p.lng }}
+              // Pela PONTA, como os pinos grandes: é um pino, e um pino
+              // aponta com o bico. Centrado, apontaria ao lado.
+              anchor={{ x: 0.5, y: ANCORA_Y }}
+              zIndex={880}
+              image={PEQUENO[p.qual] || PEQUENO.origem}
+              title={p.nome || undefined}
+              onPress={onEscolherParagem ? () => onEscolherParagem(p) : undefined}
+            />
+          ))}
 
         {carroSuave ? (
           <Marker

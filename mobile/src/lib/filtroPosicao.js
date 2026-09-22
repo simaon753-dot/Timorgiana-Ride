@@ -36,7 +36,10 @@ const VELOCIDADE_IMPOSSIVEL_MS = 150 / 3.6;
 
 // Metros entre dois pontos. Haversine, que é exacto que chegue a esta escala
 // e não precisa de biblioteca nenhuma.
-function metros(a, b) {
+// Exportada porque o mapa precisa da MESMA conta para decidir se uma
+// paragem alternativa está perto que chegue para se mostrar. Duas fórmulas
+// de distância no mesmo projecto divergem no dia em que uma mudar.
+export function metrosEntre(a, b) {
   const R = 6371000;
   const rad = Math.PI / 180;
   const dLat = (b.lat - a.lat) * rad;
@@ -66,7 +69,7 @@ export function criarFiltroPosicao() {
 
     if (ultima) {
       const segundos = Math.max(1, ((p.quando ?? Date.now()) - ultima.quando) / 1000);
-      if (metros(ultima, p) / segundos > VELOCIDADE_IMPOSSIVEL_MS) return false;
+      if (metrosEntre(ultima, p) / segundos > VELOCIDADE_IMPOSSIVEL_MS) return false;
     }
 
     ultima = { lat: p.lat, lng: p.lng, quando: p.quando ?? Date.now() };
