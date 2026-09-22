@@ -178,7 +178,15 @@ const ANCORA_Y = 0.941;
 // Coupli-los era fingir uma relação que o Android não respeita. São dois
 // números, e este é o que se afina a olho até os dois pinos se lerem como o
 // mesmo pino.
-const MIRA_L = 42;
+// 36, e não 42 (22/09/2026). Acompanha a descida do marcador de 54 para 46,
+// na mesma proporção.
+//
+// TEM DE SER MEXIDO À MÃO, e foi o que me escapou: ao separar este número do
+// do marcador — porque os dois são desenhados por motores diferentes e
+// declarar 54 nos dois não dava 54 nos dois —, perdi o «mexo num e o outro
+// acompanha». Baixei o marcador e a mira ficou onde estava. São dois números
+// de propósito; quem mexe num tem de olhar para o outro.
+const MIRA_L = 36;
 const MIRA_A = Math.round((MIRA_L * PINO_A) / PINO_L);
 
 const SUBIR_MIRA = MIRA_A * (0.5 - ANCORA_Y);
