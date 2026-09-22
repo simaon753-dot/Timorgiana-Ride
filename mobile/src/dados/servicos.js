@@ -16,6 +16,10 @@ export const SERVICOS_EXTRA = [
     id: 'jastip',
     chaveNome: 'encomendaTitulo',
     chaveNota: 'encomendaNota',
+    // A ILUSTRAÇÃO DO SIMÃO, e por isso SEM disco de acento por trás
+    // (22/09/2026). O desenho a cores dentro de um disco colorido perde-se;
+    // e ele já disse uma vez que quer o ícone sozinho, sem círculo atrás.
+    imagem: require('../../assets/icones/servico-encomenda.png'),
     icone: 'caixa',
     tinta: 'tintaCarry',
     acento: 'acentoCarry',
@@ -30,6 +34,7 @@ export const SERVICOS_EXTRA = [
     id: 'flores',
     chaveNome: 'floresTitulo',
     chaveNota: 'floresNota',
+    imagem: require('../../assets/icones/servico-flores.png'),
     icone: 'flor',
     tinta: 'tintaFlor',
     acento: 'acentoFlor',

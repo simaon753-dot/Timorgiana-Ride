@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Platform, Pressable, Image } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
 import Svg, { Path, Circle as Bola, Line } from 'react-native-svg';
@@ -236,108 +236,42 @@ function metrosEntre(a, b) {
 //
 // A mira é desenhada e não é um emoji: os emojis mudam de forma conforme o
 // telemóvel, e um alvo tem de se ler como um alvo em todos.
-function Mira() {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 24 24">
-      <Bola cx={12} cy={12} r={6.5} fill="none" stroke={TINTA.teal} strokeWidth={2} />
-      <Bola cx={12} cy={12} r={2} fill={TINTA.teal} />
-      <Line
-        x1={12}
-        y1={1.5}
-        x2={12}
-        y2={5}
-        stroke={TINTA.teal}
-        strokeWidth={2}
-        strokeLinecap="round"
-      />
-      <Line
-        x1={12}
-        y1={19}
-        x2={12}
-        y2={22.5}
-        stroke={TINTA.teal}
-        strokeWidth={2}
-        strokeLinecap="round"
-      />
-      <Line
-        x1={1.5}
-        y1={12}
-        x2={5}
-        y2={12}
-        stroke={TINTA.teal}
-        strokeWidth={2}
-        strokeLinecap="round"
-      />
-      <Line
-        x1={19}
-        y1={12}
-        x2={22.5}
-        y2={12}
-        stroke={TINTA.teal}
-        strokeWidth={2}
-        strokeLinecap="round"
-      />
-    </Svg>
-  );
-}
-
-// A agulha da bússola. Metade coral a apontar ao norte, metade cinzenta —
-// é o desenho que toda a gente reconhece de uma bússola, e distingue-se de
-// um simples triângulo, que tanto podia ser "para cima" como "reproduzir".
-function Agulha() {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24">
-      <Path d="M12 2 L16.5 13 L12 11 Z" fill={TINTA.coral} />
-      <Path d="M12 22 L7.5 11 L12 13 Z" fill={TINTA.teal} />
-      {/* O miolo branco separa as duas metades, como no desenho do Simão. */}
-      <Bola cx={12} cy={12} r={2.2} fill="#FFFFFF" />
-    </Svg>
-  );
-}
-
-// AS CAMADAS: fotografia de satélite por cima do mapa desenhado.
+// OS QUATRO BOTÕES SÃO AGORA AS ILUSTRAÇÕES DO SIMÃO (22/09/2026).
 //
-// Três folhas empilhadas, que é a figura que toda a gente associa a "trocar de
-// vista" — a mesma do Google. Acesa a branco quando o satélite está ligado,
-// como o botão de seguir a bússola: é um MODO e não uma acção, e um modo tem
-// de se ver que está a correr.
-function Camadas({ activo }) {
-  const cor = activo ? '#FFFFFF' : TINTA.coral;
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24">
-      <Path d="M12 3 L21 8 L12 13 L3 8 Z" fill={cor} />
-      <Path
-        d="M4.5 11.2 L12 15.4 L19.5 11.2"
-        fill="none"
-        stroke={cor}
-        strokeWidth={1.8}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M4.5 15 L12 19.2 L19.5 15"
-        fill="none"
-        stroke={cor}
-        strokeWidth={1.8}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
+// Eram desenhos em SVG escritos aqui. Passam a imagens geradas de
+// `desenho/imagens/Novos ícones` por `scripts/recortar-novos-icones.py`,
+// que lhes tira o preto — fundo e linhas — e as deixa com transparência, a
+// assentar sobre qualquer fundo.
+//
+// A PRIMEIRA TENTATIVA FALHOU POR TAMANHO. Pus-os a 20 e 22 pontos, que era
+// o tamanho dos SVG, e o Simão viu um borrão. Um traço fino aguenta ser
+// pequeno; uma ilustração a cores, com partes, não. Dentro de um botão de 40
+// havia espaço para 26 — e a 26 lêem-se.
+//
+// E A BÚSSOLA VAI SÓ COM A AGULHA, sem as letras N/O/E/S que o desenho
+// trazia à volta: tinham outra escala e, a 26 pontos, eram cinco pixéis de
+// ruído por cima da única parte que se lê. A agulha sozinha é que diz para
+// onde é o norte.
+const FIGURA = {
+  mira: require('../../assets/icones/botao-mim.png'),
+  agulha: require('../../assets/icones/botao-bussola.png'),
+  camadas: require('../../assets/icones/botao-satelite.png'),
+  seta: require('../../assets/icones/botao-seguir.png'),
+};
+
+function Figura({ qual }) {
+  return <Image source={FIGURA[qual]} style={ESTILO_FIGURA} resizeMode="contain" />;
 }
 
-// A seta de seguir. Um cursor de navegação dentro de um círculo — a mesma
-// figura que o Google usa, e que se distingue da AGULHA da bússola: a agulha
-// diz onde é o norte, esta diz para onde EU estou virado.
-function Seta({ activo }) {
-  const cor = activo ? '#FFFFFF' : TINTA.teal;
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24">
-      <Bola cx={12} cy={12} r={9.2} fill="none" stroke={cor} strokeWidth={1.8} />
-      <Path d="M12 6.2 L15.6 16 L12 14 L8.4 16 Z" fill={cor} />
-    </Svg>
-  );
-}
+const ESTILO_FIGURA = { width: 26, height: 26 };
+
+const Mira = () => <Figura qual="mira" />;
+const Agulha = () => <Figura qual="agulha" />;
+// O `activo` deixou de pintar a figura de branco: ela é a cores e não muda.
+// Quem mostra o modo ligado é o BOTÃO, que acende — ver `botaoSeguirActivo`
+// e `botaoSateliteActivo` mais abaixo.
+const Camadas = () => <Figura qual="camadas" />;
+const Seta = () => <Figura qual="seta" />;
 
 export default function MapaGoogle({
   pickable = false,
@@ -1326,7 +1260,7 @@ export default function MapaGoogle({
           accessibilityState={{ selected: aSeguirBussola }}
           accessibilityLabel={t('seguirBussola')}
         >
-          <Seta activo={aSeguirBussola} />
+          <Seta />
         </Pressable>
       )}
 
@@ -1374,7 +1308,7 @@ export default function MapaGoogle({
           accessibilityState={{ selected: satelite }}
           accessibilityLabel={t('verSatelite')}
         >
-          <Camadas activo={satelite} />
+          <Camadas />
         </Pressable>
       ) : null}
 
@@ -1563,7 +1497,10 @@ const criarEstilos = () =>
       shadowOffset: { width: 0, height: 2 },
       elevation: 3,
     },
-    botaoSeguirActivo: { backgroundColor: colors.teal, borderColor: colors.teal },
+    // ACENDE EM TINTA E NÃO EM CHEIO (22/09/2026): a figura passou a ser a
+    // ilustração a cores, e um fundo teal cheio engolia-a. A tinta mais o
+    // contorno dizem o mesmo — o modo está ligado — e deixam-na ver-se.
+    botaoSeguirActivo: { backgroundColor: colors.tintaTeal, borderColor: colors.teal },
     // O quarto da coluna: 8 + 48 + 48 + 48.
     botaoSatelite: {
       position: 'absolute',
@@ -1583,7 +1520,7 @@ const criarEstilos = () =>
       shadowOffset: { width: 0, height: 2 },
       elevation: 3,
     },
-    botaoSateliteActivo: { backgroundColor: colors.teal, borderColor: colors.teal },
+    botaoSateliteActivo: { backgroundColor: colors.tintaTeal, borderColor: colors.teal },
     botaoBussola: {
       position: 'absolute',
       right: spacing.sm,

@@ -49,6 +49,23 @@ ICONES = {
     'viagens': ('viagem escura.jpg', 'ilustracoes', 48),
     'rendimento': ('trabalho escura.jpg', 'ilustracoes', 48),
     'perfil': ('perfil escura.jpg', 'ilustracoes', 48),
+    # ── os quatro botões do mapa, e os dois serviços ──
+    #
+    # A PRIMEIRA TENTATIVA FALHOU POR TAMANHO, não por desenho (22/09/2026):
+    # gerei-os a 24 e o Simão via um borrão, porque a app desenhava-os a 18 e
+    # 22 pontos dentro de pastilhas de 34 e 40. A correcção não foi arranjar
+    # arte nova — foi dar-lhes o espaço que a pastilha já tinha.
+    # A BÚSSOLA VAI SÓ COM A AGULHA. O desenho traz as letras N/O/E/S à
+    # volta, e elas têm outra escala: a 26 pontos ficam com cinco pixéis e
+    # viram ruído em cima da agulha, que se lê bem. Ampliar não as salvava —
+    # só aumentava o ruído. A agulha sozinha É a bússola: é ela que diz para
+    # onde é o norte. O 0.56 é a fatia do meio que fica.
+    'botao-bussola': ('bússola escura.jpg', 'icones', 26, 0.56),
+    'botao-mim': ('botão para voltar a minha localização escura.jpg', 'icones', 26),
+    'botao-satelite': ('botão muda para satelite escura.jpg', 'icones', 26),
+    'botao-seguir': ('movimento escura.jpg', 'icones', 26),
+    'servico-flores': ('flores escura.jpg', 'icones', 30),
+    'servico-encomenda': ('ncomenda escura.jpg', 'icones', 30),
     # ── os pinos do mapa ──
     'pino-origem': ('pino de recolha.jpg', 'mapa', 30),
     'pino-destino': ('pino de destino.jpg', 'mapa', 30),
@@ -74,27 +91,36 @@ VEICULOS = {
 }
 VEICULO_LARGURA = 624
 
-# OS QUE FICARAM DE FORA, e a razão, para não se voltar a tentar às cegas.
+# TUDO ENTROU, À SEGUNDA (22/09/2026).
 #
-# A bússola, o satélite, as flores e a encomenda são desenhos bonitos e
-# ILEGÍVEIS ao tamanho a que a app os usa (18 a 22 pontos): a bússola tem as
-# letras N/S/E/O, que a essa escala ficam com quatro pixéis de altura; o
-# satélite tem textura fotográfica, que vira ruído; o ramo tem cinco flores
-# e sete folhas; a encomenda saiu a 24 × 14, larga e baixa demais.
+# À primeira deixei quatro de fora — bússola, satélite, flores e encomenda —
+# por os ver ilegíveis. Estava certo no diagnóstico e errado na conclusão: o
+# problema era eu os ter gerado ao tamanho dos SVG que substituem (18 a 22
+# pontos), quando as pastilhas onde vivem têm 34 e 40. A 26 e 30 lêem-se.
 #
-# E há um impedimento à parte, que nenhuma arte resolve: os botões do
-# satélite e do «seguir» ACENDEM a teal quando activos, com o ícone a
-# branco. Um ícone que já é teal desaparece em cima de teal — só um traço
-# que a app pinta consegue mudar de cor com o estado.
+# A lição, que vale para o próximo lote: um traço fino aguenta ser pequeno;
+# uma ilustração a cores, com partes, não. Antes de decidir que uma arte não
+# serve, dar-lhe o espaço que a moldura já tem — e OLHAR, com uma folha de
+# contacto ao tamanho real, em fundo claro e escuro.
 #
-# Ficam os SVG do Icone.js. Para estes quatro darem, a arte tem de vir sem
-# letras, com menos peças e com traços mais grossos.
-FORA = ('bússola', 'satélite', 'flores', 'encomenda', 'seguir')
+# Duas mudanças no código tiveram de acompanhar:
+#   · a bússola vai só com a agulha (ver o `0.56` acima);
+#   · os botões do satélite e do «seguir» acendiam a teal CHEIO com o ícone a
+#     branco, o que engolia arte a cores. Passaram a acender em tinta, com o
+#     contorno teal.
 
 
-def sem_preto(caminho):
-    """Deita fora o preto — fundo e linhas de recorte — e corta à arte."""
+def sem_preto(caminho, miolo=None):
+    """Deita fora o preto — fundo e linhas de recorte — e corta à arte.
+
+    Com `miolo`, fica só essa fracção central da imagem antes de tudo o
+    resto: serve para deitar fora o que está à volta e tem outra escala.
+    """
     im = Image.open(caminho).convert('RGB')
+    if miolo:
+        w0, h0 = im.size
+        cw, ch = round(w0 * miolo), round(h0 * miolo)
+        im = im.crop(((w0 - cw) // 2, (h0 - ch) // 2, (w0 + cw) // 2, (h0 + ch) // 2))
     w, h = im.size
     px = im.load()
     alfa = Image.new('L', (w, h), 0)
@@ -128,13 +154,15 @@ def main():
     if not os.path.isdir(origem):
         raise SystemExit(f'falta a pasta: {origem}')
 
-    for nome, (ficheiro, pasta, largura) in ICONES.items():
+    for nome, valores in ICONES.items():
+        ficheiro, pasta, largura = valores[:3]
+        miolo = valores[3] if len(valores) > 3 else None
         caminho = os.path.join(origem, ficheiro)
         if not os.path.exists(caminho):
             raise SystemExit(f'falta o ficheiro: {caminho}')
         destino = os.path.join(aqui, '..', 'assets', pasta)
         os.makedirs(destino, exist_ok=True)
-        l, a = gravar(sem_preto(caminho), destino, nome, largura)
+        l, a = gravar(sem_preto(caminho, miolo), destino, nome, largura)
         print(f'{nome:20} {l:3}x{a:<3}  {pasta}/  <- {ficheiro}')
 
     # Os veículos: reduzir e gravar o par, sem tocar no fundo.
@@ -151,7 +179,6 @@ def main():
             im.save(os.path.join(destino, f'{tipo}-{sufixo}.jpg'), quality=88)
             print(f'{tipo + "-" + sufixo:20} {im.width}x{im.height}  veiculos/  <- {ficheiro}')
 
-    print('\nDe fora, por serem ilegíveis ao tamanho usado: ' + ', '.join(FORA))
 
 
 if __name__ == '__main__':

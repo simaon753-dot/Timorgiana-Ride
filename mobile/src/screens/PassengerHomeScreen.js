@@ -265,9 +265,17 @@ export default function PassengerHomeScreen({ navigation }) {
                       accessibilityRole="button"
                       accessibilityLabel={t(s.chaveNome)}
                     >
-                      <View style={[styles.veiculoIcone, { backgroundColor: colors[s.acento] }]}>
-                        <Icone nome={s.icone} tamanho={18} cor={colors.onAcento} />
-                      </View>
+                      {/* A ilustração entra SOZINHA, sem o disco de acento por
+                          trás: é a cores, e um disco colorido por baixo
+                          apaga-a. Quem não tiver ilustração continua com o
+                          traço branco sobre o acento, como sempre. */}
+                      {s.imagem ? (
+                        <Image source={s.imagem} style={styles.extraImagem} resizeMode="contain" />
+                      ) : (
+                        <View style={[styles.veiculoIcone, { backgroundColor: colors[s.acento] }]}>
+                          <Icone nome={s.icone} tamanho={18} cor={colors.onAcento} />
+                        </View>
+                      )}
                       <View style={styles.veiculoTextos}>
                         <Text style={styles.veiculoNome} numberOfLines={1}>
                           {t(s.chaveNome)}
@@ -318,6 +326,9 @@ const criarEstilos = () =>
       ...elevacao.plana,
     },
     veiculoTopo: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    // A mesma caixa de 34 do disco que substitui, para a linha do mosaico
+    // não mudar de altura conforme o serviço tem ilustração ou não.
+    extraImagem: { width: 34, height: 34 },
     veiculoIcone: {
       width: 34,
       height: 34,
