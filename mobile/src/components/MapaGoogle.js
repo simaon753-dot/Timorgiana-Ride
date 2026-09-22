@@ -427,8 +427,27 @@ const PERTO = 0.0035;
 // A caixa da etiqueta. A altura conta a pastilha, o pé e o ponto: é por ela
 // que a etiqueta se levanta acima da coordenada, para o PONTO dela cair
 // exactamente onde caía a ponta do pino.
-const ROTULO_L = 132;
-const ROTULO_A = 62;
+const ROTULO_L = 150;
+// A caixa é ANCORADA PELO FUNDO (`justifyContent: flex-end`), e a altura é
+// generosa de propósito: cabe o texto em duas linhas. Sem isso, uma etiqueta
+// de uma linha só ficava colada ao topo da caixa e o PONTO dela não
+// encontrava a ponta do traço — o traço apontaria ao vazio.
+const ROTULO_A = 78;
+
+// A ETIQUETA FICA AO LADO, NÃO POR CIMA (22/09/2026, depois da referência
+// que o Simão mostrou).
+//
+// À primeira pu-la centrada sobre o ponto e escondi o pino. Estava errado
+// nas duas coisas: na referência os dois aparecem ao mesmo tempo, e a
+// etiqueta não substitui o pino — APONTA para ele, por um traço aos
+// pontinhos.
+//
+// A razão de desenho já estava escrita neste ficheiro, a propósito dos
+// cartões dos lugares: «nunca por cima, que taparia a rua por onde se
+// chega». Uma etiqueta em cima do ponto esconde exactamente aquilo que quem
+// espera precisa de ver.
+const LIGA_L = 58;
+const LIGA_A = 44;
 
 const ROTULO_CHAVE = {
   origem: 'mapaLocalRecolha',
@@ -1319,10 +1338,6 @@ export default function MapaGoogle({
                   }
                 : undefined
             }
-            // DE PERTO O PINO SOME, e a etiqueta toma o lugar dele (ver
-            // RotuloLocal). Os dois ao mesmo tempo seriam duas marcas para o
-            // mesmo ponto — e a etiqueta já traz o seu ponto em baixo.
-            opacity={perto ? 0 : 1}
             image={IMAGEM[p.qual]}
           />
         ))}
@@ -1431,15 +1446,50 @@ export default function MapaGoogle({
           uma etiqueta atrasada diz que a recolha é ali, e não é. */}
       {perto &&
         !aMexer &&
-        pinosNoEcra.map((p) => (
-          <View
-            key={`rotulo-${p.qual}-${p.lat},${p.lng}`}
-            pointerEvents="none"
-            style={[styles.rotuloSolto, { left: p.x - ROTULO_L / 2, top: p.y - ROTULO_A }]}
-          >
-            <RotuloLocal qual={p.qual} texto={t(ROTULO_CHAVE[p.qual] || ROTULO_CHAVE.origem)} />
-          </View>
-        ))}
+        pinosNoEcra.map((p) => {
+          const cor = p.qual === 'origem' ? TINTA.teal : TINTA.coral;
+          // Para a direita, salvo junto à borda: encostada a ela, a etiqueta
+          // saía do ecrã — e um ponto encostado à borda é o caso normal de
+          // quem acabou de arrastar o mapa.
+          const paraEsquerda = largura > 0 && p.x > largura - (LIGA_L + ROTULO_L / 2 + 12);
+          const sinal = paraEsquerda ? -1 : 1;
+          return (
+            <React.Fragment key={`rotulo-${p.qual}-${p.lat},${p.lng}`}>
+              <Svg
+                pointerEvents="none"
+                style={[
+                  styles.rotuloLigacao,
+                  { left: paraEsquerda ? p.x - LIGA_L : p.x, top: p.y - LIGA_A },
+                ]}
+                width={LIGA_L}
+                height={LIGA_A}
+              >
+                <Line
+                  x1={paraEsquerda ? LIGA_L : 0}
+                  y1={LIGA_A}
+                  x2={paraEsquerda ? 0 : LIGA_L}
+                  y2={0}
+                  stroke={cor}
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                  strokeDasharray="1 8"
+                />
+              </Svg>
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.rotuloSolto,
+                  {
+                    left: p.x + sinal * LIGA_L - ROTULO_L / 2,
+                    top: p.y - LIGA_A - ROTULO_A,
+                  },
+                ]}
+              >
+                <RotuloLocal qual={p.qual} texto={t(ROTULO_CHAVE[p.qual] || ROTULO_CHAVE.origem)} />
+              </View>
+            </React.Fragment>
+          );
+        })}
 
       {/* ONDE O CARRO PÁRA.
           Um ponto na estrada e o rótulo por cima, na ponta da linha aos
@@ -1772,7 +1822,14 @@ const criarEstilos = () =>
       elevation: 3,
     },
     miraCaixa: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
-    rotuloSolto: { position: 'absolute', width: ROTULO_L, alignItems: 'center' },
+    rotuloSolto: {
+      position: 'absolute',
+      width: ROTULO_L,
+      height: ROTULO_A,
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+    },
+    rotuloLigacao: { position: 'absolute' },
     rotuloCaixa: { alignItems: 'center' },
     rotuloPastilha: {
       maxWidth: ROTULO_L,
