@@ -170,10 +170,9 @@ export default function EscolherDestinoScreen({ navigation, route }) {
               onPress={() => (lugar ? irPara(lugar) : setADefinir(f.id))}
               accessibilityRole="button"
             >
-              {/* O ícone é o emoji de `FIXOS` — 🏠 e 💼 dizem casa e trabalho
-                  melhor do que qualquer desenho que eu escolhesse. Sozinho,
-                  sem disco por trás. */}
-              <Text style={styles.lugarIcone}>{f.icone}</Text>
+              {/* A ilustração do Simão, sozinha, sem disco por trás. Era um
+                  emoji até 22/09/2026 — ver a nota em `lib/lugares.js`. */}
+              <Image source={f.imagem} style={styles.lugarIcone} resizeMode="contain" />
               <View style={{ flex: 1 }}>
                 <Text style={styles.lugarNome}>{t(f.chave)}</Text>
                 <Text style={styles.lugarMorada} numberOfLines={1}>
@@ -349,7 +348,8 @@ const criarEstilos = () =>
     procuraTitulo: { ...tipo.subtitulo, color: colors.text },
     procuraSub: { ...tipo.pequeno, color: colors.textMuted, marginTop: 1 },
     premido: { opacity: 0.7 },
-    lugarIcone: { fontSize: 26, width: 32, textAlign: 'center' },
+    // Era texto (um emoji a 26); passou a imagem, na mesma caixa de 32.
+    lugarIcone: { width: 32, height: 32 },
     lugarNome: { ...tipo.corpoForte, color: colors.text },
     lugarMorada: { ...tipo.pequeno, color: colors.textMuted, marginTop: 1 },
     // O lápis e o ✕ num círculo: são botões, e o círculo é o alvo do dedo.

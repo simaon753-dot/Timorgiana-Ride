@@ -47,7 +47,16 @@ ICONES = {
     # ── a barra de baixo, e o perfil na barra de cima ──
     'inicio': ('início escura.jpg', 'ilustracoes', 48),
     'viagens': ('viagem escura.jpg', 'ilustracoes', 48),
-    'rendimento': ('trabalho escura.jpg', 'ilustracoes', 48),
+    # A PASTA É O LUGAR «TRABALHO», NÃO O SEPARADOR «GANHOS» (22/09/2026).
+    #
+    # Pus-a nos Ganhos à primeira e estava errado: o separador tinha notas de
+    # dinheiro, e ganhos SÃO dinheiro — uma pasta de trabalho diz outra coisa.
+    # As notas voltaram ao sítio.
+    #
+    # Casa e Trabalho são os dois lugares guardados do ecrã de destino, e até
+    # hoje eram os emojis 🏠 e 💼 — o último reduto de emojis da app, contra
+    # o que o próprio Icone.js manda.
+    'trabalho': ('trabalho escura.jpg', 'ilustracoes', 48),
     'perfil': ('perfil escura.jpg', 'ilustracoes', 48),
     # ── os quatro botões do mapa, e os dois serviços ──
     #

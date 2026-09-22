@@ -19,9 +19,32 @@ const CHAVE = 'tgr.lugares';
 // não sai do aparelho, não passa por servidor nenhum e não entra em
 // cópia de segurança nossa. O preço é perder-se ao reinstalar — e para
 // dois endereços que se voltam a definir num toque, é um preço justo.
+// AS ILUSTRAÇÕES DO SIMÃO, E JÁ NÃO EMOJIS (22/09/2026).
+//
+// Eram 🏠 e 💼 — o último reduto de emojis da app, e exactamente o que o
+// `Icone.js` proíbe no comentário de abertura: um emoji é desenhado pelo
+// SISTEMA, muda de forma e de cor conforme o telemóvel, ignora a cor da
+// marca e num Android antigo pode nem existir.
+//
+// O comentário que lá estava dizia que 🏠 e 💼 «dizem casa e trabalho melhor
+// do que qualquer desenho que eu escolhesse». Era verdade enquanto o desenho
+// fosse escolhido por mim. Estes foram desenhados por ele, na paleta da
+// marca, e dizem o mesmo sem depender do telemóvel de cada um.
+//
+// A CASA REAPROVEITA O FICHEIRO DO SEPARADOR «INÍCIO»: é o mesmo desenho e o
+// mesmo significado, e ter dois ficheiros iguais é ter duas verdades para o
+// mesmo ícone — no dia em que um mudasse, o outro ficava para trás.
 export const FIXOS = [
-  { id: 'casa', icone: '🏠', chave: 'lugarCasa' },
-  { id: 'trabalho', icone: '💼', chave: 'lugarTrabalho' },
+  {
+    id: 'casa',
+    imagem: require('../../assets/ilustracoes/inicio.png'),
+    chave: 'lugarCasa',
+  },
+  {
+    id: 'trabalho',
+    imagem: require('../../assets/ilustracoes/trabalho.png'),
+    chave: 'lugarTrabalho',
+  },
 ];
 
 export async function lerFixos() {
