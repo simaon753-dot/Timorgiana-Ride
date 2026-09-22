@@ -4,7 +4,7 @@ import { MAX_ITENS, taxaDe, viagensDoPassageiro } from '../jastip.js';
 import { MINUTOS_ATE_DESISTIR } from '../rides.js';
 import { requireAuth } from '../auth.js';
 import { preco, etaMinutos, straightKm } from '../routing.js';
-import { rotaCompleta } from '../rotas.js';
+import { rotaCompleta, MODO } from '../rotas.js';
 import { limparDestinos } from '../destinosDaViagem.js';
 import { paragensQueCobrem } from '../paradas.js';
 import { nearestDrivers } from '../drivers.js';
@@ -66,7 +66,40 @@ quoteRouter.post(
     const carryPessoas = req.body?.carryModo === 'pessoas';
     // As paragens contam no preço do Carry (a taxa por paragem do painel).
     carga.paragens = paragens.length;
-    const viagem = await rotaCompleta({ lat: oLat, lng: oLng }, { lat: dLat, lng: dLng }, paragens);
+    // UMA ROTA POR MODO DE VIAGEM (22/09/2026).
+    //
+    // Até hoje calculava-se UMA rota de automóvel e repartia-se o mesmo `km`
+    // pelos três veículos. A motorizada pagava — e via desenhado — o caminho
+    // de um carro: avenidas de sentido único, separadores centrais,
+    // proibições de viragem que uma mota contorna.
+    //
+    // Agora a mota tem a rota dela (`TWO_WHEELER` do Google) e o carro e o
+    // Carry a deles. Cada opção é cobrada pelo caminho que vai mesmo fazer,
+    // que é a regra escrita mais abaixo: mostrar um preço e cobrar outro é a
+    // única coisa que esta app não pode fazer.
+    //
+    // SÃO DUAS CHAMADAS EM VEZ DE UMA, e não mais: os três veículos usam dois
+    // modos. Correm ao mesmo tempo, e a memória das rotas absorve as
+    // repetições do mesmo percurso. Com o tecto em 300/dia e o uso real
+    // abaixo de 20, cabe de sobra.
+    const porModo = new Map();
+    await Promise.all(
+      [...new Set(TIPOS_VEICULO.map((t) => MODO[t] || 'DRIVE'))].map(async (modo) => {
+        const tipo = TIPOS_VEICULO.find((t) => (MODO[t] || 'DRIVE') === modo);
+        porModo.set(
+          modo,
+          await rotaCompleta({ lat: oLat, lng: oLng }, { lat: dLat, lng: dLng }, paragens, tipo)
+        );
+      })
+    );
+    const rotaDe = (tipo) => porModo.get(MODO[tipo] || 'DRIVE');
+
+    // A LINHA E OS NÚMEROS DO TOPO são os do veículo ESCOLHIDO no ecrã. A app
+    // volta a pedir a cotação quando se troca de veículo (o `veiculoAtual`
+    // está nas dependências), por isso o que se desenha corresponde sempre ao
+    // preço que está em destaque. Sem `vehicleType` — uma app antiga —, fica
+    // o automóvel, que é o que sempre foi.
+    const viagem = rotaDe(TIPOS_VEICULO.includes(req.body?.vehicleType) ? req.body.vehicleType : 'car');
 
     // Para cada tipo de veículo: preço e quanto falta até chegar o mais
     // próximo. Sem motoristas disponíveis, a opção aparece indisponível
@@ -109,14 +142,19 @@ quoteRouter.post(
           maxKm: 20,
         });
         const maisPerto = perto[0];
+        const r = rotaDe(tipo);
         return {
           type: tipo,
+          // Os quilómetros e os minutos DESTA opção, que podem não ser os do
+          // topo: uma mota e um carro fazem caminhos diferentes.
+          distanceKm: r.km,
+          durationMin: r.min,
           fareUsd:
             Math.round(
               (preco(
                 tipo,
-                viagem.km,
-                viagem.min,
+                r.km,
+                r.min,
                 tipo === 'car' || (tipo === 'carry' && carryPessoas) ? pessoas : null,
                 tipo === 'carry' && carryPessoas ? null : carga
               ) +

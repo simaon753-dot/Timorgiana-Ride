@@ -318,6 +318,12 @@ export default function RequestRideScreen({ navigation, route }) {
         // é outro — só um carro grande as leva, e custa mais ao motorista.
         // Ver a nota em config.js do servidor.
         passengers: pessoas,
+        // QUE VEÍCULO ESTÁ ESCOLHIDO (22/09/2026). Não é para o preço — a
+        // resposta traz os três — é para a LINHA e os números do topo serem
+        // os deste veículo: uma mota e um carro fazem caminhos diferentes, e
+        // o que se desenha tem de ser o que está em destaque. O ecrã volta a
+        // pedir a cotação quando se troca de veículo, por isso acompanha.
+        vehicleType: veiculoAtual,
         // O MODO E A CARGA TAMBÉM ENTRAM NA COTAÇÃO. O volume e a ajuda iam só
         // no pedido: um Carry "Grande" com ajuda mostrava no ecrã o preço de
         // um pequeno sem ajuda, e era cobrado pelo verdadeiro. Estava assim

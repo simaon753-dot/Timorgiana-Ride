@@ -106,7 +106,25 @@ function guardarErro(http, texto) {
   ultimoErroGoogle = { http, quando: new Date().toISOString(), diz: String(texto).slice(0, 300) };
 }
 
-async function peloGoogle(a, b, intermedios = []) {
+// O MODO DE VIAGEM, por tipo de veículo (22/09/2026).
+//
+// PORQUE EXISTE. `travelMode: 'DRIVE'` estava escrito à mão e o tipo de
+// veículo nem chegava aqui: uma MOTORIZADA era encaminhada como automóvel,
+// por avenidas de sentido único, a respeitar separadores centrais e
+// proibições de viragem que uma mota contorna. O Simão viu a linha dar uma
+// volta enorme e disse o que qualquer motorista de Díli diria: «ninguém vai
+// por aí».
+//
+// Ele tinha razão, e o Google também: nós é que fizemos a pergunta errada.
+// O `TWO_WHEELER` existe precisamente para países onde a mota manda — foi
+// desenhado para a Índia, a Indonésia e o Vietname, e Timor-Leste é desses.
+export const MODO = { motorbike: 'TWO_WHEELER', car: 'DRIVE', carry: 'DRIVE' };
+
+function peloGoogleModo(tipo) {
+  return MODO[tipo] || 'DRIVE';
+}
+
+async function peloGoogle(a, b, intermedios = [], modo = 'DRIVE') {
   const ctrl = new AbortController();
   const relogio = setTimeout(() => ctrl.abort(), 8000);
   try {
@@ -139,7 +157,7 @@ async function peloGoogle(a, b, intermedios = []) {
               })),
             }
           : {}),
-        travelMode: 'DRIVE',
+        travelMode: modo,
         // Sem trânsito em tempo real de propósito: é um SKU mais caro, e a
         // nossa estimativa de tempo já assume a velocidade real de Díli.
         routingPreference: 'TRAFFIC_UNAWARE',
@@ -209,11 +227,15 @@ async function peloOsrm(a, b, intermedios = []) {
 // existiam continuam a comportar-se exactamente como antes. Um parâmetro novo
 // que mudasse o comportamento por omissão seria o modo que parte as coisas a
 // ser o modo normal — e isso já custou caro uma vez, no runtimeVersion.
-async function calcularRota(a, b, intermedios) {
+async function calcularRota(a, b, intermedios, modo = 'DRIVE') {
   if (await podePerguntar()) {
-    const g = await peloGoogle(a, b, intermedios);
+    const g = await peloGoogle(a, b, intermedios, modo);
     if (g) return g;
   }
+  // O OSRM público só tem perfil de automóvel: a rede de segurança não sabe
+  // distinguir mota de carro. Fica assim de propósito — um caminho de carro é
+  // uma resposta conservadora (nunca mais curta do que a real), e inventar um
+  // desconto por ser mota seria prometer um atalho que ninguém verificou.
   const o = await peloOsrm(a, b, intermedios);
   if (o) return o;
 
@@ -261,14 +283,21 @@ function chaveDaRota(a, b, intermedios) {
 }
 
 // `intermedios` é OPCIONAL e por omissão vazio (ver a nota em calcularRota).
-export async function rotaCompleta(a, b, intermedios = []) {
-  const chave = chaveDaRota(a, b, intermedios);
+export async function rotaCompleta(a, b, intermedios = [], tipoVeiculo = 'car') {
+  const modo = peloGoogleModo(tipoVeiculo);
+  // O MODO ENTRA NA CHAVE DA MEMÓRIA, e é a parte que se esquece.
+  //
+  // Sem isto, a primeira cotação de um percurso guardava a rota do carro e a
+  // mota recebia-a de volta — a correcção ficava invisível e ninguém ligaria
+  // a causa ao efeito. Duas perguntas diferentes não podem partilhar a mesma
+  // gaveta.
+  const chave = modo + '|' + chaveDaRota(a, b, intermedios);
   const guardada = memoria.get(chave);
   // Uma CÓPIA, e não a própria: se quem chama mexer no que recebe, a memória
   // não pode ficar estragada para o próximo.
   if (guardada && Date.now() - guardada.em < MEMORIA_MS) return structuredClone(guardada.rota);
 
-  const rota = await calcularRota(a, b, intermedios);
+  const rota = await calcularRota(a, b, intermedios, modo);
   if (rota.fonte !== 'recta') {
     // Cheia, sai a mais antiga (um Map guarda a ordem de entrada).
     if (memoria.size >= MEMORIA_MAX) memoria.delete(memoria.keys().next().value);
