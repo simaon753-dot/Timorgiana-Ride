@@ -55,7 +55,7 @@ const TINTA = { teal: '#007E78', tealAnel: '#009490', coral: '#FC5430' };
 // `scripts/recortar-novos-icones.py` produz — e é aqui que tem de bater
 // certo, porque a MIRA desenha a mesma imagem numa vista com estas medidas.
 const PINO_L = 46;
-const PINO_A = 65;
+const PINO_A = 58;
 const CARTAO_L = 150;
 
 // O PINO DENTRO DO MAPA É UMA IMAGEM, e não o componente <Pino>.
@@ -149,8 +149,10 @@ const PONTO_OUTRO = require('../../assets/mapa/ponto-outro.png');
 //
 // Agora é um número medido no PRÓPRIO ficheiro: o centro do ponto de baixo,
 // que é o que assenta no chão. Medido com
-// `scripts/recortar-novos-icones.py` a produzir 46x65, deu 0,941.
-const ANCORA_Y = 0.941;
+// `scripts/recortar-novos-icones.py` a produzir 46x58, deu 0,9684.
+// (Mudou com os pinos novos de 22/09: o desenho é menos alto e o ponto
+// está mais em baixo — 0,941 apontaria acima do sítio.)
+const ANCORA_Y = 0.9684;
 
 // QUANTO A MIRA SOBE PARA A PONTA CAIR NO CENTRO DO ECRÃ.
 //
@@ -381,6 +383,59 @@ function usarDeslize(alvo) {
   return pos;
 }
 
+// A ETIQUETA DO LOCAL, de perto (22/09/2026).
+//
+// O Simão desenhou-a: uma pastilha com o nome do papel do ponto, um pé e um
+// ponto em baixo que marca o sítio. Ao longe fica o pino; **de perto** fica
+// isto, porque de perto há espaço e o que interessa deixa de ser «há aqui um
+// ponto» e passa a ser «este ponto é a recolha».
+//
+// CONSTRUÍDA EM CÓDIGO E NÃO EM IMAGEM, e a razão é a app ter três línguas.
+// Ele mandou-a desenhada com «Local de recolha» lá dentro — e uma imagem com
+// texto português chegaria assim a quem tem a app em tétum. Em código, o
+// texto vem do dicionário, fica nítido em qualquer ecrã, e mudá-lo um dia
+// não obriga a gerar ficheiros nenhuns. Os desenhos dele são a
+// ESPECIFICAÇÃO: a forma, as cores, o pé e o ponto.
+//
+// Não é um marcador: é uma vista por cima do mapa, posicionada pelo pixel da
+// coordenada — o mesmo caminho dos cartões dos nossos lugares, e pela mesma
+// razão. Um marcador com filhos é fotografado pelo mapa e no telemóvel dele
+// não aparece de todo.
+function RotuloLocal({ qual, texto }) {
+  const cor = qual === 'origem' ? TINTA.teal : TINTA.coral;
+  return (
+    <View style={styles.rotuloCaixa} pointerEvents="none">
+      <View style={[styles.rotuloPastilha, { backgroundColor: cor }]}>
+        <Text style={styles.rotuloTexto} numberOfLines={2}>
+          {texto}
+        </Text>
+      </View>
+      <View style={[styles.rotuloPe, { backgroundColor: cor }]} />
+      <View style={[styles.rotuloPonto, { backgroundColor: cor }]} />
+    </View>
+  );
+}
+
+// A PARTIR DE QUE ZOOM se troca o pino pela etiqueta.
+//
+// `latitudeDelta` é a altura do mapa em graus: quanto MENOR, mais perto.
+// 0,0035 graus são uns 390 metros de alto — o zoom a que já se distinguem
+// as casas de um quarteirão, e a partir do qual um pino grande passa a
+// tapar mais do que mostra.
+const PERTO = 0.0035;
+
+// A caixa da etiqueta. A altura conta a pastilha, o pé e o ponto: é por ela
+// que a etiqueta se levanta acima da coordenada, para o PONTO dela cair
+// exactamente onde caía a ponta do pino.
+const ROTULO_L = 132;
+const ROTULO_A = 62;
+
+const ROTULO_CHAVE = {
+  origem: 'mapaLocalRecolha',
+  destino: 'mapaLocalDestino',
+  paragem: 'mapaLocalParagem',
+};
+
 export default function MapaGoogle({
   pickable = false,
   arrastavel = false,
@@ -465,6 +520,10 @@ export default function MapaGoogle({
 
   const [rota, setRota] = useState(null);
   const [aMexer, setAMexer] = useState(false);
+  // A ALTURA DO MAPA EM GRAUS, para saber se estamos perto. Em estado e não
+  // só no ref porque quem a lê é o desenho: um ref muda sem redesenhar nada.
+  const [delta, setDelta] = useState(null);
+  const [pinosNoEcra, setPinosNoEcra] = useState([]);
   const [mapaPronto, setMapaPronto] = useState(false);
   // Onde o cartão do nome tem de ser desenhado, em pixéis do ecrã.
   const [cartoes, setCartoes] = useState([]);
@@ -921,6 +980,44 @@ export default function MapaGoogle({
     mapaRef.current?.animateCamera({ heading: 0 }, { duration: 300 });
   }, []);
 
+  // ONDE ESTÃO OS PINOS NO ECRÃ, para lhes encostar a etiqueta.
+  //
+  // Só se calcula quando estamos PERTO — longe não há etiqueta para pôr, e
+  // cada cálculo destes é uma ida ao mapa nativo por cada ponto.
+  useEffect(() => {
+    let vivo = true;
+    const perto = delta != null && delta < PERTO;
+    if (!mapaPronto || !mapaRef.current || !perto || !pts.length) {
+      setPinosNoEcra([]);
+      return undefined;
+    }
+    Promise.all(
+      pts.map((p) =>
+        mapaRef.current
+          .pointForCoordinate({
+            latitude: p.pino ? p.pino.lat : p.lat,
+            longitude: p.pino ? p.pino.lng : p.lng,
+          })
+          .catch(() => null)
+      )
+    )
+      .then((pontos) => {
+        if (!vivo) return;
+        setPinosNoEcra(
+          pts
+            .map((p, i) => (pontos[i] ? { ...p, x: pontos[i].x, y: pontos[i].y } : null))
+            .filter(Boolean)
+        );
+      })
+      .catch(() => vivo && setPinosNoEcra([]));
+    return () => {
+      vivo = false;
+    };
+  }, [pts, mapaPronto, aMexer, delta]);
+
+  // Estamos perto? Decide quem marca o ponto: o pino ou a etiqueta.
+  const perto = delta != null && delta < PERTO;
+
   const centroMudou = useCallback(
     (regiao) => {
       setAMexer(false);
@@ -937,6 +1034,7 @@ export default function MapaGoogle({
       }
       centroRef.current = { lat: regiao.latitude, lng: regiao.longitude };
       regiaoRef.current = regiao;
+      setDelta(regiao.latitudeDelta);
       recalcularCartoes();
       // COM TRAVÃO (21/09/2026). Cada paragem do mapa pedia os nomes da zona
       // ao servidor. Quem arrasta o mapa à procura de um sítio pára cinco ou
@@ -1221,6 +1319,10 @@ export default function MapaGoogle({
                   }
                 : undefined
             }
+            // DE PERTO O PINO SOME, e a etiqueta toma o lugar dele (ver
+            // RotuloLocal). Os dois ao mesmo tempo seriam duas marcas para o
+            // mesmo ponto — e a etiqueta já traz o seu ponto em baixo.
+            opacity={perto ? 0 : 1}
             image={IMAGEM[p.qual]}
           />
         ))}
@@ -1322,6 +1424,22 @@ export default function MapaGoogle({
             </View>
           );
         })}
+
+      {/* AS ETIQUETAS DOS LOCAIS, de perto.
+          Centradas sobre o ponto e ACIMA dele, que é onde o pé e o ponto do
+          desenho as põem. Somem enquanto o dedo arrasta, como os cartões:
+          uma etiqueta atrasada diz que a recolha é ali, e não é. */}
+      {perto &&
+        !aMexer &&
+        pinosNoEcra.map((p) => (
+          <View
+            key={`rotulo-${p.qual}-${p.lat},${p.lng}`}
+            pointerEvents="none"
+            style={[styles.rotuloSolto, { left: p.x - ROTULO_L / 2, top: p.y - ROTULO_A }]}
+          >
+            <RotuloLocal qual={p.qual} texto={t(ROTULO_CHAVE[p.qual] || ROTULO_CHAVE.origem)} />
+          </View>
+        ))}
 
       {/* ONDE O CARRO PÁRA.
           Um ponto na estrada e o rótulo por cima, na ponta da linha aos
@@ -1654,6 +1772,23 @@ const criarEstilos = () =>
       elevation: 3,
     },
     miraCaixa: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
+    rotuloSolto: { position: 'absolute', width: ROTULO_L, alignItems: 'center' },
+    rotuloCaixa: { alignItems: 'center' },
+    rotuloPastilha: {
+      maxWidth: ROTULO_L,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: radius.pill,
+    },
+    rotuloTexto: {
+      ...tipo.pequeno,
+      color: '#FFFFFF',
+      fontWeight: '700',
+      textAlign: 'center',
+    },
+    // O pé e o ponto, como no desenho dele: um risco fino e uma bola.
+    rotuloPe: { width: 3, height: 10 },
+    rotuloPonto: { width: 11, height: 11, borderRadius: 6 },
     mira: { transform: [{ translateY: SUBIR_MIRA }] },
     miraAMexer: { transform: [{ translateY: SUBIR_MIRA_A_MEXER }] },
   });

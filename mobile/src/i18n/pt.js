@@ -463,6 +463,10 @@ export default {
 
   // Viagens
   destination: 'Destino',
+  // ── Etiquetas dos locais no mapa, de perto (22/09/2026) ──
+  mapaLocalRecolha: 'Local de recolha',
+  mapaLocalDestino: 'Local de destino',
+  mapaLocalParagem: 'Paragem',
   originField: 'Ponto de partida',
   vehicleAny: 'Qualquer',
 

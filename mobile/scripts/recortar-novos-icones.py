@@ -84,8 +84,8 @@ ICONES = {
     # perdiam-se no meio dos nomes e dos ícones que o Google desenha por
     # baixo. Quarenta por cento maiores, que é o que os põe a mandar na
     # imagem sem taparem a rua.
-    'pino-origem': ('pino de recolha.jpg', 'mapa', 46),
-    'pino-destino': ('pino de destino.jpg', 'mapa', 46),
+    'pino-origem': ('novo pino recolha.jpeg', 'mapa', 46),
+    'pino-destino': ('Novo pino destino.jpeg', 'mapa', 46),
 }
 
 # OS VEÍCULOS NÃO PASSAM POR AQUI, e é o sítio certo para dizer porquê.

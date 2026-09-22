@@ -459,6 +459,10 @@ export default {
   logout: 'Sign out',
 
   destination: 'Destination',
+  // ── Etiquetas dos locais no mapa, de perto (22/09/2026) ──
+  mapaLocalRecolha: 'Pickup point',
+  mapaLocalDestino: 'Drop-off point',
+  mapaLocalParagem: 'Stop',
   originField: 'Pickup point',
   vehicleAny: 'Any',
 
