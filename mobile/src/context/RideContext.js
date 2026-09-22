@@ -12,6 +12,7 @@ import {
 } from '../lib/servicoLocalizacao.js';
 import { registarParaNotificacoes } from '../push.js';
 import { useAuth } from './AuthContext.js';
+import { criarFiltroPosicao } from '../lib/filtroPosicao.js';
 
 const RideContext = createContext(null);
 
@@ -57,6 +58,11 @@ export function RideProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [online, setOnlineState] = useState(!!user?.isOnline); // motorista disponível
   const [driverLocation, setDriverLocation] = useState(null); // posição vista pelo passageiro
+  // UM FILTRO POR FLUXO, e não um partilhado: o que o passageiro vê do
+  // motorista e o que o motorista vê de si próprio são séries diferentes, e
+  // o teste do salto impossível compara sempre com a ÚLTIMA da mesma série.
+  const filtroDoMotorista = useRef(criarFiltroPosicao());
+  const filtroDoProprio = useRef(criarFiltroPosicao());
   const [driverPlace, setDriverPlace] = useState(null); // rua onde o veículo vai agora
   // A minha própria posição, quando sou eu o motorista. Era enviada e
   // deitada fora; guardá-la deixa-me desenhá-la no meu mapa.
@@ -194,8 +200,14 @@ export function RideProvider({ children }) {
     socket.on('ride:update', (ride) => {
       setActiveRide((curr) => (!curr || curr.id === ride.id ? ride : curr));
     });
-    socket.on('ride:driverLocation', ({ rideId, lat, lng }) => {
+    socket.on('ride:driverLocation', ({ rideId, lat, lng, precisao }) => {
       if (rideId !== rideIdRef.current) return;
+      // SÓ O QUE MERECE CRÉDITO. Uma leitura com 80 metros de erro põe o
+      // carro noutra rua, e um salto impossível fá-lo teleportar-se. Ver
+      // `lib/filtroPosicao.js` — e repare-se que o filtro está AQUI, no
+      // desenho, e não no envio: a posição de um motorista à espera é também
+      // a batida que o mantém ao serviço.
+      if (!filtroDoMotorista.current({ lat, lng, precisao })) return;
       setDriverLocation({ lat, lng });
 
       // A rua só se pergunta quando o veículo andou mesmo. Um carro parado
@@ -291,7 +303,12 @@ export function RideProvider({ children }) {
 
     function enviar(pos) {
       if (parado) return;
-      const aqui = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      const aqui = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        precisao: pos.coords.accuracy ?? null,
+        quando: pos.timestamp ?? Date.now(),
+      };
       ultima = aqui;
       setMinhaPosicao(aqui);
       socketRef.current?.emit('driver:location', aqui);
@@ -416,7 +433,17 @@ export function RideProvider({ children }) {
         if (status !== 'granted' || !vivo) return;
         const s = await Location.watchPositionAsync(
           { accuracy: Location.Accuracy.High, distanceInterval: 10, timeInterval: 2000 },
-          (pos) => vivo && setMinhaPosicao({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+          (pos) => {
+            if (!vivo) return;
+            const aqui = {
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude,
+              precisao: pos.coords.accuracy ?? null,
+              quando: pos.timestamp ?? Date.now(),
+            };
+            if (!filtroDoProprio.current(aqui)) return;
+            setMinhaPosicao({ lat: aqui.lat, lng: aqui.lng });
+          }
         );
         if (vivo) sub = s;
         else s.remove();

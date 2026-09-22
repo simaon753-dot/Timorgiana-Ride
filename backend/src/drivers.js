@@ -51,11 +51,12 @@ export function setOnline(userId, online) {
 
 // Guarda a última posição conhecida. Chamado com frequência, por isso é
 // deliberadamente leve: um UPDATE simples, sem leituras.
-export function updateLocation(userId, lat, lng) {
+export function updateLocation(userId, lat, lng, precisao = null) {
   return query(
-    `UPDATE users SET last_lat = $1, last_lng = $2, last_seen_at = NOW(), municipio = $4
+    `UPDATE users SET last_lat = $1, last_lng = $2, last_seen_at = NOW(), municipio = $4,
+            last_precisao_m = $5
       WHERE id = $3`,
-    [lat, lng, userId, municipioDe(lat, lng)]
+    [lat, lng, userId, municipioDe(lat, lng), precisao]
   );
 }
 

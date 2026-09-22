@@ -443,14 +443,14 @@ io.on('connection', (socket) => {
 
   // Posição do motorista: guardada e reencaminhada ao passageiro da
   // viagem em curso, para ele ver o veículo a aproximar-se.
-  socket.on('driver:location', async ({ lat, lng } = {}) => {
+  socket.on('driver:location', async ({ lat, lng, precisao } = {}) => {
     if (user.role !== 'driver') return;
     if (typeof lat !== 'number' || typeof lng !== 'number') return;
     try {
       // O que se faz com a posição vive em posicaoMotorista.js: o serviço em
       // primeiro plano manda-a por HTTP quando não há socket, e as duas
       // portas têm de fazer exactamente o mesmo.
-      await guardarPosicao(io, user.id, lat, lng);
+      await guardarPosicao(io, user.id, lat, lng, precisao);
       // Isto fica SÓ aqui: as salas são do socket. Quem não tem socket também
       // não está em sala nenhuma, e o aviso chega-lhe por notificação — que
       // escolhe os motoristas pela posição na base de dados, não pela sala.

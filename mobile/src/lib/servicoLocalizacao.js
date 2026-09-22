@@ -46,7 +46,17 @@ TaskManager.defineTask(TAREFA_POSICAO, async ({ data, error }) => {
   // a app acorda — foram guardadas enquanto ela dormia. Enviar todas seria
   // contar uma história antiga a quem só quer saber onde o carro está agora.
   const pos = data.locations[data.locations.length - 1];
-  const aqui = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+  // A PRECISÃO VAI JUNTO (22/09/2026). O receptor diz, em cada leitura, de
+  // quantos metros pode estar enganado, e nós deitávamos o número fora. Quem
+  // desenha precisa dele para saber em que leituras acreditar; o servidor
+  // guarda-o para um dia haver medida em vez de opinião. Ver
+  // `lib/filtroPosicao.js`.
+  const aqui = {
+    lat: pos.coords.latitude,
+    lng: pos.coords.longitude,
+    precisao: pos.coords.accuracy ?? null,
+    quando: pos.timestamp ?? Date.now(),
+  };
   for (const cb of ouvintes) {
     try {
       cb(aqui);
@@ -91,7 +101,12 @@ export async function comecarAEnviarPosicao({ emViagem }) {
   if (jaCorre) await pararDeEnviarPosicao();
 
   await Location.startLocationUpdatesAsync(TAREFA_POSICAO, {
-    accuracy: emViagem ? Location.Accuracy.High : Location.Accuracy.Balanced,
+    // EM VIAGEM, O MÁXIMO QUE O APARELHO DÁ (22/09/2026). Estava em `High`
+    // (~10 m); `BestForNavigation` é o modo que os navegadores usam e é para
+    // isto mesmo — há alguém a olhar para o mapa a ver o carro aproximar-se.
+    // Gasta mais bateria, por isso NÃO se usa à espera de pedidos, que é
+    // onde o motorista passa a maior parte do dia.
+    accuracy: emViagem ? Location.Accuracy.BestForNavigation : Location.Accuracy.Balanced,
     distanceInterval: emViagem ? 25 : 0,
     timeInterval: emViagem ? 8000 : 240000,
     // Sem isto o Android mata o serviço ao fim de minutos. A notificação é o

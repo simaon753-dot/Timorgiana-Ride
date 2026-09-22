@@ -122,7 +122,7 @@ driverRouter.post(
     const lat = Number(req.body?.lat);
     const lng = Number(req.body?.lng);
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return res.status(204).end();
-    await guardarPosicao(req.app.get('io'), req.user.id, lat, lng);
+    await guardarPosicao(req.app.get('io'), req.user.id, lat, lng, req.body?.precisao);
     return res.status(204).end();
   })
 );

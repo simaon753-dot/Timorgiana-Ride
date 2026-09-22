@@ -812,6 +812,18 @@ export async function initSchema() {
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS nome_anterior TEXT`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS nome_alterado_em TIMESTAMPTZ`);
 
+  // DE QUANTOS METROS PODE ESTAR ENGANADA A ÚLTIMA POSIÇÃO (22/09/2026).
+  //
+  // O telemóvel dá este número em cada leitura e nós deitávamo-lo fora.
+  // Guardá-lo custa uma coluna e transforma "o carro salta no mapa" —
+  // que é uma opinião — numa medida: daqui a um mês sabe-se se o problema é
+  // o GPS dos aparelhos, os bairros onde o sinal reflecte, ou o nosso código.
+  //
+  // Só o ÚLTIMO valor, não um historial: a pergunta é "em que leituras se
+  // pode confiar", e para isso uma amostra corrente de todos os motoristas
+  // diz mais do que o rasto completo de um.
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_precisao_m INTEGER`);
+
   // CONTADORES POR DIA. Hoje só um — as chamadas de rota ao Google — mas a
   // tabela é geral porque o próximo há-de vir.
   //

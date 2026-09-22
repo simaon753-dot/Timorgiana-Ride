@@ -273,6 +273,70 @@ const Agulha = () => <Figura qual="agulha" />;
 const Camadas = () => <Figura qual="camadas" />;
 const Seta = () => <Figura qual="seta" />;
 
+// O CARRO DESLIZA, EM VEZ DE SE TELEPORTAR (22/09/2026).
+//
+// A posição do motorista chega de oito em oito segundos. Até hoje o marcador
+// saltava de um ponto para o outro — e um salto de oitenta metros a cada oito
+// segundos lê-se como "o mapa está avariado", mesmo quando o GPS está certo.
+// Deslizar não torna a leitura mais precisa: torna-a CRÍVEL, que é o que quem
+// espera na rua está a avaliar.
+//
+// PORQUE À MÃO E NÃO COM `AnimatedRegion`. É o caminho da própria biblioteca,
+// mas depende de código nativo que a arquitectura nova do React Native
+// (`newArchEnabled`) ainda trata mal. Isto são vinte linhas de JavaScript que
+// funcionam em qualquer versão, e o custo é conhecido: dezasseis desenhos por
+// segundo durante um segundo e meio, de UM marcador.
+//
+// DOIS CASOS NÃO DESLIZAM, de propósito: o primeiro ponto (não há de onde
+// vir) e um salto acima de 300 metros. Nesse, deslizar seria desenhar o carro
+// a atravessar quarteirões onde nunca esteve — mentira mais bonita, mas
+// mentira. Aparece logo no sítio novo.
+const DESLIZE_MS = 1500;
+const SALTO_SEM_DESLIZE = 0.0027; // ~300 m em graus, que chega para decidir
+
+function usarDeslize(alvo) {
+  const [pos, setPos] = React.useState(alvo || null);
+  const de = React.useRef(alvo || null);
+  const relogio = React.useRef(null);
+
+  React.useEffect(() => {
+    if (relogio.current) clearTimeout(relogio.current);
+    if (!alvo) {
+      de.current = null;
+      setPos(null);
+      return undefined;
+    }
+    const anterior = de.current;
+    const longe =
+      !anterior ||
+      Math.abs(alvo.lat - anterior.lat) > SALTO_SEM_DESLIZE ||
+      Math.abs(alvo.lng - anterior.lng) > SALTO_SEM_DESLIZE;
+    if (longe) {
+      de.current = alvo;
+      setPos(alvo);
+      return undefined;
+    }
+    const inicio = Date.now();
+    const passo = () => {
+      const t = Math.min(1, (Date.now() - inicio) / DESLIZE_MS);
+      // Travagem no fim: o carro chega e assenta, em vez de parar a seco.
+      const e = t * (2 - t);
+      setPos({
+        lat: anterior.lat + (alvo.lat - anterior.lat) * e,
+        lng: anterior.lng + (alvo.lng - anterior.lng) * e,
+      });
+      if (t < 1) relogio.current = setTimeout(passo, 60);
+      else de.current = alvo;
+    };
+    passo();
+    return () => {
+      if (relogio.current) clearTimeout(relogio.current);
+    };
+  }, [alvo?.lat, alvo?.lng]);
+
+  return pos;
+}
+
 export default function MapaGoogle({
   pickable = false,
   arrastavel = false,
@@ -339,6 +403,10 @@ export default function MapaGoogle({
   // mesmo e fica no mesmo sítio: o quarto da coluna, com os outros três.
   mostrarSatelite = false,
 }) {
+  // O carro do motorista, a deslizar entre as posições que vão chegando.
+  // Ver `usarDeslize`, logo acima: o valor CRU continua a servir tudo o
+  // resto (o enquadramento, o rótulo), e só o marcador usa o suavizado.
+  const carroSuave = usarDeslize(liveMarker);
   const { t } = useI18n();
   const { token } = useAuth();
   const mapaRef = useRef(null);
@@ -1142,9 +1210,9 @@ export default function MapaGoogle({
           />
         ))}
 
-        {liveMarker ? (
+        {carroSuave ? (
           <Marker
-            coordinate={{ latitude: liveMarker.lat, longitude: liveMarker.lng }}
+            coordinate={{ latitude: carroSuave.lat, longitude: carroSuave.lng }}
             anchor={{ x: 0.5, y: 0.5 }}
             zIndex={1000}
             image={VEICULO_IMAGEM[veiculoVivo] || VEICULO_IMAGEM.car}

@@ -15,9 +15,25 @@ import { updateLocation } from './drivers.js';
 // apareceria só num dos caminhos — o mais difícil de reproduzir.
 const ACTIVE_DRIVER = ['accepted', 'arriving', 'in_progress'];
 
-export async function guardarPosicao(io, driverId, lat, lng) {
+// A PRECISÃO VIAJA COM A POSIÇÃO (22/09/2026).
+//
+// O telemóvel diz, em cada leitura, de quantos metros pode estar enganado, e
+// até hoje deitávamos esse número fora. Sem ele, discutir precisão é discutir
+// sem um único dado: não se sabe se o carro salta por causa do GPS, do
+// aparelho ou do nosso código.
+//
+// Guarda-se na base E vai no socket, porque servem coisas diferentes: na
+// base é para medir daqui a um mês; no socket é para a app de quem espera
+// decidir se acredita na leitura antes de a desenhar.
+//
+// NÃO SE RECUSA NADA AQUI. Uma posição imprecisa continua a ser a batida que
+// diz que este motorista está ao serviço — e à espera de pedidos a leitura é
+// de propósito mais grosseira, para poupar bateria. Filtrar no servidor
+// punha um motorista parado a sair de serviço sozinho.
+export async function guardarPosicao(io, driverId, lat, lng, precisao = null) {
   if (typeof lat !== 'number' || typeof lng !== 'number') return null;
-  await updateLocation(driverId, lat, lng);
+  const erro = Number.isFinite(Number(precisao)) ? Math.round(Number(precisao)) : null;
+  await updateLocation(driverId, lat, lng, erro);
 
   // A viagem a decorrer, para o passageiro ver o veículo a aproximar-se.
   // Inclui 'in_progress': durante a viagem é quando ele mais olha para o mapa.
@@ -32,6 +48,7 @@ export async function guardarPosicao(io, driverId, lat, lng) {
       rideId: viagem.id,
       lat,
       lng,
+      precisao: erro,
     });
   }
   return viagem;
