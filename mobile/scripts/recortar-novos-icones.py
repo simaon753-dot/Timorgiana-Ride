@@ -142,9 +142,25 @@ VEICULO_LARGURA = 624
 #
 # O CORAL FICA. Ele só falou do teal, e o coral dos desenhos já está à
 # distância de um cabelo do da marca.
-TEAL_MARCA = (0x0E, 0x5C, 0x54)
-# A luminosidade do tom claro que veio nos desenhos (#08B0B8). É a régua: tudo
-# o que é teal encolhe por este factor.
+# ESCOLHIDO PELO SIMÃO A 22/09/2026, e é a única das três que se lê em toda
+# a parte. Medi o contraste das candidatas contra os três fundos da app:
+#
+#                        papel claro   papel escuro   disco branco
+#   deep teal  #0E5C54       7,1:1         2,0:1          7,8:1
+#   bright teal #01F9C6      1,2:1        11,6:1          1,4:1
+#   ESTE       #529C7F       3,0:1         4,9:1          3,3:1
+#
+# (o mínimo para um ícone se ler é 3,0:1)
+#
+# O teal profundo desaparecia no tema escuro; o bright teal desaparecia no
+# claro — tem quase a mesma luminosidade do papel creme da app, e é por isso
+# que parecia certo sobre o fundo PRETO dos desenhos originais. Este fica a
+# meio e passa nos três, que é o que se pede a uma cor que tem de servir um
+# ficheiro só.
+TEAL_MARCA = (0x52, 0x9C, 0x7F)
+# A luminosidade do tom claro que veio nos desenhos (#08B0B8). É a régua: o
+# tom claro de cada desenho passa a ser exactamente a cor escolhida, e o
+# escuro acompanha na mesma proporção.
 L_ORIGEM_CLARA = 0.3765
 
 
