@@ -146,7 +146,19 @@ const VEICULO_IMAGEM = {
 // desenhado pelo mapa, agarrado à coordenada, e nunca se descola.
 const PONTO_ESTRADA = require('../../assets/mapa/ponto-estrada.png');
 const PONTO_OUTRO = require('../../assets/mapa/ponto-outro.png');
-const ANCORA_Y = 42 / PINO_A;
+// ONDE, DENTRO DA IMAGEM DO PINO, ESTÁ O SÍTIO QUE ELE MARCA.
+//
+// Estava escrito `42 / PINO_A` — que dava o número certo por coincidência,
+// porque o SVG do <Pino> e a imagem do mapa tinham por acaso a mesma
+// proporção. São duas coisas diferentes: aquele é a mira que se arrasta,
+// esta é o marcador que o mapa desenha. No dia em que uma mudasse de tamanho,
+// a outra passava a apontar ao lado sem ninguém perceber porquê — e foi o que
+// esteve quase a acontecer ao aumentar os pinos (22/09/2026).
+//
+// Agora é um número medido no PRÓPRIO ficheiro: o centro do ponto de baixo,
+// que é o que assenta no chão. Medido com
+// `scripts/recortar-novos-icones.py` a produzir 42x59, deu 0,9407.
+const ANCORA_Y = 0.9407;
 
 // O TAMANHO VAI DECLARADO NUMA VISTA À VOLTA, e não só nas propriedades do
 // SVG.
