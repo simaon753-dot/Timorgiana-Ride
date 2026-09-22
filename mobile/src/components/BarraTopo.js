@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import Logo from './Logo.js';
 import { colors, spacing, fontSize, registarEstilos, elevacao, radius } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
@@ -21,6 +21,10 @@ import { useI18n } from '../i18n/index.js';
 // `motoristaOnline` (true/false) mostra a pastilha "Motorista · Online" da
 // referência em vez do círculo do perfil; sem ela (passageiro), fica o círculo.
 // As duas levam ao Perfil.
+// A ilustração do perfil, gerada de `desenho/imagens/Novos ícones` por
+// `scripts/recortar-novos-icones.py`.
+const PERFIL = require('../../assets/ilustracoes/perfil.png');
+
 export default function BarraTopo({ navigation, titulo, motoristaOnline }) {
   const { user } = useAuth();
   const { t } = useI18n();
@@ -62,7 +66,12 @@ export default function BarraTopo({ navigation, titulo, motoristaOnline }) {
           accessibilityRole="button"
           accessibilityLabel={user?.name}
         >
-          <Icone nome="pessoa" tamanho={24} cor={colors.teal} />
+          {/* A ILUSTRAÇÃO DO SIMÃO, e não o traço genérico (22/09/2026).
+              Entra como imagem, a cores, porque é a cores que foi desenhada
+              — o anel que a rodeia lê-se como moldura dentro do disco branco
+              do avatar. É o mesmo desenho da barra de baixo, e é de propósito:
+              o perfil é o quarto sítio da mesma família. */}
+          <Image source={PERFIL} style={styles.avatarImagem} resizeMode="contain" />
         </Pressable>
       )}
     </View>
@@ -80,6 +89,7 @@ const criarEstilos = () =>
       paddingBottom: spacing.md,
     },
     titulo: { ...tipo.titulo, color: colors.text },
+    avatarImagem: { width: 28, height: 28 },
     avatar: {
       width: 46,
       height: 46,
