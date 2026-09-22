@@ -153,6 +153,27 @@ const PONTO_OUTRO = require('../../assets/mapa/ponto-outro.png');
 // `scripts/recortar-novos-icones.py` a produzir 42x59, deu 0,9407.
 const ANCORA_Y = 0.9408;
 
+// QUANTO A MIRA SOBE PARA A PONTA CAIR NO CENTRO DO ECRÃ.
+//
+// A vista está centrada no mapa; a ponta está a ANCORA_Y da altura da
+// imagem. Subir por esta diferença põe uma em cima da outra.
+//
+// NUM SÍTIO SÓ, e é a lição de hoje. Esta conta estava escrita DUAS vezes —
+// aqui e na versão "a mexer" —, as duas com a altura da arte antiga escrita
+// à mão. Ao aumentar os pinos corrigi uma e esqueci a outra: parada a mira
+// subia 33 pontos e a mexer subia 7. O Simão apontava com a ponta ao sítio
+// certo, largava, e o pino saltava — e o ponto que ficava marcado estava
+// dezenas de metros acima do que ele tinha apontado.
+//
+// Tirar um número mágico de um dos dois sítios é pior do que o deixar nos
+// dois: passa a haver duas contas que discordam, e nada no ecrã o diz.
+const SUBIR_MIRA = PINO_A * (0.5 - ANCORA_Y);
+
+// O ALÍVIO DE TRÊS PONTOS enquanto o mapa mexe é o que dá a sensação de que
+// é o mapa a passar por baixo da mira, e não a mira a arrastar o mapa. Sai
+// da mesma conta, de propósito: é a mesma mira, três pontos acima.
+const SUBIR_MIRA_A_MEXER = SUBIR_MIRA - 3;
+
 // O TAMANHO VAI DECLARADO NUMA VISTA À VOLTA, e não só nas propriedades do
 // SVG.
 //
@@ -1610,18 +1631,8 @@ const criarEstilos = () =>
       elevation: 3,
     },
     miraCaixa: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
-    // A PONTA do pino tem de cair no meio do ecrã, não a base da caixa: o
-    // desenho tem 45 de altura e a ponta está a 42, portanto sobe-se metade
-    // da altura menos a distância da ponta ao centro.
-    // A PONTA DO PINO TEM DE CAIR NO CENTRO DO MAPA.
-    //
-    // A vista está centrada; a ponta está a ANCORA_Y da altura da imagem.
-    // Subir a imagem por esta diferença põe a ponta no centro — e a conta sai
-    // dos dois números que já mandam no marcador, em vez de um 42 escrito à
-    // mão que era a altura da arte ANTIGA e que ninguém ligaria à mira no dia
-    // em que os pinos mudassem de tamanho. Mudaram duas vezes hoje.
-    mira: { transform: [{ translateY: PINO_A * (0.5 - ANCORA_Y) }] },
-    miraAMexer: { transform: [{ translateY: -(PINO_A / 2) + (PINO_A - 42) - 3 }] },
+    mira: { transform: [{ translateY: SUBIR_MIRA }] },
+    miraAMexer: { transform: [{ translateY: SUBIR_MIRA_A_MEXER }] },
   });
 
 let styles = criarEstilos();
