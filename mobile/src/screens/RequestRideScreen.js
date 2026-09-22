@@ -1183,20 +1183,6 @@ export default function RequestRideScreen({ navigation, route }) {
         <Mapa
           pickable
           fill
-          // O HALO À VOLTA DA RECOLHA, quando o telemóvel se declara pouco
-          // certo.
-          //
-          // A CONDIÇÃO É A MESMA do aviso de texto que já existe logo abaixo
-          // («arrastar o pino · ±N m»), e de propósito: são a mesma
-          // informação dita de duas maneiras, e duas condições diferentes
-          // para a mesma coisa acabariam por divergir — um dia o texto
-          // aparecia sem o círculo, ou ao contrário, e ninguém saberia qual
-          // dos dois estava certo.
-          incerteza={
-            origem && !origem.provisorio && precisao > 15
-              ? { lat: origem.lat, lng: origem.lng, metros: precisao }
-              : null
-          }
           // COM O PAINEL ESCONDIDO o mapa é o ecrã inteiro, e o topo é da
           // pesquisa e das sugestões, que tapavam a coluna de botões. Aí a
           // coluna vai para o meio, na lateral direita (Simão, 16/09/2026).

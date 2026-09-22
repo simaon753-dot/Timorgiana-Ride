@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, Platform, Pressable, Image } from 'react-native';
-import MapView, { PROVIDER_GOOGLE, Marker, Polyline, Circle as Circulo } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
 import Svg, { Path, Circle as Bola, Line } from 'react-native-svg';
 import { colors, radius, spacing, registarEstilos } from '../theme.js';
@@ -33,23 +33,13 @@ const DILI = { lat: -8.5569, lng: 125.5603 };
 // OSMMap desenha dentro de uma página HTML e este desenha em componentes
 // React. Não há forma de os dois lerem o mesmo código sem inventar uma
 // camada que traduza um no outro. Se um dia a forma mudar, mudam-se os
-// dois — e este comentário está aqui para que ninguém se esqueça do outro.
-const GOTA = 'M2 18 A16 16 0 1 1 34 18 C34 26 26 32 18 41 C10 32 2 26 2 18 Z';
-// AS CORES DOS PINOS NOVOS (16/09/2026), medidas dos ficheiros que o Simão
-// desenhou: mais vivas do que as da paleta, e sem contorno escuro — os pinos
-// passam a ser lisos, com um furo branco maior. Os mesmos valores estão em
-// scripts/desenhar-pinos.py, que gera as imagens a partir deste caminho.
-const COR = {
-  origem: { fill: '#006870' },
-  destino: { fill: '#F85038' },
-  // Coral mais claro do que o destino final: uma paragem é uma entrega —
-  // só não é a última.
-  paragem: { fill: '#FF8064' },
-};
-
-// O FURO BRANCO no meio da cabeça: 7,8 de um raio de 16, quase metade, como
-// nos ficheiros novos. Era 6.
-const FURO = 7.8;
+// O DESENHO DO PINO SAIU DAQUI (22/09/2026).
+//
+// Havia um caminho SVG (`GOTA`), as cores e o tamanho do furo branco escritos
+// neste ficheiro, para a MIRA, enquanto o marcador do mapa já era uma imagem.
+// Dois desenhos para a mesma coisa, e um deles ficou para trás quando os
+// pinos passaram a ser as ilustrações do Simão. Agora há um só: a imagem, em
+// `assets/mapa/pino-*.png`, gerada por `scripts/recortar-novos-icones.py`.
 
 // AS CORES DOS BOTÕES DO MAPA (16/09/2026), medidas dos desenhos do Simão
 // (desenho/imagens/novo 1..4.jpeg): um anel de cor à volta do branco, e o
@@ -61,14 +51,12 @@ const TINTA = { teal: '#007E78', tealAnel: '#009490', coral: '#FC5430' };
 // O pino tem 30x45 no ecrã. O ponto que marca o sítio está em y=50 de 54 no
 // sistema do desenho, o que dá 42 dos 45 — é essa fracção que diz ao mapa
 // onde assentar o marcador.
-const PINO_L = 30;
-const PINO_A = 45;
+// O TAMANHO DA IMAGEM DO PINO, em pontos. 54x76 é o que o
+// `scripts/recortar-novos-icones.py` produz — e é aqui que tem de bater
+// certo, porque a MIRA desenha a mesma imagem numa vista com estas medidas.
+const PINO_L = 54;
+const PINO_A = 76;
 const CARTAO_L = 150;
-
-// Abaixo disto não se desenha círculo nenhum. Quinze metros é o mesmo limiar
-// a que o ecrã do pedido já mostra "arrastar o pino · ±N m": abaixo disso a
-// leitura é boa e um halo só sujava o mapa.
-const INCERTEZA_MINIMA_M = 15;
 
 // O PINO DENTRO DO MAPA É UMA IMAGEM, e não o componente <Pino>.
 //
@@ -163,7 +151,7 @@ const PONTO_OUTRO = require('../../assets/mapa/ponto-outro.png');
 // Agora é um número medido no PRÓPRIO ficheiro: o centro do ponto de baixo,
 // que é o que assenta no chão. Medido com
 // `scripts/recortar-novos-icones.py` a produzir 42x59, deu 0,9407.
-const ANCORA_Y = 0.9407;
+const ANCORA_Y = 0.9408;
 
 // O TAMANHO VAI DECLARADO NUMA VISTA À VOLTA, e não só nas propriedades do
 // SVG.
@@ -175,31 +163,27 @@ const ANCORA_Y = 0.9407;
 //
 // No Leaflet isto não podia acontecer: o `iconSize` era obrigatório. Aqui é
 // opcional, e o que é opcional foi o que faltou.
+// A MIRA É A MESMA IMAGEM DO MARCADOR (22/09/2026).
+//
+// Era um SVG desenhado à mão aqui dentro, e ficou para trás quando os pinos
+// passaram a ser as ilustrações do Simão: no mapa via-se o pino novo e, ao
+// escolher um ponto, a mira ainda era o antigo. Dois desenhos para a mesma
+// coisa é uma divergência à espera de acontecer — e aconteceu.
+//
+// `collapsable={false}` NÃO É DECORAÇÃO. O React Native ACHATA vistas que só
+// têm propriedades de disposição, e sem isto a vista com as medidas
+// desaparecia no caminho até ao Android; o mapa voltava a medir o conteúdo
+// directamente e o pino saía esmagado — com a agravante de o resultado ser
+// idêntico ao de antes da correcção, o que faz parecer que a actualização não
+// chegou.
 function Pino({ tipo: qual }) {
-  const c = COR[qual] || COR.origem;
   return (
-    // `collapsable={false}` NÃO É DECORAÇÃO.
-    //
-    // O React Native ACHATA vistas: uma <View> que só tem propriedades de
-    // disposição e mais nada é considerada supérflua e removida da árvore
-    // nativa antes de chegar ao Android. É uma optimização normal e quase
-    // sempre invisível.
-    //
-    // Aqui não é. Sem isto, a vista de 30x45 desaparecia no caminho, o mapa
-    // voltava a medir o SVG directamente e o pino saía esmagado — com a
-    // agravante de o resultado ser IDÊNTICO ao de antes da correcção, o que
-    // faz parecer que a actualização não chegou.
     <View style={{ width: PINO_L, height: PINO_A }} collapsable={false}>
-      <Svg width={PINO_L} height={PINO_A} viewBox="0 0 36 54">
-        {/* O halo branco fino fica: no desenho do Simão o fundo é branco e
-            não se vê, mas no mapa é ele que impede o pino de desaparecer
-            sobre um telhado escuro. O contorno escuro saiu. */}
-        <Path d={GOTA} fill="none" stroke="#FFF" strokeWidth={2.4} strokeLinejoin="round" />
-        <Path d={GOTA} fill={c.fill} strokeLinejoin="round" />
-        <Bola cx={18} cy={18} r={FURO} fill="#FFF" />
-        <Bola cx={18} cy={50} r={2.4} fill="#FFF" />
-        <Bola cx={18} cy={50} r={1.7} fill={c.fill} />
-      </Svg>
+      <Image
+        source={IMAGEM[qual] || IMAGEM.origem}
+        style={{ width: PINO_L, height: PINO_A }}
+        resizeMode="contain"
+      />
     </View>
   );
 }
@@ -387,18 +371,6 @@ export default function MapaGoogle({
   height = 240,
   onPick,
   onRoute,
-  // O CÍRCULO DE INCERTEZA (22/09/2026).
-  //
-  // `{ lat, lng, metros }` — onde o GPS diz que a pessoa está, e de quantos
-  // metros se pode estar a enganar. Sem isto a app desenhava um pino
-  // confiante mesmo quando o telemóvel estava a dizer "posso estar errado em
-  // oitenta metros", e quem via o pino no edifício errado concluía, com
-  // razão, que a app estava avariada.
-  //
-  // É o halo que o Google mostra no ponto azul e que nós não mostrávamos. A
-  // diferença entre "está aqui" e "está algures nesta área" é a diferença
-  // entre a pessoa arrastar o pino ou desconfiar do serviço.
-  incerteza,
   liveMarker,
   liveLabel,
   // O TIPO do veículo que se mexe, para o distintivo ser o certo. Sem ele,
@@ -1239,19 +1211,6 @@ export default function MapaGoogle({
           />
         ))}
 
-        {/* Primeiro o círculo, para o pino e o carro ficarem POR CIMA dele:
-            é um fundo, não um objecto. */}
-        {incerteza && incerteza.metros > INCERTEZA_MINIMA_M ? (
-          <Circulo
-            center={{ latitude: incerteza.lat, longitude: incerteza.lng }}
-            radius={incerteza.metros}
-            strokeWidth={1}
-            strokeColor={TINTA.teal + '55'}
-            fillColor={TINTA.teal + '18'}
-            zIndex={0}
-          />
-        ) : null}
-
         {carroSuave ? (
           <Marker
             coordinate={{ latitude: carroSuave.lat, longitude: carroSuave.lng }}
@@ -1654,7 +1613,14 @@ const criarEstilos = () =>
     // A PONTA do pino tem de cair no meio do ecrã, não a base da caixa: o
     // desenho tem 45 de altura e a ponta está a 42, portanto sobe-se metade
     // da altura menos a distância da ponta ao centro.
-    mira: { transform: [{ translateY: -(PINO_A / 2) + (PINO_A - 42) }] },
+    // A PONTA DO PINO TEM DE CAIR NO CENTRO DO MAPA.
+    //
+    // A vista está centrada; a ponta está a ANCORA_Y da altura da imagem.
+    // Subir a imagem por esta diferença põe a ponta no centro — e a conta sai
+    // dos dois números que já mandam no marcador, em vez de um 42 escrito à
+    // mão que era a altura da arte ANTIGA e que ninguém ligaria à mira no dia
+    // em que os pinos mudassem de tamanho. Mudaram duas vezes hoje.
+    mira: { transform: [{ translateY: PINO_A * (0.5 - ANCORA_Y) }] },
     miraAMexer: { transform: [{ translateY: -(PINO_A / 2) + (PINO_A - 42) - 3 }] },
   });
 

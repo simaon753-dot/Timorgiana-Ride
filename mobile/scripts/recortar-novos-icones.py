@@ -76,12 +76,13 @@ ICONES = {
     'servico-flores': ('flores escura.jpg', 'icones', 30),
     'servico-encomenda': ('ncomenda escura.jpg', 'icones', 30),
     # ── os pinos do mapa ──
-    # 42 E NÃO 30 (22/09/2026, pedido do Simão). Os pinos de 30 pontos
+    # 54 E NÃO 30 (22/09/2026, pedido do Simão, em dois passos: 42 e depois
+    # 54). Os pinos de 30 pontos
     # perdiam-se no meio dos nomes e dos ícones que o Google desenha por
     # baixo. Quarenta por cento maiores, que é o que os põe a mandar na
     # imagem sem taparem a rua.
-    'pino-origem': ('pino de recolha.jpg', 'mapa', 42),
-    'pino-destino': ('pino de destino.jpg', 'mapa', 42),
+    'pino-origem': ('pino de recolha.jpg', 'mapa', 54),
+    'pino-destino': ('pino de destino.jpg', 'mapa', 54),
 }
 
 # OS VEÍCULOS NÃO PASSAM POR AQUI, e é o sítio certo para dizer porquê.
