@@ -419,10 +419,12 @@ function RotuloLocal({ qual, texto }) {
 // A PARTIR DE QUE ZOOM se troca o pino pela etiqueta.
 //
 // `latitudeDelta` é a altura do mapa em graus: quanto MENOR, mais perto.
-// 0,0035 graus são uns 390 metros de alto — o zoom a que já se distinguem
-// as casas de um quarteirão, e a partir do qual um pino grande passa a
-// tapar mais do que mostra.
-const PERTO = 0.0035;
+//
+// 0,0015 graus são uns 165 metros de altura de ecrã — o zoom a que se vê um
+// quintal. Comecei em 0,0035 (uns 390 m) e o Simão disse que a etiqueta deve
+// aparecer «até ao limite»: é informação de detalhe, e detalhe a meia
+// distância é sujidade em cima do mapa.
+const PERTO = 0.0015;
 
 // A caixa da etiqueta. A altura conta a pastilha, o pé e o ponto: é por ela
 // que a etiqueta se levanta acima da coordenada, para o PONTO dela cair
@@ -433,21 +435,6 @@ const ROTULO_L = 150;
 // de uma linha só ficava colada ao topo da caixa e o PONTO dela não
 // encontrava a ponta do traço — o traço apontaria ao vazio.
 const ROTULO_A = 78;
-
-// A ETIQUETA FICA AO LADO, NÃO POR CIMA (22/09/2026, depois da referência
-// que o Simão mostrou).
-//
-// À primeira pu-la centrada sobre o ponto e escondi o pino. Estava errado
-// nas duas coisas: na referência os dois aparecem ao mesmo tempo, e a
-// etiqueta não substitui o pino — APONTA para ele, por um traço aos
-// pontinhos.
-//
-// A razão de desenho já estava escrita neste ficheiro, a propósito dos
-// cartões dos lugares: «nunca por cima, que taparia a rua por onde se
-// chega». Uma etiqueta em cima do ponto esconde exactamente aquilo que quem
-// espera precisa de ver.
-const LIGA_L = 58;
-const LIGA_A = 44;
 
 const ROTULO_CHAVE = {
   origem: 'mapaLocalRecolha',
@@ -999,32 +986,40 @@ export default function MapaGoogle({
     mapaRef.current?.animateCamera({ heading: 0 }, { duration: 300 });
   }, []);
 
-  // ONDE ESTÃO OS PINOS NO ECRÃ, para lhes encostar a etiqueta.
+  // ONDE ESTÁ O PONTO DA ESTRADA NO ECRÃ, para lhe pôr a etiqueta em cima.
+  //
+  // NÃO É O PINO, e é a correcção que o Simão fez com um ✗ por cima da minha
+  // primeira tentativa. A etiqueta explica «o carro pára AQUI, e não onde
+  // puseste o pino» — pendurada no pino, estaria a rotular o sítio que já
+  // tem pino. Pertence à ponta do traço aos pontinhos, que é onde o carro
+  // encosta.
+  //
+  // Sem troço a pé não há etiqueta nenhuma, e está certo: quando o pino já
+  // cai na estrada não há nada para explicar.
   //
   // Só se calcula quando estamos PERTO — longe não há etiqueta para pôr, e
   // cada cálculo destes é uma ida ao mapa nativo por cada ponto.
   useEffect(() => {
     let vivo = true;
     const perto = delta != null && delta < PERTO;
-    if (!mapaPronto || !mapaRef.current || !perto || !pts.length) {
+    if (!mapaPronto || !mapaRef.current || !perto || !trocosAPe.length) {
       setPinosNoEcra([]);
       return undefined;
     }
     Promise.all(
-      pts.map((p) =>
+      trocosAPe.map((tr) =>
         mapaRef.current
-          .pointForCoordinate({
-            latitude: p.pino ? p.pino.lat : p.lat,
-            longitude: p.pino ? p.pino.lng : p.lng,
-          })
+          .pointForCoordinate({ latitude: tr.para.lat, longitude: tr.para.lng })
           .catch(() => null)
       )
     )
       .then((pontos) => {
         if (!vivo) return;
         setPinosNoEcra(
-          pts
-            .map((p, i) => (pontos[i] ? { ...p, x: pontos[i].x, y: pontos[i].y } : null))
+          trocosAPe
+            .map((tr, i) =>
+              pontos[i] ? { qual: tr.qual, ...tr.para, x: pontos[i].x, y: pontos[i].y } : null
+            )
             .filter(Boolean)
         );
       })
@@ -1032,7 +1027,7 @@ export default function MapaGoogle({
     return () => {
       vivo = false;
     };
-  }, [pts, mapaPronto, aMexer, delta]);
+  }, [trocosAPe, mapaPronto, aMexer, delta]);
 
   // Estamos perto? Decide quem marca o ponto: o pino ou a etiqueta.
   const perto = delta != null && delta < PERTO;
@@ -1444,52 +1439,23 @@ export default function MapaGoogle({
           Centradas sobre o ponto e ACIMA dele, que é onde o pé e o ponto do
           desenho as põem. Somem enquanto o dedo arrasta, como os cartões:
           uma etiqueta atrasada diz que a recolha é ali, e não é. */}
+      {/* A ETIQUETA DO LOCAL, na ESTRADA e só no zoom mais fechado.
+          Centrada por cima do ponto, com o pé e a bola a assentar nele — o
+          traço aos pontinhos que vem do pino já faz a ligação, e um segundo
+          traço a dizer o mesmo era sujidade.
+          Some enquanto o dedo arrasta, como tudo o resto que é desenhado por
+          cima: uma etiqueta atrasada diz que o carro pára ali, e não pára. */}
       {perto &&
         !aMexer &&
-        pinosNoEcra.map((p) => {
-          const cor = p.qual === 'origem' ? TINTA.teal : TINTA.coral;
-          // Para a direita, salvo junto à borda: encostada a ela, a etiqueta
-          // saía do ecrã — e um ponto encostado à borda é o caso normal de
-          // quem acabou de arrastar o mapa.
-          const paraEsquerda = largura > 0 && p.x > largura - (LIGA_L + ROTULO_L / 2 + 12);
-          const sinal = paraEsquerda ? -1 : 1;
-          return (
-            <React.Fragment key={`rotulo-${p.qual}-${p.lat},${p.lng}`}>
-              <Svg
-                pointerEvents="none"
-                style={[
-                  styles.rotuloLigacao,
-                  { left: paraEsquerda ? p.x - LIGA_L : p.x, top: p.y - LIGA_A },
-                ]}
-                width={LIGA_L}
-                height={LIGA_A}
-              >
-                <Line
-                  x1={paraEsquerda ? LIGA_L : 0}
-                  y1={LIGA_A}
-                  x2={paraEsquerda ? 0 : LIGA_L}
-                  y2={0}
-                  stroke={cor}
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                  strokeDasharray="1 8"
-                />
-              </Svg>
-              <View
-                pointerEvents="none"
-                style={[
-                  styles.rotuloSolto,
-                  {
-                    left: p.x + sinal * LIGA_L - ROTULO_L / 2,
-                    top: p.y - LIGA_A - ROTULO_A,
-                  },
-                ]}
-              >
-                <RotuloLocal qual={p.qual} texto={t(ROTULO_CHAVE[p.qual] || ROTULO_CHAVE.origem)} />
-              </View>
-            </React.Fragment>
-          );
-        })}
+        pinosNoEcra.map((p) => (
+          <View
+            key={`rotulo-${p.qual}-${p.lat},${p.lng}`}
+            pointerEvents="none"
+            style={[styles.rotuloSolto, { left: p.x - ROTULO_L / 2, top: p.y - ROTULO_A }]}
+          >
+            <RotuloLocal qual={p.qual} texto={t(ROTULO_CHAVE[p.qual] || ROTULO_CHAVE.origem)} />
+          </View>
+        ))}
 
       {/* ONDE O CARRO PÁRA.
           Um ponto na estrada e o rótulo por cima, na ponta da linha aos
@@ -1829,7 +1795,6 @@ const criarEstilos = () =>
       alignItems: 'center',
       justifyContent: 'flex-end',
     },
-    rotuloLigacao: { position: 'absolute' },
     rotuloCaixa: { alignItems: 'center' },
     rotuloPastilha: {
       maxWidth: ROTULO_L,
