@@ -167,7 +167,22 @@ const ANCORA_Y = 0.9408;
 //
 // Tirar um número mágico de um dos dois sítios é pior do que o deixar nos
 // dois: passa a haver duas contas que discordam, e nada no ecrã o diz.
-const SUBIR_MIRA = PINO_A * (0.5 - ANCORA_Y);
+// O TAMANHO DA MIRA É PRÓPRIO, e não o do marcador (22/09/2026).
+//
+// Parecem a mesma coisa e não são desenhados pelo mesmo motor: a mira é uma
+// vista do React com largura e altura escritas, exactas; o marcador é
+// desenhado pelo MAPA NATIVO, que escolhe a imagem conforme a densidade do
+// ecrã e a apresenta ao tamanho que essa conta lhe der. Declarar 54 nos dois
+// não dá 54 nos dois — no telemóvel do Simão a mira saía visivelmente maior
+// e tapava o mapa.
+//
+// Coupli-los era fingir uma relação que o Android não respeita. São dois
+// números, e este é o que se afina a olho até os dois pinos se lerem como o
+// mesmo pino.
+const MIRA_L = 42;
+const MIRA_A = Math.round((MIRA_L * PINO_A) / PINO_L);
+
+const SUBIR_MIRA = MIRA_A * (0.5 - ANCORA_Y);
 
 // O ALÍVIO DE TRÊS PONTOS enquanto o mapa mexe é o que dá a sensação de que
 // é o mapa a passar por baixo da mira, e não a mira a arrastar o mapa. Sai
@@ -199,10 +214,10 @@ const SUBIR_MIRA_A_MEXER = SUBIR_MIRA - 3;
 // chegou.
 function Pino({ tipo: qual }) {
   return (
-    <View style={{ width: PINO_L, height: PINO_A }} collapsable={false}>
+    <View style={{ width: MIRA_L, height: MIRA_A }} collapsable={false}>
       <Image
         source={IMAGEM[qual] || IMAGEM.origem}
-        style={{ width: PINO_L, height: PINO_A }}
+        style={{ width: MIRA_L, height: MIRA_A }}
         resizeMode="contain"
       />
     </View>
