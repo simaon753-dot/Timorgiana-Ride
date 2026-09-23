@@ -570,6 +570,18 @@ export default function MapaGoogle({
   //
   // É o troço de APROXIMAÇÃO, que existe só enquanto ele vai a caminho.
   aproximacaoAte = null,
+  // ETIQUETAR OS PINOS DA VIAGEM (23/09/2026, pergunta do Simão).
+  //
+  // Ele foi ao zoom máximo no ecrã do motorista e no do passageiro e não viu
+  // etiqueta nenhuma. A razão era esta: a etiqueta estava presa ao troço a
+  // pé, e o troço a pé só existe no ecrã onde se ESCOLHE o sítio. Depois de
+  // o pedido ser aceite ninguém o passa — e com razão, porque a coordenada
+  // guardada na viagem já é o ponto da estrada. Não há nada para explicar.
+  //
+  // Só que a etiqueta deixou de servir só para explicar. Aos dois pinos de
+  // uma viagem a decorrer ela responde a outra pergunta, e mais simples:
+  // QUAL DELES É QUAL. Aqui, a etiqueta pendura-se no próprio pino.
+  rotularPinos = false,
   center,
   height = 240,
   onPick,
@@ -1212,27 +1224,64 @@ export default function MapaGoogle({
   //
   // Só se calcula quando estamos PERTO — longe não há etiqueta para pôr, e
   // cada cálculo destes é uma ida ao mapa nativo por cada ponto.
+  //
+  // DUAS FONTES, UM DESENHO. Ou os troços a pé — e então a etiqueta fica na
+  // ponta do traço, que é onde o carro encosta —, ou os pinos da viagem, e
+  // então fica por cima do pino. Quando há troços são eles que mandam: no
+  // ecrã de escolher, o ponto da estrada é a resposta e o pino é a pergunta.
+  const aRotular = useMemo(() => {
+    if (trocosAPe.length) {
+      return trocosAPe.map((tr) => ({ qual: tr.qual, ...tr.para, acimaDoPino: false }));
+    }
+    if (!rotularPinos) return [];
+    // Dos `pts` e não dos `markers`: é nos `pts` que o `qual` já está
+    // normalizado e que está o `pino`, que é onde o desenho do pino cai
+    // quando esse sítio não é o mesmo da coordenada da viagem. A etiqueta
+    // pendura-se no que se VÊ.
+    return pts
+      .filter((p) => ROTULO_CHAVE[p.qual])
+      .map((p) => ({
+        qual: p.qual,
+        lat: p.pino ? p.pino.lat : p.lat,
+        lng: p.pino ? p.pino.lng : p.lng,
+        acimaDoPino: true,
+      }));
+  }, [trocosAPe, rotularPinos, pts]);
+
+  // A CHAVE, e não a lista, é que entra nas dependências do efeito.
+  //
+  // Quem nos chama constrói `trocosAPe` a cada desenho — `const trocosAPe =
+  // []` é um array NOVO de cada vez, mesmo com o mesmo conteúdo. Com a lista
+  // nas dependências, o efeito voltava a correr a cada desenho, pedia as
+  // coordenadas ao mapa nativo, escrevia estado novo, e esse estado novo
+  // provocava outro desenho: uma roda que só parava ao afastar o zoom.
+  //
+  // Ia ficando assim porque a volta é lenta — uma ida ao mapa nativo de cada
+  // vez — e por isso não trava nada à vista. Gastava bateria a desenhar
+  // sempre a mesma etiqueta no mesmo sítio.
+  //
+  // Com a chave, o efeito só corre quando os PONTOS mudam de verdade. O que
+  // continua a fazê-lo correr de propósito é o mapa mexer-se (`delta`,
+  // `aMexer`), que é quando as coordenadas de ecrã mudam mesmo.
+  const rotularKey = aRotular.map((r) => `${r.qual}:${r.lat},${r.lng}`).join('|');
+
   useEffect(() => {
     let vivo = true;
     const perto = delta != null && delta < PERTO;
-    if (!mapaPronto || !mapaRef.current || !perto || !trocosAPe.length) {
+    if (!mapaPronto || !mapaRef.current || !perto || !aRotular.length) {
       setPinosNoEcra([]);
       return undefined;
     }
     Promise.all(
-      trocosAPe.map((tr) =>
-        mapaRef.current
-          .pointForCoordinate({ latitude: tr.para.lat, longitude: tr.para.lng })
-          .catch(() => null)
+      aRotular.map((r) =>
+        mapaRef.current.pointForCoordinate({ latitude: r.lat, longitude: r.lng }).catch(() => null)
       )
     )
       .then((pontos) => {
         if (!vivo) return;
         setPinosNoEcra(
-          trocosAPe
-            .map((tr, i) =>
-              pontos[i] ? { qual: tr.qual, ...tr.para, x: pontos[i].x, y: pontos[i].y } : null
-            )
+          aRotular
+            .map((r, i) => (pontos[i] ? { ...r, x: pontos[i].x, y: pontos[i].y } : null))
             .filter(Boolean)
         );
       })
@@ -1240,7 +1289,7 @@ export default function MapaGoogle({
     return () => {
       vivo = false;
     };
-  }, [trocosAPe, mapaPronto, aMexer, delta]);
+  }, [rotularKey, mapaPronto, aMexer, delta]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Estamos perto? Decide quem marca o ponto: o pino ou a etiqueta.
   const perto = delta != null && delta < PERTO;
@@ -1697,7 +1746,16 @@ export default function MapaGoogle({
           <View
             key={`rotulo-${p.qual}-${p.lat},${p.lng}`}
             pointerEvents="none"
-            style={[styles.rotuloSolto, { left: p.x - ROTULO_L / 2, top: p.y - ROTULO_A }]}
+            style={[
+              styles.rotuloSolto,
+              {
+                left: p.x - ROTULO_L / 2,
+                // O PONTO da etiqueta cai na coordenada… excepto quando essa
+                // coordenada já tem um pino em cima dela. Aí sobe a altura do
+                // pino, senão a pastilha aterrava no meio do desenho dele.
+                top: p.y - ROTULO_A - (p.acimaDoPino ? PINO_A * ANCORA_Y : 0),
+              },
+            ]}
           >
             <RotuloLocal
               qual={qualDesenhado(p.qual, modoEscolha)}
