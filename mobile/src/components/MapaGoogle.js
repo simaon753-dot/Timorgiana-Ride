@@ -145,10 +145,32 @@ const VEICULO_IMAGEM = {
 // pequeno — e assim a alternativa fica da FAMÍLIA e da COR do ponto a que
 // pertence: teal se é outra forma de ser recolhido, coral se é outra forma
 // de ser largado. O círculo cinzento não dizia a qual dos dois se referia.
-// A seta do «guiar»: a mesma do botão de expandir, que já é uma seta de
-// direcção e já está na paleta. Um desenho novo para dizer a mesma coisa
-// seria um desenho a mais.
-const SETA_GUIAR = require('../../assets/icones/expandir.png');
+// A SETA DE VIRAR do botão de guiar (23/09/2026, desenho do Simão).
+//
+// Estava a usar a seta diagonal do botão de expandir — já existia e era uma
+// seta. Mas dizia a coisa errada: duas pontas em diagonal são «aumentar»,
+// não «seguir caminho». Esta sobe e vira à direita, que é o gesto de quem
+// conduz.
+//
+// Desenhada e não imagem: são quatro linhas de caminho, ficam nítidas em
+// qualquer densidade e pintam-se com a cor do tema sem gerar ficheiro nenhum.
+function SetaGuiar() {
+  return (
+    <Svg width={24} height={24} viewBox="0 0 24 24">
+      {/* O traço enche a caixa de 24: o losango de 40 rodado deixa um
+          quadrado inscrito de 28, e uma seta acanhada lá dentro lê-se como
+          um algarismo em vez de uma direcção. */}
+      <Path
+        d="M7.4 20.4V13a4 4 0 0 1 4-4h2.6"
+        stroke="#FFFFFF"
+        strokeWidth={2.9}
+        strokeLinecap="round"
+        fill="none"
+      />
+      <Path d="M13.2 3.4 L20 9 L13.2 14.6 Z" fill="#FFFFFF" />
+    </Svg>
+  );
+}
 
 const PEQUENO = {
   origem: require('../../assets/mapa/pino-origem-pequeno.png'),
@@ -1692,7 +1714,11 @@ export default function MapaGoogle({
           accessibilityRole="button"
           accessibilityLabel={t('guiarAteLa')}
         >
-          <Image source={SETA_GUIAR} style={styles.guiarIcone} resizeMode="contain" />
+          {/* A seta contra-rodada: o BOTÃO é que está em losango, e uma
+              seta torta não se lê. */}
+          <View style={styles.guiarConteudo}>
+            <SetaGuiar />
+          </View>
         </Pressable>
       ) : null}
 
@@ -1900,15 +1926,21 @@ const criarEstilos = () =>
       position: 'absolute',
       right: spacing.sm,
       bottom: spacing.xl,
-      width: 52,
-      height: 52,
-      borderRadius: 26,
+      // UM LOSANGO, e não um círculo (23/09/2026, desenho do Simão). Um
+      // quadrado de 40 rodado 45 graus mede 56 na diagonal — fica com a
+      // mesma presença do círculo de 52 que substituiu, e distingue-se à
+      // vista dos quatro redondos da coluna. A forma diz «isto é outra
+      // coisa» antes de o ícone dizer o quê.
+      width: 40,
+      height: 40,
+      borderRadius: radius.md,
       backgroundColor: colors.teal,
       alignItems: 'center',
       justifyContent: 'center',
+      transform: [{ rotate: '45deg' }],
       ...elevacao.flutuante,
     },
-    guiarIcone: { width: 26, height: 26, tintColor: colors.onTeal },
+    guiarConteudo: { transform: [{ rotate: '-45deg' }] },
     rotuloSolto: {
       position: 'absolute',
       width: ROTULO_L,
