@@ -161,16 +161,56 @@ VEICULO_LARGURA = 624
 #                        papel claro   papel escuro   disco branco
 #   deep teal  #0E5C54       7,1:1         2,0:1          7,8:1
 #   bright teal #01F9C6      1,2:1        11,6:1          1,4:1
-#   ESTE       #529C7F       3,0:1         4,9:1          3,3:1
+#   #529C7F (22/09)          3,0:1         4,9:1          3,3:1
+#   ESTE    #26877D          3,9:1         4,9:1          4,3:1
 #
 # (o mínimo para um ícone se ler é 3,0:1)
 #
 # O teal profundo desaparecia no tema escuro; o bright teal desaparecia no
 # claro — tem quase a mesma luminosidade do papel creme da app, e é por isso
-# que parecia certo sobre o fundo PRETO dos desenhos originais. Este fica a
-# meio e passa nos três, que é o que se pede a uma cor que tem de servir um
-# ficheiro só.
-TEAL_MARCA = (0x52, 0x9C, 0x7F)
+# que parecia certo sobre o fundo PRETO dos desenhos originais.
+#
+# #26877D, e não #529C7F (23/09/2026). O Simão mandou o cartão da Assinatura
+# e pediu a cor dele nos ícones. Medida, é o `colors.teal` da app: #0E5C54.
+#
+# NÃO SE PODE PÔR ESSA NOS ÍCONES: dá 2,0:1 sobre o papel escuro, ou seja,
+# desaparece de noite. O que ele quer não é o número — é a HARMONIA, e a
+# harmonia está na MATIZ. O #529C7F era um verde de relva (matiz 0,435); o
+# teal da app é 0,483. Lado a lado leem-se como duas cores diferentes, e era
+# isso que lhe saltava à vista.
+#
+# Esta tem a matiz EXACTA do teal do cartão e a clareza que passa nos quatro
+# fundos da app — e passa com folga, onde a anterior roçava o mínimo. Foi
+# escolhida por busca: de todas as cores com a matiz 0,483, é a que tem o
+# melhor pior-caso.
+TEAL_MARCA = (0x26, 0x87, 0x7D)
+
+# O VERDE DOS PINOS VAI PARA O TEAL EXACTO DO CARTÃO (23/09/2026).
+#
+# Aqui pode ser o #0E5C54 sem tirar nem pôr, e é a única peça em que pode:
+# os pinos vivem no mapa do Google, que é sempre claro — `mapType` é
+# 'standard' e a app nunca lhe põe estilo escuro. Não há tema escuro a que
+# sobreviver, e por isso não há razão para não usar a cor da marca tal e
+# qual.
+#
+# E há uma razão a mais para ser esta: a LINHA DA ROTA já é #0E5C54. Com o
+# pino noutro verde, o mapa tinha dois verdes nossos a um centímetro um do
+# outro. Agora o pino e a linha são a mesma cor, que é o que se espera de
+# duas partes da mesma viagem.
+#
+# ENGANEI-ME UMA VEZ AQUI, e a nota fica para ninguém repetir: eu julgava
+# que os pinos ESCAPAVAM ao remapeamento, porque o verde deles (#386A56) não
+# passa no `_teal`. Passa — o #386A56 já ERA o resultado do remapeamento com
+# o #529C7F de 22/09, não a cor da arte. Os pinos sempre seguiram o
+# `TEAL_MARCA` como tudo o resto; o que lhes faltava era poderem ter cor
+# própria.
+PINO_TEAL = (0x0E, 0x5C, 0x54)
+PINOS_A_PINTAR = ('pino-origem', 'pino-origem-pequeno')
+# A régua dos pinos é OUTRA: aqui o que tem de acertar não é o tom claro, é
+# o CORPO do pino — a mancha grande que se vê. Este é o tom dominante da arte
+# deles, medido, e com ele o corpo sai exactamente em #0E5C54, ao pixel, que
+# é a cor da linha da rota.
+L_ORIGEM_PINO = 0.2542
 # A luminosidade do tom claro que veio nos desenhos (#08B0B8). É a régua: o
 # tom claro de cada desenho passa a ser exactamente a cor escolhida, e o
 # escuro acompanha na mesma proporção.
@@ -184,15 +224,21 @@ def _teal(r, g, b):
     return g > r + 40 and b > r + 40 and abs(g - b) < max(40, 0.35 * max(g, b))
 
 
-def para_o_teal_da_marca(im):
-    h_alvo, l_alvo, s_alvo = colorsys.rgb_to_hls(*[c / 255 for c in TEAL_MARCA])
-    escala = l_alvo / L_ORIGEM_CLARA
+def repintar(im, alvo, pertence, l_origem):
+    """Muda a MATIZ e a SATURAÇÃO para as da cor escolhida e ESCALA a
+    luminosidade — nunca pinta tudo de uma cor só.
+
+    Cada desenho tem dois tons da mesma cor (telhado e parede, mostrador e
+    ponteiros). Achatá-los num só faria perder o desenho: ficava uma mancha.
+    """
+    h_alvo, l_alvo, s_alvo = colorsys.rgb_to_hls(*[c / 255 for c in alvo])
+    escala = l_alvo / l_origem
     px = im.load()
     w, h = im.size
     for y in range(h):
         for x in range(w):
             r, g, b, a = px[x, y]
-            if a == 0 or not _teal(r, g, b):
+            if a == 0 or not pertence(r, g, b):
                 continue
             _, l, _ = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
             nr, ng, nb = colorsys.hls_to_rgb(h_alvo, min(1, l * escala), s_alvo)
@@ -200,7 +246,11 @@ def para_o_teal_da_marca(im):
     return im
 
 
-def sem_preto(caminho, miolo=None):
+def para_o_teal_da_marca(im):
+    return repintar(im, TEAL_MARCA, _teal, L_ORIGEM_CLARA)
+
+
+def sem_preto(caminho, miolo=None, alvo=None, l_origem=None):
     """Deita fora o preto — fundo e linhas de recorte — e corta à arte.
 
     Com `miolo`, fica só essa fracção central da imagem antes de tudo o
@@ -225,7 +275,12 @@ def sem_preto(caminho, miolo=None):
     fora = im.convert('RGBA')
     fora.putalpha(alfa)
     caixa = alfa.getbbox()
-    return para_o_teal_da_marca(fora.crop(caixa) if caixa else fora)
+    return repintar(
+        fora.crop(caixa) if caixa else fora,
+        alvo or TEAL_MARCA,
+        _teal,
+        l_origem or L_ORIGEM_CLARA,
+    )
 
 
 def gravar(imagem, pasta, nome, largura):
@@ -252,7 +307,14 @@ def main():
             raise SystemExit(f'falta o ficheiro: {caminho}')
         destino = os.path.join(aqui, '..', 'assets', pasta)
         os.makedirs(destino, exist_ok=True)
-        l, a = gravar(sem_preto(caminho, miolo), destino, nome, largura)
+        pino = nome in PINOS_A_PINTAR
+        arte = sem_preto(
+            caminho,
+            miolo,
+            alvo=PINO_TEAL if pino else TEAL_MARCA,
+            l_origem=L_ORIGEM_PINO if pino else L_ORIGEM_CLARA,
+        )
+        l, a = gravar(arte, destino, nome, largura)
         print(f'{nome:20} {l:3}x{a:<3}  {pasta}/  <- {ficheiro}')
 
     # Os veículos: reduzir e gravar o par, sem tocar no fundo.
