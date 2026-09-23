@@ -33,7 +33,12 @@ import {
 } from '../rides.js';
 import { registarSemEsperar, EVENTOS } from '../eventos.js';
 import { addMessage, addSystemMessage, listMessages } from '../messages.js';
-import { addRating, hasRated } from '../ratings.js';
+import {
+  addRating,
+  hasRated,
+  limparMotivos,
+  ESTRELAS_COM_MOTIVO,
+} from '../ratings.js';
 import { notificarPedidoNovo, notificarAceite, notificarAdminsSOS } from '../push.js';
 import { one, query } from '../db.js';
 import { rota, preco, straightKm } from '../routing.js';
@@ -963,7 +968,20 @@ ridesRouter.post(
     }
 
     const rateeId = row.passenger_id === req.user.id ? row.driver_id : row.passenger_id;
-    await addRating({ rideId, raterId: req.user.id, rateeId, stars });
+
+    // O PAPEL DE QUEM É AVALIADO, e não o de quem avalia. Nesta app uma conta
+    // de motorista pede viagens como passageira; o que decide a lista de
+    // motivos é o lugar que a pessoa ocupou NESTA viagem.
+    const papelDoAvaliado = rateeId === row.driver_id ? 'driver' : 'passenger';
+
+    // ACIMA DE TRÊS ESTRELAS NÃO SE GUARDA MOTIVO NENHUM, mesmo que venha no
+    // pedido. A app só os pergunta nas avaliações baixas; se um telemóvel
+    // modificado os mandar à mesma, um «malcriado» colado a cinco estrelas
+    // ficava no registo de alguém a dizer o contrário do que a estrela diz.
+    const motivos =
+      stars <= ESTRELAS_COM_MOTIVO ? limparMotivos(req.body?.motivos, papelDoAvaliado) : [];
+
+    await addRating({ rideId, raterId: req.user.id, rateeId, stars, motivos });
     return res.json({ ok: true });
   })
 );

@@ -433,6 +433,17 @@ export default {
   // Tama
   loginTitle: 'Tama',
   loginSubtitle: 'Tama ho ita-nia númeru telemóvel.',
+  ratePorque: 'Saida ida mak la di’ak?',
+  rateOpcional: 'Bele hili to’o tolu. La obrigatóriu.',
+  avalConducao: 'Lori kareta la ho kuidadu',
+  avalNaoFoiAoLocal: 'La bá fatin ne’ebé kombina ona',
+  avalAtraso: 'Kleur tebes mak to’o',
+  avalMalcriado: 'Nia hahalok la di’ak',
+  avalPrecoAcima: 'Husu osan barak liu duké kombina',
+  avalNaoApareceu: 'Nia la mosu',
+  avalFezEsperar: 'Halo ha’u hein kleur',
+  avalNaoEstavaNoLocal: 'Nia la iha fatin ne’ebé kombina ona',
+  avalCargaDiferente: 'Karga la hanesan ho kombinasaun',
   sessaoAvisoTitulo: 'Ita-nia konta loke ona iha telemóvel seluk',
   sessaoAvisoTexto:
     'Ita bele remata viajen ne’ebé ita iha hela. Depois ne’e ita presiza tama fali. Se la’ós ita mak halo, avisa TimorgianaRide no troka ita-nia liafuan-xave.',

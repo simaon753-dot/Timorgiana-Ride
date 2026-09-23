@@ -226,8 +226,8 @@ export const api = {
   sendMessage: (token, id, body) =>
     request(`/rides/${id}/messages`, { method: 'POST', body: { body }, token }),
 
-  rateRide: (token, id, stars) =>
-    request(`/rides/${id}/rate`, { method: 'POST', body: { stars }, token }),
+  rateRide: (token, id, stars, motivos = []) =>
+    request(`/rides/${id}/rate`, { method: 'POST', body: { stars, motivos }, token }),
 
   // Motorista: estado da conta e documentos
   driverStatus: (token) => request('/driver/status', { token }),

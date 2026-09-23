@@ -18,10 +18,25 @@ import { readFileSync } from 'node:fs';
 
 const LINGUAS = ['pt', 'tet', 'en'];
 
+// `[a-zA-Z]` e não `[a-z]` (23/09/2026).
+//
+// Estava só minúsculas, e todas as listas que existiam eram de palavras
+// simples — `carro`, `caducado`, `caixas` —, por isso nunca se notou. Ao
+// acrescentar os motivos de avaliação, que são camelCase (`naoFoiAoLocal`,
+// `precoAcima`), o verificador leu 4 dos 10 e **passou**.
+//
+// É o pior modo de falha que um verificador tem: não acusa nada e deixa de
+// verificar. Aqueles seis identificadores podiam divergir entre o servidor e
+// a app para sempre, e a lista de queixas apareceria no ecrã com motivos que
+// o servidor deitava fora em silêncio.
+//
+// Confirmado depois de alargar: as quatro listas antigas continuam a contar
+// exactamente o mesmo — 12, 7, 4, 8 e 28 —, por isso não apanhou nada de
+// novo por engano.
 function idsDe(caminho, marcador) {
   const texto = readFileSync(caminho, 'utf8');
   const bloco = texto.slice(texto.indexOf(marcador));
-  return [...bloco.slice(0, bloco.indexOf('];')).matchAll(/'([a-z]+)'/g)].map((m) => m[1]);
+  return [...bloco.slice(0, bloco.indexOf('];')).matchAll(/'([a-zA-Z]+)'/g)].map((m) => m[1]);
 }
 
 const naApp = idsDe('src/components/NomearLugar.js', 'const LISTA_TIPOS = [');
@@ -223,6 +238,41 @@ if (!vApp || vApp !== vServidor) {
   problemas.push(`versão dos termos do motorista: app ${vApp} ≠ servidor ${vServidor}`);
 }
 
+// ── e os motivos de AVALIAÇÃO, pela quinta vez ──
+//
+// O comentário acima dizia «se aparecer uma quarta, o sítio é este». Apareceu
+// uma quinta. Duas listas, uma por cada lado de quem é avaliado, escritas no
+// servidor (`ratings.js`) e copiadas à mão no painel de avaliação — porque
+// esse painel abre no fim de uma viagem, muitas vezes já sem rede, e uma
+// lista pedida ao servidor não apareceria de todo.
+//
+// A chave de tradução é `'aval' + Id com a primeira letra grande`.
+const LISTAS_AVALIACAO = [
+  ['MOTIVOS_SOBRE_MOTORISTA', 'sobre o motorista'],
+  ['MOTIVOS_SOBRE_PASSAGEIRO', 'sobre o passageiro'],
+];
+let motivosAval = 0;
+for (const [nome, lado] of LISTAS_AVALIACAO) {
+  const noServidor = idsDe('../backend/src/ratings.js', `export const ${nome} = [`);
+  const naApp = idsDe('src/components/RatingPanel.js', `const ${nome} = [`);
+  if (!noServidor.length) problemas.push(`${nome} — não encontrei a lista no servidor`);
+  if (!naApp.length) problemas.push(`${nome} — não encontrei a lista no RatingPanel`);
+  for (const x of noServidor) {
+    if (!naApp.includes(x)) problemas.push(`motivo de avaliação '${x}' (${lado}) está no servidor mas não na app`);
+  }
+  for (const x of naApp) {
+    if (!noServidor.includes(x)) {
+      problemas.push(
+        `motivo de avaliação '${x}' (${lado}) está na app mas o servidor deita-o fora — a queixa perdia-se em silêncio`
+      );
+    }
+    const chave = 'aval' + x.charAt(0).toUpperCase() + x.slice(1);
+    const faltam = LINGUAS.filter((l) => dicionarios[l][chave] == null);
+    if (faltam.length) problemas.push(`${chave} — falta em ${faltam.join(', ')}`);
+  }
+  motivosAval += naApp.length;
+}
+
 if (problemas.length) {
   console.error('  ✗ tipos de lugar:\n');
   for (const p of problemas) console.error('    ' + p);
@@ -230,5 +280,6 @@ if (problemas.length) {
 }
 console.log(
   `  ✓ ${naApp.length} tipos de lugar, ${naAppDocs.length} documentos e ` +
-    `${naAppMotivos.length} motivos, ${naAppCarga.length} tipos de carga e ${naAppCores.length} cores, traduzidos e iguais nos dois lados`
+    `${naAppMotivos.length} motivos, ${naAppCarga.length} tipos de carga, ${naAppCores.length} cores ` +
+    `e ${motivosAval} motivos de avaliação, traduzidos e iguais nos dois lados`
 );

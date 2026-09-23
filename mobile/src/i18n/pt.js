@@ -436,6 +436,17 @@ export default {
   // Login
   loginTitle: 'Iniciar sessão',
   loginSubtitle: 'Entre com o seu número de telemóvel.',
+  ratePorque: 'O que correu mal?',
+  rateOpcional: 'Pode escolher até três. É opcional.',
+  avalConducao: 'Conduziu sem cuidado',
+  avalNaoFoiAoLocal: 'Não foi ao sítio combinado',
+  avalAtraso: 'Demorou muito a chegar',
+  avalMalcriado: 'Foi malcriado',
+  avalPrecoAcima: 'Pediu mais dinheiro do que o combinado',
+  avalNaoApareceu: 'Não apareceu',
+  avalFezEsperar: 'Fez-me esperar muito',
+  avalNaoEstavaNoLocal: 'Não estava no sítio combinado',
+  avalCargaDiferente: 'A carga não era a combinada',
   sessaoAvisoTitulo: 'A sua conta foi aberta noutro telemóvel',
   sessaoAvisoTexto:
     'Pode terminar a viagem que tem em mãos. Depois disso terá de entrar de novo. Se não foi você, avise a TimorgianaRide e mude a palavra-passe.',

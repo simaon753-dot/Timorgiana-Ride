@@ -678,8 +678,8 @@ export function RideProvider({ children }) {
   }, [token, activeId]);
 
   const rateRide = useCallback(
-    async (id, stars) => {
-      await api.rateRide(token, id, stars);
+    async (id, stars, motivos = []) => {
+      await api.rateRide(token, id, stars, motivos);
       setRated(true);
     },
     [token]

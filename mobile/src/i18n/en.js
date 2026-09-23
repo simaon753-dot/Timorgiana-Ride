@@ -434,6 +434,17 @@ export default {
 
   loginTitle: 'Sign in',
   loginSubtitle: 'Sign in with your phone number.',
+  ratePorque: 'What went wrong?',
+  rateOpcional: 'You can pick up to three. It is optional.',
+  avalConducao: 'Drove carelessly',
+  avalNaoFoiAoLocal: 'Did not go to the agreed place',
+  avalAtraso: 'Took too long to arrive',
+  avalMalcriado: 'Was rude',
+  avalPrecoAcima: 'Asked for more money than agreed',
+  avalNaoApareceu: 'Did not show up',
+  avalFezEsperar: 'Kept me waiting a long time',
+  avalNaoEstavaNoLocal: 'Was not at the agreed place',
+  avalCargaDiferente: 'The load was not what was agreed',
   sessaoAvisoTitulo: 'Your account was opened on another phone',
   sessaoAvisoTexto:
     'You can finish the ride you are on. After that you will have to sign in again. If it was not you, tell TimorgianaRide and change your password.',

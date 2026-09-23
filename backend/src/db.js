@@ -860,6 +860,16 @@ export async function initSchema() {
   // Nulo em tudo o que já existe, e nulo também quando o ponto apontado JÁ
   // era na estrada — que é o caso mais comum. Havendo, o pino vai para aqui
   // e o traço aos pontinhos liga-o à estrada.
+  // O PORQUÊ DE UMA AVALIAÇÃO BAIXA (23/09/2026). Ver `ratings.js`.
+  //
+  // Um array e não uma coluna por motivo: a lista há-de crescer, e uma
+  // coluna nova por cada queixa que se lembre seria uma migração por ideia.
+  // Assim conta-se com `unnest(motivos)` e procura-se com `= ANY(motivos)`.
+  //
+  // Vazio nas avaliações de quatro e cinco estrelas, e vazio em tudo o que
+  // foi avaliado antes de isto existir.
+  await query(`ALTER TABLE ratings ADD COLUMN IF NOT EXISTS motivos TEXT[] NOT NULL DEFAULT '{}'`);
+
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS origin_escolhido_lat DOUBLE PRECISION`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS origin_escolhido_lng DOUBLE PRECISION`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS dest_escolhido_lat DOUBLE PRECISION`);
