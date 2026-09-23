@@ -182,6 +182,35 @@ const APROXIMACAO_DESVIO_M = 300;
 // pino já está na estrada e não há troço nenhum a desenhar.
 const DESVIO_DA_ESTRADA_M = 15;
 
+// A LINHA SAÍA AZUL NO IPHONE (23/09/2026). Defeito do react-native-maps
+// 1.20.1, não nosso — e vale a pena escrever aqui porque é invisível a olho
+// no nosso código: nós declaramos a cor e ela é ignorada.
+//
+// Em `ios/AirGoogleMaps/AIRGoogleMapPolyline.m`, o construtor faz
+//
+//     _polyline.spans = @[[GMSStyleSpan spanWithColor:_strokeColor]];
+//
+// com `_strokeColor` ainda a nil. Depois, `setStrokeColor:` escreve a cor em
+// `_polyline.strokeColor` e chama `configureStyleSpansIfNeeded` — que começa
+// por `if (!_strokeColor || !_lineDashPattern || !_polyline.path) return;`.
+//
+// Ou seja: os «spans» só são refeitos quando a linha é TRACEJADA. Numa linha
+// cheia fica lá o span de cor nula do construtor, e no SDK do Google os
+// spans mandam sobre o strokeColor — a cor por omissão de um GMSPolyline é
+// azul. Daí o azul, e daí as tracejadas saírem bem: essas passam pelo ramo
+// que reconstrói os spans com a cor certa.
+//
+// O `strokeColors` (plural) escreve os spans directamente. Com uma cor só,
+// pinta a linha toda dessa cor e apaga o span estragado.
+//
+// SÓ NO iOS, e só nas linhas CHEIAS. No Android a cor é aplicada como deve
+// ser (`options.color(color)`), e nas tracejadas mexer nos spans desfazia o
+// tracejado, que ali já funciona.
+//
+// Corrigido em JS e não trocando de biblioteca de propósito: assim chega por
+// actualização pelo ar, sem APK novo.
+const corDaLinha = (cor) => (Platform.OS === 'ios' ? { strokeColors: [cor] } : null);
+
 const PEQUENO = {
   origem: require('../../assets/mapa/pino-origem-pequeno.png'),
   destino: require('../../assets/mapa/pino-destino-pequeno.png'),
@@ -1600,6 +1629,7 @@ export default function MapaGoogle({
             key="estrada-contorno"
             coordinates={rota.linha}
             strokeColor="#0A463F"
+            {...corDaLinha('#0A463F')}
             strokeWidth={10}
             lineCap="round"
             lineJoin="round"
@@ -1618,6 +1648,7 @@ export default function MapaGoogle({
             key="estrada"
             coordinates={rota.linha}
             strokeColor="#0E5C54"
+            {...corDaLinha('#0E5C54')}
             strokeWidth={6}
             lineCap="round"
             lineJoin="round"
