@@ -42,7 +42,7 @@ import {
 import { notificarPedidoNovo, notificarAceite, notificarAdminsSOS } from '../push.js';
 import { one, query } from '../db.js';
 import { preco, straightKm } from '../routing.js';
-import { rotaCompleta } from '../rotas.js';
+import { rotaCompleta, TOLERANCIA_KM } from '../rotas.js';
 import { podeIr } from '../cobertura.js';
 import { config } from '../config.js';
 import { registarDia } from '../assinatura.js';
@@ -389,6 +389,40 @@ ridesRouter.post(
       // A carga vai junto pela mesma razão que o número de pessoas: o volume
       // multiplica a distância e a ajuda soma uma parcela. Ignorados aqui, o
       // passageiro via um preço no ecrã e a viagem nascia com outro.
+      // O CAMINHO QUE O PASSAGEIRO ESCOLHEU (23/09/2026).
+      //
+      // Vem o ÍNDICE, nunca o preço. Se a app mandasse o preço, bastava
+      // alterá-lo no telemóvel para pagar sempre o mínimo — a conta é feita
+      // aqui de propósito, e é por isso que também tem de ser aqui a escolha
+      // do caminho.
+      //
+      // A memória de dez minutos das rotas faz com que este pedido apanhe a
+      // MESMA lista que a cotação de há segundos: o índice 1 continua a ser o
+      // mesmo caminho.
+      //
+      // E SE NÃO APANHAR? Se a memória expirou e o Google devolveu outra
+      // coisa, a distância já não bate certo com a que foi mostrada. Aí não
+      // se cobra em silêncio um valor que ninguém viu: devolve-se o preço
+      // novo e pede-se confirmação. Um preço que muda sozinho é pior do que
+      // um preço que pede licença.
+      const escolhido = Number(req.body?.caminho);
+      const alternativas = viagem.opcoes || [viagem];
+      if (Number.isInteger(escolhido) && escolhido > 0 && escolhido < alternativas.length) {
+        const c = alternativas[escolhido];
+        const mostrado = Number(req.body?.caminhoKm);
+        if (Number.isFinite(mostrado) && Math.abs(c.km - mostrado) > TOLERANCIA_KM) {
+          return res.status(409).json({
+            error: 'O caminho mudou. Confirma o preço novo.',
+            motivo: 'caminho_mudou',
+            distanceKm: c.km,
+            durationMin: c.min,
+          });
+        }
+        viagem.km = c.km;
+        viagem.min = c.min;
+        viagem.linha = c.linha;
+      }
+
       precoFinal = preco(
         TIPOS_VEICULO.includes(vehicleType) ? vehicleType : 'car',
         viagem.km,

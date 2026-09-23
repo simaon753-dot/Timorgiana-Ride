@@ -120,8 +120,35 @@ function guardarErro(http, texto) {
 // desenhado para a Índia, a Indonésia e o Vietname, e Timor-Leste é desses.
 export const MODO = { motorbike: 'TWO_WHEELER', car: 'DRIVE', carry: 'DRIVE' };
 
+// QUANTOS CAMINHOS SE MOSTRAM (23/09/2026). Três, como o Google, e a decisão
+// é do Simão: «mostrar até 3, vamos testar; se funciona, manter».
+//
+// O «até» é literal — o Google devolve os que existirem, e em muitos
+// percursos de Díli há um só. Nesse caso a app desenha um, como sempre.
+//
+// Está aqui, e não no ecrã que os mostra, porque quem VALIDA a escolha é o
+// servidor no momento de criar a viagem: o mesmo número tem de mandar nos
+// dois sítios, senão um índice aceite ao mostrar era recusado ao pedir.
+export const MAX_CAMINHOS = 3;
+
+// Quanto pode a rota recalculada afastar-se da que foi mostrada antes de se
+// considerar que é OUTRO caminho. Trezentos metros é menos do que qualquer
+// alternativa a sério e mais do que o ruído de um recálculo.
+export const TOLERANCIA_KM = 0.3;
+
 function peloGoogleModo(tipo) {
   return MODO[tipo] || 'DRIVE';
+}
+
+// Uma rota da resposta do Google, na forma que o resto do projecto conhece.
+// Devolve nada se lhe faltar a linha — sem linha não há o que desenhar, e uma
+// distância sem caminho não se pode mostrar a ninguém.
+function umaRota(rota) {
+  const comprimida = rota?.polyline?.encodedPolyline;
+  if (!comprimida) return null;
+  const km = Math.round((Number(rota.distanceMeters) / 1000) * 10) / 10;
+  const seg = Number(String(rota.duration || '0s').replace('s', ''));
+  return { km, min: duracaoRealista(km, seg / 60), linha: descomprimir(comprimida) };
 }
 
 async function peloGoogle(a, b, intermedios = [], modo = 'DRIVE') {
@@ -158,6 +185,27 @@ async function peloGoogle(a, b, intermedios = [], modo = 'DRIVE') {
             }
           : {}),
         travelMode: modo,
+        // AS ALTERNATIVAS VÊM NA MESMA CHAMADA (23/09/2026).
+        //
+        // É uma bandeira no pedido que já fazíamos, e não pedidos a mais: o
+        // Google devolve duas ou três rotas em vez de uma. Isto é o que torna
+        // a escolha de caminho POSSÍVEL — o nosso tecto conta CHAMADAS, e se
+        // três alternativas custassem três chamadas, cada passageiro que
+        // abrisse o ecrã gastava o triplo e o tecto acabava a meio da manhã.
+        //
+        // O que aumenta é o tamanho da resposta, não o preço dela. A
+        // `FieldMask` acima não muda, e é ela que decide o escalão.
+        //
+        // NUNCA COM PARAGENS PELO CAMINHO. A Routes API não dá alternativas a
+        // um percurso com pontos intermédios, e pedir as duas coisas ao mesmo
+        // tempo faz o pedido INTEIRO ser recusado — não é que viessem sem
+        // alternativas: vinha um erro, caíamos no OSRM, e uma entrega de
+        // Carry com duas paragens passava a ser cotada por um motor pior sem
+        // ninguém perceber porquê.
+        //
+        // É o caso em que perder a funcionalidade não custa nada: quem
+        // definiu onde passar já escolheu o caminho.
+        ...(intermedios.length ? {} : { computeAlternativeRoutes: true }),
         // Sem trânsito em tempo real de propósito: é um SKU mais caro, e a
         // nossa estimativa de tempo já assume a velocidade real de Díli.
         routingPreference: 'TRAFFIC_UNAWARE',
@@ -169,17 +217,12 @@ async function peloGoogle(a, b, intermedios = [], modo = 'DRIVE') {
     }
     ultimoErroGoogle = null;
     const j = await r.json();
-    const rota = j?.routes?.[0];
-    const comprimida = rota?.polyline?.encodedPolyline;
-    if (!comprimida) return null;
-    const km = Math.round((Number(rota.distanceMeters) / 1000) * 10) / 10;
-    const seg = Number(String(rota.duration || '0s').replace('s', ''));
-    return {
-      km,
-      min: duracaoRealista(km, seg / 60),
-      linha: descomprimir(comprimida),
-      fonte: 'google',
-    };
+    const opcoes = (j?.routes || []).map(umaRota).filter(Boolean);
+    if (!opcoes.length) return null;
+    // A PRIMEIRA CONTINUA A SER A ROTA, com a forma de sempre. Tudo o que já
+    // lê `km`, `min` e `linha` não muda uma linha por causa disto; quem
+    // quiser escolher caminho lê o `opcoes`, que é novo.
+    return { ...opcoes[0], fonte: 'google', opcoes };
   } catch (e) {
     // TAMBÉM AQUI, e não só no `!r.ok`. Este ramo apanha o que nunca chegou a
     // ser resposta: sem rede, DNS a falhar, e sobretudo o PRAZO de 8 segundos

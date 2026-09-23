@@ -94,6 +94,11 @@ export default function RequestRideScreen({ navigation, route }) {
   // lenta é a parte que custa.
   const [destino, setDestino] = useState(route?.params?.destino || null);
   const [orcamento, setOrcamento] = useState(null);
+  // QUAL DOS CAMINHOS ESTÁ ESCOLHIDO (23/09/2026, pedido do Simão).
+  //
+  // Um índice na lista `caminhos` da cotação. Zero é o que o Google põe à
+  // frente, e é o que fica quando ninguém toca em nada.
+  const [caminho, setCaminho] = useState(0);
   const [aCalcular, setACalcular] = useState(false);
   // "PROCURAR OUTRA VEZ", quando não há motorista por perto (16/09/2026).
   // `procuras` conta os toques e entra nas dependências da cotação; `aProcurar`
@@ -342,6 +347,12 @@ export default function RequestRideScreen({ navigation, route }) {
       .then((q) => {
         if (cancelado) return;
         setOrcamento(q);
+        // A ESCOLHA MORRE COM A COTAÇÃO QUE A ORIGINOU. Trocar de veículo,
+        // mover um ponto ou pedir outra vez devolve caminhos novos, e o
+        // índice 1 dos antigos podia ser um caminho que já não existe — ou,
+        // pior, outro caminho com outro preço, ficando escolhido sem
+        // ninguém o ter escolhido.
+        setCaminho(0);
         setUltimaProcura(new Date());
       })
       // Numa nova procura, manual ou automática, uma falha de rede NÃO apaga o
@@ -782,6 +793,11 @@ export default function RequestRideScreen({ navigation, route }) {
         // rua». Mandá-lo custa dois números e resolve isso.
         originEscolhido: origem.escolhido || null,
         destEscolhido: destino.escolhido || null,
+        // O ÍNDICE, e nunca o preço. Quem faz a conta é o servidor; se o
+        // preço viesse daqui, bastava alterá-lo no telemóvel para pagar
+        // sempre o mínimo. O `caminhoKm` vai junto para ele poder confirmar
+        // que o caminho que vai cobrar é o mesmo que esteve no ecrã.
+        ...(caminho > 0 && caminhoPosto ? { caminho, caminhoKm: caminhoPosto.distanceKm } : {}),
         vehicleType: veiculoAtual,
         ...(veiculo(veiculoAtual).perguntaLugares || carryPessoas ? { passengers: pessoas } : {}),
         ...(veiculoAtual === 'carry' ? { carryModo: modoCarry } : {}),
@@ -1110,7 +1126,22 @@ export default function RequestRideScreen({ navigation, route }) {
   // verdade — e não rebenta: devolve `undefined` e o preço desaparece do
   // botão, em silêncio. Nenhum verificador apanha isto; apanhou-o uma busca
   // às sobras da renomeação.
-  const opcao = orcamento?.options?.find((o) => o.type === veiculoAtual);
+  const opcaoBase = orcamento?.options?.find((o) => o.type === veiculoAtual);
+
+  // O CAMINHO MANDA NO PREÇO. A opção do veículo traz o preço do caminho que
+  // o Google pôs à frente; se a pessoa escolheu outro, é o dele que vale — e
+  // tem de ser o mesmo número em toda a parte, porque este `opcao` alimenta o
+  // botão, a pastilha do veículo e o resumo do pedido.
+  const caminhoPosto = orcamento?.caminhos?.[caminho] || null;
+  const opcao =
+    opcaoBase && caminhoPosto
+      ? {
+          ...opcaoBase,
+          fareUsd: caminhoPosto.fareUsd,
+          distanceKm: caminhoPosto.distanceKm,
+          durationMin: caminhoPosto.durationMin,
+        }
+      : opcaoBase;
 
   // Pedir depende de haver DOIS PONTOS, não de haver preço.
   //
@@ -1213,7 +1244,10 @@ export default function RequestRideScreen({ navigation, route }) {
           // determinou o preço e outra desenhada por cima. Podiam divergir, e
           // numa discussão sobre a tarifa não haveria como mostrar por onde é
           // que o preço passou.
-          linhaDaRota={orcamento?.linha || null}
+          linhaDaRota={caminhoPosto?.linha || orcamento?.linha || null}
+          caminhos={orcamento?.caminhos || []}
+          caminhoEscolhido={caminho}
+          onEscolherCaminho={setCaminho}
           markers={marcadores}
           onPick={escolherNoMapa}
           arrastavel={!aEscolherNoMapa && !(origem && destino)}

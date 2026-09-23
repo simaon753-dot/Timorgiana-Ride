@@ -4,7 +4,7 @@ import { MAX_ITENS, taxaDe, viagensDoPassageiro } from '../jastip.js';
 import { MINUTOS_ATE_DESISTIR } from '../rides.js';
 import { requireAuth } from '../auth.js';
 import { preco, etaMinutos, straightKm } from '../routing.js';
-import { rotaCompleta, MODO } from '../rotas.js';
+import { rotaCompleta, MODO, MAX_CAMINHOS } from '../rotas.js';
 import { limparDestinos } from '../destinosDaViagem.js';
 import { paragensQueCobrem } from '../paradas.js';
 import { nearestDrivers } from '../drivers.js';
@@ -167,7 +167,42 @@ quoteRouter.post(
       })
     );
 
+    // OS CAMINHOS ALTERNATIVOS (23/09/2026, pedido do Simão).
+    //
+    // Só do veículo ESCOLHIDO. Mandar os caminhos dos três triplicaria a
+    // resposta — cada linha são centenas de pontos — para desenhar dois que
+    // ninguém está a ver.
+    //
+    // Cada um leva o SEU preço, e é esse o ponto todo: o passageiro não
+    // escolhe uma linha no mapa, escolhe um preço. A conta é a mesma da opção
+    // de veículo, com os quilómetros e os minutos deste caminho.
+    //
+    // Sem alternativas — OSRM, linha recta, ou um sítio onde o Google só
+    // conhece um caminho — fica um só, e a app desenha-o como sempre desenhou.
+    const tipoEscolhido = TIPOS_VEICULO.includes(req.body?.vehicleType)
+      ? req.body.vehicleType
+      : 'car';
+    const caminhos = (viagem.opcoes || [viagem]).slice(0, MAX_CAMINHOS).map((c, i) => ({
+      indice: i,
+      distanceKm: c.km,
+      durationMin: c.min,
+      linha: c.linha || null,
+      fareUsd:
+        Math.round(
+          (preco(
+            tipoEscolhido,
+            c.km,
+            c.min,
+            tipoEscolhido === 'car' || (tipoEscolhido === 'carry' && carryPessoas) ? pessoas : null,
+            tipoEscolhido === 'carry' && carryPessoas ? null : carga
+          ) +
+            taxaEncomenda) *
+            100
+        ) / 100,
+    }));
+
     return res.json({
+      caminhos,
       distanceKm: viagem.km,
       durationMin: viagem.min,
       approximate: viagem.aproximado,

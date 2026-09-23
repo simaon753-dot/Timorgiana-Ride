@@ -230,6 +230,17 @@ const corDaLinha = (cor) => (Platform.OS === 'ios' ? { strokeColors: [cor] } : n
 const LINHA = '#26877D';
 const LINHA_CONTORNO = '#0A463F';
 
+// O caminho que NÃO está escolhido. Cinzento com um toque do verde da app,
+// para não parecer uma estrada do mapa nem uma cor de outro sistema.
+const ALTERNATIVA = '#8A9A95';
+
+// Abaixo disto duas rotas são a mesma rota com um desvio de esquina, e duas
+// etiquetas ficariam uma em cima da outra.
+const AFASTAMENTO_MINIMO_M = 120;
+
+// Largura da pastilha do caminho: cabe «31 min · $8,45» sem partir.
+const CAMINHO_L = 116;
+
 const PEQUENO = {
   origem: require('../../assets/mapa/pino-origem-pequeno.png'),
   destino: require('../../assets/mapa/pino-destino-pequeno.png'),
@@ -626,6 +637,18 @@ export default function MapaGoogle({
   //
   // É o troço de APROXIMAÇÃO, que existe só enquanto ele vai a caminho.
   aproximacaoAte = null,
+  // OS CAMINHOS ALTERNATIVOS (23/09/2026, pedido do Simão).
+  //
+  // `[{ indice, linha, durationMin, fareUsd }]`, já com o preço de cada um,
+  // e `caminhoEscolhido` diz qual está posto. Os outros desenham-se em
+  // cinzento por baixo e respondem ao toque.
+  //
+  // Só o ecrã de PEDIR os passa. Decisão dele: «só no ecrã do passageiro».
+  // Depois de a viagem estar aceite o caminho já não é uma pergunta, e três
+  // linhas no mapa de quem está a conduzir seriam ruído.
+  caminhos = [],
+  caminhoEscolhido = 0,
+  onEscolherCaminho,
   // ETIQUETAR OS PINOS DA VIAGEM (23/09/2026, pergunta do Simão).
   //
   // Ele foi ao zoom máximo no ecrã do motorista e no do passageiro e não viu
@@ -1348,6 +1371,69 @@ export default function MapaGoogle({
   // `aMexer`), que é quando as coordenadas de ecrã mudam mesmo.
   const rotularKey = aRotular.map((r) => `${r.qual}:${r.lat},${r.lng}`).join('|');
 
+  // ── AS ETIQUETAS DOS CAMINHOS ALTERNATIVOS ─────────────────────────
+  //
+  // ONDE SE PÕE A ETIQUETA. Não no meio da linha: duas rotas que partilham o
+  // princípio e o fim têm muitas vezes o meio quase no mesmo sítio, e as duas
+  // etiquetas ficavam uma em cima da outra.
+  //
+  // Põe-se no ponto onde esta alternativa mais se AFASTA da escolhida — que é
+  // exactamente onde ela se distingue, e é o que o Google faz. A conta é
+  // barata porque se amostra de dez em dez pontos: umas centenas de contas
+  // por alternativa, uma vez por caminho, e não a cada desenho.
+  const ondeRotularCaminhos = useMemo(() => {
+    const posta = caminhos[caminhoEscolhido]?.linha;
+    if (caminhos.length < 2 || !posta?.length) return [];
+    const amostra = (l) => l.filter((_, i) => i % 10 === 0 || i === l.length - 1);
+    const base = amostra(posta);
+    return caminhos
+      .map((c, i) => {
+        if (i === caminhoEscolhido || !c.linha?.length) return null;
+        let melhor = null;
+        let maior = -1;
+        for (const p of amostra(c.linha)) {
+          let perto = Infinity;
+          for (const q of base) perto = Math.min(perto, metrosEntre(p, q));
+          if (perto > maior) {
+            maior = perto;
+            melhor = p;
+          }
+        }
+        // Coladas uma à outra não são duas escolhas: se a alternativa nunca
+        // se afasta mais do que isto, não vale a pena rotulá-la.
+        return melhor && maior > AFASTAMENTO_MINIMO_M ? { indice: i, ...melhor } : null;
+      })
+      .filter(Boolean);
+  }, [caminhos, caminhoEscolhido]);
+
+  const [caminhosNoEcra, setCaminhosNoEcra] = useState([]);
+  const caminhosKey = ondeRotularCaminhos.map((c) => `${c.indice}:${c.lat},${c.lng}`).join('|');
+
+  useEffect(() => {
+    let vivo = true;
+    if (!mapaPronto || !mapaRef.current || !ondeRotularCaminhos.length) {
+      setCaminhosNoEcra([]);
+      return undefined;
+    }
+    Promise.all(
+      ondeRotularCaminhos.map((c) =>
+        mapaRef.current.pointForCoordinate({ latitude: c.lat, longitude: c.lng }).catch(() => null)
+      )
+    )
+      .then((pontos) => {
+        if (!vivo) return;
+        setCaminhosNoEcra(
+          ondeRotularCaminhos
+            .map((c, i) => (pontos[i] ? { ...c, x: pontos[i].x, y: pontos[i].y } : null))
+            .filter(Boolean)
+        );
+      })
+      .catch(() => vivo && setCaminhosNoEcra([]));
+    return () => {
+      vivo = false;
+    };
+  }, [caminhosKey, mapaPronto, aMexer, delta]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     let vivo = true;
     const perto = delta != null && delta < PERTO;
@@ -1607,6 +1693,46 @@ export default function MapaGoogle({
             caminho e ligamos os dois pontos a direito; o tracejado é o que
             diz "isto é um palpite". Vesti-la com o acabamento da rota a
             sério era dar-lhe uma confiança que ela não tem. */}
+        {/* OS CAMINHOS NÃO ESCOLHIDOS, por baixo de tudo o resto.
+            Cinzentos e mais finos: o cinzento diz «isto não está escolhido»
+            sem competir com o que está, e as nossas cores já estão ocupadas
+            — o verde é o caminho, o coral é o destino. Uma terceira cor de
+            marca obrigava a pessoa a aprender o que significa.
+
+            `tappable` com uma linha larga por baixo: o toque num traço de 5
+            pontos falha quase sempre num telemóvel a andar. A de baixo é
+            transparente e só serve para apanhar o dedo — é o mesmo truque do
+            Google. */}
+        {caminhos.map((c, i) =>
+          i === caminhoEscolhido || !c.linha?.length ? null : (
+            <Polyline
+              key={`alt-toque-${i}`}
+              coordinates={c.linha.map((p) => ({ latitude: p.lat, longitude: p.lng }))}
+              strokeColor="rgba(0,0,0,0.01)"
+              strokeWidth={26}
+              tappable
+              onPress={() => onEscolherCaminho && onEscolherCaminho(i)}
+              zIndex={0}
+            />
+          )
+        )}
+        {caminhos.map((c, i) =>
+          i === caminhoEscolhido || !c.linha?.length ? null : (
+            <Polyline
+              key={`alt-${i}`}
+              coordinates={c.linha.map((p) => ({ latitude: p.lat, longitude: p.lng }))}
+              strokeColor={ALTERNATIVA}
+              {...corDaLinha(ALTERNATIVA)}
+              strokeWidth={5}
+              lineCap="round"
+              lineJoin="round"
+              tappable
+              onPress={() => onEscolherCaminho && onEscolherCaminho(i)}
+              zIndex={0}
+            />
+          )
+        )}
+
         {rota && rota.tracejada ? (
           <Polyline
             key="recta"
@@ -1812,6 +1938,32 @@ export default function MapaGoogle({
             >
               <Cartao nome={c.nome} detalhe={c.detalhe} qual={c.qual} />
             </View>
+          );
+        })}
+
+      {/* O PREÇO DE CADA CAMINHO NÃO ESCOLHIDO.
+          Sem isto o passageiro via uma linha cinzenta e não sabia se era
+          mais barata ou mais cara — e o ponto todo da funcionalidade é o
+          preço. Some enquanto o dedo arrasta, como tudo o que é desenhado
+          por cima: uma etiqueta atrasada aponta para o caminho errado.
+
+          Tocável também aqui: apanhar a linha com o dedo é difícil, e a
+          pastilha é o alvo grande que existe de qualquer maneira. */}
+      {!aMexer &&
+        caminhosNoEcra.map((c) => {
+          const dados = caminhos[c.indice];
+          if (!dados) return null;
+          return (
+            <Pressable
+              key={`cam-${c.indice}`}
+              onPress={() => onEscolherCaminho && onEscolherCaminho(c.indice)}
+              style={[styles.caminhoPastilha, { left: c.x - CAMINHO_L / 2, top: c.y - 18 }]}
+              accessibilityRole="button"
+            >
+              <Text style={styles.caminhoTexto} numberOfLines={1}>
+                {dados.durationMin} min · ${Number(dados.fareUsd).toFixed(2)}
+              </Text>
+            </Pressable>
           );
         })}
 
@@ -2213,6 +2365,19 @@ const criarEstilos = () =>
       ...elevacao.flutuante,
     },
     guiarConteudo: { transform: [{ rotate: '-45deg' }] },
+    caminhoPastilha: {
+      position: 'absolute',
+      width: CAMINHO_L,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 5,
+      backgroundColor: colors.white,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: ALTERNATIVA,
+      ...elevacao.flutuante,
+    },
+    caminhoTexto: { ...tipo.pequeno, color: colors.text },
     rotuloSolto: {
       position: 'absolute',
       width: ROTULO_L,
