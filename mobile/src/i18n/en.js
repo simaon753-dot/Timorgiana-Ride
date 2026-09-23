@@ -434,6 +434,8 @@ export default {
 
   loginTitle: 'Sign in',
   loginSubtitle: 'Sign in with your phone number.',
+  sessaoNoutroAparelho:
+    'Your account was opened on another phone. If it was not you, sign in and change your password.',
   loginButton: 'Sign in',
   recEsqueci: 'I forgot my password',
   recTitulo: 'Recover access',

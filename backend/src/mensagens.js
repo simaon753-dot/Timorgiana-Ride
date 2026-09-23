@@ -97,6 +97,10 @@ export const MENSAGENS = {
   'Token em falta.': ['Falta token.', 'Missing token.'],
   'Token inválido ou expirado.': ['Token la válidu ka kaduka ona.', 'Invalid or expired token.'],
   'Utilizador não encontrado.': ['La hetan utilizadór.', 'User not found.'],
+  'A tua conta foi aberta noutro telemóvel. Entra de novo para continuares aqui.': [
+    'Ita-nia konta loke ona iha telemóvel seluk. Tama fali atu kontinua iha ne’e.',
+    'Your account was opened on another phone. Sign in again to continue here.',
+  ],
   'Serviço indisponível. Tenta de novo.': [
     'Servisu la disponível. Koko fila-fali.',
     'Service unavailable. Try again.',

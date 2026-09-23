@@ -59,6 +59,14 @@ export function definirAoPerderSessao(fn) {
   aoPerderSessao = fn;
 }
 
+// O canal de tempo real também sabe disto: quando a conta é aberta noutro
+// telemóvel, o servidor avisa pelo socket e corta. Sem esta porta, quem
+// estivesse parado num ecrã só descobria no pedido seguinte — um motorista à
+// espera de viagens podia ficar minutos a olhar para uma app já expulsa.
+export function perderSessao(motivo) {
+  if (aoPerderSessao) aoPerderSessao(motivo);
+}
+
 // Avisa a interface de que a ligação está demorada (servidor a acordar)
 let onSlow = null;
 export function setSlowHandler(fn) {
@@ -121,7 +129,7 @@ async function request(path, { method = 'GET', body, token } = {}) {
     // Só com token: um 401 sem token é o servidor a dizer «isto precisa de
     // sessão», não «a tua sessão acabou» — e terminar sessão a quem ainda
     // não entrou não faz sentido nenhum.
-    if (res.status === 401 && token && aoPerderSessao) aoPerderSessao();
+    if (res.status === 401 && token && aoPerderSessao) aoPerderSessao(data?.motivo);
     throw new ApiError(data?.error || 'Erro inesperado.', res.status, data?.motivo);
   }
   return data;

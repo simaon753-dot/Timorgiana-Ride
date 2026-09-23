@@ -22,7 +22,7 @@ import { colors, spacing, registarEstilos } from '../theme.js';
 
 export default function LoginScreen({ navigation }) {
   const { t } = useI18n();
-  const { login } = useAuth();
+  const { login, motivoSaida } = useAuth();
 
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -68,6 +68,17 @@ export default function LoginScreen({ navigation }) {
           <Text style={styles.subtitle}>{t('loginSubtitle')}</Text>
 
           <View style={styles.form}>
+            {/* PORQUE É QUE ESTÁ AQUI OUTRA VEZ (23/09/2026).
+                Quem é expulso por a conta ter sido aberta noutro telemóvel
+                cai neste ecrã sem ter carregado em nada. Sem esta linha
+                parece que a app o deitou fora por avaria — e um aviso de
+                segurança que ninguém vê não avisa ninguém: quem não foi ele
+                a entrar, é aqui que fica a saber que tem de mudar a senha.
+                Fica em «aviso» e não «erro»: não foi ele que errou. */}
+            {motivoSaida === 'sessao_noutro_aparelho' ? (
+              <Aviso tipoAviso="aviso" texto={t('sessaoNoutroAparelho')} style={styles.erro} />
+            ) : null}
+
             <TextField
               label={t('phone')}
               value={phone}

@@ -1392,7 +1392,12 @@ $('btEntrar').onclick = async () => {
     const r = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: $('tel').value.trim(), password: $('pw').value }),
+      // origem: 'painel' — ranhura de sessão própria, para não expulsar a app
+      body: JSON.stringify({
+        phone: $('tel').value.trim(),
+        password: $('pw').value,
+        origem: 'painel',
+      }),
     });
     const j = await r.json();
     if (!r.ok) throw new Error(j.error || 'Não entrou.');

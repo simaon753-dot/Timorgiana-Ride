@@ -99,8 +99,14 @@ export async function usarCodigo({ phone, codigo, password }) {
 
   const hash = await bcrypt.hash(String(password), 10);
   await query(
+    // A SESSÃO MORRE COM A SENHA (23/09/2026). Quem recupera a conta está,
+    // metade das vezes, a tirá-la de outra pessoa — e de que serviria a
+    // senha nova se o aparelho antigo continuasse lá dentro mais 30 dias?
+    // Pôr `sessao` a NULL não deixa nenhum token bater certo.
     `UPDATE users
         SET password_hash = $2,
+            sessao = NULL,
+            sessao_em = NULL,
             recuperacao_hash = NULL,
             recuperacao_expira = NULL,
             recuperacao_tentativas = 0

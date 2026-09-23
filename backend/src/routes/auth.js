@@ -12,7 +12,7 @@ import {
 import { emailBemFormado } from '../email.js';
 import { emitirConfirmacao, confirmarComCodigo } from '../confirmacaoEmail.js';
 import { query } from '../db.js';
-import { signToken, requireAuth } from '../auth.js';
+import { abrirSessao, requireAuth } from '../auth.js';
 import { savePushToken } from '../drivers.js';
 import { usarCodigo } from '../recuperacao.js';
 import { porEndereco, segundosDeEspera, registarFalha, limparFalhas } from '../limitador.js';
@@ -148,7 +148,9 @@ authRouter.post('/register', async (req, res) => {
       console.error('[auth] confirmação de email:', e.message)
     );
 
-    return res.status(201).json({ user: toPublicUser(created), token: signToken(created) });
+    return res
+      .status(201)
+      .json({ user: toPublicUser(created), token: await abrirSessao(created) });
   } catch (err) {
     console.error('[auth/register]', err);
     return res.status(500).json({ error: 'Erro ao criar a conta.' });
@@ -197,7 +199,45 @@ authRouter.post('/login', async (req, res) => {
     }
 
     await limparFalhas(row.id);
-    return res.json({ user: toPublicUser(row), token: signToken(row) });
+
+    // ENTRAR AQUI FECHA A SESSÃO DE LÁ (23/09/2026).
+    //
+    // A ordem importa: primeiro o aviso, depois o corte. Um socket desligado
+    // não recebe nada, e o aparelho antigo ficaria simplesmente sem rede —
+    // a pessoa veria a app a falhar sem perceber porquê, até ao pedido
+    // seguinte dar 401.
+    //
+    // Desligar em vez de só marcar: o token velho já não passa no
+    // `verifyToken`, mas um canal ABERTO não é verificado outra vez. Ficaria
+    // um motorista expulso a receber pedidos até se desligar sozinho.
+    //
+    // O aparelho novo ainda não está ligado — só liga depois de receber este
+    // token —, por isso não há risco de ele se cortar a si próprio.
+    // De onde vem quem entra. Só o painel se anuncia; tudo o resto é a app,
+    // que é o caso a proteger. Se alguém mentir a dizer que é o painel, o
+    // que ganha é uma sessão de painel — continua a haver uma só de cada.
+    const superficie = req.body?.origem === 'painel' ? 'painel' : 'app';
+
+    // ENTRAR AQUI FECHA A SESSÃO DE LÁ (23/09/2026).
+    //
+    // A ordem importa: primeiro o aviso, depois o corte. Um socket desligado
+    // não recebe nada, e o aparelho antigo ficaria simplesmente sem rede —
+    // a pessoa veria a app a falhar sem perceber porquê, até ao pedido
+    // seguinte dar 401.
+    //
+    // Desligar em vez de só marcar: o token velho já não passa no
+    // `verifyToken`, mas um canal ABERTO não é verificado outra vez. Ficaria
+    // um motorista expulso a receber pedidos até se desligar sozinho.
+    //
+    // O aparelho novo ainda não está ligado — só liga depois de receber este
+    // token —, por isso não há risco de ele se cortar a si próprio.
+    const io = req.app.get('io');
+    if (io && superficie === 'app') {
+      io.to(`user:${row.id}`).emit('sessao:terminada');
+      io.in(`user:${row.id}`).disconnectSockets(true);
+    }
+
+    return res.json({ user: toPublicUser(row), token: await abrirSessao(row, superficie) });
   } catch (err) {
     console.error('[auth/login]', err);
     return res.status(500).json({ error: 'Erro ao iniciar sessão.' });

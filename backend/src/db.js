@@ -824,6 +824,34 @@ export async function initSchema() {
   // diz mais do que o rasto completo de um.
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_precisao_m INTEGER`);
 
+  // UMA CONTA, UM TELEMÓVEL (23/09/2026).
+  //
+  // O Simão entrou com a mesma conta no Android e no simulador iOS ao mesmo
+  // tempo, e ambos funcionaram. Não era um defeito partido: o token é um
+  // papel assinado que o servidor verifica e não guarda, por isso havia
+  // tantas sessões quantas as vezes que a senha certa fosse escrita.
+  //
+  // Isto era pouco grave do lado do passageiro e grave do lado do motorista:
+  // é assim que se empresta uma conta APROVADA a quem não foi aprovado — o
+  // dono passa a senha e outra pessoa conduz com o documento e a fotografia
+  // dele. E o servidor ficava a receber duas posições em conflito para o
+  // mesmo carro e dois «aceito» para o mesmo pedido.
+  //
+  // O número da sessão vai DENTRO do token e fica aqui. Cada pedido já vai
+  // buscar o utilizador à base de dados, por isso comparar os dois não custa
+  // consulta nenhuma a mais. Quem entra por último fica com a conta; o
+  // contrário — recusar a entrada nova enquanto houver sessão viva — fechava
+  // fora da própria conta quem perdesse ou partisse o telemóvel.
+  //
+  // De borla vem uma coisa que não existia: PODER EXPULSAR. Pôr esta coluna
+  // a NULL mata a sessão no instante seguinte, em vez de esperar os 30 dias
+  // do token. É o que a mudança de senha passa a fazer.
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS sessao TEXT`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS sessao_em TIMESTAMPTZ`);
+  // O painel de administração entra pelo mesmo /auth/login e tem a sua
+  // própria ranhura — ver o comentário em `auth.js`.
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS sessao_painel TEXT`);
+
   // CONTADORES POR DIA. Hoje só um — as chamadas de rota ao Google — mas a
   // tabela é geral porque o próximo há-de vir.
   //

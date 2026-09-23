@@ -44,7 +44,11 @@ export const api = {
   entrar: (phone: string, password: string) =>
     pedir<{ token: string; user: UtilizadorPublico }>('/auth/login', {
       method: 'POST',
-      corpo: { phone, password },
+      // `origem` diz ao servidor que isto é o painel, e não um telemóvel
+      // (23/09/2026). Sem isto, abrir o painel no portátil deitaria a app
+      // fora do telemóvel do administrador — uma conta tem uma sessão de
+      // app e uma de painel, não uma só.
+      corpo: { phone, password, origem: 'painel' },
     }),
   eu: () => pedir<{ user: UtilizadorPublico }>('/auth/me'),
   saude: () => pedir<Saude>('/health'),

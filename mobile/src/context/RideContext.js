@@ -3,7 +3,7 @@ import { AppState } from 'react-native';
 import { cargaCabe } from '../dados/veiculos.js';
 import { nomeDaRua, metrosEntre } from '../lib/geocode.js';
 import * as Location from 'expo-location';
-import { api } from '../api/client.js';
+import { api, perderSessao } from '../api/client.js';
 import { createSocket } from '../socket.js';
 import {
   comecarAEnviarPosicao,
@@ -184,6 +184,14 @@ export function RideProvider({ children }) {
       }
     });
     socket.on('disconnect', () => setConnected(false));
+
+    // A CONTA FOI ABERTA NOUTRO TELEMÓVEL (23/09/2026).
+    //
+    // O servidor avisa e corta a seguir. Chega por aqui, e não pelo primeiro
+    // pedido a falhar, porque um motorista à espera de viagens pode estar
+    // minutos sem fazer pedido nenhum — e não pode ficar esse tempo a olhar
+    // para uma app que já não é dele.
+    socket.on('sessao:terminada', () => perderSessao('sessao_noutro_aparelho'));
 
     socket.on('ride:new', (ride) => {
       // Desligado não ouve pedidos. O servidor já não o põe nas salas, mas um

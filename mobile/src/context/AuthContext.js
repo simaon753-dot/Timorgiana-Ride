@@ -9,6 +9,12 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [restoring, setRestoring] = useState(true); // a recuperar sessão guardada
+  // PORQUE É QUE A SESSÃO ACABOU (23/09/2026). Fica posto quando o servidor
+  // recusa o token e é lido pelo ecrã de entrada, que é para onde a pessoa
+  // cai. Sem ele, quem foi expulso por a conta ter sido aberta noutro
+  // telemóvel via a app a voltar ao princípio sem explicação nenhuma — e
+  // uma app que faz isso parece avariada, não parece segura.
+  const [motivoSaida, setMotivoSaida] = useState(null);
 
   // Ao abrir a app: tenta recuperar a sessão guardada e validá-la
   useEffect(() => {
@@ -36,6 +42,9 @@ export function AuthProvider({ children }) {
   const persist = useCallback(async ({ user, token }) => {
     setUser(user);
     setToken(token);
+    // Entrar limpa o aviso: já não faz sentido depois de a pessoa ter
+    // resolvido o que ele pedia.
+    setMotivoSaida(null);
     await guardarToken(token);
   }, []);
 
@@ -81,9 +90,10 @@ export function AuthProvider({ children }) {
   // Como o navegador escolhe a área pública quando não há `user`, a pessoa
   // aterra no ecrã de entrada — que é exactamente o que lhe falta fazer.
   useEffect(() => {
-    definirAoPerderSessao(() => {
+    definirAoPerderSessao((motivo) => {
       setUser(null);
       setToken(null);
+      setMotivoSaida(motivo || null);
       apagarToken().catch(() => {});
     });
     return () => definirAoPerderSessao(null);
@@ -92,12 +102,24 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     setUser(null);
     setToken(null);
+    setMotivoSaida(null);
     await apagarToken();
   }, []);
 
   return (
     <AuthContext.Provider
-      value={{ user, token, restoring, login, register, logout, refreshUser, ApiError }}
+      value={{
+        user,
+        token,
+        restoring,
+        login,
+        register,
+        logout,
+        refreshUser,
+        motivoSaida,
+        limparMotivoSaida: () => setMotivoSaida(null),
+        ApiError,
+      }}
     >
       {children}
     </AuthContext.Provider>

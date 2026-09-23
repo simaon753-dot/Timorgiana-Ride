@@ -436,6 +436,8 @@ export default {
   // Login
   loginTitle: 'Iniciar sessão',
   loginSubtitle: 'Entre com o seu número de telemóvel.',
+  sessaoNoutroAparelho:
+    'A sua conta foi aberta noutro telemóvel. Se não foi você, entre e mude a palavra-passe.',
   loginButton: 'Entrar',
   recEsqueci: 'Esqueci a palavra-passe',
   recTitulo: 'Recuperar o acesso',
