@@ -333,10 +333,6 @@ export default function DriverHomeScreen({ navigation }) {
                   ? { lat: activeRide.originLat, lng: activeRide.originLng }
                   : null
               }
-              // QUAL DOS PINOS É QUAL, ao zoom máximo. Com uma viagem em
-              // curso há dois pinos no mapa e a cor é a única coisa que os
-              // distingue — e a cor não se lê de relance a conduzir.
-              rotularPinos={!!activeRide}
               height={activeRide ? 220 : 190}
               info={
                 activeRide ? { km: activeRide.distanceKm, min: activeRide.durationMin } : undefined

@@ -34,8 +34,6 @@ export default function MapaExpandivel({
   // O caminho até à recolha, quando o motorista vai a caminho. Vai aos dois
   // mapas: é a linha que diz o que ele está a conduzir agora.
   aproximacaoAte,
-  // Etiquetar os pinos ao zoom máximo. Ver `rotularPinos` no MapaGoogle.
-  rotularPinos = false,
 }) {
   const { t } = useI18n();
   const [aberto, setAberto] = useState(false);
@@ -82,7 +80,6 @@ export default function MapaExpandivel({
           veiculoVivo={veiculoVivo}
           height={height}
           aproximacaoAte={aproximacaoAte}
-          rotularPinos={rotularPinos}
           // AS FERRAMENTAS VOLTAM AO MAPA PEQUENO (23/09/2026).
           //
           // Tinha-as tirado nessa manhã por causa do espaço: quatro botões
@@ -147,7 +144,6 @@ export default function MapaExpandivel({
                 liveLabel={liveLabel}
                 veiculoVivo={veiculoVivo}
                 aproximacaoAte={aproximacaoAte}
-                rotularPinos={rotularPinos}
                 fill
                 // Desce a coluna do mapa em 48 — exactamente o intervalo entre
                 // dois botões — para o ✕ ficar no lugar vago no topo dela, e
