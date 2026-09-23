@@ -56,7 +56,7 @@ const TINTA = { teal: '#007E78', tealAnel: '#009490', coral: '#FC5430' };
 // `scripts/recortar-novos-icones.py` produz — e é aqui que tem de bater
 // certo, porque a MIRA desenha a mesma imagem numa vista com estas medidas.
 const PINO_L = 46;
-const PINO_A = 58;
+const PINO_A = 59;
 const CARTAO_L = 150;
 
 // O PINO DENTRO DO MAPA É UMA IMAGEM, e não o componente <Pino>.
@@ -171,10 +171,10 @@ const ALTERNATIVA_PERTO_M = 300;
 //
 // Agora é um número medido no PRÓPRIO ficheiro: o centro do ponto de baixo,
 // que é o que assenta no chão. Medido com
-// `scripts/recortar-novos-icones.py` a produzir 46x58, deu 0,9684.
+// `scripts/recortar-novos-icones.py` a produzir 46x59, deu 0,9689.
 // (Mudou com os pinos novos de 22/09: o desenho é menos alto e o ponto
 // está mais em baixo — 0,941 apontaria acima do sítio.)
-const ANCORA_Y = 0.9684;
+const ANCORA_Y = 0.9689;
 
 // QUANTO A MIRA SOBE PARA A PONTA CAIR NO CENTRO DO ECRÃ.
 //
@@ -491,6 +491,17 @@ export default function MapaGoogle({
   //
   // Cada troço é { de, para, qual }: `de` é onde a pessoa apontou, `para` é
   // onde o carro chega, e `qual` diz se é a recolha ou a largada.
+  // AS FERRAMENTAS DO MAPA (mira, bússola, seguir, satélite) são OPCIONAIS
+  // (23/09/2026, pedido do Simão).
+  //
+  // No mapa pequeno da viagem — 220 pontos de altura — eram quatro botões
+  // numa coluna mais o de expandir: metade da lateral ocupada por comandos,
+  // num mapa que serve para ver o carro a aproximar-se e mais nada.
+  //
+  // Quem quer mexer no mapa expande-o primeiro. Ali há espaço e as quatro
+  // ferramentas fazem sentido; no pequeno, o único comando que interessa é
+  // «mostra-me isto em grande».
+  ferramentas = true,
   trocosAPe = [],
   // AS OUTRAS PARAGENS do mesmo sítio, quando o Simão definiu mais do que
   // uma. Cada uma traz `qual` ('origem' ou 'destino'), porque as duas pontas
@@ -1542,7 +1553,7 @@ export default function MapaGoogle({
       {/* Em cima à direita, porque o canto de baixo é do botão de expandir
           no MapaExpandivel — e um mapa não pode ter dois botões no mesmo
           sítio conforme o ecrã onde está. */}
-      {FERRAMENTAS_DO_GOOGLE ? null : (
+      {FERRAMENTAS_DO_GOOGLE || !ferramentas ? null : (
         <Pressable
           style={[styles.botaoMim, aLocalizar && styles.botaoMimOcupado, naColuna(0)]}
           onPress={irParaMim}
@@ -1558,7 +1569,7 @@ export default function MapaGoogle({
           é um modo, não uma acção, e um modo tem de se ver que está a
           correr — senão a pessoa não percebe porque é que o mapa "mexe
           sozinho" e não sabe como o parar. */}
-      {FERRAMENTAS_DO_GOOGLE ? null : (
+      {FERRAMENTAS_DO_GOOGLE || !ferramentas ? null : (
         <Pressable
           style={[styles.botaoSeguir, aSeguirBussola && styles.botaoSeguirActivo, naColuna(2)]}
           onPress={() => setASeguirBussola((v) => !v)}
@@ -1599,7 +1610,7 @@ export default function MapaGoogle({
 
           Durante a viagem a fotografia não acrescenta nada: vê-se a linha e a
           rua, e o resto só pesa. */}
-      {modoEscolha || mostrarSatelite ? (
+      {ferramentas && (modoEscolha || mostrarSatelite) ? (
         <Pressable
           style={[
             styles.botaoSatelite,
@@ -1629,24 +1640,26 @@ export default function MapaGoogle({
           que existe: quem nunca rodou o mapa nunca descobre que pode.
           A agulha aponta sempre ao norte, e por isso diz duas coisas ao
           mesmo tempo: para onde é o norte, e quanto o mapa está torto. */}
-      <Pressable
-        style={[
-          styles.botaoBussola,
-          // O botão do Google ocupa o primeiro lugar da coluna e é maior do
-          // que os nossos (48 contra 40). A agulha desce oito pontos para
-          // não lhe encostar.
-          FERRAMENTAS_DO_GOOGLE && { top: spacing.sm + 56 },
-          naColuna(1),
-        ]}
-        onPress={aoNorte}
-        hitSlop={8}
-        accessibilityRole="button"
-        accessibilityLabel={t('voltarAoNorte')}
-      >
-        <View style={{ transform: [{ rotate: `${-rumo}deg` }] }}>
-          <Agulha />
-        </View>
-      </Pressable>
+      {!ferramentas ? null : (
+        <Pressable
+          style={[
+            styles.botaoBussola,
+            // O botão do Google ocupa o primeiro lugar da coluna e é maior do
+            // que os nossos (48 contra 40). A agulha desce oito pontos para
+            // não lhe encostar.
+            FERRAMENTAS_DO_GOOGLE && { top: spacing.sm + 56 },
+            naColuna(1),
+          ]}
+          onPress={aoNorte}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('voltarAoNorte')}
+        >
+          <View style={{ transform: [{ rotate: `${-rumo}deg` }] }}>
+            <Agulha />
+          </View>
+        </Pressable>
+      )}
 
       {/* ── A MIRA ────────────────────────────────────────────────────
           O pino fica FIXO no centro do ecrã e o mapa é que se move por

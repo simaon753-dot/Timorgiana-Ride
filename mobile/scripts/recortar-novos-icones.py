@@ -84,8 +84,8 @@ ICONES = {
     # perdiam-se no meio dos nomes e dos ícones que o Google desenha por
     # baixo. Quarenta por cento maiores, que é o que os põe a mandar na
     # imagem sem taparem a rua.
-    'pino-origem': ('novo pino recolha.jpeg', 'mapa', 46),
-    'pino-destino': ('Novo pino destino.jpeg', 'mapa', 46),
+    'pino-origem': ('um novo pino recolha.jpeg', 'mapa', 46),
+    'pino-destino': ('um novo pino destino.jpeg', 'mapa', 46),
     # OS PINOS PEQUENOS, para as paragens ALTERNATIVAS (22/09/2026).
     #
     # Eram um círculo cinzento igual para os dois lados. O Simão pediu um
@@ -95,8 +95,8 @@ ICONES = {
     # qual dos dois pontos se referia.
     #
     # 26 e não 46: tem de se ler como «também aqui», não como «é aqui».
-    'pino-origem-pequeno': ('novo pino recolha.jpeg', 'mapa', 26),
-    'pino-destino-pequeno': ('Novo pino destino.jpeg', 'mapa', 26),
+    'pino-origem-pequeno': ('um novo pino recolha.jpeg', 'mapa', 26),
+    'pino-destino-pequeno': ('um novo pino destino.jpeg', 'mapa', 26),
 }
 
 # OS VEÍCULOS NÃO PASSAM POR AQUI, e é o sítio certo para dizer porquê.

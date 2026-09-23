@@ -72,6 +72,15 @@ export default function MapaExpandivel({
           liveLabel={liveLabel}
           veiculoVivo={veiculoVivo}
           height={height}
+          // SEM AS QUATRO FERRAMENTAS no mapa pequeno (23/09/2026, pedido do
+          // Simão). Num mapa de 220 pontos de altura, quatro botões numa
+          // coluna mais o de expandir ocupavam metade da lateral — e este
+          // mapa serve para ver o carro a aproximar-se, não para o manobrar.
+          //
+          // Quem quer mexer no mapa expande-o primeiro, e é para isso que o
+          // botão de expandir ficou maior: passa a ser o único comando aqui,
+          // e tem de se ver que é ele.
+          ferramentas={false}
         />
         {cracha()}
         <Pressable style={styles.expandir} onPress={() => setAberto(true)} hitSlop={8}>
@@ -166,9 +175,13 @@ const criarEstilos = () =>
       position: 'absolute',
       right: spacing.sm,
       bottom: spacing.sm,
-      width: 36,
-      height: 36,
-      borderRadius: 18,
+      // 46 E NÃO 36 (23/09/2026). Ficou o ÚNICO comando do mapa pequeno, e
+      // um único comando tem de se ver. É também maior do que os 40 das
+      // ferramentas do mapa grande, de propósito: ali é um entre quatro,
+      // aqui é o caminho para tudo o resto.
+      width: 46,
+      height: 46,
+      borderRadius: 23,
       backgroundColor: colors.white,
       alignItems: 'center',
       justifyContent: 'center',
@@ -178,7 +191,7 @@ const criarEstilos = () =>
       shadowOffset: { width: 0, height: 2 },
       elevation: 4,
     },
-    expandirIcone: { width: 18, height: 18, tintColor: colors.teal },
+    expandirIcone: { width: 24, height: 24, tintColor: colors.teal },
     cheio: { flex: 1, backgroundColor: colors.paper },
     // NA MESMA COLUNA DOS BOTÕES DO MAPA, e não por cima deles.
     //
