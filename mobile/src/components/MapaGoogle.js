@@ -225,26 +225,29 @@ const ANCORA_Y = 0.9689;
 // dois: passa a haver duas contas que discordam, e nada no ecrã o diz.
 // O TAMANHO DA MIRA É PRÓPRIO, e não o do marcador (22/09/2026).
 //
-// Parecem a mesma coisa e não são desenhados pelo mesmo motor: a mira é uma
-// vista do React com largura e altura escritas, exactas; o marcador é
-// desenhado pelo MAPA NATIVO, que escolhe a imagem conforme a densidade do
-// ecrã e a apresenta ao tamanho que essa conta lhe der. Declarar 54 nos dois
-// não dá 54 nos dois — no telemóvel do Simão a mira saía visivelmente maior
-// e tapava o mapa.
+// A MIRA TEM O TAMANHO DO MARCADOR (23/09/2026). O Simão viu-os lado a lado
+// no iPhone e a mira era visivelmente mais pequena.
 //
-// Coupli-los era fingir uma relação que o Android não respeita. São dois
-// números, e este é o que se afina a olho até os dois pinos se lerem como o
-// mesmo pino.
-// 36, e não 42 (22/09/2026). Acompanha a descida do marcador de 54 para 46,
-// na mesma proporção.
+// PORQUE É QUE ELES ESTAVAM SEPARADOS. Parecem a mesma coisa e não são
+// desenhados pelo mesmo motor: a mira é uma vista do React, com largura e
+// altura escritas e exactas; o marcador é desenhado pelo MAPA NATIVO, que
+// escolhe a imagem conforme a densidade do ecrã. Em Setembro, com as
+// ilustrações antigas, declarar o mesmo número nos dois não dava o mesmo
+// tamanho nos dois — a mira saía maior no Android dele — e o 36 foi afinado
+// a olho contra esse desencontro.
 //
-// TEM DE SER MEXIDO À MÃO, e foi o que me escapou: ao separar este número do
-// do marcador — porque os dois são desenhados por motores diferentes e
-// declarar 54 nos dois não dava 54 nos dois —, perdi o «mexo num e o outro
-// acompanha». Baixei o marcador e a mira ficou onde estava. São dois números
-// de propósito; quem mexe num tem de olhar para o outro.
-const MIRA_L = 36;
-const MIRA_A = Math.round((MIRA_L * PINO_A) / PINO_L);
+// PORQUE É QUE JÁ NÃO PRECISAM DE ESTAR. Os pinos passaram a ser gerados em
+// três densidades (46×59, @2x e @3x, por `scripts/recortar-novos-icones.py`)
+// e o mapa nativo passa a desenhá-los nos 46 pontos de base em qualquer
+// ecrã. O ajuste deixou de compensar coisa nenhuma e passou a ser a única
+// razão de a mira ser mais pequena — em cheio no iPhone, onde a conta sempre
+// foi exacta.
+//
+// AMARRADOS, e não «dois números que se afinam». Foi por estarem soltos que
+// baixei o marcador de 54 para 46 e a mira ficou onde estava. Agora quem
+// mexer no pino leva a mira com ele.
+const MIRA_L = PINO_L;
+const MIRA_A = PINO_A;
 
 const SUBIR_MIRA = MIRA_A * (0.5 - ANCORA_Y);
 
