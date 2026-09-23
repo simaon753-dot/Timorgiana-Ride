@@ -100,6 +100,10 @@ export default function ViagemPassageiro({ ride, navigation }) {
         <View style={styles.mapa}>
           <MapaExpandivel
             markers={markers}
+            // A MESMA PERGUNTA DO LADO DELE. Ao zoom máximo, dois pinos sem
+            // nome são duas cores, e saber qual é a recolha e qual é o
+            // destino não pode depender de se lembrar da convenção.
+            rotularPinos
             height={220}
             liveMarker={driverLocation}
             veiculoVivo={ride.vehicleType}
