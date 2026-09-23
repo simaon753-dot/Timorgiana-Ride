@@ -313,13 +313,18 @@ const ANCORA_Y = 0.9689;
 //
 // MAIOR DO QUE OS OUTROS, e de propósito (23/09/2026, pedido do Simão). Os
 // pinos postos no mapa são pontos DECIDIDOS; a mira é o ponto que está a ser
-// decidido AGORA, e é nela que a pessoa está a olhar enquanto arrasta. Vinte
-// e dois por cento chega para a diferença se ver sem a mira tapar o mapa que
-// ela serve para escolher.
+// decidido AGORA, e é nela que a pessoa está a olhar enquanto arrasta.
+//
+// 1,5 e não 1,22: com 22% ele voltou a dizer que não tinha mudado, e eu
+// tinha medido na fotografia dele que a mudança já lá estava. As duas coisas
+// são verdade ao mesmo tempo — uma diferença medida não é uma diferença
+// VISTA, e num mapa cheio de nomes e ícones do Google o olho precisa de mais
+// do que um quinto para a registar. Quando o utilizador diz duas vezes que
+// não vê, não vê.
 //
 // A proporção, e não um número novo: mexer no pino continua a levar a mira
 // com ele.
-const MIRA_MAIOR = 1.22;
+const MIRA_MAIOR = 1.5;
 const MIRA_L = Math.round(PINO_L * MIRA_MAIOR);
 const MIRA_A = Math.round(PINO_A * MIRA_MAIOR);
 
