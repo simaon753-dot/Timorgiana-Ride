@@ -27,10 +27,13 @@ export default function MapaExpandivel({
   height = 190,
   info, // { km, min } da viagem — mostrado sobre o mapa
   aviso, // linha destacada, ex.: quanto falta para o motorista chegar
-  // Para onde o botão de «guiar» leva. Só chega ao mapa GRANDE: no pequeno
-  // não há ferramentas nenhumas, e sair da app a partir de um mapa que a
-  // pessoa nem abriu seria uma saída acidental.
+  // Para onde o botão de «guiar» leva. Só chega ao mapa GRANDE: sair da app
+  // a partir de um mapa de 220 pontos que a pessoa nem abriu seria uma saída
+  // acidental. É a ÚNICA ferramenta que o mapa pequeno não tem.
   navegarPara,
+  // O caminho até à recolha, quando o motorista vai a caminho. Vai aos dois
+  // mapas: é a linha que diz o que ele está a conduzir agora.
+  aproximacaoAte,
 }) {
   const { t } = useI18n();
   const [aberto, setAberto] = useState(false);
@@ -76,15 +79,21 @@ export default function MapaExpandivel({
           liveLabel={liveLabel}
           veiculoVivo={veiculoVivo}
           height={height}
-          // SEM AS QUATRO FERRAMENTAS no mapa pequeno (23/09/2026, pedido do
-          // Simão). Num mapa de 220 pontos de altura, quatro botões numa
-          // coluna mais o de expandir ocupavam metade da lateral — e este
-          // mapa serve para ver o carro a aproximar-se, não para o manobrar.
+          aproximacaoAte={aproximacaoAte}
+          // AS FERRAMENTAS VOLTAM AO MAPA PEQUENO (23/09/2026).
           //
-          // Quem quer mexer no mapa expande-o primeiro, e é para isso que o
-          // botão de expandir ficou maior: passa a ser o único comando aqui,
-          // e tem de se ver que é ele.
-          ferramentas={false}
+          // Tinha-as tirado nessa manhã por causa do espaço: quatro botões
+          // numa coluna mais o de expandir, num mapa de 220 pontos, ocupavam
+          // metade da lateral. O Simão viu o resultado no telemóvel e
+          // decidiu ao contrário — quer todos, menos o de direcção.
+          //
+          // E a decisão dele está certa: seguir, satélite e bússola servem
+          // exactamente a pessoa que está a olhar para o mapa pequeno com
+          // uma viagem em curso. Expandir para ligar o satélite eram três
+          // toques para uma coisa que se resolve num.
+          //
+          // O de GUIAR continua só no grande, porque esse não mexe no mapa:
+          // sai da app. Ver `navegarPara`.
         />
         {cracha()}
         <Pressable style={styles.expandir} onPress={() => setAberto(true)} hitSlop={8}>
@@ -134,6 +143,7 @@ export default function MapaExpandivel({
                 liveMarker={liveMarker}
                 liveLabel={liveLabel}
                 veiculoVivo={veiculoVivo}
+                aproximacaoAte={aproximacaoAte}
                 fill
                 // Desce a coluna do mapa em 48 — exactamente o intervalo entre
                 // dois botões — para o ✕ ficar no lugar vago no topo dela, e

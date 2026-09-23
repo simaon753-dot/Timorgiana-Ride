@@ -319,6 +319,20 @@ export default function DriverHomeScreen({ navigation }) {
               // conta quando está parado à espera de pedidos.
               veiculoVivo={activeRide?.vehicleType || user?.vehicle?.type}
               liveLabel={t('myLocation')}
+              // A LINHA ENTRE ELE E A RECOLHA (23/09/2026, pedido do Simão).
+              //
+              // A linha da viagem liga a recolha ao destino, e no ecrã dele
+              // via-se o mota num sítio, o percurso noutro, e nada a
+              // ligá-los — precisamente na parte que ele está a conduzir.
+              //
+              // Só enquanto vai a caminho. Com o passageiro já a bordo
+              // ('in_progress') ele está EM CIMA da linha da viagem, e uma
+              // segunda linha por cima dela não diria nada.
+              aproximacaoAte={
+                activeRide?.status === 'accepted' || activeRide?.status === 'arriving'
+                  ? { lat: activeRide.originLat, lng: activeRide.originLng }
+                  : null
+              }
               height={activeRide ? 220 : 190}
               info={
                 activeRide ? { km: activeRide.distanceKm, min: activeRide.durationMin } : undefined

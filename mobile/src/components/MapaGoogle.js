@@ -172,6 +172,11 @@ function SetaGuiar() {
   );
 }
 
+// A que distância da linha desenhada é que o motorista deixou de ir por ela
+// e vale a pena perguntar outra vez. Trezentos metros: mais do que qualquer
+// erro de GPS em Díli e menos do que o quarteirão seguinte.
+const APROXIMACAO_DESVIO_M = 300;
+
 const PEQUENO = {
   origem: require('../../assets/mapa/pino-origem-pequeno.png'),
   destino: require('../../assets/mapa/pino-destino-pequeno.png'),
@@ -556,6 +561,15 @@ export default function MapaGoogle({
   // rota duas vezes — e garante-se que a linha desenhada é EXACTAMENTE a
   // linha cobrada. Sem ela, este componente pede a sua.
   linhaDaRota = null,
+  // O CAMINHO ATÉ À RECOLHA (23/09/2026, pedido do Simão).
+  //
+  // `{ lat, lng }` ou nada. Havendo, desenha-se uma segunda linha entre onde
+  // o motorista está AGORA e este ponto. A linha da viagem liga a recolha ao
+  // destino e não diz nada sobre a parte que ele está mesmo a conduzir: no
+  // ecrã dele via-se o mota num sítio, o percurso noutro, e nada a ligá-los.
+  //
+  // É o troço de APROXIMAÇÃO, que existe só enquanto ele vai a caminho.
+  aproximacaoAte = null,
   center,
   height = 240,
   onPick,
@@ -610,6 +624,10 @@ export default function MapaGoogle({
     : '';
 
   const [rota, setRota] = useState(null);
+  // A aproximação como o servidor a deu, do princípio ao fim. O que se
+  // DESENHA é uma fatia dela — ver `aproximacao`, mais abaixo.
+  const [aproximacaoBruta, setAproximacaoBruta] = useState(null);
+  const [refazerAproximacao, setRefazerAproximacao] = useState(0);
   const [aMexer, setAMexer] = useState(false);
   // A ALTURA DO MAPA EM GRAUS, para saber se estamos perto. Em estado e não
   // só no ref porque quem a lê é o desenho: um ref muda sem redesenhar nada.
@@ -805,6 +823,105 @@ export default function MapaGoogle({
       vivo = false;
     };
   }, [markersKey, linhaKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── O TROÇO DE APROXIMAÇÃO ─────────────────────────────────────────
+  //
+  // PEDIDO UMA VEZ, DEPOIS APARADO. A tentação é voltar a perguntar o
+  // caminho a cada posição que chega do GPS — e seria uma chamada ao Google
+  // de quinze em quinze segundos, por motorista, durante toda a aproximação.
+  // Num dia com cem viagens isso são milhares de chamadas para desenhar uma
+  // linha que não mudou: a estrada é a mesma e o motorista vai por ela.
+  //
+  // Por isso pergunta-se uma vez e, à medida que ele avança, corta-se o
+  // princípio da linha — o que fica é exactamente o que lhe falta. Só se
+  // pergunta outra vez se ele se AFASTAR dela mais do que `DESVIO`, que é o
+  // que acontece quando vai por outro caminho. Uma ou duas chamadas por
+  // viagem em vez de dezenas.
+  const alvoKey = aproximacaoAte ? `${aproximacaoAte.lat},${aproximacaoAte.lng}` : '';
+  // Em ref e não nas dependências: o pedido precisa de saber onde ele está
+  // AGORA, mas não pode voltar a correr de cada vez que ele se mexe — que é
+  // precisamente o que se está a evitar.
+  const ondeEstou = useRef(liveMarker);
+  ondeEstou.current = liveMarker;
+  // MAS A EXISTÊNCIA DE POSIÇÃO TEM DE ESTAR NAS DEPENDÊNCIAS.
+  //
+  // Sem isto havia um defeito que só aparecia na primeira vez: ao abrir o
+  // ecrã ainda não há leitura de GPS, o efeito corria, não encontrava de
+  // onde partir, e nunca mais voltava a correr — porque o `ref` muda sem
+  // avisar ninguém. A linha simplesmente não existia, sem erro nenhum.
+  //
+  // É um booleano e não a posição: muda uma vez, quando a primeira leitura
+  // chega, e não a cada passo do motorista.
+  const temPosicao = !!liveMarker;
+
+  useEffect(() => {
+    const de = ondeEstou.current;
+    if (!alvoKey || !de) {
+      setAproximacaoBruta(null);
+      return undefined;
+    }
+    let vivo = true;
+    // A recta primeiro, como na rota da viagem: numa ligação lenta é melhor
+    // ver já uma ligação aproximada do que a certa daqui a dez segundos.
+    setAproximacaoBruta([
+      { latitude: de.lat, longitude: de.lng },
+      { latitude: aproximacaoAte.lat, longitude: aproximacaoAte.lng },
+    ]);
+    api
+      .linhaDaRota(token, {
+        originLat: de.lat,
+        originLng: de.lng,
+        destLat: aproximacaoAte.lat,
+        destLng: aproximacaoAte.lng,
+      })
+      .then((j) => {
+        if (!vivo || !j?.linha?.length) return;
+        setAproximacaoBruta(j.linha.map((p) => ({ latitude: p.lat, longitude: p.lng })));
+      })
+      .catch(() => {
+        /* fica a recta, que já diz para que lado é */
+      });
+    return () => {
+      vivo = false;
+    };
+  }, [alvoKey, refazerAproximacao, temPosicao]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // O QUE FALTA DO CAMINHO. Procura-se o ponto da linha mais perto de onde
+  // ele está e deita-se fora tudo o que vem antes; o primeiro ponto passa a
+  // ser ele próprio, para a linha não começar ao lado do mota.
+  const aproximacao = useMemo(() => {
+    if (!aproximacaoBruta?.length || !liveMarker) return null;
+    let melhor = 0;
+    let perto = Infinity;
+    for (let i = 0; i < aproximacaoBruta.length; i++) {
+      const d = metrosEntre(liveMarker, {
+        lat: aproximacaoBruta[i].latitude,
+        lng: aproximacaoBruta[i].longitude,
+      });
+      if (d < perto) {
+        perto = d;
+        melhor = i;
+      }
+    }
+    return {
+      linha: [
+        { latitude: liveMarker.lat, longitude: liveMarker.lng },
+        ...aproximacaoBruta.slice(melhor + 1),
+      ],
+      // Longe da linha toda: foi por outro caminho, e o que está desenhado
+      // já não é o dele.
+      desviado: perto > APROXIMACAO_DESVIO_M,
+    };
+  }, [aproximacaoBruta, liveMarker]);
+
+  // Pedir outra. Não entra em ciclo: a linha nova começa onde ele está, e aí
+  // o desvio é zero. Se o pedido falhar, `desviado` fica como estava e este
+  // efeito não volta a correr — melhor ficar com a linha velha à vista do
+  // que insistir contra um servidor que não responde.
+  const desviado = !!aproximacao?.desviado;
+  useEffect(() => {
+    if (desviado) setRefazerAproximacao((n) => n + 1);
+  }, [desviado]);
 
   // O CARTÃO É DESENHADO POR CIMA DO MAPA, não dentro dele.
   //
@@ -1366,6 +1483,27 @@ export default function MapaGoogle({
             strokeWidth={4}
             strokeOpacity={0.6}
             lineDashPattern={[8, 8]}
+          />
+        ) : null}
+
+        {/* O TROÇO DE APROXIMAÇÃO — o que ele está a conduzir AGORA.
+            Desenhado ANTES da rota da viagem, e por isso por baixo dela:
+            onde as duas se sobrepõem, a da viagem é que manda.
+
+            Tracejado de propósito, e não por ser um palpite — a linha é
+            verdadeira. É para se lerem as duas de relance como coisas
+            diferentes: o traço cheio é o trabalho, o tracejado é o caminho
+            até ele. A mesma cor porque é a mesma viagem. */}
+        {aproximacao?.linha?.length > 1 ? (
+          <Polyline
+            key="aproximacao"
+            coordinates={aproximacao.linha}
+            strokeColor="#0E5C54"
+            strokeWidth={5}
+            strokeOpacity={0.75}
+            lineDashPattern={[10, 10]}
+            lineCap="round"
+            zIndex={0}
           />
         ) : null}
 
