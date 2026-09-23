@@ -310,8 +310,18 @@ const ANCORA_Y = 0.9689;
 // AMARRADOS, e não «dois números que se afinam». Foi por estarem soltos que
 // baixei o marcador de 54 para 46 e a mira ficou onde estava. Agora quem
 // mexer no pino leva a mira com ele.
-const MIRA_L = PINO_L;
-const MIRA_A = PINO_A;
+//
+// MAIOR DO QUE OS OUTROS, e de propósito (23/09/2026, pedido do Simão). Os
+// pinos postos no mapa são pontos DECIDIDOS; a mira é o ponto que está a ser
+// decidido AGORA, e é nela que a pessoa está a olhar enquanto arrasta. Vinte
+// e dois por cento chega para a diferença se ver sem a mira tapar o mapa que
+// ela serve para escolher.
+//
+// A proporção, e não um número novo: mexer no pino continua a levar a mira
+// com ele.
+const MIRA_MAIOR = 1.22;
+const MIRA_L = Math.round(PINO_L * MIRA_MAIOR);
+const MIRA_A = Math.round(PINO_A * MIRA_MAIOR);
 
 const SUBIR_MIRA = MIRA_A * (0.5 - ANCORA_Y);
 
@@ -649,6 +659,17 @@ export default function MapaGoogle({
   caminhos = [],
   caminhoEscolhido = 0,
   onEscolherCaminho,
+  // O PONTO AZUL DO GOOGLE (23/09/2026, pedido do Simão).
+  //
+  // Onde o nosso desenho já diz «estás aqui», o ponto azul é um segundo
+  // marcador para o mesmo sítio — e é o menos informativo dos dois que fica
+  // por cima. No ecrã do motorista o distintivo do veículo É a posição dele,
+  // com o nome ao lado; ali o ponto azul só suja.
+  //
+  // Fica ligado por omissão porque no ecrã do passageiro ele vale: mostra
+  // onde a pessoa está DE FACTO, ao lado do ponto de recolha que ela marcou,
+  // e é assim que se dá conta de que marcou no sítio errado.
+  pontoAzul = true,
   // ETIQUETAR OS PINOS DA VIAGEM (23/09/2026, pergunta do Simão).
   //
   // Ele foi ao zoom máximo no ecrã do motorista e no do passageiro e não viu
@@ -1596,7 +1617,7 @@ export default function MapaGoogle({
         // Agora vê os dois no mesmo ecrã: se não coincidirem, arrasta o pino.
         // Não corrige o satélite — dá a quem está lá a forma de mandar nele.
         mapPadding={margemDoMapa}
-        showsUserLocation
+        showsUserLocation={pontoAzul}
         showsMyLocationButton={FERRAMENTAS_DO_GOOGLE}
         // A BÚSSOLA DO GOOGLE, DESLIGADA. Nós temos a nossa.
         //
@@ -1809,6 +1830,10 @@ export default function MapaGoogle({
               longitude: p.pino ? p.pino.lng : p.lng,
             }}
             anchor={{ x: 0.5, y: ANCORA_Y }}
+            // ACIMA DAS PARAGENS ALTERNATIVAS (880) e abaixo do veículo em
+            // movimento (1000): a ordem entre os NOSSOS desenhos é esta, e
+            // agora está escrita em vez de depender da ordem do código.
+            zIndex={900}
             // ARRASTAR PARA CORRIGIR. O GPS de um telemóvel entre prédios
             // erra 20 a 40 metros, e nenhum código corrige uma leitura de
             // satélite. O que se pode fazer é deixar quem está lá — e sabe

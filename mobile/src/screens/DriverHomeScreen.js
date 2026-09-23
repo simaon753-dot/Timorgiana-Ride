@@ -319,6 +319,11 @@ export default function DriverHomeScreen({ navigation }) {
               // conta quando está parado à espera de pedidos.
               veiculoVivo={activeRide?.vehicleType || user?.vehicle?.type}
               liveLabel={t('myLocation')}
+              pontoAzul={false}
+              // SEM O PONTO AZUL DO GOOGLE. A posição dele já está desenhada
+              // — é o distintivo do veículo, com «A minha localização» ao
+              // lado. Dois marcadores para o mesmo sítio, e o que não diz
+              // nada por cima do que diz tudo.
               // A LINHA ENTRE ELE E A RECOLHA (23/09/2026, pedido do Simão).
               //
               // A linha da viagem liga a recolha ao destino, e no ecrã dele

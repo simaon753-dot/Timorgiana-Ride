@@ -36,6 +36,9 @@ export default function MapaExpandivel({
   aproximacaoAte,
   // Etiquetar os pinos ao zoom máximo. Ver `rotularPinos` no MapaGoogle.
   rotularPinos = false,
+  // O ponto azul do Google. Desligado onde o nosso desenho já diz «estás
+  // aqui» — ver `pontoAzul` no MapaGoogle.
+  pontoAzul = true,
 }) {
   const { t } = useI18n();
   const [aberto, setAberto] = useState(false);
@@ -83,6 +86,7 @@ export default function MapaExpandivel({
           height={height}
           aproximacaoAte={aproximacaoAte}
           rotularPinos={rotularPinos}
+          pontoAzul={pontoAzul}
           // AS FERRAMENTAS VOLTAM AO MAPA PEQUENO (23/09/2026).
           //
           // Tinha-as tirado nessa manhã por causa do espaço: quatro botões
@@ -148,6 +152,7 @@ export default function MapaExpandivel({
                 veiculoVivo={veiculoVivo}
                 aproximacaoAte={aproximacaoAte}
                 rotularPinos={rotularPinos}
+                pontoAzul={pontoAzul}
                 fill
                 // Desce a coluna do mapa em 48 — exactamente o intervalo entre
                 // dois botões — para o ✕ ficar no lugar vago no topo dela, e
