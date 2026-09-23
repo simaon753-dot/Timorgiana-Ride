@@ -162,6 +162,8 @@ ridesRouter.post(
       originLabel,
       originLat,
       originLng,
+      originEscolhido,
+      destEscolhido,
       vehicleType,
       fareUsd,
       passengers,
@@ -391,6 +393,13 @@ ridesRouter.post(
       originLabel,
       originLat,
       originLng,
+      // O sítio que a pessoa apontou, quando não é o ponto da estrada. Só
+      // serve para DESENHAR: a rota, a distância e o preço saem dos pontos
+      // de estrada, como sempre — e é por isso que não se valida mais do que
+      // «são dois números». Um valor errado aqui põe um pino no sítio
+      // errado, e mais nada.
+      originEscolhido,
+      destEscolhido,
       vehicleType,
       fareUsd: precoFinal,
       servico: ehEncomenda ? 'jastip' : null,

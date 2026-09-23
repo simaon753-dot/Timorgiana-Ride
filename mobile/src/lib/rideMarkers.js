@@ -12,6 +12,16 @@ export function rideMarkers(ride) {
       lng: ride.originLng,
       label: ride.originLabel || 'Origem',
       tipo: 'origem',
+      // ONDE SE DESENHA O PINO, quando não é onde o carro encosta
+      // (23/09/2026). O `lat`/`lng` é o ponto da ESTRADA e continua a ser a
+      // verdade do marcador — é com ele que se calcula tudo. O pino vai para
+      // o sítio que a pessoa apontou, e o mapa liga os dois com o traço aos
+      // pontinhos, como no ecrã de escolher.
+      //
+      // Nulo nas viagens pedidas antes de o servidor guardar isto, e nulo
+      // quando o ponto apontado já era na estrada. Nos dois casos o pino
+      // fica onde sempre ficou.
+      pino: ride.originEscolhido || null,
     });
   }
   // As paragens vêm do servidor já ordenadas (ORDER BY ordem). Confiar nessa
@@ -32,6 +42,7 @@ export function rideMarkers(ride) {
       lng: ride.destLng,
       label: ride.destLabel || 'Destino',
       tipo: 'destino',
+      pino: ride.destEscolhido || null,
     });
   }
   return m;

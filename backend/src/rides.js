@@ -25,6 +25,12 @@ const ACTIVE_PASSENGER = ['requested', 'accepted', 'arriving', 'in_progress'];
 // só, não pode.
 export const ACTIVE_DRIVER = ['accepted', 'arriving', 'in_progress'];
 
+// Um par de coordenadas, ou nada. As duas têm de estar lá: meia coordenada
+// desenha um pino no meio do oceano.
+function pontoEscolhido(lat, lng) {
+  return lat != null && lng != null ? { lat, lng } : null;
+}
+
 function num(v) {
   return v != null && v !== '' && !Number.isNaN(Number(v)) ? Number(v) : null;
 }
@@ -125,6 +131,11 @@ export function toPublicRide(row, opcoes = {}) {
     originLabel: row.origin_label || null,
     originLat: row.origin_lat ?? null,
     originLng: row.origin_lng ?? null,
+    // ONDE A PESSOA APONTOU, quando não é onde o carro encosta. Ver a coluna
+    // em `db.js`. Nulo — o caso mais comum — quer dizer «o pino é no ponto da
+    // estrada», e quem desenha não tem de saber mais nada.
+    originEscolhido: pontoEscolhido(row.origin_escolhido_lat, row.origin_escolhido_lng),
+    destEscolhido: pontoEscolhido(row.dest_escolhido_lat, row.dest_escolhido_lng),
     vehicleType: row.vehicle_type || null,
     // O QUE se pediu, ao lado de em QUE se anda. Numa viagem normal é nulo.
     servico: row.servico || null,
@@ -268,6 +279,9 @@ export async function createRide({
   originLabel,
   originLat,
   originLng,
+  // Onde a pessoa apontou, se não for o mesmo ponto. Nulo no caso normal.
+  originEscolhido = null,
+  destEscolhido = null,
   vehicleType,
   fareUsd,
   distanceKm = null,
@@ -374,6 +388,7 @@ export async function createRide({
   const inserted = await one(
     `INSERT INTO rides
        (passenger_id, dest_label, dest_lat, dest_lng, origin_label, origin_lat, origin_lng,
+        origin_escolhido_lat, origin_escolhido_lng, dest_escolhido_lat, dest_escolhido_lng,
         vehicle_type, fare_usd, distance_km, duration_min, passengers,
         pickup_code, municipio,
         viajante_nome, viajante_telefone, viajante_menor, consentimento_em,
@@ -381,7 +396,8 @@ export async function createRide({
         carga_extra, servico, jastip_lista, jastip_itens, jastip_loja, jastip_teto, jastip_taxa,
         status)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,
-             $19,$20,$21,$22,$23,$24,$25,$26,$27,$28::jsonb,$29,$30,$31,'requested')
+             $19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32::jsonb,$33,$34,$35,
+             'requested')
      RETURNING id`,
     [
       passengerId,
@@ -391,6 +407,10 @@ export async function createRide({
       originLabel?.trim() || null,
       num(originLat),
       num(originLng),
+      num(originEscolhido?.lat),
+      num(originEscolhido?.lng),
+      num(destEscolhido?.lat),
+      num(destEscolhido?.lng),
       TIPOS_VEICULO.includes(vehicleType) ? vehicleType : null,
       num(fareUsd),
       num(distanceKm),

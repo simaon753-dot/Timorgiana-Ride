@@ -772,6 +772,16 @@ export default function RequestRideScreen({ navigation, route }) {
         originLabel: origem.label,
         originLat: origem.lat,
         originLng: origem.lng,
+        // ONDE A PESSOA APONTOU (23/09/2026). O `lat`/`lng` acima já é o
+        // ponto da ESTRADA — foi encostado lá antes de se pedir a viagem, e
+        // é com ele que se calcula a rota e o preço.
+        //
+        // O sítio apontado ficava só aqui, na memória deste ecrã, e morria
+        // com o pedido. Depois de aceite, o motorista e o passageiro viam o
+        // pino na berma da estrada e não no sítio — «é ali algures nesta
+        // rua». Mandá-lo custa dois números e resolve isso.
+        originEscolhido: origem.escolhido || null,
+        destEscolhido: destino.escolhido || null,
         vehicleType: veiculoAtual,
         ...(veiculo(veiculoAtual).perguntaLugares || carryPessoas ? { passengers: pessoas } : {}),
         ...(veiculoAtual === 'carry' ? { carryModo: modoCarry } : {}),

@@ -846,6 +846,25 @@ export async function initSchema() {
   // De borla vem uma coisa que não existia: PODER EXPULSAR. Pôr esta coluna
   // a NULL mata a sessão no instante seguinte, em vez de esperar os 30 dias
   // do token. É o que a mudança de senha passa a fazer.
+  // ONDE A PESSOA APONTOU, ao lado de onde o carro encosta (23/09/2026).
+  //
+  // `origin_lat`/`dest_lat` são o ponto da ESTRADA: a app encosta o ponto
+  // escolhido à via antes de pedir a viagem, e é com esse que se calcula a
+  // rota e o preço. O sítio que a pessoa apontou — a praia, a casa, o
+  // mercado — ficava só na memória do telemóvel dela e morria com o pedido.
+  //
+  // Faltava exactamente no ecrã onde mais interessa. Depois de aceite, o
+  // motorista e o passageiro viam o pino pousado na berma da estrada e não
+  // no sítio; era como dizer «é ali algures nesta rua».
+  //
+  // Nulo em tudo o que já existe, e nulo também quando o ponto apontado JÁ
+  // era na estrada — que é o caso mais comum. Havendo, o pino vai para aqui
+  // e o traço aos pontinhos liga-o à estrada.
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS origin_escolhido_lat DOUBLE PRECISION`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS origin_escolhido_lng DOUBLE PRECISION`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS dest_escolhido_lat DOUBLE PRECISION`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS dest_escolhido_lng DOUBLE PRECISION`);
+
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS sessao TEXT`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS sessao_em TIMESTAMPTZ`);
   // O painel de administração entra pelo mesmo /auth/login e tem a sua
