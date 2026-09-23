@@ -311,22 +311,38 @@ const ANCORA_Y = 0.9689;
 // baixei o marcador de 54 para 46 e a mira ficou onde estava. Agora quem
 // mexer no pino leva a mira com ele.
 //
-// MAIOR DO QUE OS OUTROS, e de propósito (23/09/2026, pedido do Simão). Os
-// pinos postos no mapa são pontos DECIDIDOS; a mira é o ponto que está a ser
-// decidido AGORA, e é nela que a pessoa está a olhar enquanto arrasta.
+// IGUAL AO PINO POSTO — e por isso NÃO é o mesmo número nas duas
+// plataformas (23/09/2026). Decisão dele: «o tamanho do pino deve
+// obrigatoriamente ser igual tanto na recolha como no destino; deve seguir o
+// tamanho do pino que está perto do azul».
 //
-// 1,5 e não 1,22: com 22% ele voltou a dizer que não tinha mudado, e eu
-// tinha medido na fotografia dele que a mudança já lá estava. As duas coisas
-// são verdade ao mesmo tempo — uma diferença medida não é uma diferença
-// VISTA, e num mapa cheio de nomes e ícones do Google o olho precisa de mais
-// do que um quinto para a registar. Quando o utilizador diz duas vezes que
-// não vê, não vê.
+// ANDEI ÀS VOLTAS NISTO TRÊS VEZES, e a razão de fundo é esta: a mira e o
+// marcador são desenhados por motores diferentes que NÃO CONCORDAM, e não
+// concordam de maneira diferente em cada plataforma.
 //
-// A proporção, e não um número novo: mexer no pino continua a levar a mira
-// com ele.
-const MIRA_MAIOR = 1.5;
-const MIRA_L = Math.round(PINO_L * MIRA_MAIOR);
-const MIRA_A = Math.round(PINO_A * MIRA_MAIOR);
+// A mira é uma vista do React: 46 pontos são 46 pontos, sempre. O marcador é
+// uma imagem entregue ao mapa nativo, e o Android escolhe o ficheiro pela
+// densidade do ecrã e desenha-o ao tamanho em PIXÉIS desse ficheiro, sem o
+// converter de volta para pontos.
+//
+// Medido nas fotografias dele, que é a única prova que vale:
+//
+//               mira            marcador        marcador / mira
+//   Android     2,391 px/pt     1,891 px/pt     0,79
+//   iPhone      1,583 px/pt     1,609 px/pt     1,02
+//
+// Ou seja: no iPhone os dois motores concordam e basta declarar o mesmo
+// número; no Android o marcador sai a 79% do declarado e a mira tem de
+// encolher na mesma proporção para se lerem como o mesmo pino.
+//
+// O QUE ISTO ME ENSINOU. O valor que aqui estava era 36 — afinado a olho no
+// Android dele em Setembro, com um comentário a dizer «são dois números de
+// propósito». Eu subi-o para 46 porque numa fotografia de iPhone a mira
+// aparecia mais pequena, e tinha razão... no iPhone. Ao «amarrá-los» parti o
+// Android. Uma medição de uma plataforma não é uma medição.
+const MIRA_ESCALA = Platform.OS === 'ios' ? 1 : 0.79;
+const MIRA_L = Math.round(PINO_L * MIRA_ESCALA);
+const MIRA_A = Math.round(PINO_A * MIRA_ESCALA);
 
 const SUBIR_MIRA = MIRA_A * (0.5 - ANCORA_Y);
 
