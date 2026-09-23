@@ -463,6 +463,7 @@ export default {
   mapaLocalRecolha: 'Fatin tula',
   mapaLocalDestino: 'Fatin hatun',
   mapaLocalParagem: 'Para',
+  guiarAteLa: "Hatudu dalan ba ne'ebá",
   originField: 'Fatin atu hahú',
   vehicleAny: 'Kualkér',
 

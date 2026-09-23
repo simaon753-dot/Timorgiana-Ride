@@ -467,6 +467,7 @@ export default {
   mapaLocalRecolha: 'Local de recolha',
   mapaLocalDestino: 'Local de destino',
   mapaLocalParagem: 'Paragem',
+  guiarAteLa: 'Guiar até lá',
   originField: 'Ponto de partida',
   vehicleAny: 'Qualquer',
 

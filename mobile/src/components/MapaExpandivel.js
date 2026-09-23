@@ -27,6 +27,10 @@ export default function MapaExpandivel({
   height = 190,
   info, // { km, min } da viagem — mostrado sobre o mapa
   aviso, // linha destacada, ex.: quanto falta para o motorista chegar
+  // Para onde o botão de «guiar» leva. Só chega ao mapa GRANDE: no pequeno
+  // não há ferramentas nenhumas, e sair da app a partir de um mapa que a
+  // pessoa nem abriu seria uma saída acidental.
+  navegarPara,
 }) {
   const { t } = useI18n();
   const [aberto, setAberto] = useState(false);
@@ -136,6 +140,7 @@ export default function MapaExpandivel({
                 // não em cima do primeiro.
                 topoDosBotoes={48 + desceTopo}
                 margemDoMapa={{ top: margens.top, bottom: margens.bottom, left: 0, right: 0 }}
+                navegarPara={navegarPara}
               />
             ) : null}
             {cracha(desceTopo)}

@@ -1,12 +1,13 @@
 import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, Platform, Pressable, Image } from 'react-native';
+import { View, Text, StyleSheet, Platform, Pressable, Image, Linking } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
 import Svg, { Path, Circle as Bola, Line } from 'react-native-svg';
-import { colors, radius, spacing, registarEstilos } from '../theme.js';
+import { colors, radius, spacing, registarEstilos, elevacao } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 import { metrosEntre } from '../lib/filtroPosicao.js';
+import { abrirNoMapa } from '../lib/mapaLink.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
 
@@ -144,6 +145,11 @@ const VEICULO_IMAGEM = {
 // pequeno — e assim a alternativa fica da FAMÍLIA e da COR do ponto a que
 // pertence: teal se é outra forma de ser recolhido, coral se é outra forma
 // de ser largado. O círculo cinzento não dizia a qual dos dois se referia.
+// A seta do «guiar»: a mesma do botão de expandir, que já é uma seta de
+// direcção e já está na paleta. Um desenho novo para dizer a mesma coisa
+// seria um desenho a mais.
+const SETA_GUIAR = require('../../assets/icones/expandir.png');
+
 const PEQUENO = {
   origem: require('../../assets/mapa/pino-origem-pequeno.png'),
   destino: require('../../assets/mapa/pino-destino-pequeno.png'),
@@ -502,6 +508,18 @@ export default function MapaGoogle({
   // ferramentas fazem sentido; no pequeno, o único comando que interessa é
   // «mostra-me isto em grande».
   ferramentas = true,
+  // PARA ONDE GUIAR, quando há para onde (23/09/2026, pedido do Simão).
+  //
+  // `{ lat, lng }` ou nada. Havendo, aparece um botão que abre o mapa NATIVO
+  // do telemóvel com navegação até lá — o Google Maps no Android, o Apple
+  // Maps no iPhone. Não se desenha navegação dentro da app: seria refazer um
+  // produto inteiro que já está instalado em todos os telemóveis e que as
+  // pessoas já sabem usar.
+  //
+  // Só no mapa GRANDE (ver `ferramentas`): no pequeno o único comando é
+  // expandir, e sair da app a partir de um mapa de 220 pontos que a pessoa
+  // nem sequer abriu seria uma saída acidental.
+  navegarPara,
   trocosAPe = [],
   // AS OUTRAS PARAGENS do mesmo sítio, quando o Simão definiu mais do que
   // uma. Cada uma traz `qual` ('origem' ou 'destino'), porque as duas pontas
@@ -1661,6 +1679,23 @@ export default function MapaGoogle({
         </Pressable>
       )}
 
+      {/* GUIAR ATÉ LÁ, no mapa nativo do telemóvel.
+          MAIOR do que as outras ferramentas (52 contra 40) e sozinho em
+          baixo, longe da coluna: as outras quatro mexem NESTE mapa, esta
+          leva a pessoa para FORA da app. Um comando que muda de aplicação
+          não deve parecer-se com os que só mudam a vista. */}
+      {ferramentas && navegarPara ? (
+        <Pressable
+          style={styles.botaoGuiar}
+          onPress={() => abrirNoMapa(Linking, navegarPara.lat, navegarPara.lng)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('guiarAteLa')}
+        >
+          <Image source={SETA_GUIAR} style={styles.guiarIcone} resizeMode="contain" />
+        </Pressable>
+      ) : null}
+
       {/* ── A MIRA ────────────────────────────────────────────────────
           O pino fica FIXO no centro do ecrã e o mapa é que se move por
           baixo.
@@ -1861,6 +1896,19 @@ const criarEstilos = () =>
       elevation: 3,
     },
     miraCaixa: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
+    botaoGuiar: {
+      position: 'absolute',
+      right: spacing.sm,
+      bottom: spacing.xl,
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      backgroundColor: colors.teal,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...elevacao.flutuante,
+    },
+    guiarIcone: { width: 26, height: 26, tintColor: colors.onTeal },
     rotuloSolto: {
       position: 'absolute',
       width: ROTULO_L,

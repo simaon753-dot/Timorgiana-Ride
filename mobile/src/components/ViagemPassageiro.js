@@ -106,6 +106,20 @@ export default function ViagemPassageiro({ ride, navigation }) {
             liveLabel={driverPlace}
             info={{ km: ride.distanceKm, min: ride.durationMin }}
             aviso={minChegada != null ? t('etaArrivalShort', { min: minChegada }) : null}
+            // PARA ONDE GUIAR, e muda com o momento da viagem.
+            //
+            // Enquanto o motorista vem a caminho, o que a pessoa precisa é de
+            // chegar ao PONTO DE RECOLHA — que agora pode estar a uns metros
+            // do pino, na estrada, como a etiqueta do mapa diz. Já dentro do
+            // carro, o que interessa é o DESTINO.
+            //
+            // Guiar sempre para o destino seria inútil na metade da viagem em
+            // que a pessoa ainda está a pé.
+            navegarPara={
+              ride.status === 'in_progress'
+                ? { lat: ride.destLat, lng: ride.destLng }
+                : { lat: ride.originLat, lng: ride.originLng }
+            }
           />
           {driverLocation ? (
             <Text style={styles.driverMoving}>

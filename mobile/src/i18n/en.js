@@ -463,6 +463,7 @@ export default {
   mapaLocalRecolha: 'Pickup point',
   mapaLocalDestino: 'Drop-off point',
   mapaLocalParagem: 'Stop',
+  guiarAteLa: 'Guide me there',
   originField: 'Pickup point',
   vehicleAny: 'Any',
 
