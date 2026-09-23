@@ -177,6 +177,11 @@ function SetaGuiar() {
 // erro de GPS em Díli e menos do que o quarteirão seguinte.
 const APROXIMACAO_DESVIO_M = 300;
 
+// A que distância do pino é que o ponto da estrada é OUTRO sítio. Quinze
+// metros é menos do que a largura de uma faixa de rodagem: abaixo disso o
+// pino já está na estrada e não há troço nenhum a desenhar.
+const DESVIO_DA_ESTRADA_M = 15;
+
 const PEQUENO = {
   origem: require('../../assets/mapa/pino-origem-pequeno.png'),
   destino: require('../../assets/mapa/pino-destino-pequeno.png'),
@@ -1228,28 +1233,55 @@ export default function MapaGoogle({
   // Só se calcula quando estamos PERTO — longe não há etiqueta para pôr, e
   // cada cálculo destes é uma ida ao mapa nativo por cada ponto.
   //
-  // DUAS FONTES, UM DESENHO. Ou os troços a pé — e então a etiqueta fica na
-  // ponta do traço, que é onde o carro encosta —, ou os pinos da viagem, e
-  // então fica por cima do pino. Quando há troços são eles que mandam: no
-  // ecrã de escolher, o ponto da estrada é a resposta e o pino é a pergunta.
-  const aRotular = useMemo(() => {
-    if (trocosAPe.length) {
-      return trocosAPe.map((tr) => ({ qual: tr.qual, ...tr.para, acimaDoPino: false }));
+  // A ETIQUETA PERTENCE À ESTRADA, e não ao pino (23/09/2026).
+  //
+  // A primeira tentativa pendurou-a por cima do pino. O Simão viu e corrigiu:
+  // «a etiqueta deve estar na linha, ou seja, a estrada, não é mesma posição
+  // com o pino». Tem razão, e é o mesmo que já tinha dito a 22/09 do outro
+  // lado da app — a etiqueta diz ONDE O CARRO ENCOSTA, e o pino diz onde é o
+  // sítio. São dois pontos, e juntá-los perde a única informação que ela dá.
+  //
+  // DE ONDE VEM O PONTO DA ESTRADA, sem pedir nada a ninguém: das PONTAS DA
+  // ROTA. A linha da viagem já foi calculada e já vem encostada à estrada —
+  // o primeiro ponto dela é onde o carro pára para recolher, o último é onde
+  // larga. Estava ali à vista e não estava a ser usado.
+  //
+  // E ASSIM É O MESMO DESENHO E NÃO UM PARECIDO: em vez de um caminho só
+  // para etiquetar pinos, montam-se troços iguais aos do ecrã de escolher e
+  // entregam-se à máquina que já existe. Vem de borla o traço aos pontinhos
+  // entre o pino e a estrada — sem ele, uma etiqueta pousada numa rua a
+  // trinta metros do pino não se percebe a que pino pertence.
+  const trocosDaViagem = useMemo(() => {
+    // `tracejada` é a linha recta provisória, que não passa por estrada
+    // nenhuma. Etiquetar as pontas dela seria apontar para o nada.
+    if (!rotularPinos || trocosAPe.length || !rota?.linha?.length || rota.tracejada) return [];
+    const pontas = [
+      { qual: 'origem', ponta: rota.linha[0] },
+      { qual: 'destino', ponta: rota.linha[rota.linha.length - 1] },
+    ];
+    const saida = [];
+    for (const { qual, ponta } of pontas) {
+      const pino = pts.find((x) => x.qual === qual);
+      if (!pino) continue;
+      const de = pino.pino
+        ? { lat: pino.pino.lat, lng: pino.pino.lng }
+        : { lat: pino.lat, lng: pino.lng };
+      const para = { lat: ponta.latitude, lng: ponta.longitude };
+      // O pino JÁ ESTÁ na estrada: não há troço nenhum a fazer a pé e não há
+      // nada para explicar. Quinze metros é menos do que a largura de uma
+      // faixa — abaixo disso é o mesmo sítio com outro nome.
+      if (metrosEntre(de, para) < DESVIO_DA_ESTRADA_M) continue;
+      saida.push({ de, para, qual });
     }
-    if (!rotularPinos) return [];
-    // Dos `pts` e não dos `markers`: é nos `pts` que o `qual` já está
-    // normalizado e que está o `pino`, que é onde o desenho do pino cai
-    // quando esse sítio não é o mesmo da coordenada da viagem. A etiqueta
-    // pendura-se no que se VÊ.
-    return pts
-      .filter((p) => ROTULO_CHAVE[p.qual])
-      .map((p) => ({
-        qual: p.qual,
-        lat: p.pino ? p.pino.lat : p.lat,
-        lng: p.pino ? p.pino.lng : p.lng,
-        acimaDoPino: true,
-      }));
-  }, [trocosAPe, rotularPinos, pts]);
+    return saida;
+  }, [rotularPinos, trocosAPe, rota, pts]);
+
+  // UMA LISTA SÓ, daqui para a frente. Os troços de quem nos chama mandam
+  // sobre os nossos: no ecrã de escolher, o ponto da estrada é a resposta que
+  // está a ser calculada ao vivo e é essa que tem de aparecer.
+  const trocos = trocosAPe.length ? trocosAPe : trocosDaViagem;
+
+  const aRotular = useMemo(() => trocos.map((tr) => ({ qual: tr.qual, ...tr.para })), [trocos]);
 
   // A CHAVE, e não a lista, é que entra nas dependências do efeito.
   //
@@ -1489,7 +1521,7 @@ export default function MapaGoogle({
             carro, e esta não é — é o caminho dela. Responde a uma pergunta
             que a pessoa tem e a que ninguém respondia: onde é que eu espero?
             Cinzento-escuro em vez do teal, para não competir com a rota. */}
-        {trocosAPe.map((t, i) => (
+        {trocos.map((t, i) => (
           <Polyline
             key={`a-pe-${t.qual || i}`}
             coordinates={[
@@ -1749,16 +1781,7 @@ export default function MapaGoogle({
           <View
             key={`rotulo-${p.qual}-${p.lat},${p.lng}`}
             pointerEvents="none"
-            style={[
-              styles.rotuloSolto,
-              {
-                left: p.x - ROTULO_L / 2,
-                // O PONTO da etiqueta cai na coordenada… excepto quando essa
-                // coordenada já tem um pino em cima dela. Aí sobe a altura do
-                // pino, senão a pastilha aterrava no meio do desenho dele.
-                top: p.y - ROTULO_A - (p.acimaDoPino ? PINO_A * ANCORA_Y : 0),
-              },
-            ]}
+            style={[styles.rotuloSolto, { left: p.x - ROTULO_L / 2, top: p.y - ROTULO_A }]}
           >
             <RotuloLocal
               qual={qualDesenhado(p.qual, modoEscolha)}
