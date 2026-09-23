@@ -211,6 +211,25 @@ const DESVIO_DA_ESTRADA_M = 15;
 // actualização pelo ar, sem APK novo.
 const corDaLinha = (cor) => (Platform.OS === 'ios' ? { strokeColors: [cor] } : null);
 
+// A COR DA LINHA DA VIAGEM (23/09/2026).
+//
+// Era #0E5C54 — a mesma do pino, depois de os pinos passarem para o teal do
+// cartão. O Simão viu-os juntos e mandou separá-los: com a linha a nascer
+// debaixo do pino e da mesma cor, não se via onde acabava um e começava a
+// outra.
+//
+// Este é o mesmo #26877D dos ícones, e é de propósito: assim a app tem DOIS
+// verdes e não três — o fundo (#0E5C54, cartões, botões, pinos) e o traço
+// (#26877D, ícones e linha). O contorno escuro fica como estava, porque o
+// trabalho dele é outro: dar limite à linha sobre um mapa que tanto tem
+// avenidas cinzentas como rios azuis.
+//
+// EM CONSTANTES e não escritas em quatro sítios. Estavam em quatro, e o
+// remendo do iOS logo acima obrigava a repetir cada uma DUAS vezes — oito
+// sítios para uma cor. Uma cor escrita oito vezes muda em sete.
+const LINHA = '#26877D';
+const LINHA_CONTORNO = '#0A463F';
+
 const PEQUENO = {
   origem: require('../../assets/mapa/pino-origem-pequeno.png'),
   destino: require('../../assets/mapa/pino-destino-pequeno.png'),
@@ -1592,7 +1611,7 @@ export default function MapaGoogle({
           <Polyline
             key="recta"
             coordinates={rota.linha}
-            strokeColor="#0E5C54"
+            strokeColor={LINHA}
             strokeWidth={4}
             strokeOpacity={0.6}
             lineDashPattern={[8, 8]}
@@ -1611,7 +1630,7 @@ export default function MapaGoogle({
           <Polyline
             key="aproximacao"
             coordinates={aproximacao.linha}
-            strokeColor="#0E5C54"
+            strokeColor={LINHA}
             strokeWidth={5}
             strokeOpacity={0.75}
             lineDashPattern={[10, 10]}
@@ -1628,8 +1647,8 @@ export default function MapaGoogle({
           <Polyline
             key="estrada-contorno"
             coordinates={rota.linha}
-            strokeColor="#0A463F"
-            {...corDaLinha('#0A463F')}
+            strokeColor={LINHA_CONTORNO}
+            {...corDaLinha(LINHA_CONTORNO)}
             strokeWidth={10}
             lineCap="round"
             lineJoin="round"
@@ -1647,8 +1666,8 @@ export default function MapaGoogle({
           <Polyline
             key="estrada"
             coordinates={rota.linha}
-            strokeColor="#0E5C54"
-            {...corDaLinha('#0E5C54')}
+            strokeColor={LINHA}
+            {...corDaLinha(LINHA)}
             strokeWidth={6}
             lineCap="round"
             lineJoin="round"
