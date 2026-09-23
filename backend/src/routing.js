@@ -11,43 +11,19 @@ export function straightKm(a, b) {
   return 2 * R * Math.asin(Math.sqrt(s));
 }
 
-// Rota pelas estradas reais. O cálculo é feito AQUI, no servidor, e não na
-// app: se o preço é firme, a distância que o determina não pode vir de um
-// telemóvel — bastaria alterá-la para pagar sempre o mínimo.
+// A ROTA VIVE NO `rotas.js`, E SÓ LÁ (23/09/2026).
 //
-// Se o OSRM não responder, cai para linha reta com um factor de 1,4, que
-// aproxima o desvio típico das estradas. Melhor um preço aproximado do que
-// nenhum preço.
-// MANTIDA para quem já a chamava. A rota que conta agora é a
-// `rotaCompleta` do `rotas.js`, que devolve também a linha e usa o Google —
-// e é importante que o PREÇO venha da mesma fonte que o DESENHO. Um preço
-// calculado sobre um caminho e uma linha desenhada sobre outro é um convite a
-// uma discussão que ninguém consegue arbitrar.
-export async function rota(origem, destino, intermedios = []) {
-  // Mesma cadeia de coordenadas do `peloOsrm`: o formato do OSRM é uma lista
-  // de N pontos e estava a ser usado com dois.
-  const cadeia = [origem, ...intermedios, destino].map((p) => `${p.lng},${p.lat}`).join(';');
-  const url = `https://router.project-osrm.org/route/v1/driving/${cadeia}?overview=false`;
-  try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 6000);
-    const r = await fetch(url, { signal: ctrl.signal });
-    clearTimeout(timer);
-    const j = await r.json();
-    const rt = j?.routes?.[0];
-    if (!rt) throw new Error('sem rota');
-    const km = Math.round((rt.distance / 1000) * 10) / 10;
-    return { km, min: duracaoRealista(km, rt.duration / 60), aproximado: false };
-  } catch {
-    // Soma troço a troço, como no `rotaCompleta`: a recta entre as pontas
-    // ignoraria o desvio das paragens, e é o preço que sairia disso.
-    const cadeia = [origem, ...intermedios, destino];
-    let total = 0;
-    for (let i = 1; i < cadeia.length; i++) total += straightKm(cadeia[i - 1], cadeia[i]);
-    const km = Math.round(total * 1.4 * 10) / 10;
-    return { km, min: duracaoRealista(km, null), aproximado: true };
-  }
-}
+// Havia aqui um `rota()` que perguntava ao OSRM público com o perfil de
+// automóvel, marcado como «mantida para quem já a chamava». Quem a chamava
+// era o sítio onde a viagem NASCE — ou seja, era ela que decidia o preço
+// cobrado, enquanto o preço MOSTRADO já vinha do Google com o modo do
+// veículo. Dois motores a responder à mesma pergunta, e o mais antigo a
+// ganhar exactamente onde doía.
+//
+// Foi apagada, e não corrigida. Uma função que já ninguém devia chamar, mas
+// que continua a funcionar, é um convite a ser chamada outra vez — foi assim
+// que esteve em produção sem ninguém notar. O que resta abaixo é só o que
+// serve a todos: a distância em linha recta, a duração realista e o preço.
 
 // O OSRM devolve o tempo com as estradas livres — para 1,7 km em Díli dava
 // 2 minutos, ou seja 51 km/h, o que não acontece em hora nenhuma do dia.

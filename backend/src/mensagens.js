@@ -321,7 +321,6 @@ export const MENSAGENS = {
     'Pick-up or destination coordinates missing.',
   ],
   'Faltam coordenadas.': ['Falta koordenada.', 'Coordinates missing.'],
-  'sem rota': ['la iha rota', 'no route'],
 
   // ── Viagens
   'Indica o destino.': ['Hakerek destinu.', 'Give the destination.'],

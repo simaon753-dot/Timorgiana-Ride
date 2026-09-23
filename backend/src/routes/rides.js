@@ -41,7 +41,8 @@ import {
 } from '../ratings.js';
 import { notificarPedidoNovo, notificarAceite, notificarAdminsSOS } from '../push.js';
 import { one, query } from '../db.js';
-import { rota, preco, straightKm } from '../routing.js';
+import { preco, straightKm } from '../routing.js';
+import { rotaCompleta } from '../rotas.js';
 import { podeIr } from '../cobertura.js';
 import { config } from '../config.js';
 import { registarDia } from '../assinatura.js';
@@ -347,13 +348,34 @@ ridesRouter.post(
     let minViagem = null;
     const temCoords = originLat != null && originLng != null && destLat != null && destLng != null;
     if (temCoords) {
-      const viagem = await rota(
+      // A MESMA ROTA QUE O PASSAGEIRO VIU (23/09/2026).
+      //
+      // Isto chamava o `rota()` do `routing.js`, que pergunta ao OSRM público
+      // com o perfil de AUTOMÓVEL e não sabe de tipos de veículo. A cotação —
+      // o preço que o passageiro lê no ecrã — já vinha do `rotaCompleta`, que
+      // pergunta ao Google com o modo do veículo.
+      //
+      // Eram dois motores diferentes a responder à mesma pergunta, e ninguém
+      // dava por isso porque em viagens curtas davam números parecidos. A
+      // diferença aparece onde interessa: o Simão mediu a mesma viagem em
+      // 9,8 km de mota e 11,4 km de carro. Um pedido de mota mostrava $3,25 no
+      // botão e nascia com o preço de um caminho de carro.
+      //
+      // É exactamente o defeito que os comentários logo abaixo e o cabeçalho
+      // do `routing.js` avisavam — «o preço tem de vir da mesma fonte que o
+      // desenho» —, e o sítio que o avisava era o que não tinha sido mudado.
+      //
+      // De borla, a memória de dez minutos do `rotaCompleta` faz com que este
+      // pedido apanhe a MESMA rota que a cotação de há segundos: o preço não
+      // é só calculado da mesma maneira, é o mesmo número.
+      const viagem = await rotaCompleta(
         { lat: Number(originLat), lng: Number(originLng) },
         { lat: Number(destLat), lng: Number(destLng) },
         // Os desvios entram na distância, e é dessa distância que sai o
         // preço. Calcular sem eles e conduzir com eles seria o motorista a
         // pagar o desvio do seu bolso.
-        paragens
+        paragens,
+        TIPOS_VEICULO.includes(vehicleType) ? vehicleType : 'car'
       );
       // O TIPO VEM DA LISTA, e não de um ternário de dois.
       //
