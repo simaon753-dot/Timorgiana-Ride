@@ -434,6 +434,9 @@ export default {
 
   loginTitle: 'Sign in',
   loginSubtitle: 'Sign in with your phone number.',
+  sessaoAvisoTitulo: 'Your account was opened on another phone',
+  sessaoAvisoTexto:
+    'You can finish the ride you are on. After that you will have to sign in again. If it was not you, tell TimorgianaRide and change your password.',
   sessaoNoutroAparelho:
     'Your account was opened on another phone. If it was not you, sign in and change your password.',
   loginButton: 'Sign in',

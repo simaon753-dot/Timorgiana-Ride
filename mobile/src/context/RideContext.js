@@ -3,7 +3,7 @@ import { AppState } from 'react-native';
 import { cargaCabe } from '../dados/veiculos.js';
 import { nomeDaRua, metrosEntre } from '../lib/geocode.js';
 import * as Location from 'expo-location';
-import { api, perderSessao } from '../api/client.js';
+import { api, perderSessao, avisarSessao } from '../api/client.js';
 import { createSocket } from '../socket.js';
 import {
   comecarAEnviarPosicao,
@@ -192,6 +192,12 @@ export function RideProvider({ children }) {
     // minutos sem fazer pedido nenhum — e não pode ficar esse tempo a olhar
     // para uma app que já não é dele.
     socket.on('sessao:terminada', () => perderSessao('sessao_noutro_aparelho'));
+
+    // O AVISO, que é o caso normal quando há viagem a decorrer: a conta foi
+    // aberta noutro telemóvel, mas este continua a trabalhar até ela acabar.
+    // Chega no instante, para que um motorista com um passageiro atrás não
+    // descubra depois de largar a pessoa.
+    socket.on('sessao:aviso', () => avisarSessao());
 
     socket.on('ride:new', (ride) => {
       // Desligado não ouve pedidos. O servidor já não o põe nas salas, mas um

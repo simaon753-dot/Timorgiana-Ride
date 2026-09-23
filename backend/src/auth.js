@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import { config } from './config.js';
 import { findUserById } from './users.js';
+import { getActiveRideForUser } from './rides.js';
 import { query } from './db.js';
 import { LINGUAS } from './mensagens.js';
 
@@ -43,19 +44,50 @@ export async function abrirSessao(user, superficie = 'app') {
   return signToken(user, sid, superficie);
 }
 
-// PORQUE É QUE ISTO É UMA FUNÇÃO E NÃO UMA LINHA REPETIDA EM DOIS SÍTIOS.
+// NINGUÉM É DEITADO FORA COM UM PASSAGEIRO NO CARRO (23/09/2026).
 //
-// A regra tem de ser exactamente a mesma no Express e no Socket.io. Se
-// divergirem, o aparelho expulso continua a receber pedidos pelo canal de
-// tempo real que já estava aberto — que é o pior dos dois mundos: parece
-// fora e continua dentro.
+// A primeira versão cortava a sessão antiga no instante em que a conta era
+// aberta noutro lado. O Simão viu o que isso valia na prática: um motorista
+// a meio de uma viagem perdia o mapa, a conversa, o botão de emergência e o
+// botão de concluir — com uma pessoa sentada atrás. A app ficava segura e a
+// viagem ficava sem ninguém a conduzi-la.
 //
-// Um token SEM `sid` é recusado. Todos os que existiam antes desta mudança
-// são assim, e é de propósito que morram: o alcance de uma sessão que se
-// não sabe de onde vem é precisamente o que isto existe para acabar.
-export function sessaoValida(payload, user) {
+// E quem é cortado é precisamente o LEGÍTIMO: quem entra por último fica com
+// a conta, por isso num roubo de senha o expulso é o dono.
+//
+// Por isso há três estados e não dois:
+//
+//   'viva'       o número bate certo. É esta a sessão da conta.
+//   'a_terminar' o número não bate, MAS esta conta tem viagem a decorrer.
+//                Continua a trabalhar até essa viagem acabar, com aviso à
+//                vista nos dois aparelhos. Acabada a viagem passa a 'fora'
+//                sozinha — sem tarefa nenhuma a vigiar, porque a resposta
+//                vem de `getActiveRideForUser` a cada pedido.
+//   'fora'       401, e a app leva a pessoa ao ecrã de entrada.
+//
+// O QUE ISTO NÃO ABRE. Quem está 'a_terminar' não pode começar trabalho
+// novo, e não é preciso regra nenhuma para isso: o servidor já só deixa uma
+// viagem de cada vez por conta, e a viagem que existe é justamente a que o
+// mantém vivo. Pedir outra, ou aceitar outra, esbarra na guarda que já lá
+// está. O que ele pode fazer é acabar o que tem — que é tudo o que se quer.
+//
+// A regra é uma função porque tem de ser EXACTAMENTE a mesma no Express e
+// no Socket.io. Se divergirem, o aparelho expulso continua a receber pedidos
+// pelo canal de tempo real que já estava aberto: parece fora e está dentro.
+export async function estadoDaSessao(payload, user) {
   const coluna = COLUNA[payload.sup] || COLUNA.app;
-  return !!payload.sid && payload.sid === user[coluna];
+  if (payload.sid && payload.sid === user[coluna]) return 'viva';
+
+  // Sem `sid` é um token anterior a esta mudança. E com a coluna a NULL a
+  // sessão foi APAGADA de propósito — é o que a recuperação de senha faz, e
+  // essa não dá prazo nenhum: quem recupera a conta está, metade das vezes,
+  // a tirá-la de outra pessoa.
+  if (!payload.sid || !user[coluna]) return 'fora';
+
+  // O painel não conduz ninguém. O prazo é da app.
+  if (payload.sup === 'painel') return 'fora';
+
+  return (await getActiveRideForUser(user)) ? 'a_terminar' : 'fora';
 }
 
 export const SESSAO_NOUTRO = 'sessao_noutro_aparelho';
@@ -83,12 +115,23 @@ export async function requireAuth(req, res, next) {
     // é que lhe pode dizer porquê. «Token inválido» a quem não fez nada
     // parece uma avaria; «a tua conta foi aberta noutro telemóvel» é um
     // aviso de segurança, e quem o receber sem ter sido ele muda a senha.
-    if (!sessaoValida(payload, user)) {
+    const estado = await estadoDaSessao(payload, user);
+    if (estado === 'fora') {
       return res.status(401).json({
         error: 'A tua conta foi aberta noutro telemóvel. Entra de novo para continuares aqui.',
         motivo: SESSAO_NOUTRO,
       });
     }
+
+    // O AVISO VAI EM CABEÇALHO E NÃO NO CORPO. Cada rota devolve o que tem a
+    // devolver e nenhuma precisa de saber disto; a app lê o cabeçalho num
+    // sítio só, dentro do cliente da API. Acrescentar um campo ao corpo
+    // obrigaria a mexer em todas as respostas.
+    //
+    // Serve o caso em que o aviso pelo canal de tempo real se perdeu — app
+    // fechada no momento da entrada, telemóvel sem rede. Enquanto a sessão
+    // estiver por um fio, TODAS as respostas o dizem.
+    if (estado === 'a_terminar') res.set('X-Sessao', 'a-terminar');
 
     req.user = user;
     // A língua de quem pede fica na conta (15/09/26): as notificações saem
@@ -140,10 +183,12 @@ export async function verifyToken(token) {
   try {
     const payload = jwt.verify(token, config.jwtSecret);
     const user = await findUserById(payload.sub);
+    if (!user) return null;
     // A MESMA REGRA do Express, e não uma parecida: um aparelho expulso que
     // mantivesse o canal de tempo real continuava a receber pedidos.
-    if (!user || !sessaoValida(payload, user)) return null;
-    return user;
+    const estado = await estadoDaSessao(payload, user);
+    if (estado === 'fora') return null;
+    return { user, aTerminar: estado === 'a_terminar' };
   } catch {
     return null;
   }

@@ -436,6 +436,9 @@ export default {
   // Login
   loginTitle: 'Iniciar sessão',
   loginSubtitle: 'Entre com o seu número de telemóvel.',
+  sessaoAvisoTitulo: 'A sua conta foi aberta noutro telemóvel',
+  sessaoAvisoTexto:
+    'Pode terminar a viagem que tem em mãos. Depois disso terá de entrar de novo. Se não foi você, avise a TimorgianaRide e mude a palavra-passe.',
   sessaoNoutroAparelho:
     'A sua conta foi aberta noutro telemóvel. Se não foi você, entre e mude a palavra-passe.',
   loginButton: 'Entrar',

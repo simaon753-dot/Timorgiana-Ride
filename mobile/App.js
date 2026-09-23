@@ -8,6 +8,7 @@ import { TemaProvider } from './src/context/TemaContext.js';
 import { useTipografia } from './src/design/tipografia.js';
 import LoadingScreen from './src/screens/LoadingScreen.js';
 import SlowBanner from './src/components/SlowBanner.js';
+import AvisoSessao from './src/components/AvisoSessao.js';
 import RootNavigator from './src/navigation/RootNavigator.js';
 import Barreira from './src/design/Barreira.js';
 // A TAREFA DE LOCALIZAÇÃO DEFINE-SE À ENTRADA, e não onde é usada.
@@ -63,6 +64,9 @@ function App() {
               acordar, em qualquer ecrã onde o utilizador esteja. */}
               <View style={{ flex: 1 }}>
                 <SlowBanner />
+                {/* Acima do SlowBanner em gravidade, abaixo em altura: o
+                    servidor a acordar passa em segundos, isto fica. */}
+                <AvisoSessao />
                 <View style={{ flex: 1 }}>
                   {letraPronta ? <RootNavigator /> : <LoadingScreen />}
                 </View>

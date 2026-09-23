@@ -52,5 +52,11 @@ export function corsPorPedido(req, cb) {
   const propria = `${req.protocol}://${req.get('host')}`;
   cb(null, {
     origin: origemPermitida({ caminho: req.path, origem: req.header('Origin'), propria }),
+    // O painel corre num browser, e um browser só entrega ao código os
+    // cabeçalhos que forem declarados aqui — os outros existem na resposta e
+    // são invisíveis. A app não passa por esta regra (não é um browser), mas
+    // declarar só para ela deixaria o painel a não ver um aviso que também é
+    // dele. Ver `X-Sessao` em `auth.js`.
+    exposedHeaders: ['X-Sessao'],
   });
 }

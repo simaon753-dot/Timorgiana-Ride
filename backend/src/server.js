@@ -316,8 +316,17 @@ const io = new SocketServer(server, { cors: { origin: '*' } });
 
 io.use(async (socket, next) => {
   try {
-    const user = await verifyToken(socket.handshake.auth?.token);
-    if (!user) return next(new Error('Não autenticado.'));
+    const sessao = await verifyToken(socket.handshake.auth?.token);
+    if (!sessao) return next(new Error('Não autenticado.'));
+    const { user, aTerminar } = sessao;
+
+    // A SESSÃO POR UM FIO (23/09/2026). A conta foi aberta noutro telemóvel
+    // e este só continua ligado porque tem uma viagem a decorrer. Fica em
+    // `socket.data` — e não numa variável qualquer — porque é de lá que o
+    // servidor o consegue ler quando, acabada a viagem, for preciso procurar
+    // este canal para o fechar (`fecharSessoesATerminar`).
+    socket.data.aTerminar = aTerminar;
+
     socket.user = {
       id: user.id,
       role: user.role,
@@ -358,6 +367,13 @@ io.on('connection', (socket) => {
   console.log(`[socket] ligado: ${user.name} (${user.role}#${user.id})`);
 
   socket.join(`user:${user.id}`);
+
+  // Quem liga com a sessão por um fio tem de o saber ao abrir a app, e não
+  // só no momento em que foi deitado fora. O aviso que o `/login` emite
+  // chega a quem está ligado NESSE instante; este apanha quem tinha a app
+  // fechada ou o telemóvel sem rede.
+  if (socket.data.aTerminar) socket.emit('sessao:aviso');
+
   // Os administradores ficam sempre numa sala própria para receberem os
   // pedidos de ajuda no instante em que acontecem.
   if (user.isAdmin) socket.join('admins');

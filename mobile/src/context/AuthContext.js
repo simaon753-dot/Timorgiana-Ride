@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { lerToken, guardarToken, apagarToken } from '../lib/cofreSessao.js';
-import { api, ApiError, definirAoPerderSessao } from '../api/client.js';
+import { api, ApiError, definirAoPerderSessao, definirAoAvisarSessao } from '../api/client.js';
 import { loadSavedServer } from '../serverUrl.js';
 
 const AuthContext = createContext(null);
@@ -15,6 +15,13 @@ export function AuthProvider({ children }) {
   // telemóvel via a app a voltar ao princípio sem explicação nenhuma — e
   // uma app que faz isso parece avariada, não parece segura.
   const [motivoSaida, setMotivoSaida] = useState(null);
+  // A CONTA FOI ABERTA NOUTRO TELEMÓVEL E ESTA SESSÃO AINDA TRABALHA.
+  //
+  // Decisão do Simão a 23/09/2026: quem está a transportar um passageiro não
+  // pode ser deitado fora. O servidor deixa esta sessão terminar a viagem e
+  // avisa; a app mostra a faixa até isso acontecer. Sem estado nenhum aqui,
+  // o aviso morria com o ecrã em que aparecesse.
+  const [avisoSessao, setAvisoSessao] = useState(false);
 
   // Ao abrir a app: tenta recuperar a sessão guardada e validá-la
   useEffect(() => {
@@ -45,6 +52,7 @@ export function AuthProvider({ children }) {
     // Entrar limpa o aviso: já não faz sentido depois de a pessoa ter
     // resolvido o que ele pedia.
     setMotivoSaida(null);
+    setAvisoSessao(false);
     await guardarToken(token);
   }, []);
 
@@ -94,15 +102,23 @@ export function AuthProvider({ children }) {
       setUser(null);
       setToken(null);
       setMotivoSaida(motivo || null);
+      // Já não há sessão: o aviso deixa de fazer sentido e o seu lugar passa
+      // a ser o ecrã de entrada, onde a mensagem é outra.
+      setAvisoSessao(false);
       apagarToken().catch(() => {});
     });
-    return () => definirAoPerderSessao(null);
+    definirAoAvisarSessao(() => setAvisoSessao(true));
+    return () => {
+      definirAoPerderSessao(null);
+      definirAoAvisarSessao(null);
+    };
   }, []);
 
   const logout = useCallback(async () => {
     setUser(null);
     setToken(null);
     setMotivoSaida(null);
+    setAvisoSessao(false);
     await apagarToken();
   }, []);
 
@@ -118,6 +134,7 @@ export function AuthProvider({ children }) {
         refreshUser,
         motivoSaida,
         limparMotivoSaida: () => setMotivoSaida(null),
+        avisoSessao,
         ApiError,
       }}
     >

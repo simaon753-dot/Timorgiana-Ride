@@ -67,6 +67,21 @@ export function perderSessao(motivo) {
   if (aoPerderSessao) aoPerderSessao(motivo);
 }
 
+// A SESSÃO POR UM FIO — avisar sem deitar fora (23/09/2026).
+//
+// Decisão do Simão: uma conta aberta noutro telemóvel não pode cortar quem
+// está a transportar um passageiro. O servidor deixa a sessão antiga
+// trabalhar até a viagem acabar e diz-o em duas vozes, porque nenhuma
+// sozinha chega: o canal de tempo real avisa no instante, e o cabeçalho
+// `X-Sessao` apanha quem tinha a app fechada quando isso aconteceu.
+let aoAvisarSessao = null;
+export function definirAoAvisarSessao(fn) {
+  aoAvisarSessao = fn;
+}
+export function avisarSessao() {
+  if (aoAvisarSessao) aoAvisarSessao();
+}
+
 // Avisa a interface de que a ligação está demorada (servidor a acordar)
 let onSlow = null;
 export function setSlowHandler(fn) {
@@ -114,6 +129,11 @@ async function request(path, { method = 'GET', body, token } = {}) {
   if (!res) {
     throw new ApiError('NETWORK', 0);
   }
+
+  // Lido em TODAS as respostas, e não só nas que falham: enquanto a sessão
+  // estiver por um fio o servidor marca-as todas, e é assim que o aviso
+  // reaparece mesmo que a app tenha sido reiniciada entretanto.
+  if (res.headers?.get?.('X-Sessao') === 'a-terminar') avisarSessao();
 
   let data = null;
   try {

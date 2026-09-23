@@ -93,6 +93,39 @@ const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).cat
 function notify(io, ride, event) {
   io.to(`user:${ride.passenger_id}`).emit(event, toPublicRide(ride, { paraPassageiro: true }));
   if (ride.driver_id) io.to(`user:${ride.driver_id}`).emit(event, toPublicRide(ride));
+
+  // ACABADA A VIAGEM, ACABA O PRAZO (23/09/2026).
+  //
+  // Uma sessão deslocada vive enquanto a conta tiver viagem a decorrer. Do
+  // lado dos pedidos isso resolve-se sozinho — o pedido seguinte volta a
+  // perguntar e leva 401. O canal de tempo real não: um canal já aberto não
+  // é verificado outra vez, e ficaria um aparelho deslocado a ouvir pedidos
+  // novos depois de a viagem que o mantinha vivo ter terminado.
+  //
+  // Está aqui, dentro do `notify`, porque é o único sítio por onde passam
+  // TODAS as mudanças de estado de uma viagem — concluir, cancelar de um
+  // lado, cancelar do outro, expirar. Pô-lo em cada uma delas era esquecê-lo
+  // numa.
+  if (ride.status === 'completed' || ride.status === 'cancelled') {
+    fecharSessoesATerminar(io, ride.passenger_id);
+    if (ride.driver_id) fecharSessoesATerminar(io, ride.driver_id);
+  }
+}
+
+// Fecha os canais das sessões que só estavam vivas por causa de uma viagem.
+// Não devolve promessa a ninguém: é limpeza, e uma falha aqui não pode
+// estragar a resposta de uma viagem que terminou bem.
+function fecharSessoesATerminar(io, userId) {
+  io.in(`user:${userId}`)
+    .fetchSockets()
+    .then((sockets) => {
+      for (const s of sockets) {
+        if (!s.data?.aTerminar) continue;
+        s.emit('sessao:terminada');
+        s.disconnect(true);
+      }
+    })
+    .catch((e) => console.error('[sessao] fechar deslocadas:', e.message));
 }
 
 // OS LUGARES DA CABINE NÃO CONTAM NUM CARRY.

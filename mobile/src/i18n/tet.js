@@ -433,6 +433,9 @@ export default {
   // Tama
   loginTitle: 'Tama',
   loginSubtitle: 'Tama ho ita-nia númeru telemóvel.',
+  sessaoAvisoTitulo: 'Ita-nia konta loke ona iha telemóvel seluk',
+  sessaoAvisoTexto:
+    'Ita bele remata viajen ne’ebé ita iha hela. Depois ne’e ita presiza tama fali. Se la’ós ita mak halo, avisa TimorgianaRide no troka ita-nia liafuan-xave.',
   sessaoNoutroAparelho:
     'Ita-nia konta loke ona iha telemóvel seluk. Se la’ós ita, tama fali no troka ita-nia liafuan-xave.',
   loginButton: 'Tama',
