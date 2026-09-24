@@ -218,6 +218,18 @@ async function peloGoogle(a, b, intermedios = [], modo = 'DRIVE') {
     ultimoErroGoogle = null;
     const j = await r.json();
     const opcoes = (j?.routes || []).map(umaRota).filter(Boolean);
+    // QUANTOS CAMINHOS É QUE O GOOGLE DEU (24/09/2026).
+    //
+    // O Simão viu duas opções no carro e nenhuma na motorizada, e daqui eu
+    // não tenho como saber se é o Google que devolve um só, se é a bandeira
+    // que não está a passar, ou se é a app que não os desenha. São três
+    // sítios possíveis e a diferença entre eles é invisível de fora.
+    //
+    // Fica registado à entrada, que é o único sítio onde a resposta do
+    // Google ainda existe tal como veio. Sem isto, diagnosticar isto era
+    // adivinhar — e já perdi um dia inteiro a mudar a mira nos dois sentidos
+    // por não ter medido primeiro.
+    registarCaminhos(modo, intermedios.length, opcoes.length);
     if (!opcoes.length) return null;
     // A PRIMEIRA CONTINUA A SER A ROTA, com a forma de sempre. Tudo o que já
     // lê `km`, `min` e `linha` não muda uma linha por causa disto; quem
@@ -349,10 +361,27 @@ export async function rotaCompleta(a, b, intermedios = [], tipoVeiculo = 'car') 
   return rota;
 }
 
+// AS ÚLTIMAS CHAMADAS AO GOOGLE, para se poder ver o que ele devolveu.
+//
+// Só o que interessa a esta pergunta: o modo, se ia com paragens (com
+// paragens nunca se pedem alternativas) e quantos caminhos vieram. Não
+// guarda coordenadas — isto aparece no /api/health, que é público.
+const ULTIMAS = [];
+const ULTIMAS_MAX = 12;
+function registarCaminhos(modo, paragens, quantos) {
+  ULTIMAS.unshift({
+    modo,
+    pediuAlternativas: paragens === 0,
+    caminhos: quantos,
+    quando: new Date().toISOString(),
+  });
+  if (ULTIMAS.length > ULTIMAS_MAX) ULTIMAS.length = ULTIMAS_MAX;
+}
+
 export function estadoDasRotas() {
   // `null` quer dizer que a última chamada correu bem — ou que ainda não
   // houve nenhuma desde o arranque.
-  return { google: !!CHAVE, tectoDiario: POR_DIA, ultimoErroGoogle };
+  return { google: !!CHAVE, tectoDiario: POR_DIA, ultimoErroGoogle, ultimas: ULTIMAS };
 }
 
 export async function usoDeHoje() {
