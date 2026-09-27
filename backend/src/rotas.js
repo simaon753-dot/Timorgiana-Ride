@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { query, one } from './db.js';
 import { straightKm, duracaoRealista } from './routing.js';
 
@@ -477,8 +478,24 @@ export function mesmoCaminho(a, b) {
 // guarda coordenadas — isto aparece no /api/health, que é público.
 const ULTIMAS = [];
 const ULTIMAS_MAX = 12;
+
+// QUEM PEDIU (27/09/2026). Duas chamadas no mesmo segundo podiam ser um
+// pedido repetido ou duas rotas diferentes e necessárias — a do motorista até
+// à recolha e a da viagem —, e o registo não deixava distinguir. O nome é
+// posto à entrada de cada rota do servidor (`pedidoDe`) e acompanha o pedido
+// até aqui sem passar por cada função pelo caminho: é isso que o
+// AsyncLocalStorage faz, e é por isso que não mexe em `rotaCompleta`.
+//
+// Um pedido partilhado (ver `emCurso`) fica com o nome de quem chegou
+// primeiro — que é quem, de facto, fez a chamada ao Google.
+const quem = new AsyncLocalStorage();
+export function pedidoDe(nome, fn) {
+  return quem.run(nome, fn);
+}
+
 function registarCaminhos(modo, pediuAlternativas, quantos) {
   ULTIMAS.unshift({
+    para: quem.getStore() || 'outro',
     modo,
     pediuAlternativas,
     caminhos: quantos,

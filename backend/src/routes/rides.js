@@ -37,7 +37,7 @@ import { addRating, hasRated, limparMotivos, ESTRELAS_COM_MOTIVO } from '../rati
 import { notificarPedidoNovo, notificarAceite, notificarAdminsSOS } from '../push.js';
 import { one, query } from '../db.js';
 import { preco, straightKm } from '../routing.js';
-import { caminhosDaViagem, TOLERANCIA_KM } from '../rotas.js';
+import { caminhosDaViagem, TOLERANCIA_KM, pedidoDe } from '../rotas.js';
 import { podeIr } from '../cobertura.js';
 import { config } from '../config.js';
 import { registarDia } from '../assinatura.js';
@@ -82,6 +82,13 @@ function metrosEntre(quem, viagem) {
 export const ridesRouter = Router();
 
 ridesRouter.use(requireAuth);
+
+// Criar a viagem volta a pedir os caminhos (ver `caminhosDaViagem` mais
+// abaixo); quase sempre vêm da memória da cotação, e quando não vêm o registo
+// das rotas tem de dizer que foi aqui. Ver `pedidoDe`.
+ridesRouter.use((req, res, next) =>
+  req.method === 'POST' && req.path === '/' ? pedidoDe('viagem-criada', next) : next()
+);
 
 // O Express 4 não apanha erros de funções assíncronas: uma falha da base
 // de dados deixaria o pedido pendurado até expirar. Este invólucro

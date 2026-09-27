@@ -1042,6 +1042,8 @@ export default function MapaGoogle({
         originLng: a.lng,
         destLat: b.lat,
         destLng: b.lng,
+        // Só para o registo do servidor saber que linha é esta.
+        uso: 'viagem',
       })
       .then((j) => {
         if (!vivo || !j?.linha?.length) return;
@@ -1110,6 +1112,7 @@ export default function MapaGoogle({
         originLng: de.lng,
         destLat: aproximacaoAte.lat,
         destLng: aproximacaoAte.lng,
+        uso: 'aproximacao',
       })
       .then((j) => {
         if (!vivo || !j?.linha?.length) return;

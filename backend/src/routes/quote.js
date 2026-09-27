@@ -4,7 +4,7 @@ import { MAX_ITENS, taxaDe, viagensDoPassageiro } from '../jastip.js';
 import { MINUTOS_ATE_DESISTIR } from '../rides.js';
 import { requireAuth } from '../auth.js';
 import { preco, etaMinutos, straightKm } from '../routing.js';
-import { rotaCompleta, caminhosDaViagem, MODO } from '../rotas.js';
+import { rotaCompleta, caminhosDaViagem, MODO, pedidoDe } from '../rotas.js';
 import { limparDestinos } from '../destinosDaViagem.js';
 import { paragensQueCobrem } from '../paradas.js';
 import { estradaMaisPerto } from '../estradasNossas.js';
@@ -18,6 +18,19 @@ import { TIPOS_VEICULO, SERVICOS, config } from '../config.js';
 
 export const quoteRouter = Router();
 quoteRouter.use(requireAuth);
+
+// O NOME DE CADA PEDIDO, para o registo das rotas (ver `pedidoDe`). A linha
+// serve dois desenhos, e a app diz qual: a da viagem ou a do motorista até à
+// recolha. Só estes dois valores; o resto fica «linha».
+const USOS_DA_LINHA = new Set(['viagem', 'aproximacao']);
+quoteRouter.use((req, res, next) => {
+  if (req.path === '/') return pedidoDe('cotacao', next);
+  if (req.path === '/linha') {
+    const uso = req.body?.uso;
+    return pedidoDe(USOS_DA_LINHA.has(uso) ? `linha-${uso}` : 'linha', next);
+  }
+  return next();
+});
 
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 const num = (v) => (v != null && v !== '' && !Number.isNaN(Number(v)) ? Number(v) : null);
