@@ -94,6 +94,12 @@ export const api = {
   // Pagamentos da Taxa de Acesso
   pagamentos: () => pedir<RespostaPagamentos>('/admin/pagamentos'),
   resumoPagamentos: () => pedir<ResumoPagamentos>('/admin/pagamentos/resumo'),
+  // Anunciar (data) ou retirar (null) o fim do período gratuito.
+  anunciarCobranca: (inicio: string | null) =>
+    pedir<{ inicio: string | null; gratuitoAte: string | null }>('/admin/assinatura/cobranca', {
+      method: 'PUT',
+      corpo: { inicio },
+    }),
   confirmarPagamento: (id: number) =>
     pedir<{ ok: true; saldo: number }>(`/admin/pagamentos/${id}/confirmar`, { method: 'POST' }),
   recusarPagamento: (id: number, motivo: string) =>

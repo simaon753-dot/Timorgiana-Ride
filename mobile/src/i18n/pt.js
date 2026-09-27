@@ -26,7 +26,8 @@ export default {
   assinDesistir: 'Desistir do pedido',
   assinDesistirConfirmar: 'Desistir deste pedido? Se já pagou, fale connosco antes.',
   assinRecusado: 'O último pagamento não foi confirmado: {motivo}',
-  assinAbremEm: 'Os carregamentos abrem a {data}. Até lá, o acesso é gratuito.',
+  assinAbremAnuncio:
+    'Os carregamentos abrem quando for anunciado o fim do período gratuito. Até lá, o acesso é gratuito.',
   assinSemFormas: 'Ainda não há formas de pagamento disponíveis. Fale connosco.',
   assinNoBalcao:
     'No escritório paga ao balcão e os dias entram na hora — não precisa de enviar nada.',
@@ -1000,6 +1001,8 @@ export default {
   admTarifasNota: 'Cobradas pelos motoristas. A plataforma não recebe comissão.',
   assinTitulo: 'Assinatura',
   assinGratuita: 'Sem taxa de acesso até novo aviso oficial.',
+  // Depois do anúncio oficial: a data é o próprio aviso.
+  assinGratuitaAteData: 'Sem taxa de acesso até {data}. Depois, o acesso passa a ser pago.',
   assinGratuitaExplica:
     'Enquanto isso, não pagas nada e não és bloqueado. Os dias vão sendo registados para veres como funciona.',
   assinSaldo: 'Dias no teu saldo',

@@ -22,6 +22,14 @@ import { avisar } from '@/components/ui/aviso';
 import { IlustracaoIcone } from '@/components/ilustracoes';
 import { IconeVeiculo } from '@/components/comuns';
 import { useServico } from '@/layouts/servico';
+import { Campo, Rotulo } from '@/components/ui/campo';
+
+// O primeiro dia que o servidor aceita: hoje em Díli mais os dias de aviso.
+function minimoAnuncio(dias: number) {
+  const hojeDili = new Date(Date.now() + 9 * 3600_000);
+  hojeDili.setUTCDate(hojeDili.getUTCDate() + dias);
+  return hojeDili.toISOString().slice(0, 10);
+}
 
 const COR_ESTADO = { pendente: 'coral', confirmado: 'sucesso', recusado: 'perigo', cancelado: 'neutro' } as const;
 
@@ -32,6 +40,9 @@ export function Pagamentos() {
   const [confirmar, setConfirmar] = useState<PedidoPagamento | null>(null);
   const [recusar, setRecusar] = useState<PedidoPagamento | null>(null);
   const [lupa, setLupa] = useState<{ url: string; titulo: string } | null>(null);
+  const [anunciar, setAnunciar] = useState(false);
+  const [retirar, setRetirar] = useState(false);
+  const [dataInicio, setDataInicio] = useState(() => minimoAnuncio(30));
 
   const r = resumo.dados;
   const pendentes = lista.dados?.pendentes ?? [];
@@ -63,10 +74,69 @@ export function Pagamentos() {
       />
 
       {r?.emPeriodoGratuito ? (
-        <Faixa cor="teal" icone={<Gift />} className="mb-6" titulo={t('pag.gratuitoTitulo', { d: data(r.gratuitoAte) })}>
-          {t('pag.gratuitoTexto', { c: data(r.comprasAbrem) })}
+        <Faixa
+          cor="teal"
+          icone={<Gift />}
+          className="mb-6"
+          titulo={r.gratuitoAte ? t('pag.anunciadoTitulo', { d: data(r.gratuitoAte) }) : t('pag.gratuitoTitulo')}
+        >
+          <p>
+            {r.inicioCobranca
+              ? t('pag.anunciadoTexto', { c: data(r.inicioCobranca) })
+              : t('pag.gratuitoTexto', { n: r.avisoMinimoDias })}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {r.inicioCobranca ? (
+              <Botao variante="secundario" onClick={() => setRetirar(true)}>
+                {t('pag.retirar')}
+              </Botao>
+            ) : (
+              <Botao variante="secundario" onClick={() => setAnunciar(true)}>
+                <CalendarDays /> {t('pag.anunciar')}
+              </Botao>
+            )}
+          </div>
         </Faixa>
       ) : null}
+
+      {/* O FIM DO PERÍODO GRATUITO (28/09/2026). Sem taxa de acesso até novo
+          aviso oficial: o aviso é este. A regra dos dias de antecedência é do
+          servidor, que recusa uma data perto de mais — o campo só ajuda. */}
+      <DialogoConfirmacao
+        aberto={anunciar}
+        aoMudar={setAnunciar}
+        titulo={t('pag.anunciarTitulo')}
+        texto={t('pag.anunciarTexto', { n: r?.avisoMinimoDias ?? 30 })}
+        rotuloConfirmar={t('pag.anunciarConfirmar')}
+        aoConfirmar={async () => {
+          const f = await api.anunciarCobranca(dataInicio);
+          avisar.sucesso(t('pag.anunciado', { c: data(f.inicio) }));
+          resumo.recarregar();
+        }}
+      >
+        <div>
+          <Rotulo htmlFor="inicio-cobranca">{t('pag.anunciarData')}</Rotulo>
+          <Campo
+            id="inicio-cobranca"
+            type="date"
+            min={minimoAnuncio(r?.avisoMinimoDias ?? 30)}
+            value={dataInicio}
+            onChange={(e) => setDataInicio(e.target.value)}
+          />
+        </div>
+      </DialogoConfirmacao>
+      <DialogoConfirmacao
+        aberto={retirar}
+        aoMudar={setRetirar}
+        titulo={t('pag.retirarTitulo')}
+        texto={t('pag.retirarTexto')}
+        rotuloConfirmar={t('pag.retirar')}
+        aoConfirmar={async () => {
+          await api.anunciarCobranca(null);
+          avisar.sucesso(t('pag.retirado'));
+          resumo.recarregar();
+        }}
+      />
 
       {resumo.aCarregar ? (
         <EsqueletoCartoes />

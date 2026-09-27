@@ -8,7 +8,9 @@ const ok = (c, m) => {
   if (!c) falhas++;
 };
 
-// 1. Desligado por omissão: nada se junta.
+// 1. Desligado, nada se junta. (Ligado por omissão desde 28/09/2026, com a
+// política a dizê-lo; o interruptor tem de continuar a desligar tudo.)
+_paraTeste.ligar(false);
 juntarPonto({ id: 1, status: 'in_progress' }, -8.55, 125.57, 5);
 ok(_paraTeste.emCurso.size === 0, 'desligado, não junta nada');
 

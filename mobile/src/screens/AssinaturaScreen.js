@@ -156,9 +156,14 @@ export default function AssinaturaScreen({ navigation }) {
             <View style={[styles.destaque, semSaldo && styles.destaqueMau]}>
               {a?.gratuito ? (
                 <>
-                  {/* SEM DATA (28/09/2026): o fim do período gratuito passa a ser
-                      anunciado oficialmente, e não uma data escrita na app. */}
-                  <Text style={styles.destaqueValor}>{t('assinGratuita')}</Text>
+                  {/* SEM DATA até ao anúncio oficial (28/09/2026). Anunciado o
+                      fim no painel, o servidor manda o último dia gratuito, e
+                      a data que aparece aqui É o aviso. */}
+                  <Text style={styles.destaqueValor}>
+                    {a.gratuitoAte
+                      ? t('assinGratuitaAteData', { data: paraMostrar(a.gratuitoAte) })
+                      : t('assinGratuita')}
+                  </Text>
                   <Text style={styles.destaqueNota}>{t('assinGratuitaExplica')}</Text>
                 </>
               ) : (
@@ -226,9 +231,7 @@ export default function AssinaturaScreen({ navigation }) {
             {!a?.comprasAbertas ? (
               <>
                 <Text style={styles.seccao}>{t('assinComoPagar')}</Text>
-                <Text style={styles.nota}>
-                  {t('assinAbremEm', { data: paraMostrar(a?.comprasAbremEm) })}
-                </Text>
+                <Text style={styles.nota}>{t('assinAbremAnuncio')}</Text>
               </>
             ) : !pendente ? (
               <>

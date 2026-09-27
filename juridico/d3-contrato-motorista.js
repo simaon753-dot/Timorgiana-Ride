@@ -47,7 +47,7 @@ module.exports = C.documento(
     A('Cláusula 5.ª', 'Preço, cobrança e remuneração da Plataforma'),
     R(['O preço de cada viagem é fixado pela aplicação e ', ['pago pelo passageiro ao Motorista, em dinheiro, no final da viagem'], '. A Plataforma não recebe, não guarda nem movimenta qualquer quantia dos passageiros.']),
     R([['A Plataforma não cobra comissão sobre as viagens.'], ' Numa viagem de três dólares, o Motorista recebe três dólares.']),
-    R(['O acesso à Plataforma é ', ['gratuito até 30 de abril de 2027'], '. A partir dessa data, o acesso passa a depender da aquisição de dias de utilização, de acordo com a tabela seguinte:']),
+    R(['O acesso à Plataforma é gratuito, ', ['sem taxa de acesso até novo aviso oficial'], '. O fim do período gratuito é anunciado na aplicação com, pelo menos, trinta dias de antecedência, com a indicação do dia em que a cobrança começa. A partir desse dia, o acesso passa a depender da aquisição de dias de utilização, de acordo com a tabela seguinte:']),
     T(
       ['Pacote', 'Carro e Carro Pickup', 'Motorizada'],
       [['3 dias', 'USD 4', 'USD 2'], ['10 dias', 'USD 12', 'USD 6'], ['30 dias', 'USD 30', 'USD 15']],
@@ -105,5 +105,8 @@ module.exports = C.documento(
     R(['Feito em duplicado, ficando um exemplar na posse de cada parte.']),
     R(['Díli, ______ de _________________________ de 20______']),
     AS('A Plataforma  ·  Timorgiana, Lda', 'O Motorista'),
-  ]
+  ],
+  // Versão própria (28/09/2026): mudou a cláusula 5.ª, período gratuito até
+  // novo aviso oficial. Os outros seis documentos ficam com a de comum.js.
+  '28 de Setembro de 2026'
 );

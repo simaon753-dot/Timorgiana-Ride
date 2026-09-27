@@ -30,6 +30,11 @@ export const MESES_EVENTOS = Number(process.env.RETENCAO_EVENTOS_MESES) || 6;
 //   por isso tem prazo, como os eventos.
 export const MESES_RASTOS = Number(process.env.RETENCAO_RASTOS_MESES) || 24;
 
+// AS OCORRÊNCIAS — 24 meses depois de TRATADAS (28/09/2026, dito no Aviso de
+//   Privacidade). Contam a partir de resolvida ou arquivada, e não de quando
+//   foram feitas: uma queixa ainda aberta nunca se apaga sozinha.
+export const MESES_OCORRENCIAS = Number(process.env.RETENCAO_OCORRENCIAS_MESES) || 24;
+
 // AS VIAGENS EM SI NÃO SE APAGAM AQUI, e é uma distinção que interessa.
 //
 // A linha da viagem é o registo de ganhos do motorista: o que ele conduziu e
@@ -78,6 +83,15 @@ export async function limparAntigos() {
     [String(MESES_RASTOS)]
   );
   feito.rastos = rastos.length;
+
+  const ocorrencias = await query(
+    `DELETE FROM ocorrencias
+      WHERE estado IN ('resolvida','arquivada')
+        AND tratada_em < NOW() - ($1 || ' months')::interval
+      RETURNING id`,
+    [String(MESES_OCORRENCIAS)]
+  );
+  feito.ocorrencias = ocorrencias.length;
 
   return feito;
 }

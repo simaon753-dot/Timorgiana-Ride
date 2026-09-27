@@ -163,6 +163,8 @@ const viagemDemo = (id, horas, extra = {}) => ({
   motorista: { id: 902, nome: 'Motorista Exemplo', telefone: '77000002', matricula: '00-000 TL', modelo: 'Toyota Avanza', cor: 'Prata' },
   ...extra,
 });
+// O fim do período gratuito, anunciado no painel (28/09/2026). Nulo = sem taxa até novo aviso.
+let inicioCobranca = null;
 let ocorrencias = [
   { id: 3, rideId: 1204, papelAutor: 'passenger', autor: 'Passageiro Exemplo', autorTelefone: '77000001', categoria: 'conducaoPerigosa', grave: true,
     descricao: 'Ia muito depressa na avenida de Comoro e passou dois semáforos vermelhos.', estado: 'aberta', resposta: null, notaInterna: null,
@@ -499,10 +501,17 @@ async function api(req, res, url) {
       formas, prazoHoras: 24,
     });
   }
+  if (p === '/admin/assinatura/cobranca' && req.method === 'PUT') {
+    const b = await corpoDe(req);
+    const minimo = new Date(agora + 30 * 86400_000).toISOString().slice(0, 10);
+    if (b.inicio && b.inicio < minimo) return json(res, { error: 'A cobrança tem de ser anunciada com pelo menos 30 dias de antecedência.' }, 400);
+    inicioCobranca = b.inicio || null;
+    return json(res, { inicio: inicioCobranca, gratuitoAte: null });
+  }
   if (p === '/admin/pagamentos/resumo') {
     const confirmados = pedidos.filter((o) => o.estado === 'confirmado');
     return json(res, {
-      gratuitoAte: '2027-04-30', comprasAbrem: '2027-04-01', emPeriodoGratuito: true,
+      inicioCobranca, gratuitoAte: inicioCobranca ? new Date(Date.parse(inicioCobranca) - 86400_000).toISOString().slice(0, 10) : null, avisoMinimoDias: 30, emPeriodoGratuito: true,
       hoje: 0, mes: confirmados.reduce((s, o) => s + o.valorUsd, 0), total: confirmados.reduce((s, o) => s + o.valorUsd, 0) + 48,
       carregamentos: confirmados.length + 3, pacotes: PACOTES,
       ultimos: confirmados.map((o) => ({ id: o.id, userId: o.userId, nome: o.nome, tipo: o.tipo, dias: o.dias, valorUsd: o.valorUsd, metodo: o.metodo, referencia: o.referencia, quando: o.decididoEm, por: o.decididoPor })),

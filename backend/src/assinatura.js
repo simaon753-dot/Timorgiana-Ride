@@ -24,15 +24,74 @@ import { query, one, tx } from './db.js';
 // sobrevive a essa conversa — e a primeira discussão sobre a cobrança
 // define a confiança para sempre.
 
-// Até esta data, ninguém paga e ninguém é bloqueado. Os dias são registados
-// à mesma, marcados como gratuitos: quando a cobrança começar, o motorista
-// já viu o mecanismo a funcionar durante meses e sabe que é honesto.
+// SEM TAXA DE ACESSO ATÉ NOVO AVISO OFICIAL (28/09/2026).
 //
-// A data vive AQUI e não na aplicação. Adiar a cobrança passa a ser uma
-// publicação do servidor, não uma actualização que cada telemóvel tem de
-// receber — e num sítio onde a rede falha, essa diferença é entre mudar a
-// data e não conseguir mudá-la.
-export const GRATUITO_ATE = '2027-04-30';
+// Até aqui havia uma data escrita neste ficheiro — 30/04/2027 — e a cobrança
+// começava SOZINHA no dia seguinte. O Simão mudou a regra: o período
+// gratuito acaba quando for anunciado oficialmente, e os termos do motorista
+// passaram a dizê-lo. Uma data no código seria o servidor a desmentir os
+// termos, sem ninguém ter decidido nada nesse dia.
+//
+// Agora o fim é um ANÚNCIO: o administrador marca no painel o dia em que a
+// cobrança começa (`config_servico`, chave 'assinatura.cobranca'). Sem
+// anúncio, é gratuito para sempre. O dia tem de ficar pelo menos
+// `AVISO_MINIMO_DIAS` à frente — é o que os termos prometem —, e o anúncio
+// pode ser retirado enquanto a cobrança não começou.
+//
+// Os dias continuam registados, marcados como gratuitos: quando a cobrança
+// começar, o motorista já viu o mecanismo a funcionar e sabe que é honesto.
+export const AVISO_MINIMO_DIAS = 30;
+const CHAVE_COBRANCA = 'assinatura.cobranca';
+
+// O dia em que a cobrança começa ('YYYY-MM-DD'), ou null se ainda não foi
+// anunciado.
+export async function inicioDaCobranca() {
+  const r = await one(`SELECT valor FROM config_servico WHERE chave = $1`, [CHAVE_COBRANCA]);
+  const d = r?.valor?.inicio;
+  return typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : null;
+}
+
+// O último dia gratuito — o da véspera da cobrança —, ou null sem anúncio.
+// É o que a app mostra: «sem taxa de acesso até 30/04/2027».
+export function ultimoDiaGratuito(inicio) {
+  if (!inicio) return null;
+  const d = new Date(`${inicio}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
+// Anuncia (ou retira, com `inicio` nulo) o dia em que a cobrança começa.
+// Devolve `{ erro }` com a mensagem para o painel, ou `{ inicio }`.
+export async function anunciarCobranca(inicio, adminId) {
+  const actual = await inicioDaCobranca();
+  const hoje = (await one(`SELECT TO_CHAR(${DIA_DILI}, 'YYYY-MM-DD') AS d`)).d;
+  // Depois de a cobrança começar, já não se volta atrás por aqui: seria
+  // apagar a regra com dias já pagos. Adiar faz-se marcando um dia novo.
+  if (inicio == null) {
+    if (actual && actual <= hoje) {
+      return { erro: 'A cobrança já começou. Para a suspender, marque um novo dia de início.' };
+    }
+    await query(`DELETE FROM config_servico WHERE chave = $1`, [CHAVE_COBRANCA]);
+    return { inicio: null };
+  }
+  if (typeof inicio !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(inicio)) {
+    return { erro: 'Data inválida.' };
+  }
+  const { minimo } = await one(`SELECT TO_CHAR(${DIA_DILI} + $1::int, 'YYYY-MM-DD') AS minimo`, [
+    AVISO_MINIMO_DIAS,
+  ]);
+  if (inicio < minimo) {
+    return { erro: 'A cobrança tem de ser anunciada com pelo menos 30 dias de antecedência.' };
+  }
+  await query(
+    `INSERT INTO config_servico (chave, valor, atualizado_em, atualizado_por)
+     VALUES ($1, $2::jsonb, NOW(), $3)
+     ON CONFLICT (chave) DO UPDATE
+       SET valor = EXCLUDED.valor, atualizado_em = NOW(), atualizado_por = EXCLUDED.atualizado_por`,
+    [CHAVE_COBRANCA, JSON.stringify({ inicio }), adminId]
+  );
+  return { inicio };
+}
 
 // Preços em dólares. O pacote pequeno existe para ser comprado sem medo:
 // $4 é dinheiro que um motorista pode arriscar numa app que ainda não sabe
@@ -80,7 +139,9 @@ export const FORMAS_PAGAMENTO = [
 const DIA_DILI = `(NOW() AT TIME ZONE 'Asia/Dili')::date`;
 
 export async function emPeriodoGratuito() {
-  const r = await one(`SELECT ${DIA_DILI} <= $1::date AS gratuito`, [GRATUITO_ATE]);
+  const inicio = await inicioDaCobranca();
+  if (!inicio) return true;
+  const r = await one(`SELECT ${DIA_DILI} < $1::date AS gratuito`, [inicio]);
   return !!r?.gratuito;
 }
 
@@ -162,7 +223,7 @@ export async function estadoDe(userId) {
       ORDER BY id DESC LIMIT 20`,
     [userId]
   );
-  const [gratuito, abertas, formas, pedidos, devolucoes] = await Promise.all([
+  const [gratuito, abertas, formas, pedidos, devolucoes, inicio] = await Promise.all([
     emPeriodoGratuito(),
     comprasAbertas(u),
     formasConfiguradas(),
@@ -179,12 +240,14 @@ export async function estadoDe(userId) {
         ORDER BY id DESC LIMIT 10`,
       [userId]
     ),
+    inicioDaCobranca(),
   ]);
 
   return {
     dias: u?.dias_saldo ?? 0,
     gratuito,
-    gratuitoAte: GRATUITO_ATE,
+    // Nulo até haver anúncio: «sem taxa de acesso até novo aviso oficial».
+    gratuitoAte: ultimoDiaGratuito(inicio),
     pacotes: PACOTES[u?.vehicle_type] || PACOTES.car,
     // Fica para as versões da app anteriores aos pedidos (14/09/26).
     formasPagamento: FORMAS_PAGAMENTO,
@@ -192,7 +255,8 @@ export async function estadoDe(userId) {
     carregamentos: carregamentos.map((c) => ({ ...c, valor_usd: Number(c.valor_usd) })),
     referencia: referenciaDe(userId),
     comprasAbertas: abertas,
-    comprasAbremEm: COMPRAS_ABREM,
+    // As compras abrem com o anúncio. Nulo enquanto não houver.
+    comprasAbremEm: inicio ? 'anunciadas' : null,
     prazoHoras: PRAZO_HORAS,
     // Só as formas que o administrador ligou, com as instruções que escreveu
     // (número de conta, titular, morada do escritório).
@@ -253,9 +317,9 @@ async function carregarCom(client, { userId, dias, valorUsd, metodo, referencia,
 // mandar sessenta datas para desenhar uma faixa de duas linhas seria pagar
 // caro por nada.
 export async function resumoDe(userId) {
-  const gratuito = await emPeriodoGratuito();
+  const [gratuito, inicio] = await Promise.all([emPeriodoGratuito(), inicioDaCobranca()]);
   const u = await one(`SELECT dias_saldo FROM users WHERE id = $1`, [userId]);
-  return { dias: u?.dias_saldo ?? 0, gratuito, gratuitoAte: GRATUITO_ATE };
+  return { dias: u?.dias_saldo ?? 0, gratuito, gratuitoAte: ultimoDiaGratuito(inicio) };
 }
 
 // ═══ PEDIDOS DE CARREGAMENTO, PAGAMENTOS E DEVOLUÇÕES (14/09/26) ════════
@@ -263,8 +327,9 @@ export async function resumoDe(userId) {
 // A política, decidida pelo Simão a 14/09/2026 e escrita nos termos do
 // motorista (cláusula "Assinatura da Plataforma"):
 //
-//   · as compras abrem a 1 de Abril de 2027, um mês antes da cobrança — o
-//     administrador pode experimentar antes;
+//   · as compras abrem quando o fim do período gratuito é anunciado — pelo
+//     menos 30 dias antes da cobrança (28/09/2026; antes era 1/4/2027) —, e
+//     o administrador pode experimentar antes;
 //   · o motorista paga sozinho (QR, transferência, Mosan, agente) e manda o
 //     COMPROVATIVO, que é obrigatório. No escritório não há pedido: paga-se
 //     ao balcão e o administrador carrega logo, pela rota de sempre;
@@ -274,7 +339,6 @@ export async function resumoDe(userId) {
 //     si só, não basta — fabrica-se em segundos;
 //   · as devoluções ficam registadas e o valor calcula-se aqui.
 
-export const COMPRAS_ABREM = '2027-04-01';
 export const PRAZO_HORAS = 24;
 
 // As formas em que o motorista paga sozinho e manda comprovativo.
@@ -302,10 +366,11 @@ export function referenciaDe(userId) {
   return 'TR' + String(userId).padStart(4, '0');
 }
 
+// Abertas a partir do anúncio do fim do período gratuito: quem quiser pode
+// comprar dias antes de a cobrança começar, e não fica parado no primeiro dia.
 async function comprasAbertas(u) {
   if (u?.is_admin) return true;
-  const r = await one(`SELECT ${DIA_DILI} >= $1::date AS abertas`, [COMPRAS_ABREM]);
-  return !!r?.abertas;
+  return !!(await inicioDaCobranca());
 }
 
 // As formas de pagamento, com o que o administrador escreveu no painel:
@@ -362,7 +427,7 @@ export async function criarPedido({ userId, dias, metodo, mime, base64 }) {
   ]);
   if (!u || u.role !== 'driver') throw erro('Só uma conta de motorista pode carregar dias.', 403);
   if (!(await comprasAbertas(u))) {
-    throw erro('Os carregamentos abrem a 1 de Abril de 2027.', 403);
+    throw erro('Os carregamentos abrem quando for anunciado o fim do período gratuito.', 403);
   }
   const pacote = (PACOTES[u.vehicle_type] || PACOTES.car).find((p) => p.dias === Number(dias));
   if (!pacote) throw erro('Pacote inválido.');

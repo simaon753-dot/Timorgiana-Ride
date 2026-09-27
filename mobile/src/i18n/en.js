@@ -32,7 +32,8 @@ export default {
   assinDesistir: 'Cancel request',
   assinDesistirConfirmar: 'Cancel this request? If you have already paid, talk to us first.',
   assinRecusado: 'The last payment was not confirmed: {motivo}',
-  assinAbremEm: 'Top-ups open on {data}. Until then, access is free.',
+  assinAbremAnuncio:
+    'Top-ups open when the end of the free period is announced. Until then, access is free.',
   assinSemFormas: 'No payment methods are available yet. Talk to us.',
   assinNoBalcao:
     'At the office you pay at the counter and the days are credited straight away — nothing to send.',
@@ -982,6 +983,7 @@ export default {
   admTarifasNota: 'Charged by the drivers. The platform takes no commission.',
   assinTitulo: 'Subscription',
   assinGratuita: 'No access fee until further official notice.',
+  assinGratuitaAteData: 'No access fee until {data}. After that, access is paid.',
   assinGratuitaExplica:
     'Meanwhile you pay nothing and are never blocked. Days are still recorded so you can see how it works.',
   assinSaldo: 'Days in your balance',

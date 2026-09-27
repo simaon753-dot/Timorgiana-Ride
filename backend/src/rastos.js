@@ -23,13 +23,12 @@ import { query } from './db.js';
 // percurso. Os cortes nas pontas tornam isso difícil, não impossível. Está
 // escrito aqui para ninguém prometer mais do que isto.
 //
-// DESLIGADO ATÉ A POLÍTICA DE PRIVACIDADE O DIZER. A política actual diz que
-// a localização serve para encaminhar pedidos, acompanhar a viagem,
-// segurança e apoio — melhorar mapas é uma finalidade nova. O texto é do
-// Simão; quando ele o aprovar e estiver publicado, muda-se isto para `true`.
-// Desligado, nada se junta nem se guarda: o modo que pode causar dano não é
-// o que se obtém por omissão.
-export const RASTOS_LIGADOS = false;
+// LIGADO A 28/09/2026, com o Aviso de Privacidade dessa data a dizê-lo
+// (secção «Localização e emergência»; prazo em «Conservação»). O Simão
+// delegou-me a redacção. Se o texto da política deixar de o dizer, isto volta
+// a `false` — melhorar mapas é uma finalidade própria, e não se trata sem
+// estar escrita.
+export const RASTOS_LIGADOS = true;
 // Só o teste liga isto sem mudar a constante (ver `_paraTeste`).
 let ligados = RASTOS_LIGADOS;
 

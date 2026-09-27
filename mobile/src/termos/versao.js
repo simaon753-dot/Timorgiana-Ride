@@ -40,7 +40,9 @@ export const VERSAO_TERMOS = '2026-09-14';
 // grave), preços avisados com 30 dias, dias creditados até 24 horas.
 // E de novo no MESMO dia (daí o 'b'): fotografia de turno, Carro Pickup e
 // passageiros menores, na revisão conjunta dos três documentos.
-export const VERSAO_TERMOS_MOTORISTA = '2026-09-14b';
+// Alterada em 28/09/2026: o período gratuito deixa de acabar a 30/04/2027 e
+// passa a durar até novo aviso oficial, anunciado com 30 dias.
+export const VERSAO_TERMOS_MOTORISTA = '2026-09-28';
 
 // A privacidade tem versão PRÓPRIA, e não a dos termos.
 //
@@ -51,4 +53,5 @@ export const VERSAO_TERMOS_MOTORISTA = '2026-09-14b';
 // Alterada em 14/09/2026: fotografia de turno, dados de quem viaja por
 // pedido de outra pessoa, carga, pagamentos, prazos concretos e registo de
 // acessos.
-export const VERSAO_PRIVACIDADE = '2026-09-14';
+// Alterada em 28/09/2026: percursos anónimos para os mapas e ocorrências.
+export const VERSAO_PRIVACIDADE = '2026-09-28';

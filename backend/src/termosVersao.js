@@ -9,8 +9,9 @@ import { one } from './db.js';
 //
 // PORQUÊ NO SERVIDOR: até aqui, aceitar os termos novos era só um aviso no
 // ecrã. Sem aceitação a cláusula da assinatura não obriga ninguém, e a
-// cobrança começa a 1 de Maio de 2027. Ficar disponível passa a exigi-la.
-export const VERSAO_TERMOS_MOTORISTA = '2026-09-14b';
+// cobrança começa quando for anunciada. Ficar disponível passa a exigi-la.
+// 28/09/2026: sem taxa de acesso até novo aviso oficial (ver assinatura.js).
+export const VERSAO_TERMOS_MOTORISTA = '2026-09-28';
 
 // Lida da base e não da sessão: quem aceita os termos a meio tem de poder
 // ficar disponível logo a seguir, sem sair da app e voltar a entrar.

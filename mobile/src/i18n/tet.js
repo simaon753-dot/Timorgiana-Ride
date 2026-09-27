@@ -27,7 +27,8 @@ export default {
   assinDesistir: 'Kansela pedidu',
   assinDesistirConfirmar: 'Kansela pedidu ida-ne’e? Se selu tiha ona, ko’alia uluk ho ami.',
   assinRecusado: 'Pagamentu ikus la hetan konfirmasaun: {motivo}',
-  assinAbremEm: 'Karegamentu loke iha {data}. To’o loron ne’e, asesu gratuitu.',
+  assinAbremAnuncio:
+    'Karegamentu loke bainhira anunsia ofisialmente períodu gratuitu nia rohan. To’o ne’ebá, asesu gratuitu.',
   assinSemFormas: 'Seidauk iha forma pagamentu ruma. Ko’alia ho ami.',
   assinNoBalcao:
     'Iha eskritóriu ita selu iha balkaun no loron sira tama kedas — la presiza haruka buat ida.',
@@ -996,6 +997,7 @@ export default {
   admTarifasNota: 'Motorista sira mak simu. Plataforma la simu komisaun.',
   assinTitulo: 'Asinatura',
   assinGratuita: 'La iha taxa asesu to’o hetan avizu ofisiál foun.',
+  assinGratuitaAteData: 'La iha taxa asesu to’o {data}. Depois ne’e, asesu sei selu.',
   assinGratuitaExplica:
     'Durante tempu ne’e, ita la selu buat ida no la bloqueia. Loron servisu sira sei rejistu nafatin atu ita bele haree oinsá mak funsiona.',
   assinSaldo: 'Loron iha ita-nia saldu',

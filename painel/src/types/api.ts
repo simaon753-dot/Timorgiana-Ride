@@ -456,8 +456,11 @@ export interface Carregamento {
 
 // GET /api/admin/pagamentos/resumo — acrescentado a 17/09/2026.
 export interface ResumoPagamentos {
-  gratuitoAte: string;
-  comprasAbrem: string;
+  // Sem taxa de acesso até novo aviso oficial (28/09/2026): nulos até o
+  // administrador anunciar o dia em que a cobrança começa.
+  inicioCobranca: string | null;
+  gratuitoAte: string | null;
+  avisoMinimoDias: number;
   emPeriodoGratuito: boolean;
   hoje: number;
   mes: number;

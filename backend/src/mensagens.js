@@ -1,7 +1,7 @@
 // AS MENSAGENS DO SERVIDOR NAS TRÊS LÍNGUAS (15/09/26).
 //
 // Até aqui o servidor respondia sempre em português: "Os carregamentos abrem
-// a 1 de Abril de 2027" chegava assim a um motorista com a app em tétum. A app
+// quando for anunciado…" chegava assim a um motorista com a app em tétum. A app
 // passou a dizer em que língua está (cabeçalho X-Lingua) e a resposta vem
 // nessa língua.
 //
@@ -30,10 +30,19 @@ export const MENSAGENS = {
     'Konta motorista de’it mak bele karega loron.',
     'Only a driver account can top up days.',
   ],
-  'Os carregamentos abrem a 1 de Abril de 2027.': [
-    'Karegamentu loke iha 1 Abríl 2027.',
-    'Top-ups open on 1 April 2027.',
+  'Os carregamentos abrem quando for anunciado o fim do período gratuito.': [
+    'Karegamentu loke bainhira anunsia ofisialmente períodu gratuitu nia rohan.',
+    'Top-ups open when the end of the free period is announced.',
   ],
+  'A cobrança tem de ser anunciada com pelo menos 30 dias de antecedência.': [
+    'Tenke anunsia kobransa pelumenus loron 30 molok.',
+    'Charging must be announced at least 30 days in advance.',
+  ],
+  'A cobrança já começou. Para a suspender, marque um novo dia de início.': [
+    'Kobransa hahú ona. Atu suspende, marka loron foun ba hahú.',
+    'Charging has already started. To suspend it, set a new start date.',
+  ],
+  'Data inválida.': ['Data la válidu.', 'Invalid date.'],
   'Pacote inválido.': ['Pakote la válidu.', 'Invalid package.'],
   'Forma de pagamento inválida.': ['Forma pagamentu la válidu.', 'Invalid payment method.'],
   'Esta forma de pagamento não está disponível.': [

@@ -39,11 +39,15 @@
 // prazos concretos de conservação (os de retencao.js, turnos.js e
 // fotosDaCarga.js) e o registo de acessos. Se um desses prazos mudar no
 // código, muda aqui também — e a versão.
+//
+// REVISÃO DE 28/09/2026, decidida pelo Simão (delegou-me a redacção): os
+// percursos anónimos para os mapas (rastos.js, 24 meses) e as ocorrências
+// do «Reportar» (ocorrencias.js, 24 meses depois de tratadas).
 
 const pt = {
   titulo: 'Aviso de Privacidade',
   aceitarCurto: 'Li e aceito o **aviso de privacidade**',
-  subtitulo: 'Passageiro e motorista · versão de 14 de Setembro de 2026',
+  subtitulo: 'Passageiro e motorista · versão de 28 de Setembro de 2026',
   seccoes: [
     {
       titulo: 'Quem trata os dados',
@@ -73,12 +77,12 @@ const pt = {
     {
       titulo: 'Localização e emergência',
       texto:
-        'A localização é usada para encaminhar pedidos, acompanhar a viagem, segurança e apoio. As funcionalidades de partilha de viagem e emergência só devem recolher ou enviar informação nos termos mostrados na aplicação. Não garantimos resposta de emergência; em perigo imediato, contacte os serviços locais competentes.',
+        'A localização é usada para encaminhar pedidos, acompanhar a viagem, segurança e apoio. As funcionalidades de partilha de viagem e emergência só devem recolher ou enviar informação nos termos mostrados na aplicação. Não garantimos resposta de emergência; em perigo imediato, contacte os serviços locais competentes.\n\nPara melhorar os mapas, as rotas e as estimativas de tempo e de preço em Timor-Leste, guardamos também o percurso feito pelo veículo durante as viagens com passageiro a bordo, separado da viagem, do motorista e do passageiro. Antes de ser guardado, retiramos os troços a menos de 250 metros do local de recolha e do destino, e a data fica reduzida ao mês, ao dia da semana e à hora. Estes percursos não são usados para avaliar motoristas nem passageiros, e não são vendidos.',
     },
     {
       titulo: 'Conservação e segurança',
       texto:
-        'Conservamos os dados apenas durante o tempo necessário para as finalidades deste aviso, para obrigações legais, segurança, fraude, contabilidade ou litígios. Aplicamos medidas organizativas e técnicas razoáveis, mas nenhum sistema é totalmente seguro.\n\nAlguns prazos concretos: as fotografias de turno são guardadas 7 dias; as fotografias da carga, 7 dias depois de a viagem terminar; o registo detalhado de cada viagem (eventos e posições), 6 meses; o registo de quem, na equipa de gestão, consultou ou exportou dados, 24 meses. Os pagamentos da assinatura são guardados pelo tempo que as obrigações contabilísticas e fiscais exigirem.',
+        'Conservamos os dados apenas durante o tempo necessário para as finalidades deste aviso, para obrigações legais, segurança, fraude, contabilidade ou litígios. Aplicamos medidas organizativas e técnicas razoáveis, mas nenhum sistema é totalmente seguro.\n\nAlguns prazos concretos: as fotografias de turno são guardadas 7 dias; as fotografias da carga, 7 dias depois de a viagem terminar; o registo detalhado de cada viagem (eventos e posições), 6 meses; o registo de quem, na equipa de gestão, consultou ou exportou dados, 24 meses. Os percursos anónimos para melhoria dos mapas são guardados 24 meses. Os pagamentos da assinatura são guardados pelo tempo que as obrigações contabilísticas e fiscais exigirem.\n\nSe reportar um problema numa viagem, o que escrever fica ligado aos dados dessa viagem (quem viajou, quem conduziu, a data, o percurso e o preço) para a equipa o poder tratar. Só a equipa de gestão o vê; a outra pessoa da viagem não é avisada. As ocorrências são guardadas 24 meses depois de tratadas.',
     },
     {
       titulo: 'Os seus direitos e escolhas',
@@ -101,7 +105,7 @@ const pt = {
 const tet = {
   titulo: 'Avizu Privasidade',
   aceitarCurto: 'Ha’u lee no aseita **avizu privasidade**',
-  subtitulo: 'Pasajeiru no motorista · versaun 14 Setembru 2026',
+  subtitulo: 'Pasajeiru no motorista · versaun 28 Setembru 2026',
   seccoes: [
     {
       titulo: 'Sé mak trata dadus',
@@ -131,12 +135,12 @@ const tet = {
     {
       titulo: 'Lokalizasaun no emerjénsia',
       texto:
-        'Ami uza lokalizasaun atu orienta pedidu, akompaña viajen, seguransa no apoiu. Funsaun fahe viajen no emerjénsia sei halibur ka haruka informasaun tuir hirak neʼebé aplikasaun hatudu. Ami la garante resposta emerjénsia; iha perigu imediatu, kontaktu kedas ba servisu lokál kompetente sira.',
+        'Ami uza lokalizasaun atu orienta pedidu, akompaña viajen, seguransa no apoiu. Funsaun fahe viajen no emerjénsia sei halibur ka haruka informasaun tuir hirak neʼebé aplikasaun hatudu. Ami la garante resposta emerjénsia; iha perigu imediatu, kontaktu kedas ba servisu lokál kompetente sira.\n\nAtu hadiʼa mapa, dalan no estimativa tempu no folin iha Timor-Leste, ami rai mós dalan neʼebé veíkulu liu durante viajen ho pasajeiru, haketak husi viajen, motorista no pasajeiru. Molok rai, ami hasai parte neʼebé besik liu metru 250 husi fatin foti no destinu, no data hela deʼit fulan, loron semana no oras. Ami la uza dalan hirak-neʼe atu avalia motorista ka pasajeiru, no ami la faan.',
     },
     {
       titulo: 'Tempu rai no seguransa',
       texto:
-        "Ami rai de'it dadus durante tempu ne'ebé presiza ba objetivu avizu ida-ne'e nian, ba obrigasaun legál sira, seguransa, fraude, kontabilidade ka litigasaun. Ami implementa ona medida organizasaun no téknika ne'ebé di'ak, maibé laiha sistema ida mak totalmente seguru.\n\nIha prazu espesífiku balun: fotografia turnu nian sei rai durante loron 7; fotografia karga nian, loron 7 hafoin viajen remata; rejistu detalladu kona-ba kada viajen (eventu no pozisaun), fulan 6; rejistu se nian, iha ekipa jestaun nian, konsulta ka esporta dadus fulan 24. Pagamentu ba asinatura ne'e sei kontinua iha tempu ne'ebé rekere obrigasaun kontabilidade no impostu sira.",
+        "Ami rai de'it dadus durante tempu ne'ebé presiza ba objetivu avizu ida-ne'e nian, ba obrigasaun legál sira, seguransa, fraude, kontabilidade ka litigasaun. Ami implementa ona medida organizasaun no téknika ne'ebé di'ak, maibé laiha sistema ida mak totalmente seguru.\n\nIha prazu espesífiku balun: fotografia turnu nian sei rai durante loron 7; fotografia karga nian, loron 7 hafoin viajen remata; rejistu detalladu kona-ba kada viajen (eventu no pozisaun), fulan 6; rejistu se nian, iha ekipa jestaun nian, konsulta ka esporta dadus fulan 24. Dalan anónimu atu hadiʼa mapa sei rai fulan 24. Pagamentu ba asinatura ne'e sei kontinua iha tempu ne'ebé rekere obrigasaun kontabilidade no impostu sira.\n\nSe ita relata problema ida iha viajen, saida mak ita hakerek sei liga ho dadus viajen neʼe nian (se mak viaja, se mak kondus, data, dalan no folin) atu ekipa bele trata. Ekipa jestaun deʼit mak haree; ema seluk iha viajen la hetan avizu. Okorrénsia sira sei rai fulan 24 hafoin trata ona.",
     },
     {
       titulo: 'Ita-nia direitu no escolha',
@@ -159,7 +163,7 @@ const tet = {
 const en = {
   titulo: 'Privacy Notice',
   aceitarCurto: 'I have read and accept the **privacy notice**',
-  subtitulo: 'Passenger and driver · version of 14 September 2026',
+  subtitulo: 'Passenger and driver · version of 28 September 2026',
   seccoes: [
     {
       titulo: 'Who processes the data',
@@ -189,12 +193,12 @@ const en = {
     {
       titulo: 'Location and emergency',
       texto:
-        'Location is used to route requests, follow the ride, and for safety and support. The share-ride and emergency features should only collect or send information on the terms shown in the application. We do not guarantee an emergency response; in the event of immediate danger, contact the competent local services.',
+        'Location is used to route requests, follow the ride, and for safety and support. The share-ride and emergency features should only collect or send information on the terms shown in the application. We do not guarantee an emergency response; in the event of immediate danger, contact the competent local services.\n\nTo improve the maps, routes and time and price estimates in Timor-Leste, we also keep the path taken by the vehicle during rides with a passenger on board, separated from the ride, the driver and the passenger. Before it is stored, we remove the sections within 250 metres of the pickup point and the destination, and the date is reduced to the month, the day of the week and the hour. These paths are not used to assess drivers or passengers, and are not sold.',
     },
     {
       titulo: 'Retention and security',
       texto:
-        'We keep data only for as long as necessary for the purposes of this notice, and for legal obligations, security, fraud prevention, accounting or disputes. We apply reasonable organisational and technical measures, but no system is completely secure.\n\nSome specific periods: shift photographs are kept for 7 days; photographs of the load, for 7 days after the ride ends; the detailed record of each ride (events and positions), for 6 months; the record of who in the management team viewed or exported data, for 24 months. Subscription payments are kept for as long as accounting and tax obligations require.',
+        'We keep data only for as long as necessary for the purposes of this notice, and for legal obligations, security, fraud prevention, accounting or disputes. We apply reasonable organisational and technical measures, but no system is completely secure.\n\nSome specific periods: shift photographs are kept for 7 days; photographs of the load, for 7 days after the ride ends; the detailed record of each ride (events and positions), for 6 months; the record of who in the management team viewed or exported data, for 24 months. Anonymous paths used to improve the maps are kept for 24 months. Subscription payments are kept for as long as accounting and tax obligations require.\n\nIf you report a problem on a ride, what you write is linked to that ride’s data (who travelled, who drove, the date, the route and the price) so that the team can deal with it. Only the management team sees it; the other person on the ride is not notified. Reports are kept for 24 months after they have been dealt with.',
     },
     {
       titulo: 'Your rights and choices',

@@ -42,8 +42,10 @@ import {
   registarDevolucao,
   gravarQr,
   apagarQr,
-  GRATUITO_ATE,
-  COMPRAS_ABREM,
+  inicioDaCobranca,
+  ultimoDiaGratuito,
+  anunciarCobranca,
+  AVISO_MINIMO_DIAS,
   emPeriodoGratuito,
 } from '../assinatura.js';
 import { notificarMotoristaPagamento } from '../push.js';
@@ -1366,9 +1368,13 @@ adminRouter.get(
       ),
       emPeriodoGratuito(),
     ]);
+    const inicio = await inicioDaCobranca();
     res.json({
-      gratuitoAte: GRATUITO_ATE,
-      comprasAbrem: COMPRAS_ABREM,
+      // Sem taxa de acesso até novo aviso oficial (28/09/2026): as três
+      // são nulas até o administrador anunciar o dia da cobrança.
+      inicioCobranca: inicio,
+      gratuitoAte: ultimoDiaGratuito(inicio),
+      avisoMinimoDias: AVISO_MINIMO_DIAS,
       emPeriodoGratuito: gratuito,
       hoje: somas.hoje,
       mes: somas.mes,
@@ -1389,6 +1395,20 @@ adminRouter.get(
         por: c.por,
       })),
     });
+  })
+);
+
+// PUT /api/admin/assinatura/cobranca — anunciar o fim do período gratuito
+//
+// `{ inicio: 'YYYY-MM-DD' }` marca o primeiro dia pago; `{ inicio: null }`
+// retira o anúncio (só antes de a cobrança começar). A regra dos 30 dias de
+// antecedência vive em `assinatura.js`, ao lado da cobrança que protege.
+adminRouter.put(
+  '/assinatura/cobranca',
+  wrap(async (req, res) => {
+    const r = await anunciarCobranca(req.body?.inicio ?? null, req.user.id);
+    if (r.erro) return res.status(400).json({ error: r.erro });
+    res.json({ inicio: r.inicio, gratuitoAte: ultimoDiaGratuito(r.inicio) });
   })
 );
 

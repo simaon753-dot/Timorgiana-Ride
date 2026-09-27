@@ -1229,7 +1229,11 @@ function FaixaAssinatura({ a, bloqueio, navigation }) {
         <Text style={[estilosFaixa.titulo, { color: tinta }]}>
           {/* Sem data (28/09/2026): o fim do período gratuito é anunciado
               oficialmente, e não escrito na app. */}
-          {bloqueado ? t('assinBloqueado') : t('assinGratuita')}
+          {bloqueado
+            ? t('assinBloqueado')
+            : a.gratuitoAte
+              ? t('assinGratuitaAteData', { data: paraMostrar(a.gratuitoAte) })
+              : t('assinGratuita')}
         </Text>
         <Text style={[estilosFaixa.nota, { color: tinta }]}>
           {bloqueado ? t('assinSemSaldo') : t('assinVer')}

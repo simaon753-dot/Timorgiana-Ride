@@ -51,7 +51,10 @@ export const CATEGORIAS_GRAVES = ['conducaoPerigosa', 'assedio', 'ameaca'];
 
 export const ESTADOS = ['aberta', 'em_analise', 'resolvida', 'arquivada'];
 
-// PROPOSTAS MINHAS (27/09/2026), por decidir pelo Simão:
+// DECIDIDO A 28/09/2026 (o Simão delegou-me; ficaram as propostas de 27/09).
+// O Aviso de Privacidade diz que só a equipa vê a ocorrência, que a outra
+// pessoa não é avisada e que se guarda 24 meses depois de tratada
+// (`retencao.js`). Mudar qualquer destes obriga a mudar o aviso.
 //
 // 30 dias para reportar. Chega para quem só dá pela falta de um objecto dias
 // depois, e não deixa reabrir uma viagem de há meses — nessa altura já
