@@ -896,6 +896,33 @@ export async function initSchema() {
     )
   `);
 
+  // AS OCORRÊNCIAS — «Reportar» a partir de uma viagem. Ver `ocorrencias.js`.
+  //
+  // ON DELETE SET NULL e não em cascata: apagar uma viagem velha (a
+  // exportação do painel) ou uma conta não pode apagar a queixa que alguém
+  // fez. O `resumo` guarda o retrato da viagem para ela continuar legível.
+  await query(`
+    CREATE TABLE IF NOT EXISTS ocorrencias (
+      id           SERIAL PRIMARY KEY,
+      ride_id      INTEGER REFERENCES rides(id) ON DELETE SET NULL,
+      autor_id     INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      papel_autor  TEXT NOT NULL CHECK (papel_autor IN ('passenger','driver')),
+      visado_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      categoria    TEXT NOT NULL,
+      descricao    TEXT,
+      estado       TEXT NOT NULL DEFAULT 'aberta'
+                   CHECK (estado IN ('aberta','em_analise','resolvida','arquivada')),
+      resposta     TEXT,
+      nota_interna TEXT,
+      resumo       JSONB NOT NULL,
+      tratada_por  INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      tratada_em   TIMESTAMPTZ,
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await query(`CREATE INDEX IF NOT EXISTS ocorrencias_ride ON ocorrencias (ride_id)`);
+  await query(`CREATE INDEX IF NOT EXISTS ocorrencias_estado ON ocorrencias (estado)`);
+
   // OS RASTOS ANÓNIMOS DAS VIAGENS. Ver `rastos.js` — o que se corta, e
   // porque é que nenhuma coluna liga um rasto a uma viagem ou a uma pessoa.
   await query(`

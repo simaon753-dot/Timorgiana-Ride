@@ -52,7 +52,15 @@ export default function HistoryScreen({ navigation }) {
       ) : (
         <ScrollView contentContainerStyle={styles.list}>
           {rides.map((r) => (
-            <View key={r.id} style={styles.card}>
+            // CADA VIAGEM ABRE (27/09/2026): o detalhe, avaliar se ficou por
+            // avaliar, e reportar um problema. Ver DetalheViagemScreen.
+            <Pressable
+              key={r.id}
+              onPress={() => navigation.navigate('DetalheViagem', { rideId: r.id })}
+              style={({ pressed }) => [styles.card, pressed && { opacity: 0.7 }]}
+              accessibilityRole="button"
+              accessibilityHint={t('historyVerDetalhe')}
+            >
               <View style={styles.cardTop}>
                 <StatusBadge status={r.status} />
                 <Text style={styles.fare}>{r.fareUsd != null ? `$${r.fareUsd}` : '—'}</Text>
@@ -75,7 +83,7 @@ export default function HistoryScreen({ navigation }) {
                   <Text style={styles.notRated}>{t('notRated')}</Text>
                 )}
               </View>
-            </View>
+            </Pressable>
           ))}
           <View style={{ height: spacing.xl }} />
         </ScrollView>

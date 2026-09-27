@@ -154,6 +154,27 @@ const viagens = Array.from({ length: 28 }).map((_, i) => {
   };
 });
 
+// OCORRÊNCIAS FICTÍCIAS (27/09/2026) — nomes e números inventados.
+const viagemDemo = (id, horas, extra = {}) => ({
+  viagem: id, estado: 'completed', pedidaEm: new Date(agora - horas * 3600_000).toISOString(), iniciadaEm: null,
+  veiculo: 'car', origem: { rotulo: 'Mercado de Taibessi', lat: -8.574, lng: 125.596 },
+  destino: { rotulo: 'Aeroporto Nicolau Lobato', lat: -8.547, lng: 125.525 }, km: 9.4, minutos: 24, precoUsd: 4.5,
+  passageiro: { id: 901, nome: 'Passageiro Exemplo', telefone: '77000001' },
+  motorista: { id: 902, nome: 'Motorista Exemplo', telefone: '77000002', matricula: '00-000 TL', modelo: 'Toyota Avanza', cor: 'Prata' },
+  ...extra,
+});
+let ocorrencias = [
+  { id: 3, rideId: 1204, papelAutor: 'passenger', autor: 'Passageiro Exemplo', autorTelefone: '77000001', categoria: 'conducaoPerigosa', grave: true,
+    descricao: 'Ia muito depressa na avenida de Comoro e passou dois semáforos vermelhos.', estado: 'aberta', resposta: null, notaInterna: null,
+    viagem: viagemDemo(1204, 3), tratadaPor: null, tratadaEm: null, criadaEm: new Date(agora - 2 * 3600_000).toISOString() },
+  { id: 2, rideId: 1198, papelAutor: 'passenger', autor: 'Outra Passageira', autorTelefone: '77000003', categoria: 'objetoPerdido', grave: false,
+    descricao: 'Esqueci um guarda-chuva azul no banco de trás.', estado: 'em_analise', resposta: null, notaInterna: 'Liguei ao motorista; vai procurar.',
+    viagem: viagemDemo(1198, 26), tratadaPor: 'Administrador (demonstração)', tratadaEm: new Date(agora - 20 * 3600_000).toISOString(), criadaEm: new Date(agora - 25 * 3600_000).toISOString() },
+  { id: 1, rideId: 1150, papelAutor: 'driver', autor: 'Motorista Exemplo', autorTelefone: '77000002', categoria: 'naoPagou', grave: false,
+    descricao: null, estado: 'resolvida', resposta: 'Falámos com o passageiro e o valor foi pago.', notaInterna: null,
+    viagem: viagemDemo(1150, 80), tratadaPor: 'Administrador (demonstração)', tratadaEm: new Date(agora - 50 * 3600_000).toISOString(), criadaEm: new Date(agora - 78 * 3600_000).toISOString() },
+];
+
 let sos = [
   { id: 1, rideId: 1055, quem: 'Passageiro Exemplo 2', tipo: 'medica', telefone: '77100002', papel: 'passenger',
     destino: 'Hospital Nacional Guido Valadares', estadoViagem: 'in_progress', lat: -8.5569, lng: 125.5603,
@@ -271,6 +292,8 @@ const contagens = () => {
 function notificacoes() {
   const n = {
     sos: sos.length,
+    ocorrenciasGraves: ocorrencias.filter((o) => o.grave && ['aberta', 'em_analise'].includes(o.estado)).length,
+    ocorrencias: ocorrencias.filter((o) => !o.grave && ['aberta', 'em_analise'].includes(o.estado)).length,
     pagamentosAtrasados: pedidos.filter((p) => p.estado === 'pendente' && p.horas >= 24).length,
     pagamentos: pedidos.filter((p) => p.estado === 'pendente' && p.horas < 24).length,
     docsCaducados: motoristas.filter((m) => m.documents.some((d) => d.expirado)).length,
@@ -280,7 +303,7 @@ function notificacoes() {
     canceladas: viagens.filter((v) => v.estado === 'cancelled' && v.motorista).length,
     suspensas: motoristas.filter((m) => m.driverStatus === 'suspended').length,
   };
-  const niveis = { sos: 'mau', pagamentosAtrasados: 'mau', pagamentos: 'aviso', docsCaducados: 'mau', aprovacoes: 'aviso', semResposta: 'aviso', docsACaducar: 'aviso', canceladas: 'neutro', suspensas: 'neutro' };
+  const niveis = { sos: 'mau', ocorrenciasGraves: 'mau', ocorrencias: 'aviso', pagamentosAtrasados: 'mau', pagamentos: 'aviso', docsCaducados: 'mau', aprovacoes: 'aviso', semResposta: 'aviso', docsACaducar: 'aviso', canceladas: 'neutro', suspensas: 'neutro' };
   const itens = Object.entries(n).filter(([, v]) => v > 0).map(([chave, v]) => ({ chave, n: v, nivel: niveis[chave], seccao: '' }));
   return { itens, porTratar: itens.filter((i) => i.nivel !== 'neutro').reduce((s, i) => s + i.n, 0) };
 }
@@ -344,6 +367,20 @@ async function api(req, res, url) {
   }
   if (p === '/admin/notificacoes') return json(res, notificacoes());
   if (p === '/admin/sos') return json(res, { alertas: sos });
+  if (p === '/admin/ocorrencias') {
+    const todas = url.searchParams.get('filtro') === 'todas';
+    return json(res, { ocorrencias: ocorrencias.filter((o) => todas || ['aberta', 'em_analise'].includes(o.estado)) });
+  }
+  if ((x = m(/^\/admin\/ocorrencias\/(\d+)$/)) && req.method === 'POST') {
+    const b = await corpoDe(req);
+    ocorrencias = ocorrencias.map((o) =>
+      o.id === Number(x[1])
+        ? { ...o, estado: b.estado, resposta: b.resposta || o.resposta, notaInterna: b.notaInterna || o.notaInterna,
+            tratadaPor: 'Administrador (demonstração)', tratadaEm: new Date().toISOString() }
+        : o
+    );
+    return json(res, { ok: true });
+  }
   if ((x = m(/^\/admin\/sos\/(\d+)\/resolver$/))) {
     sos = sos.filter((a) => a.id !== Number(x[1]));
     return json(res, { ok: true });

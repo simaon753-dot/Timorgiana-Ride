@@ -24,6 +24,8 @@ import type {
   Saude,
   Servico,
   AlertaSos,
+  EstadoOcorrencia,
+  Ocorrencia,
   TipoVeiculo,
   UtilizadorPublico,
   ViagemLinha,
@@ -68,6 +70,10 @@ export const api = {
   resumo: () => pedir<{ resumo: Resumo }>('/admin/resumo'),
   notificacoes: () => pedir<RespostaNotificacoes>('/admin/notificacoes'),
   sos: () => pedir<{ alertas: AlertaSos[] }>('/admin/sos'),
+  ocorrencias: (filtro: 'abertas' | 'todas') =>
+    pedir<{ ocorrencias: Ocorrencia[] }>('/admin/ocorrencias' + q({ filtro })),
+  tratarOcorrencia: (id: number, corpo: { estado: EstadoOcorrencia; resposta?: string; notaInterna?: string }) =>
+    pedir<{ ok: true }>(`/admin/ocorrencias/${id}`, { method: 'POST', corpo }),
   resolverSos: (id: number) => pedir<{ ok: true }>(`/admin/sos/${id}/resolver`, { method: 'POST' }),
 
   // Viagens

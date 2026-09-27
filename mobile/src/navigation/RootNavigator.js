@@ -16,6 +16,8 @@ import EscolherCarryScreen from '../screens/EscolherCarryScreen.js';
 import EncomendaScreen from '../screens/EncomendaScreen.js';
 import DriverPendingScreen from '../screens/DriverPendingScreen.js';
 import ChatScreen from '../screens/ChatScreen.js';
+import DetalheViagemScreen from '../screens/DetalheViagemScreen.js';
+import ReportarScreen from '../screens/ReportarScreen.js';
 import ServerScreen from '../screens/ServerScreen.js';
 import AdminScreen from '../screens/AdminScreen.js';
 import AdminDetalheScreen from '../screens/AdminDetalheScreen.js';
@@ -108,6 +110,8 @@ export default function RootNavigator() {
                 aqui pelo perfil quando quiser ver como está. */}
               <Stack.Screen name="DriverPending" component={DriverPendingScreen} />
               <Stack.Screen name="Chat" component={ChatScreen} />
+              <Stack.Screen name="DetalheViagem" component={DetalheViagemScreen} />
+              <Stack.Screen name="Reportar" component={ReportarScreen} />
               <Stack.Screen name="Perfil" component={PerfilScreen} />
               <Stack.Screen name="Assinatura" component={AssinaturaScreen} />
               <Stack.Screen name="Opcoes" component={OpcoesScreen} />

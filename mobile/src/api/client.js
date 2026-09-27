@@ -229,6 +229,16 @@ export const api = {
   rateRide: (token, id, stars, motivos = []) =>
     request(`/rides/${id}/rate`, { method: 'POST', body: { stars, motivos }, token }),
 
+  // Uma viagem do histórico, aberta: o que se pode ainda fazer com ela.
+  detalheViagem: (token, id) => request(`/rides/${id}/detalhe`, { token }),
+  // «Reportar» — uma ocorrência presa a esta viagem.
+  reportar: (token, id, categoria, descricao) =>
+    request(`/rides/${id}/ocorrencias`, {
+      method: 'POST',
+      body: { categoria, descricao },
+      token,
+    }),
+
   // Motorista: estado da conta e documentos
   driverStatus: (token) => request('/driver/status', { token }),
   // Pôr a data de validade sem voltar a fotografar. Os documentos enviados

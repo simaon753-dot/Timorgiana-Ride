@@ -82,6 +82,47 @@ export interface AlertaSos {
   quando: string;
 }
 
+// UMA OCORRÊNCIA («Reportar» na app), com o retrato da viagem tirado no
+// momento da queixa — continua legível mesmo que a viagem seja apagada.
+export type EstadoOcorrencia = 'aberta' | 'em_analise' | 'resolvida' | 'arquivada';
+export interface PessoaDaOcorrencia {
+  id: number;
+  nome: string | null;
+  telefone: string | null;
+}
+export interface Ocorrencia {
+  id: number;
+  rideId: number | null;
+  papelAutor: 'passenger' | 'driver';
+  autor: string | null;
+  autorTelefone: string | null;
+  categoria: string;
+  grave: boolean;
+  descricao: string | null;
+  estado: EstadoOcorrencia;
+  resposta: string | null;
+  notaInterna: string | null;
+  viagem: {
+    viagem: number;
+    estado: string;
+    pedidaEm: string;
+    iniciadaEm: string | null;
+    veiculo: string | null;
+    origem: { rotulo: string | null; lat: number | null; lng: number | null };
+    destino: { rotulo: string | null; lat: number | null; lng: number | null };
+    km: number | null;
+    minutos: number | null;
+    precoUsd: number | null;
+    passageiro: PessoaDaOcorrencia;
+    motorista:
+      | (PessoaDaOcorrencia & { matricula: string | null; modelo: string | null; cor: string | null })
+      | null;
+  };
+  tratadaPor: string | null;
+  tratadaEm: string | null;
+  criadaEm: string;
+}
+
 export interface Resumo {
   pendentes: number;
   aprovados: number;
@@ -103,6 +144,8 @@ export type NivelNotificacao = 'mau' | 'aviso' | 'neutro';
 export interface ItemNotificacao {
   chave:
     | 'sos'
+    | 'ocorrenciasGraves'
+    | 'ocorrencias'
     | 'pagamentosAtrasados'
     | 'pagamentos'
     | 'docsCaducados'

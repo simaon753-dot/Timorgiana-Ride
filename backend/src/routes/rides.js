@@ -34,11 +34,24 @@ import {
 import { registarSemEsperar, EVENTOS } from '../eventos.js';
 import { addMessage, addSystemMessage, listMessages } from '../messages.js';
 import { addRating, hasRated, limparMotivos, ESTRELAS_COM_MOTIVO } from '../ratings.js';
-import { notificarPedidoNovo, notificarAceite, notificarAdminsSOS } from '../push.js';
+import {
+  notificarPedidoNovo,
+  notificarAceite,
+  notificarAdminsSOS,
+  notificarAdminsOcorrencia,
+} from '../push.js';
 import { one, query } from '../db.js';
 import { preco, straightKm } from '../routing.js';
 import { caminhosDaViagem, TOLERANCIA_KM, pedidoDe } from '../rotas.js';
 import { fecharRasto } from '../rastos.js';
+import {
+  criarOcorrencia,
+  ocorrenciasDoAutor,
+  ocorrenciaPublica,
+  viagemReportavel,
+  prazoDe,
+  categoriasPara,
+} from '../ocorrencias.js';
 import { podeIr } from '../cobertura.js';
 import { config } from '../config.js';
 import { registarDia } from '../assinatura.js';
@@ -554,6 +567,72 @@ ridesRouter.get(
   wrap(async (req, res) => {
     const rows = await getRideHistoryForUser(req.user);
     return res.json({ rides: rows.map((r) => toPublicRide(r)) });
+  })
+);
+
+// GET /api/rides/:id/detalhe — uma viagem do histórico, aberta (27/09/2026)
+//
+// O que o histórico mostra numa linha, e o que se pode ainda fazer com ela:
+// avaliar (se ficou por avaliar no fim) e reportar. As ocorrências que vêm são
+// só as de quem pergunta — a outra pessoa da viagem nunca sabe que foi
+// reportada (ver `ocorrencias.js`).
+//
+// Os telefones não vêm: é o `toPublicRide` que os esconde nas viagens
+// terminadas, e aqui não se abre excepção.
+ridesRouter.get(
+  '/:id/detalhe',
+  wrap(async (req, res) => {
+    const row = await rideForParticipant(Number(req.params.id), req.user.id);
+    if (!row || !viagemReportavel(row)) {
+      return res.status(404).json({ error: 'Viagem não encontrada.' });
+    }
+    const souMotorista = row.driver_id === req.user.id;
+    const [avaliacao, minhas] = await Promise.all([
+      one('SELECT stars, motivos FROM ratings WHERE ride_id = $1 AND rater_id = $2', [
+        row.id,
+        req.user.id,
+      ]),
+      ocorrenciasDoAutor(row.id, req.user.id),
+    ]);
+    const prazo = prazoDe(row);
+    return res.json({
+      ride: toPublicRide(row),
+      papel: souMotorista ? 'driver' : 'passenger',
+      minhaAvaliacao: avaliacao ? { estrelas: avaliacao.stars, motivos: avaliacao.motivos } : null,
+      // Só as concluídas se avaliam — a mesma regra do /rate.
+      podeAvaliar: row.status === 'completed' && !avaliacao,
+      ocorrencias: minhas.map(ocorrenciaPublica),
+      podeReportar: Date.now() <= prazo.getTime(),
+      reportarAte: prazo.toISOString(),
+      categorias: categoriasPara(souMotorista ? 'driver' : 'passenger'),
+    });
+  })
+);
+
+// POST /api/rides/:id/ocorrencias — «Reportar» (27/09/2026)
+ridesRouter.post(
+  '/:id/ocorrencias',
+  wrap(async (req, res) => {
+    const row = await rideForParticipant(Number(req.params.id), req.user.id);
+    if (!row) return res.status(404).json({ error: 'Viagem não encontrada.' });
+    const r = await criarOcorrencia({
+      ride: row,
+      autorId: req.user.id,
+      categoria: req.body?.categoria,
+      descricao: req.body?.descricao,
+    });
+    if (r.erro) return res.status(400).json({ error: r.erro });
+
+    // O painel aberto actualiza a lista sozinho; as graves chegam também ao
+    // telemóvel dos administradores. Nenhum dos dois pode atrasar a resposta
+    // a quem reportou, nem fazê-la falhar.
+    req.app.get('io')?.to('admins').emit('ocorrencia:nova', { id: r.ocorrencia.id });
+    if (r.grave) {
+      notificarAdminsOcorrencia({ rideId: row.id, categoria: r.ocorrencia.categoria }).catch((e) =>
+        console.error('[ocorrências] aviso aos administradores falhou:', e?.message)
+      );
+    }
+    return res.status(201).json({ ocorrencia: ocorrenciaPublica(r.ocorrencia) });
   })
 );
 

@@ -34,9 +34,17 @@ const ESTRELAS_COM_MOTIVO = 3;
 const MAX_MOTIVOS = 3;
 
 // Painel de avaliação mostrado quando a viagem fica concluída.
-export default function RatingPanel({ ride, role }) {
+//
+// TAMBÉM NO HISTÓRICO (27/09/2026). Quem fechava o ecrã do fim da viagem sem
+// avaliar perdia a vez, porque o painel vive com a viagem activa. No detalhe
+// de uma viagem antiga, quem chama passa `aoAvaliar` e trata do envio; aqui
+// fica só o desenho, que é o mesmo nos dois sítios.
+export default function RatingPanel({ ride, role, aoAvaliar }) {
   const { t } = useI18n();
-  const { rateRide, rated } = useRides();
+  const doContexto = useRides();
+  const [avaliouAqui, setAvaliouAqui] = useState(false);
+  const rateRide = aoAvaliar || doContexto.rateRide;
+  const rated = aoAvaliar ? avaliouAqui : doContexto.rated;
   const [stars, setStars] = useState(0);
   const [motivos, setMotivos] = useState([]);
   const [busy, setBusy] = useState(false);
@@ -71,6 +79,7 @@ export default function RatingPanel({ ride, role }) {
       // numa avaliação que já não os pede. O servidor também os deita fora,
       // mas quem os enviasse tinha-os visto marcados no ecrã.
       await rateRide(ride.id, stars, perguntarPorque ? motivos : []);
+      if (aoAvaliar) setAvaliouAqui(true);
     } catch {
       setBusy(false);
     }

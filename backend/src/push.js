@@ -204,6 +204,29 @@ export async function notificarAdminsSOS({ nome, rideId, lat, lng }) {
   );
 }
 
+// UMA OCORRÊNCIA GRAVE — condução perigosa, assédio, ameaça (27/09/2026).
+//
+// Sem o nome de ninguém nem o texto da queixa: uma notificação aparece no
+// ecrã bloqueado, à vista de quem estiver ao lado do administrador. Diz só
+// que há uma e de que viagem; o resto vê-se no painel.
+export async function notificarAdminsOcorrencia({ rideId, categoria }) {
+  const admins = await administradores();
+  if (!admins.length) return { enviadas: 0 };
+  return enviar(
+    admins.map((a) => ({
+      to: a.push_token,
+      sound: 'default',
+      title: n('ocorrenciaTitulo', a.lingua),
+      body: n('ocorrenciaTexto', a.lingua, {
+        viagem: rideId,
+        tipo: n('ocor_' + categoria, a.lingua),
+      }),
+      data: { tipo: 'ocorrencia', rideId },
+      priority: 'high',
+    }))
+  );
+}
+
 // Avisa os administradores de que um motorista completou os documentos.
 // Sem isto, um motorista pode ficar dias à espera só porque ninguém foi
 // olhar para o painel — e um motorista que espera dois dias desiste.

@@ -1,4 +1,4 @@
-import { ChartColumn, MapPin, Route, Settings, ShieldCheck, Siren, Users, Wallet, type LucideIcon } from 'lucide-react';
+import { ChartColumn, Flag, MapPin, Route, Settings, ShieldCheck, Siren, Users, Wallet, type LucideIcon } from 'lucide-react';
 import type { Chave } from '@/i18n';
 import type { ItemNotificacao } from '@/types/api';
 
@@ -20,6 +20,7 @@ export const GRUPOS: { rotulo: Chave; itens: ItemNav[] }[] = [
     itens: [
       { para: '/aprovacoes', rotulo: 'nav.aprovacoes', icone: ShieldCheck, contam: ['aprovacoes'] },
       { para: '/emergencias', rotulo: 'nav.emergencias', icone: Siren, contam: ['sos'], urgente: true },
+      { para: '/ocorrencias', rotulo: 'nav.ocorrencias', icone: Flag, contam: ['ocorrenciasGraves', 'ocorrencias'] },
       { para: '/contas', rotulo: 'nav.contas', icone: Users },
       { para: '/viagens', rotulo: 'nav.viagens', icone: Route, contam: ['semResposta'] },
       { para: '/paragens', rotulo: 'nav.paragens', icone: MapPin },
@@ -38,6 +39,8 @@ export const GRUPOS: { rotulo: Chave; itens: ItemNav[] }[] = [
 // Para onde leva cada notificação.
 export const DESTINO_NOTIFICACAO: Record<ItemNotificacao['chave'], string> = {
   sos: '/emergencias',
+  ocorrenciasGraves: '/ocorrencias',
+  ocorrencias: '/ocorrencias',
   pagamentosAtrasados: '/pagamentos',
   pagamentos: '/pagamentos',
   docsCaducados: '/dados',

@@ -3,6 +3,7 @@ export const layout = {
   'nav.grupoGestao': 'Gestão',
   'nav.aprovacoes': 'Aprovações',
   'nav.emergencias': 'Emergências',
+  'nav.ocorrencias': 'Ocorrências',
   'nav.contas': 'Contas e acessos',
   'nav.viagens': 'Viagens',
   'nav.paragens': 'Paragens',
@@ -27,6 +28,8 @@ export const layout = {
   'cabecalho.menuConta': 'Menu da conta',
 
   'notif.sos': '{n} pedido(s) de emergência por resolver',
+  'notif.ocorrenciasGraves': '{n} ocorrência(s) grave(s) por tratar',
+  'notif.ocorrencias': '{n} ocorrência(s) por tratar',
   'notif.pagamentosAtrasados': '{n} pagamento(s) à espera há mais de 24 horas',
   'notif.pagamentos': '{n} pagamento(s) por confirmar',
   'notif.docsCaducados': '{n} motorista(s) com documentos caducados',

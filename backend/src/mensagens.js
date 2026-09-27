@@ -205,6 +205,22 @@ export const MENSAGENS = {
   'Fotografia não encontrada.': ['La hetan fotografia.', 'Photo not found.'],
   'Conta não encontrada.': ['La hetan konta.', 'Account not found.'],
   'Viagem não encontrada.': ['La hetan viajen.', 'Ride not found.'],
+  // ── Ocorrências (Reportar)
+  'Esta viagem não pode ser reportada.': [
+    'Viajen ida-ne’e la bele relata.',
+    'This trip cannot be reported.',
+  ],
+  'Já passou o prazo para reportar esta viagem.': [
+    'Prazu atu relata viajen ida-ne’e liu tiha ona.',
+    'The deadline to report this trip has passed.',
+  ],
+  'Escolha o tipo de problema.': ['Hili problema nia tipu.', 'Choose the type of problem.'],
+  'Descreva o que aconteceu.': ['Deskreve saida mak akontese.', 'Describe what happened.'],
+  'Já reportou esta viagem várias vezes. A equipa vai analisar.': [
+    'Ita relata ona viajen ida-ne’e dala barak. Ekipa sei analiza.',
+    'You have already reported this trip several times. The team will review it.',
+  ],
+  'Ocorrência não encontrada.': ['La hetan okorrénsia.', 'Incident not found.'],
   'Motorista inválido.': ['Motorista la válidu.', 'Invalid driver.'],
   'Forma de pagamento desconhecida.': ['Forma pagamentu la koñesidu.', 'Unknown payment method.'],
   'Sem comprovativo.': ['La iha komprovativu.', 'No proof of payment.'],
@@ -337,11 +353,11 @@ export const MENSAGENS = {
   // toda a gente: saíam de uma função que devolvia a frase, e o verificador
   // não vê frases que não estejam dentro de `erro(...)` ou de um `error:`.
   'Escreve o que queres que o motorista compre.': [
-    'Hakerek buat ne\'ebé ita hakarak motorista sosa.',
+    "Hakerek buat ne'ebé ita hakarak motorista sosa.",
     'Write what you want the driver to buy.',
   ],
   'Uma encomenda leva até {0} artigos.': [
-    'Enkomenda ida bele iha to\'o sasán {0}.',
+    "Enkomenda ida bele iha to'o sasán {0}.",
     'An order takes up to {0} items.',
   ],
   'Há um artigo sem nome na lista.': [
@@ -353,11 +369,11 @@ export const MENSAGENS = {
     'An item name is too long.',
   ],
   'A quantidade de cada artigo vai de 1 a 99.': [
-    'Sasán ida-idak nia kuantidade husi 1 to\'o 99.',
+    "Sasán ida-idak nia kuantidade husi 1 to'o 99.",
     'Each item quantity goes from 1 to 99.',
   ],
   'Escreve em que loja se compra.': [
-    'Hakerek loja ne\'ebé atu sosa.',
+    "Hakerek loja ne'ebé atu sosa.",
     'Write which shop to buy from.',
   ],
   'O nome da loja é demasiado longo.': ['Loja nia naran naruk liu.', 'The shop name is too long.'],
@@ -366,29 +382,29 @@ export const MENSAGENS = {
     'Confirm your email in your profile before ordering.',
   ],
   'Indica até quanto se pode gastar.': [
-    'Hatete to\'o osan hira mak bele gasta.',
+    "Hatete to'o osan hira mak bele gasta.",
     'Say how much can be spent.',
   ],
   'O máximo que se pode adiantar é {0}.': [
-    'Osan máximu ne\'ebé bele avansa mak {0}.',
+    "Osan máximu ne'ebé bele avansa mak {0}.",
     'The most that can be advanced is {0}.',
   ],
   'Esta encomenda pede {0} viagens concluídas na tua conta. Já tens {1}.': [
-    'Enkomenda ne\'e presiza viajen {0} remata ona iha ita-nia konta. Ita iha ona {1}.',
+    "Enkomenda ne'e presiza viajen {0} remata ona iha ita-nia konta. Ita iha ona {1}.",
     'This order needs {0} completed trips on your account. You have {1}.',
   ],
   'Encomenda não encontrada.': ['Enkomenda la hetan.', 'Order not found.'],
   'Já tens uma encomenda a decorrer.': [
-    'Ita iha ona enkomenda ida la\'o hela.',
+    "Ita iha ona enkomenda ida la'o hela.",
     'You already have an order in progress.',
   ],
   'Este serviço está temporariamente indisponível.': [
-    'Servisu ne\'e la disponível ba tempu badak.',
+    "Servisu ne'e la disponível ba tempu badak.",
     'This service is temporarily unavailable.',
   ],
   'Serviço desconhecido.': ['Servisu la rekoñese.', 'Unknown service.'],
   'Este serviço ainda está em construção.': [
-    'Servisu ne\'e sei iha konstrusaun.',
+    "Servisu ne'e sei iha konstrusaun.",
     'This service is still being built.',
   ],
   'Indica o que vais transportar.': [
@@ -574,6 +590,23 @@ export const NOTIFICACOES = {
     en: '{nome} pressed SOS · {onde}',
   },
   sosAlguem: { pt: 'Alguém', tet: 'Ema ida', en: 'Someone' },
+  ocorrenciaTitulo: {
+    pt: 'Ocorrência grave reportada',
+    tet: 'Okorrénsia grave ida relata ona',
+    en: 'Serious incident reported',
+  },
+  ocorrenciaTexto: {
+    pt: 'Viagem #{viagem} · {tipo}',
+    tet: 'Viajen #{viagem} · {tipo}',
+    en: 'Trip #{viagem} · {tipo}',
+  },
+  ocor_conducaoPerigosa: {
+    pt: 'condução perigosa',
+    tet: 'kondusaun perigoza',
+    en: 'dangerous driving',
+  },
+  ocor_assedio: { pt: 'assédio', tet: 'asédiu', en: 'harassment' },
+  ocor_ameaca: { pt: 'ameaça', tet: 'ameasa', en: 'threat' },
   sosSemPosicao: { pt: 'sem posição', tet: 'la iha pozisaun', en: 'no position' },
   prontoTitulo: {
     pt: 'Motorista à espera de aprovação',

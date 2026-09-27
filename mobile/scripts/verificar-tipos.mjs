@@ -273,6 +273,34 @@ for (const [nome, lado] of LISTAS_AVALIACAO) {
   motivosAval += naApp.length;
 }
 
+// AS CATEGORIAS DO «REPORTAR» (27/09/2026). A mesma família dos motivos das
+// estrelas: o servidor recusa uma categoria que não conheça, e a queixa de
+// quem a escolheu na app era recusada com um erro que ele não percebe. A
+// chave de tradução é `'ocor' + Id com a primeira letra grande`.
+const LISTAS_OCORRENCIA = [
+  ['CATEGORIAS_DO_PASSAGEIRO', 'de quem viajou'],
+  ['CATEGORIAS_DO_MOTORISTA', 'de quem conduziu'],
+];
+let categoriasOcor = 0;
+for (const [nome, lado] of LISTAS_OCORRENCIA) {
+  const noServidor = idsDe('../backend/src/ocorrencias.js', `export const ${nome} = [`);
+  const naApp = idsDe('src/screens/ReportarScreen.js', `const ${nome} = [`);
+  if (!noServidor.length) problemas.push(`${nome} — não encontrei a lista no servidor`);
+  if (!naApp.length) problemas.push(`${nome} — não encontrei a lista no ReportarScreen`);
+  for (const x of noServidor) {
+    if (!naApp.includes(x)) problemas.push(`categoria '${x}' (${lado}) está no servidor mas não na app`);
+  }
+  for (const x of naApp) {
+    if (!noServidor.includes(x)) {
+      problemas.push(`categoria '${x}' (${lado}) está na app mas o servidor recusa-a — a queixa não chegava`);
+    }
+    const chave = 'ocor' + x.charAt(0).toUpperCase() + x.slice(1);
+    const faltam = LINGUAS.filter((l) => dicionarios[l][chave] == null);
+    if (faltam.length) problemas.push(`${chave} — falta em ${faltam.join(', ')}`);
+  }
+  categoriasOcor += naApp.length;
+}
+
 if (problemas.length) {
   console.error('  ✗ tipos de lugar:\n');
   for (const p of problemas) console.error('    ' + p);
@@ -281,5 +309,5 @@ if (problemas.length) {
 console.log(
   `  ✓ ${naApp.length} tipos de lugar, ${naAppDocs.length} documentos e ` +
     `${naAppMotivos.length} motivos, ${naAppCarga.length} tipos de carga, ${naAppCores.length} cores ` +
-    `e ${motivosAval} motivos de avaliação, traduzidos e iguais nos dois lados`
+    `, ${motivosAval} motivos de avaliação e ${categoriasOcor} categorias de ocorrência, traduzidos e iguais nos dois lados`
 );

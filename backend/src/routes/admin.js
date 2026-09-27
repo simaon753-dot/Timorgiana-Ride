@@ -19,6 +19,12 @@ import { estadoDaRetencao } from '../retencao.js';
 import { getDocument } from '../documents.js';
 import { toPublicUser } from '../users.js';
 import { alertasAbertos, resolverAlerta } from '../sos.js';
+import {
+  ocorrenciasParaAdmin,
+  tratarOcorrencia,
+  ESTADOS as ESTADOS_OCORRENCIA,
+  CATEGORIAS_GRAVES,
+} from '../ocorrencias.js';
 import { fotosDeHoje, getFotoDeTurno } from '../turnos.js';
 import {
   carregar,
@@ -225,6 +231,64 @@ adminRouter.post(
   })
 );
 
+// GET /api/admin/ocorrencias?filtro=abertas|todas — o que foi reportado
+//
+// Com o retrato da viagem guardado no momento da queixa (ver
+// `ocorrencias.js`): quem viajava, quem conduzia, a matrícula, o percurso e o
+// preço — mesmo que a viagem ou a conta já tenham sido apagadas.
+function ocorrenciaParaPainel(o) {
+  return {
+    id: o.id,
+    rideId: o.ride_id,
+    papelAutor: o.papel_autor,
+    autor: o.autor_nome ?? null,
+    autorTelefone: o.autor_telefone ?? null,
+    categoria: o.categoria,
+    grave: CATEGORIAS_GRAVES.includes(o.categoria),
+    descricao: o.descricao,
+    estado: o.estado,
+    resposta: o.resposta,
+    notaInterna: o.nota_interna,
+    viagem: o.resumo,
+    tratadaPor: o.tratada_por_nome ?? null,
+    tratadaEm: o.tratada_em,
+    criadaEm: o.created_at,
+  };
+}
+
+adminRouter.get(
+  '/ocorrencias',
+  wrap(async (req, res) => {
+    const filtro = req.query.filtro === 'todas' ? 'todas' : 'abertas';
+    const rows = await ocorrenciasParaAdmin(filtro);
+    res.json({ ocorrencias: rows.map(ocorrenciaParaPainel) });
+  })
+);
+
+// POST /api/admin/ocorrencias/:id — mudar o estado, responder, anotar
+//
+// A RESPOSTA é o que quem reportou lê na app. A NOTA INTERNA fica só no
+// painel — é onde se escreve «liguei ao motorista, nega» sem que isso chegue
+// a ninguém de fora.
+adminRouter.post(
+  '/ocorrencias/:id',
+  wrap(async (req, res) => {
+    const estado = req.body?.estado;
+    if (!ESTADOS_OCORRENCIA.includes(estado)) {
+      return res.status(400).json({ error: 'Estado inválido.' });
+    }
+    const row = await tratarOcorrencia({
+      id: Number(req.params.id),
+      estado,
+      resposta: req.body?.resposta,
+      notaInterna: req.body?.notaInterna,
+      adminId: req.user.id,
+    });
+    if (!row) return res.status(404).json({ error: 'Ocorrência não encontrada.' });
+    res.json({ ok: true });
+  })
+);
+
 // GET /api/admin/resumo — o estado do serviço num ecrã só
 adminRouter.get(
   '/resumo',
@@ -386,7 +450,11 @@ adminRouter.put(
       const servicos = await gravarServicoAtivo(req.params.id, ativo, req.user.id);
       // Ligar ou desligar um serviço é mexer no que a cidade inteira pode
       // pedir. Fica no registo, como as outras decisões com peso.
-      registarAcesso(req.user.id, `${ativo ? 'ligou' : 'desligou'} o serviço ${req.params.id}`, null);
+      registarAcesso(
+        req.user.id,
+        `${ativo ? 'ligou' : 'desligou'} o serviço ${req.params.id}`,
+        null
+      );
       res.json({ servicos });
     } catch (e) {
       respostaDePolitica(res, e);
@@ -424,12 +492,19 @@ adminRouter.put(
 adminRouter.get(
   '/notificacoes',
   wrap(async (_req, res) => {
-    const [n] = await query(`
+    const [n] = await query(
+      `
       SELECT
         (SELECT COUNT(*) FROM users
           WHERE role='driver' AND COALESCE(driver_status,'pending')='pending')::int
           AS "aprovacoes",
         (SELECT COUNT(*) FROM sos_alerts WHERE resolved=FALSE)::int AS "sos",
+        (SELECT COUNT(*) FROM ocorrencias
+          WHERE estado IN ('aberta','em_analise') AND categoria = ANY($1))::int
+          AS "ocorrenciasGraves",
+        (SELECT COUNT(*) FROM ocorrencias
+          WHERE estado IN ('aberta','em_analise') AND NOT (categoria = ANY($1)))::int
+          AS "ocorrencias",
         (SELECT COUNT(*) FROM rides
           WHERE status='requested' AND created_at < NOW() - INTERVAL '5 minutes')::int
           AS "semResposta",
@@ -450,13 +525,18 @@ adminRouter.get(
         (SELECT COUNT(*) FROM pedidos_carregamento
           WHERE estado='pendente' AND created_at < NOW() - INTERVAL '24 hours')::int
           AS "pagamentosAtrasados"
-    `);
+    `,
+      [CATEGORIAS_GRAVES]
+    );
 
     // Cada item traz a gravidade consigo. O ecrã não deve ter de decidir se
     // um SOS é mais grave do que um documento caducado — isso é regra de
     // negócio, e vive aqui.
     const itens = [
       { chave: 'sos', n: n.sos, nivel: 'mau', seccao: 'resumo' },
+      // As graves (condução perigosa, assédio, ameaça) contam como urgentes.
+      { chave: 'ocorrenciasGraves', n: n.ocorrenciasGraves, nivel: 'mau', seccao: 'ocorrencias' },
+      { chave: 'ocorrencias', n: n.ocorrencias, nivel: 'aviso', seccao: 'ocorrencias' },
       // Passadas as 24 horas que os termos prometem, deixa de ser aviso.
       {
         chave: 'pagamentosAtrasados',

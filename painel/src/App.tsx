@@ -13,6 +13,7 @@ import { t } from '@/i18n';
 // Os módulos pesados carregam só quando se abrem: os gráficos (Dados) e o
 // mapa (dentro das Viagens) não entram no primeiro descarregamento.
 const Emergencias = lazy(() => import('@/pages/Emergencias').then((m) => ({ default: m.Emergencias })));
+const Ocorrencias = lazy(() => import('@/pages/Ocorrencias').then((m) => ({ default: m.Ocorrencias })));
 const Viagens = lazy(() => import('@/pages/viagens/Viagens').then((m) => ({ default: m.Viagens })));
 const Contas = lazy(() => import('@/pages/contas/Contas').then((m) => ({ default: m.Contas })));
 const Paragens = lazy(() => import('@/pages/Paragens').then((m) => ({ default: m.Paragens })));
@@ -47,6 +48,7 @@ function Rotas() {
           <Route index element={<Navigate to="/aprovacoes" replace />} />
           <Route path="aprovacoes" element={<Aprovacoes />} />
           <Route path="emergencias" element={<Suspense fallback={<ACarregarPagina />}><Emergencias /></Suspense>} />
+          <Route path="ocorrencias" element={<Suspense fallback={<ACarregarPagina />}><Ocorrencias /></Suspense>} />
           <Route path="contas" element={<Suspense fallback={<ACarregarPagina />}><Contas /></Suspense>} />
           <Route path="viagens" element={<Suspense fallback={<ACarregarPagina />}><Viagens /></Suspense>} />
           <Route path="paragens" element={<Suspense fallback={<ACarregarPagina />}><Paragens /></Suspense>} />
