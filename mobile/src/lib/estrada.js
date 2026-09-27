@@ -56,6 +56,9 @@ export async function pontoNaEstrada(lat, lng, token) {
       const nossa = await api.paragemPara(token, { lat, lng });
       if (nossa?.fonte === 'nossa' && nossa.lat != null) {
         return {
+          // De onde veio: só uma paragem do painel MUDA a coordenada da
+          // viagem. Ver `paraRota` no ecrã de pedir.
+          fonte: 'nossa',
           lat: nossa.lat,
           lng: nossa.lng,
           metros: null,
@@ -84,6 +87,7 @@ export async function pontoNaEstrada(lat, lng, token) {
           return null;
         }
         return {
+          fonte: 'mapa',
           lat: nossa.lat,
           lng: nossa.lng,
           metros: Math.round(metros),
@@ -114,7 +118,13 @@ async function pontoNaEstradaAutomatico(lat, lng) {
     if (!Number.isFinite(metros) || metros < PERTO_DE_MAIS_M || metros > LONGE_DE_MAIS_M) {
       return null;
     }
-    return { lat: loc[1], lng: loc[0], metros: Math.round(metros), rua: w.name || null };
+    return {
+      fonte: 'osrm',
+      lat: loc[1],
+      lng: loc[0],
+      metros: Math.round(metros),
+      rua: w.name || null,
+    };
   } catch {
     // Sem rede fica o ponto do GPS. Uma recolha aproximada é melhor do que
     // nenhuma, e a pessoa continua a poder arrastar o pino.

@@ -61,6 +61,33 @@ function hhmm(d) {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
+// DE ONDE O GOOGLE CALCULA A ROTA (27/09/2026).
+//
+// O ponto é encostado à estrada para a pré-visualização — a linha aos
+// pontinhos e a etiqueta enquanto se escolhe. Mas até hoje era esse ponto
+// ENCOSTADO que se mandava ao Google para calcular a rota e o preço. E o
+// encosto vem do nosso mapa (OpenStreetMap), que em Díli não concorda com o
+// do Google: tem becos que o Google não desenha. O Google recebia um ponto
+// num beco que não conhece, encostava-o à estrada DELE, e a linha verde
+// começava noutra rua — com a etiqueta a dizer que o carro parava no beco.
+//
+// Agora vai o PINO, e é o Google que encosta: é ele que conhece as estradas
+// que a pessoa vê no mapa, e é pela rota dele que o carro vai. A etiqueta
+// passa a ficar onde a rota começa e acaba (ver `rotaDesenhada`).
+//
+// A EXCEPÇÃO são as paragens definidas à mão no painel. Essas existem
+// precisamente para contrariar o encosto automático — o Cristo Rei, onde a
+// estrada mais perto passa por cima do monumento — e continuam a mandar.
+//
+// (Houve uma vez em que mandar o pino correu mal, e está escrito no
+// MapaGoogle: as rotas vinham do OSRM, que encostava cada ponta à estrada
+// que lhe apetecesse. Hoje vêm do Google, que encosta bem.)
+function paraRota(p) {
+  if (!p) return p;
+  if (p.encostadoPor === 'nossa' || !p.escolhido) return { lat: p.lat, lng: p.lng };
+  return { lat: p.escolhido.lat, lng: p.escolhido.lng };
+}
+
 export default function RequestRideScreen({ navigation, route }) {
   const { t } = useI18n();
   const { token } = useAuth();
@@ -312,10 +339,10 @@ export default function RequestRideScreen({ navigation, route }) {
     emCursoRef.current = true;
     api
       .quote(token, {
-        originLat: origem.lat,
-        originLng: origem.lng,
-        destLat: destino.lat,
-        destLng: destino.lng,
+        originLat: paraRota(origem).lat,
+        originLng: paraRota(origem).lng,
+        destLat: paraRota(destino).lat,
+        destLng: paraRota(destino).lng,
         // Os desvios entram na distância, e é dessa distância que sai o preço
         // mostrado no ecrã. Calcular sem eles aqui e com eles no pedido era
         // mostrar um valor e cobrar outro.
@@ -537,6 +564,7 @@ export default function RequestRideScreen({ navigation, route }) {
         // De onde veio, para o pino poder ficar lá e o nome poder
         // encontrar-se com ele. Ver `ondeMostrar` e o `mesmo()` do nome.
         escolhido: aqui,
+        encostadoPor: naEstrada.fonte,
         label: naEstrada.rua || rotuloCoordenadas(naEstrada.lat, naEstrada.lng),
         provisorio: !naEstrada.rua,
       });
@@ -816,11 +844,11 @@ export default function RequestRideScreen({ navigation, route }) {
     try {
       const criada = await requestRide({
         destLabel: destino.label,
-        destLat: destino.lat,
-        destLng: destino.lng,
+        destLat: paraRota(destino).lat,
+        destLng: paraRota(destino).lng,
         originLabel: origem.label,
-        originLat: origem.lat,
-        originLng: origem.lng,
+        originLat: paraRota(origem).lat,
+        originLng: paraRota(origem).lng,
         // ONDE A PESSOA APONTOU (23/09/2026). O `lat`/`lng` acima já é o
         // ponto da ESTRADA — foi encostado lá antes de se pedir a viagem, e
         // é com ele que se calcula a rota e o preço.
@@ -829,8 +857,11 @@ export default function RequestRideScreen({ navigation, route }) {
         // com o pedido. Depois de aceite, o motorista e o passageiro viam o
         // pino na berma da estrada e não no sítio — «é ali algures nesta
         // rua». Mandá-lo custa dois números e resolve isso.
-        originEscolhido: origem.escolhido || null,
-        destEscolhido: destino.escolhido || null,
+        // Só quando a viagem vai para OUTRO sítio que não o pino — uma paragem
+        // do painel. No resto a viagem já vai para o pino (`paraRota`), e
+        // mandá-lo duas vezes não diz nada.
+        originEscolhido: origem.encostadoPor === 'nossa' ? origem.escolhido || null : null,
+        destEscolhido: destino.encostadoPor === 'nossa' ? destino.escolhido || null : null,
         // O ÍNDICE, e nunca o preço. Quem faz a conta é o servidor; se o
         // preço viesse daqui, bastava alterá-lo no telemóvel para pagar
         // sempre o mínimo. O `caminhoKm` vai junto para ele poder confirmar
@@ -1004,6 +1035,7 @@ export default function RequestRideScreen({ navigation, route }) {
                 lat: na.lat,
                 lng: na.lng,
                 escolhido,
+                encostadoPor: na.fonte,
                 // O NOME DA RUA SERVE DE REDE, e estávamos a deitá-lo fora.
                 //
                 // Quem encosta o ponto à estrada já sabe o nome dessa estrada
@@ -1038,9 +1070,16 @@ export default function RequestRideScreen({ navigation, route }) {
   // não fazia ideia de onde é que o carro o ia deixar. O motorista sabia; o
   // passageiro não. É a mesma pergunta que o troço da recolha já respondia
   // do outro lado da viagem.
+  //
+  // SÓ ENQUANTO NÃO HÁ ROTA (27/09/2026). Com a rota desenhada, a etiqueta
+  // e os pontinhos vão para onde a linha COMEÇA e ACABA — que é onde o Google
+  // encostou o pino, e portanto onde o carro vai mesmo parar. O mapa trata
+  // disso sozinho (`rotularPinos`). O encosto do nosso mapa fica para a
+  // pré-visualização, quando ainda não há rota nenhuma a que obedecer.
+  const rotaDesenhada = !aEscolherNoMapa && !!orcamento?.linha?.length;
   const trocosAPe = [];
-  if (trocoAPe) trocosAPe.push({ ...trocoAPe, qual: 'origem' });
-  if (trocoDestino) trocosAPe.push({ ...trocoDestino, qual: 'destino' });
+  if (!rotaDesenhada && trocoAPe) trocosAPe.push({ ...trocoAPe, qual: 'origem' });
+  if (!rotaDesenhada && trocoDestino) trocosAPe.push({ ...trocoDestino, qual: 'destino' });
 
   // A PREVISÃO, enquanto se escolhe no mapa e antes de confirmar.
   //
@@ -1093,7 +1132,7 @@ export default function RequestRideScreen({ navigation, route }) {
     if (!pa) return;
     if (pa.qual === 'origem') {
       setTroco((t) => (t ? { ...t, para: { lat: pa.lat, lng: pa.lng } } : t));
-      setOrigem((o) => (o ? { ...o, lat: pa.lat, lng: pa.lng } : o));
+      setOrigem((o) => (o ? { ...o, lat: pa.lat, lng: pa.lng, encostadoPor: 'nossa' } : o));
       return;
     }
     // A GUARDA ANTES DE MUDAR, e não depois.
@@ -1104,7 +1143,7 @@ export default function RequestRideScreen({ navigation, route }) {
     // acabámos de trocar. O toque desfazia-se sozinho.
     encostado.current = `${pa.lat},${pa.lng}`;
     setTrocoDestino((t) => (t ? { ...t, para: { lat: pa.lat, lng: pa.lng } } : t));
-    setDestino((d) => (d ? { ...d, lat: pa.lat, lng: pa.lng } : d));
+    setDestino((d) => (d ? { ...d, lat: pa.lat, lng: pa.lng, encostadoPor: 'nossa' } : d));
   };
 
   // O PINO FICA ONDE A PESSOA APONTOU. O ponto na estrada é que é do carro.
@@ -1219,8 +1258,8 @@ export default function RequestRideScreen({ navigation, route }) {
     try {
       await api.pedirAviso(token, {
         vehicleType: veiculoAtual,
-        originLat: origem.lat,
-        originLng: origem.lng,
+        originLat: paraRota(origem).lat,
+        originLng: paraRota(origem).lng,
         cargaVolume: !veiculo(veiculoAtual).levaPessoas && !carryPessoas ? cargaVolume : null,
       });
       setAviso('pedido');
@@ -1274,6 +1313,7 @@ export default function RequestRideScreen({ navigation, route }) {
           // Com o painel à vista, fica no canto de cima, como sempre.
           botoesAoMeio={!!(pesquisa || aEscolherNoMapa || aEscolherParagem)}
           trocosAPe={trocosAPe}
+          rotularPinos={rotaDesenhada}
           paragens={outrasParagens}
           onEscolherParagem={escolherParagem}
           // A LINHA VEM DA COTAÇÃO, que é quem calculou o preço.
