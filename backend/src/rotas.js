@@ -118,7 +118,23 @@ function guardarErro(http, texto) {
 // Ele tinha razão, e o Google também: nós é que fizemos a pergunta errada.
 // O `TWO_WHEELER` existe precisamente para países onde a mota manda — foi
 // desenhado para a Índia, a Indonésia e o Vietname, e Timor-Leste é desses.
-export const MODO = { motorbike: 'TWO_WHEELER', car: 'DRIVE', carry: 'DRIVE' };
+// A MOTA PEDE A ROTA DE CARRO (27/09/2026) — medido, e não suposto.
+//
+// Ligou-se `TWO_WHEELER` a 22/09 à espera de caminhos próprios de mota. O
+// registo do /api/health, com os testes do Simão, mostrou o que o Google
+// responde em Timor-Leste para duas rodas: ZERO caminhos, em todas as
+// chamadas, com alternativas pedidas e sem elas. O modo não é servido cá.
+//
+// Durante uma semana a mota esteve, sem ninguém saber, no OSRM — a diferença
+// de 9,8 km (mota) contra 11,4 km (carro) que parecia um atalho de mota era
+// o OSRM contra o Google, e não duas rodas contra quatro. Depois passou a cair
+// na rota de carro do Google (ver `calcularRota`), mas cada cotação ainda
+// gastava uma chamada que nunca dava nada — metade do tecto diário.
+//
+// Um caminho de carro é sempre válido para uma mota. Se um dia o Google
+// servir duas rodas em Timor-Leste, é voltar a pôr 'TWO_WHEELER' aqui e ver
+// no /api/health se começam a vir caminhos.
+export const MODO = { motorbike: 'DRIVE', car: 'DRIVE', carry: 'DRIVE' };
 
 // QUANTOS CAMINHOS SE MOSTRAM (23/09/2026). Três, como o Google, e a decisão
 // é do Simão: «mostrar até 3, vamos testar; se funciona, manter».

@@ -1,5 +1,15 @@
 import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, Platform, Pressable, Image, Linking } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  Pressable,
+  Image,
+  Linking,
+  Animated,
+  Easing,
+} from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
 import Svg, { Path, Circle as Bola, Line } from 'react-native-svg';
@@ -371,10 +381,21 @@ const MIRA_A = Math.round(PINO_A * MIRA_ESCALA);
 
 const SUBIR_MIRA = MIRA_A * (0.5 - ANCORA_Y);
 
-// O ALÍVIO DE TRÊS PONTOS enquanto o mapa mexe é o que dá a sensação de que
-// é o mapa a passar por baixo da mira, e não a mira a arrastar o mapa. Sai
-// da mesma conta, de propósito: é a mesma mira, três pontos acima.
-const SUBIR_MIRA_A_MEXER = SUBIR_MIRA - 3;
+// A MIRA LEVANTA-SE ENQUANTO O MAPA MEXE (27/09/2026). É o que dá a sensação
+// de que é o mapa a passar por baixo dela, e não ela a arrastar o mapa.
+//
+// Eram três pontos, de repente: a mira saltava para cima no primeiro frame e
+// saltava para baixo no último. Um salto de três pontos não se lê como
+// «levantar» — lê-se como um tremor. Passa a ser uma subida de oito pontos,
+// animada, pelo pedido do Simão (6–10 dp, 70–120 ms a subir, 100–160 ms a
+// descer), e sempre SÓ na vertical: nem escala, nem desvio, nem ressalto.
+//
+// A animação corre no fio nativo (`useNativeDriver`), e é isso que a deixa
+// lisa mesmo quando o JavaScript está ocupado a tratar da paragem do mapa —
+// que é precisamente o momento em que ela desce.
+const MIRA_LEVANTA = 8;
+const MIRA_SOBE_MS = 90;
+const MIRA_DESCE_MS = 140;
 
 // O TAMANHO VAI DECLARADO NUMA VISTA À VOLTA, e não só nas propriedades do
 // SVG.
@@ -549,6 +570,30 @@ function usarDeslize(alvo) {
   }, [alvo?.lat, alvo?.lng]);
 
   return pos;
+}
+
+// O CARRO A ANDAR, NUM COMPONENTE SÓ DELE (27/09/2026).
+//
+// O deslize muda a posição de 60 em 60 ms durante um segundo e meio, sempre
+// que chega uma posição nova. Vivia dentro do mapa, e cada um desses passos
+// redesenhava o MAPA INTEIRO — todos os pinos, todas as linhas, todas as
+// etiquetas, e a conta da disposição — 16 vezes por segundo, durante toda a
+// viagem. Era trabalho de JavaScript a disputar o fio com o dedo de quem
+// estivesse a arrastar o mapa nesse momento.
+//
+// Aqui dentro, cada passo redesenha um marcador e mais nada. O que se vê é
+// igual; o que o telemóvel faz para o mostrar é uma fração.
+function VeiculoAndar({ alvo, tipo }) {
+  const pos = usarDeslize(alvo);
+  if (!pos) return null;
+  return (
+    <Marker
+      coordinate={{ latitude: pos.lat, longitude: pos.lng }}
+      anchor={{ x: 0.5, y: 0.5 }}
+      zIndex={1000}
+      image={VEICULO_IMAGEM[tipo] || VEICULO_IMAGEM.car}
+    />
+  );
 }
 
 // A ETIQUETA DO LOCAL, de perto (22/09/2026).
@@ -788,10 +833,6 @@ export default function MapaGoogle({
   // mesmo e fica no mesmo sítio: o quarto da coluna, com os outros três.
   mostrarSatelite = false,
 }) {
-  // O carro do motorista, a deslizar entre as posições que vão chegando.
-  // Ver `usarDeslize`, logo acima: o valor CRU continua a servir tudo o
-  // resto (o enquadramento, o rótulo), e só o marcador usa o suavizado.
-  const carroSuave = usarDeslize(liveMarker);
   const { t } = useI18n();
   const { token } = useAuth();
   const mapaRef = useRef(null);
@@ -810,6 +851,37 @@ export default function MapaGoogle({
   const [aproximacaoBruta, setAproximacaoBruta] = useState(null);
   const [refazerAproximacao, setRefazerAproximacao] = useState(0);
   const [aMexer, setAMexer] = useState(false);
+  // A ALTURA DA MIRA, animada. 0 = pousada, 1 = levantada.
+  //
+  // Segue o `aMexer`, que é exactamente a regra pedida: levanta-se quando a
+  // câmara COMEÇA a mexer (`onRegionChange`) e só pousa quando a câmara está
+  // PARADA de verdade (`onRegionChangeComplete`, o `cameraIdle` do Google) —
+  // depois da inércia, e não quando o dedo sai do ecrã. Um mapa lançado com
+  // força continua a deslizar sem dedo nenhum, e a mira fica no ar até ele
+  // parar.
+  //
+  // UMA ANIMAÇÃO NOVA INTERROMPE A ANTERIOR NO SÍTIO ONDE ELA IA. Se o mapa
+  // voltar a mexer a meio da descida, a mira sobe a partir da altura em que
+  // estava — não volta ao chão para depois subir, nem acumula animações. É o
+  // `Animated` que garante isto: arrancar uma animação num valor pára a que
+  // lá estava a correr.
+  const miraLevantada = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(miraLevantada, {
+      toValue: aMexer ? 1 : 0,
+      duration: aMexer ? MIRA_SOBE_MS : MIRA_DESCE_MS,
+      // A desacelerar nos dois sentidos, e sem passar do alvo: a mira não
+      // ressalta ao pousar.
+      easing: aMexer ? Easing.out(Easing.quad) : Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [aMexer, miraLevantada]);
+  // Pousada, a ponta cai no centro exacto do ecrã (`SUBIR_MIRA`); levantada,
+  // oito pontos acima. Os dois extremos saem da mesma conta.
+  const miraY = miraLevantada.interpolate({
+    inputRange: [0, 1],
+    outputRange: [SUBIR_MIRA, SUBIR_MIRA - MIRA_LEVANTA],
+  });
   // A ALTURA DO MAPA EM GRAUS, para saber se estamos perto. Em estado e não
   // só no ref porque quem a lê é o desenho: um ref muda sem redesenhar nada.
   const [delta, setDelta] = useState(null);
@@ -2200,14 +2272,11 @@ export default function MapaGoogle({
             />
           ))}
 
-        {carroSuave ? (
-          <Marker
-            coordinate={{ latitude: carroSuave.lat, longitude: carroSuave.lng }}
-            anchor={{ x: 0.5, y: 0.5 }}
-            zIndex={1000}
-            image={VEICULO_IMAGEM[veiculoVivo] || VEICULO_IMAGEM.car}
-          />
-        ) : null}
+        {/* O carro do motorista, a deslizar entre as posições que vão
+            chegando. O valor CRU (`liveMarker`) continua a servir tudo o
+            resto — o enquadramento, o rótulo —; só o marcador usa o
+            suavizado, e é ele sozinho que se redesenha. */}
+        <VeiculoAndar alvo={liveMarker} tipo={veiculoVivo} />
       </MapView>
 
       {/* OS NOSSOS LUGARES, escritos no mapa.
@@ -2506,9 +2575,9 @@ export default function MapaGoogle({
           de que o mapa está a passar por baixo dela, e não o contrário. */}
       {modoEscolha ? (
         <View style={styles.miraCaixa} pointerEvents="none">
-          <View style={[styles.mira, aMexer && styles.miraAMexer]}>
+          <Animated.View style={{ transform: [{ translateY: miraY }] }}>
             <Pino tipo={modoEscolha === 'destino' ? 'destino' : 'origem'} />
-          </View>
+          </Animated.View>
         </View>
       ) : null}
     </View>
@@ -2747,8 +2816,6 @@ const criarEstilos = () =>
     // O pé e o ponto, como no desenho dele: um risco fino e uma bola.
     rotuloPe: { width: 3, height: 10 },
     rotuloPonto: { width: 11, height: 11, borderRadius: 6 },
-    mira: { transform: [{ translateY: SUBIR_MIRA }] },
-    miraAMexer: { transform: [{ translateY: SUBIR_MIRA_A_MEXER }] },
   });
 
 let styles = criarEstilos();
