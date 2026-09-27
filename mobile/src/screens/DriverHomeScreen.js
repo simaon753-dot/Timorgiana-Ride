@@ -1200,34 +1200,19 @@ registarEstilos(() => {
 // Faixa da assinatura.
 //
 // Três estados, e só um aparece de cada vez:
-//   · em período gratuito — verde, com a data. Diz o preço antes de o
+//   · em período gratuito — verde, sem data (é anunciada oficialmente). Diz o preço antes de o
 //     cobrar, que é a diferença entre "acabou a promoção" e "tiraram-me
 //     alguma coisa".
 //   · sem dias — coral, e leva ao ecrã onde se carrega.
 //   · com dias — nada. Um motorista a trabalhar não precisa de ver a
 //     contabilidade dele todos os dias.
 function FaixaAssinatura({ a, bloqueio, navigation }) {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   if (!a) return null;
 
   const bloqueado = bloqueio?.motivo === 'sem_saldo' || (!a.gratuito && (a.dias ?? 0) <= 0);
   if (!a.gratuito && !bloqueado) return null;
   const tinta = bloqueado ? colors.onDanger : colors.onTeal;
-
-  // "2027-04-30" lê-se mal numa faixa. O nome do mês lê-se de relance — e
-  // é assim que o Simão o diz em voz alta. O tétum não é uma língua que o
-  // Intl conheça; os meses em português são o que qualquer motorista em
-  // Díli reconhece.
-  const quando = (() => {
-    try {
-      return new Date(`${a.gratuitoAte}T00:00:00`).toLocaleDateString(lang === 'en' ? 'en' : 'pt', {
-        month: 'long',
-        year: 'numeric',
-      });
-    } catch {
-      return a.gratuitoAte;
-    }
-  })();
 
   return (
     <Pressable
@@ -1242,7 +1227,9 @@ function FaixaAssinatura({ a, bloqueio, navigation }) {
       <Icone nome={bloqueado ? 'carteira' : 'documento'} tamanho={28} cor={tinta} />
       <View style={estilosFaixa.textos}>
         <Text style={[estilosFaixa.titulo, { color: tinta }]}>
-          {bloqueado ? t('assinBloqueado') : t('assinGratuitaAte', { ate: quando })}
+          {/* Sem data (28/09/2026): o fim do período gratuito é anunciado
+              oficialmente, e não escrito na app. */}
+          {bloqueado ? t('assinBloqueado') : t('assinGratuita')}
         </Text>
         <Text style={[estilosFaixa.nota, { color: tinta }]}>
           {bloqueado ? t('assinSemSaldo') : t('assinVer')}

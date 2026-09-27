@@ -995,9 +995,9 @@ export default {
   admTarifas24h: 'Tarifa ne’ebé simu (24h)',
   admTarifasNota: 'Motorista sira mak simu. Plataforma la simu komisaun.',
   assinTitulo: 'Asinatura',
-  assinGratuitaAte: 'La iha taxa asesu to’o {ate} ka to’o avizu ofisiál foun.',
+  assinGratuita: 'La iha taxa asesu to’o hetan avizu ofisiál foun.',
   assinGratuitaExplica:
-    'To’o data ne’e ita la selu buat ida no la bloqueia ruma. Loron sira rejistu nian sei hela nafatin atu ita bele haree oinsá mak nia funsiona.',
+    'Durante tempu ne’e, ita la selu buat ida no la bloqueia. Loron servisu sira sei rejistu nafatin atu ita bele haree oinsá mak funsiona.',
   assinSaldo: 'Loron iha ita-nia saldu',
   assinDias: 'loron',
   assinSemSaldo: 'La iha loron. Karega atu bele simu fali viajen sira.',

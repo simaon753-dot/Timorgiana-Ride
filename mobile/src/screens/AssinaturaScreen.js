@@ -156,9 +156,9 @@ export default function AssinaturaScreen({ navigation }) {
             <View style={[styles.destaque, semSaldo && styles.destaqueMau]}>
               {a?.gratuito ? (
                 <>
-                  <Text style={styles.destaqueValor}>
-                    {t('assinGratuitaAte', { ate: a.gratuitoAte })}
-                  </Text>
+                  {/* SEM DATA (28/09/2026): o fim do período gratuito passa a ser
+                      anunciado oficialmente, e não uma data escrita na app. */}
+                  <Text style={styles.destaqueValor}>{t('assinGratuita')}</Text>
                   <Text style={styles.destaqueNota}>{t('assinGratuitaExplica')}</Text>
                 </>
               ) : (

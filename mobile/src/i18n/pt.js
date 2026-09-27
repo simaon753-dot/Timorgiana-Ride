@@ -999,9 +999,9 @@ export default {
   admTarifas24h: 'Tarifas cobradas (24h)',
   admTarifasNota: 'Cobradas pelos motoristas. A plataforma não recebe comissão.',
   assinTitulo: 'Assinatura',
-  assinGratuitaAte: 'Sem taxa de acesso até {ate} ou até novo aviso oficial.',
+  assinGratuita: 'Sem taxa de acesso até novo aviso oficial.',
   assinGratuitaExplica:
-    'Até lá não pagas nada e não és bloqueado. Os dias vão sendo registados para veres como funciona.',
+    'Enquanto isso, não pagas nada e não és bloqueado. Os dias vão sendo registados para veres como funciona.',
   assinSaldo: 'Dias no teu saldo',
   assinDias: 'dias',
   assinSemSaldo: 'Sem dias. Carrega para voltares a receber viagens.',

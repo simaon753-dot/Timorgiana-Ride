@@ -981,9 +981,9 @@ export default {
   admTarifas24h: 'Fares charged (24h)',
   admTarifasNota: 'Charged by the drivers. The platform takes no commission.',
   assinTitulo: 'Subscription',
-  assinGratuitaAte: 'No access fee until {ate} or until further official notice.',
+  assinGratuita: 'No access fee until further official notice.',
   assinGratuitaExplica:
-    'Until then you pay nothing and are never blocked. Days are still recorded so you can see how it works.',
+    'Meanwhile you pay nothing and are never blocked. Days are still recorded so you can see how it works.',
   assinSaldo: 'Days in your balance',
   assinDias: 'days',
   assinSemSaldo: 'No days left. Top up to start receiving rides again.',
