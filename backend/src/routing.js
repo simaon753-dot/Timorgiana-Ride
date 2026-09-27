@@ -31,10 +31,30 @@ export function straightKm(a, b) {
 // cidade dá. Uma estimativa optimista que falha faz o passageiro pensar que
 // o motorista se atrasou; uma conservadora que se cumpre não incomoda
 // ninguém.
-export function duracaoRealista(km, minutosOsrm) {
+//
+// O CHÃO DE 22 km/h É SÓ PARA OS PRIMEIROS 10 km (27/09/2026, opção (b) do
+// Simão). A regra nasceu quando as rotas vinham do OSRM, que prometia
+// 51 km/h dentro de Díli — e na cidade continua certa. Mas aplicada à viagem
+// inteira, fazia de uma estrada de costa uma rua da Baixa: Motael → Metinaro
+// (29,8 km) dava 81 min, quando o Google diz 54 (33 km/h de média). Eram
+// mais 27 minutos pagos, e $0,90 a mais no carro.
+//
+// Porquê «os primeiros 10 km» e não «as viagens até 10 km». Um corte seco
+// fazia uma viagem de 10,1 km ficar MAIS BARATA do que uma de 9,9 — o chão
+// desaparecia de repente e o tempo caía sete minutos. Assim, o chão cresce
+// com a distância até cobrir a parte de cidade de qualquer viagem (Díli de
+// ponta a ponta, do aeroporto ao Cristo Rei, são uns 12 km; uma viagem dentro
+// da cidade fica quase sempre abaixo dos 10) e depois deixa de crescer. O
+// resultado é contínuo e nunca desce quando a distância sobe.
+//
+// Sem tempo nenhum do motor — a linha recta, último recurso —, fica a regra
+// inteira, como sempre: aí não há outra estimativa em que confiar.
+const KM_COM_CHAO = 10;
+export function duracaoRealista(km, minutosDoMotor) {
   const VELOCIDADE_CIDADE_KMH = 22;
-  const porVelocidade = (km / VELOCIDADE_CIDADE_KMH) * 60;
-  return Math.max(1, Math.round(Math.max(porVelocidade, minutosOsrm || 0)));
+  const kmComChao = minutosDoMotor ? Math.min(km, KM_COM_CHAO) : km;
+  const porVelocidade = (kmComChao / VELOCIDADE_CIDADE_KMH) * 60;
+  return Math.max(1, Math.round(Math.max(porVelocidade, minutosDoMotor || 0)));
 }
 
 // Preço final, arredondado a 0,25 USD

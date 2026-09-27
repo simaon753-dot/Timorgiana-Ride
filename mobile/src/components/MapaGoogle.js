@@ -24,6 +24,7 @@ import {
   escalaoComHisterese,
   larguraTexto,
 } from '../lib/disporEtiquetas.js';
+import { etiquetaDoMapa } from '../dados/etiquetasMapa.js';
 import { abrirNoMapa } from '../lib/mapaLink.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
@@ -393,44 +394,21 @@ const SUBIR_MIRA = MIRA_A * (0.5 - ANCORA_Y);
 // A animação corre no fio nativo (`useNativeDriver`), e é isso que a deixa
 // lisa mesmo quando o JavaScript está ocupado a tratar da paragem do mapa —
 // que é precisamente o momento em que ela desce.
+//
+// OS TEMPOS SÃO OS DO GRAB, MEDIDOS (27/09/2026). O Simão mandou um vídeo de
+// referência gravado a 115 fotogramas por segundo; medido ao centésimo, o
+// pino deles sobe 6 px (num vídeo de 296 de largura: ~8 pontos, 15% da
+// altura do pino) em cerca de 50 ms, e desce em 50–60 ms. Mais depressa do
+// que os 90/140 ms que eu tinha posto a partir do texto — e é a rapidez que
+// faz parecer que o pino está VIVO e não a ser animado.
 const MIRA_LEVANTA = 8;
-const MIRA_SOBE_MS = 90;
-const MIRA_DESCE_MS = 140;
+const MIRA_SOBE_MS = 50;
+const MIRA_DESCE_MS = 60;
 
-// O TAMANHO VAI DECLARADO NUMA VISTA À VOLTA, e não só nas propriedades do
-// SVG.
-//
-// O mapa nativo do Android mede a vista do marcador antes de o React lhe
-// ter dado forma. Sem largura e altura escritas, mede zero e desenha uma
-// fotografia do tamanho que adivinhou — foi assim que os pinos saíram
-// esmagados na primeira versão.
-//
-// No Leaflet isto não podia acontecer: o `iconSize` era obrigatório. Aqui é
-// opcional, e o que é opcional foi o que faltou.
-// A MIRA É A MESMA IMAGEM DO MARCADOR (22/09/2026).
-//
-// Era um SVG desenhado à mão aqui dentro, e ficou para trás quando os pinos
-// passaram a ser as ilustrações do Simão: no mapa via-se o pino novo e, ao
-// escolher um ponto, a mira ainda era o antigo. Dois desenhos para a mesma
-// coisa é uma divergência à espera de acontecer — e aconteceu.
-//
-// `collapsable={false}` NÃO É DECORAÇÃO. O React Native ACHATA vistas que só
-// têm propriedades de disposição, e sem isto a vista com as medidas
-// desaparecia no caminho até ao Android; o mapa voltava a medir o conteúdo
-// directamente e o pino saía esmagado — com a agravante de o resultado ser
-// idêntico ao de antes da correcção, o que faz parecer que a actualização não
-// chegou.
-function Pino({ tipo: qual }) {
-  return (
-    <View style={{ width: MIRA_L, height: MIRA_A }} collapsable={false}>
-      <Image
-        source={IMAGEM[qual] || IMAGEM.origem}
-        style={{ width: MIRA_L, height: MIRA_A }}
-        resizeMode="contain"
-      />
-    </View>
-  );
-}
+// ONDE SE CORTA O DESENHO DO PINO: entre o corpo e o ponto do chão. O corpo
+// acaba aos 91% da altura e o ponto começa aos 94% (medido nos dois pinos);
+// cortando a 92,5% cada parte fica inteira do seu lado.
+const CORTE_DO_PONTO = 0.925;
 
 // O cartão com o nome, ao lado do pino.
 //
@@ -596,41 +574,22 @@ function VeiculoAndar({ alvo, tipo }) {
   );
 }
 
-// A ETIQUETA DO LOCAL, de perto (22/09/2026).
+// A ETIQUETA DO LOCAL, de perto (22/09/2026; imagem desde 27/09/2026).
 //
-// O Simão desenhou-a: uma pastilha com o nome do papel do ponto, um pé e um
-// ponto em baixo que marca o sítio. Ao longe fica o pino; **de perto** fica
-// isto, porque de perto há espaço e o que interessa deixa de ser «há aqui um
-// ponto» e passa a ser «este ponto é a recolha».
+// O Simão desenhou-a: uma pastilha com o papel do ponto, um pé e uma bola em
+// baixo a marcar o sítio.
 //
-// CONSTRUÍDA EM CÓDIGO E NÃO EM IMAGEM, e a razão é a app ter três línguas.
-// Ele mandou-a desenhada com «Local de recolha» lá dentro — e uma imagem com
-// texto português chegaria assim a quem tem a app em tétum. Em código, o
-// texto vem do dicionário, fica nítido em qualquer ecrã, e mudá-lo um dia
-// não obriga a gerar ficheiros nenhuns. Os desenhos dele são a
-// ESPECIFICAÇÃO: a forma, as cores, o pé e o ponto.
+// Foi primeiro uma vista por cima do mapa, e de propósito NÃO uma imagem: a
+// app tem três línguas, e uma imagem com «Local de recolha» chegaria assim a
+// quem a tem em tétum. Essa objecção continua certa — e foi resolvida em vez
+// de contornada. São NOVE imagens, uma por papel e por língua, geradas das
+// traduções por `scripts/desenhar-etiquetas.py`; e o `npm run verificar`
+// recusa publicar se o texto de alguma deixar de bater com o dicionário.
 //
-// Não é um marcador: é uma vista por cima do mapa, posicionada pelo pixel da
-// coordenada — o mesmo caminho dos cartões dos nossos lugares, e pela mesma
-// razão. Um marcador com filhos é fotografado pelo mapa e no telemóvel dele
-// não aparece de todo.
-function RotuloLocal({ qual, texto }) {
-  // Por INCLUSÃO e não por exclusão: `destino` é coral, tudo o resto é teal.
-  // Escrito ao contrário — «origem é teal, o resto é coral» —, qualquer valor
-  // novo passava a coral em silêncio, que foi o que aconteceu com 'centro'.
-  const cor = qual === 'destino' ? TINTA.coral : TINTA.teal;
-  return (
-    <View style={styles.rotuloCaixa} pointerEvents="none">
-      <View style={[styles.rotuloPastilha, { backgroundColor: cor }]}>
-        <Text style={styles.rotuloTexto} numberOfLines={2}>
-          {texto}
-        </Text>
-      </View>
-      <View style={[styles.rotuloPe, { backgroundColor: cor }]} />
-      <View style={[styles.rotuloPonto, { backgroundColor: cor }]} />
-    </View>
-  );
-}
+// Passou a imagem porque só assim anda com o mapa DURANTE o gesto, como no
+// vídeo do Grab: tem de ser o mapa nativo a desenhá-la, e no Android do Simão
+// só desenha marcadores que sejam imagens. Ver o bloco das etiquetas dentro do
+// `<MapView>`, e `dados/etiquetasMapa.js`.
 
 // A PARTIR DE QUE ZOOM se troca o pino pela etiqueta.
 //
@@ -664,22 +623,6 @@ const ESCALOES_NOSSOS = [
 // preço dos caminhos (que se toca), e por fim os nossos lugares, que são
 // contexto. Os pinos não entram aqui: esses nunca se escondem.
 const PRIORIDADE = { cartao: 100, rotulo: 90, caminho: 80, nosso: 50 };
-
-// A caixa da etiqueta. A altura conta a pastilha, o pé e o ponto: é por ela
-// que a etiqueta se levanta acima da coordenada, para o PONTO dela cair
-// exactamente onde caía a ponta do pino.
-const ROTULO_L = 150;
-// A caixa é ANCORADA PELO FUNDO (`justifyContent: flex-end`), e a altura é
-// generosa de propósito: cabe o texto em duas linhas. Sem isso, uma etiqueta
-// de uma linha só ficava colada ao topo da caixa e o PONTO dela não
-// encontrava a ponta do traço — o traço apontaria ao vazio.
-const ROTULO_A = 78;
-
-const ROTULO_CHAVE = {
-  origem: 'mapaLocalRecolha',
-  destino: 'mapaLocalDestino',
-  paragem: 'mapaLocalParagem',
-};
 
 // O QUE O PONTO É, PARA EFEITOS DE DESENHO (22/09/2026).
 //
@@ -833,7 +776,7 @@ export default function MapaGoogle({
   // mesmo e fica no mesmo sítio: o quarto da coluna, com os outros três.
   mostrarSatelite = false,
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { token } = useAuth();
   const mapaRef = useRef(null);
   const c = center || markers[0] || DILI;
@@ -870,17 +813,17 @@ export default function MapaGoogle({
     Animated.timing(miraLevantada, {
       toValue: aMexer ? 1 : 0,
       duration: aMexer ? MIRA_SOBE_MS : MIRA_DESCE_MS,
-      // A desacelerar nos dois sentidos, e sem passar do alvo: a mira não
-      // ressalta ao pousar.
-      easing: aMexer ? Easing.out(Easing.quad) : Easing.out(Easing.cubic),
+      // Quase a direito, como no vídeo — a 50 ms são três fotogramas, e uma
+      // curva forte não teria onde se ver. Sem passar do alvo: não ressalta.
+      easing: Easing.out(Easing.quad),
       useNativeDriver: true,
     }).start();
   }, [aMexer, miraLevantada]);
-  // Pousada, a ponta cai no centro exacto do ecrã (`SUBIR_MIRA`); levantada,
-  // oito pontos acima. Os dois extremos saem da mesma conta.
-  const miraY = miraLevantada.interpolate({
+  // Quanto o corpo sobe acima de onde está pousado. A posição de repouso —
+  // a ponta no centro exacto do ecrã — é da caixa de fora (`SUBIR_MIRA`).
+  const miraSobe = miraLevantada.interpolate({
     inputRange: [0, 1],
-    outputRange: [SUBIR_MIRA, SUBIR_MIRA - MIRA_LEVANTA],
+    outputRange: [0, -MIRA_LEVANTA],
   });
   // A ALTURA DO MAPA EM GRAUS, para saber se estamos perto. Em estado e não
   // só no ref porque quem a lê é o desenho: um ref muda sem redesenhar nada.
@@ -920,6 +863,12 @@ export default function MapaGoogle({
   // quem estava à vista antes do gesto volta ao mesmo lado depois dele.
   const disposicaoFinal = useRef(new Map());
   const memoriaEtiquetas = useRef(new Map());
+  // QUE ETIQUETAS DA ESTRADA JÁ TIVERAM DECISÃO — à vista ou escondida. A
+  // memória acima só guarda as que ficaram à vista, e depois de um gesto é
+  // preciso distinguir uma etiqueta NOVA (mostra-se já) de uma que já era
+  // conhecida e estava escondida por colidir (continua escondida).
+  const rotulosDecididos = useRef(new Set());
+  const rotulosNaMemoria = useRef(new Set());
   // Conta os gestos. Uma resposta do mapa nativo que chegue depois de um
   // gesto novo ter começado é de uma câmara que já não existe.
   const geracaoCamara = useRef(0);
@@ -1792,11 +1741,12 @@ export default function MapaGoogle({
     // desviada deixava de apontar.
     if (perto) {
       for (const p of pinosNoEcra) {
-        const qual = qualDesenhado(p.qual, modoEscolha);
-        const texto = t(ROTULO_CHAVE[qual] || ROTULO_CHAVE.origem);
-        const pw = Math.min(ROTULO_L, larguraTexto(texto, 7.2) + 20);
-        const ph = pw >= ROTULO_L ? 42 : 26;
-        // A pastilha, o pé (10) e o ponto (11), por cima da coordenada.
+        // O tamanho EXACTO, e não estimado: a etiqueta é uma imagem e o
+        // manifesto diz as medidas dela. Na escala a que o mapa nativo a
+        // desenha (`ESCALA_MARCADOR`), pendurada pela bola.
+        const e = etiquetaDoMapa(qualDesenhado(p.qual, modoEscolha), lang);
+        const ew = e.largura * ESCALA_MARCADOR;
+        const eh = e.altura * ESCALA_MARCADOR;
         candidatos.push({
           id: `rotulo:${p.qual}:${p.lat},${p.lng}`,
           prioridade: PRIORIDADE.rotulo,
@@ -1811,7 +1761,7 @@ export default function MapaGoogle({
               .map((q) => `pino:${q.qual}:${q.lat},${q.lng}`),
             ...(p.qual === 'centro' ? ['mira'] : []),
           ],
-          opcoes: [{ lado: 'c', caixa: rect(p.x - pw / 2, p.y - 21 - ph, pw, ph + 21) }],
+          opcoes: [{ lado: 'c', caixa: rect(p.x - ew / 2, p.y - eh * e.ancoraY, ew, eh) }],
         });
       }
     }
@@ -1875,8 +1825,12 @@ export default function MapaGoogle({
   // a câmara parada: durante o gesto a disposição está vazia de propósito, e
   // guardá-la apagava a memória que se quer usar a seguir.
   useEffect(() => {
-    if (!aMexer) disposicaoFinal.current = disposicao;
-  }, [disposicao, aMexer]);
+    if (aMexer) return;
+    disposicaoFinal.current = disposicao;
+    rotulosDecididos.current = new Set(
+      pinosNoEcra.map((p) => `rotulo:${p.qual}:${p.lat},${p.lng}`)
+    );
+  }, [disposicao, aMexer, pinosNoEcra]);
 
   // AS COORDENADAS DAS LINHAS, CALCULADAS UMA VEZ (27/09/2026).
   //
@@ -1950,6 +1904,7 @@ export default function MapaGoogle({
           // 1. Lembrar o que estava à vista. É contra isto que se desempata
           //    quando o mapa parar — quem estava lá antes volta ao mesmo lado.
           memoriaEtiquetas.current = disposicaoFinal.current;
+          rotulosNaMemoria.current = rotulosDecididos.current;
           // 2. Contar o gesto, para as respostas atrasadas do mapa nativo
           //    saberem que já não valem.
           geracaoCamara.current += 1;
@@ -2272,6 +2227,54 @@ export default function MapaGoogle({
             />
           ))}
 
+        {/* A ETIQUETA DA ESTRADA, DESENHADA PELO PRÓPRIO MAPA (27/09/2026).
+            Era uma vista por cima do mapa e escondia-se durante o gesto — a
+            posição dela só se sabia perguntando ao mapa nativo, e a pergunta
+            chegava fotogramas depois. No vídeo do Grab que o Simão mandou, a
+            etiqueta «Drop-off point» fica presa ao ponto da estrada e anda
+            com o mapa, no mesmo instante. Para isso tem de ser o mapa a
+            desenhá-la: um marcador. E no Android dele um marcador só aparece
+            se for imagem — ver `dados/etiquetasMapa.js`.
+
+            QUAIS APARECEM decide-o a disposição, com a câmara parada. Durante
+            o gesto ficam as que estavam à vista quando ele começou: a mexer
+            não se decide nada, e uma etiqueta que sumisse a meio do arrasto
+            era o piscar que se quer evitar. Depois da paragem, enquanto a
+            posição nova não chega do mapa nativo, continua a valer a de antes
+            — senão sumia um instante no fim de cada gesto. */}
+        {perto &&
+          aRotular.map((r) => {
+            const id = `rotulo:${r.qual}:${r.lat},${r.lng}`;
+            const medida = pinosNoEcra.some(
+              (p) => p.qual === r.qual && p.lat === r.lat && p.lng === r.lng
+            );
+            // Ainda por medir, vale a decisão de antes do gesto — se houve
+            // uma. Uma etiqueta NOVA (a que acabou de mudar de sítio) mostra-se
+            // já: esperar pela medida deixava um intervalo sem etiqueta
+            // nenhuma entre a velha e a nova. Se afinal colidir, a disposição
+            // esconde-a assim que a medida chegar.
+            const visivel = medida
+              ? disposicao.has(id)
+              : rotulosNaMemoria.current.has(id) || aMexer
+                ? memoriaEtiquetas.current.has(id)
+                : true;
+            if (!visivel) return null;
+            const e = etiquetaDoMapa(qualDesenhado(r.qual, modoEscolha), lang);
+            return (
+              <Marker
+                key={`${id}:${lang}`}
+                coordinate={{ latitude: r.lat, longitude: r.lng }}
+                // A bola da etiqueta em cima do ponto da estrada.
+                anchor={{ x: 0.5, y: e.ancoraY }}
+                // Por cima dos pinos (900): a pastilha fica no ar, e um pino
+                // a passar-lhe à frente cortava-lhe o texto.
+                zIndex={950}
+                image={e.imagem}
+                tappable={false}
+              />
+            );
+          })}
+
         {/* O carro do motorista, a deslizar entre as posições que vão
             chegando. O valor CRU (`liveMarker`) continua a servir tudo o
             resto — o enquadramento, o rótulo —; só o marcador usa o
@@ -2379,41 +2382,6 @@ export default function MapaGoogle({
             </Pressable>
           );
         })}
-
-      {/* AS ETIQUETAS DOS LOCAIS, de perto.
-          Centradas sobre o ponto e ACIMA dele, que é onde o pé e o ponto do
-          desenho as põem. Somem enquanto o dedo arrasta, como os cartões:
-          uma etiqueta atrasada diz que a recolha é ali, e não é. */}
-      {/* A ETIQUETA DO LOCAL, na ESTRADA e só no zoom mais fechado.
-          Centrada por cima do ponto, com o pé e a bola a assentar nele — o
-          traço aos pontinhos que vem do pino já faz a ligação, e um segundo
-          traço a dizer o mesmo era sujidade.
-          Some enquanto o dedo arrasta, como tudo o resto que é desenhado por
-          cima: uma etiqueta atrasada diz que o carro pára ali, e não pára. */}
-      {perto &&
-        !aMexer &&
-        pinosNoEcra
-          .filter((p) => disposicao.has(`rotulo:${p.qual}:${p.lat},${p.lng}`))
-          .map((p) => (
-            <View
-              key={`rotulo-${p.qual}-${p.lat},${p.lng}`}
-              pointerEvents="none"
-              style={[styles.rotuloSolto, { left: p.x - ROTULO_L / 2, top: p.y - ROTULO_A }]}
-            >
-              <RotuloLocal
-                qual={qualDesenhado(p.qual, modoEscolha)}
-                texto={t(ROTULO_CHAVE[qualDesenhado(p.qual, modoEscolha)] || ROTULO_CHAVE.origem)}
-              />
-            </View>
-          ))}
-
-      {/* ONDE O CARRO PÁRA.
-          Um ponto na estrada e o rótulo por cima, na ponta da linha aos
-          pontinhos. É a pergunta que a pessoa tem quando o pino cai a meio
-          de um quarteirão — "então o carro vem cá dentro?" — e que ninguém
-          respondia do lado do destino.
-          Some enquanto o dedo arrasta, como os cartões: um rótulo atrasado
-          diz que o carro pára ali, e não pára. */}
 
       {/* Só o RÓTULO do veículo fica por cima — o carro é marcador.
           O rótulo tem de continuar aqui porque o texto muda a cada rua, e
@@ -2565,19 +2533,48 @@ export default function MapaGoogle({
           O pino fica FIXO no centro do ecrã e o mapa é que se move por
           baixo.
 
-          A mira usa o componente <Pino>; o marcador usa uma IMAGEM. São
-          duas peças diferentes com o mesmo caminho SVG, e é preciso saber
-          disso: se a forma mudar num sítio e não no outro, o que se vê ao
-          apontar deixa de ser o que fica marcado. As imagens geram-se com
-          scripts/desenhar-pinos.py, do mesmo caminho.
+          A mira é a MESMA IMAGEM do marcador (`IMAGEM`), e não um desenho
+          à parte: dois desenhos da mesma coisa divergem, e aconteceu — a 22/09
+          o mapa já mostrava o pino novo e a mira ainda era o antigo. As
+          imagens geram-se com scripts/recortar-novos-icones.py.
 
-          A mira sobe três pixéis enquanto o mapa mexe. É o que dá a sensação
-          de que o mapa está a passar por baixo dela, e não o contrário. */}
+          Levanta-se enquanto o mapa mexe e pousa quando ele pára — ver
+          `miraLevantada` e `MIRA_LEVANTA`. */}
       {modoEscolha ? (
         <View style={styles.miraCaixa} pointerEvents="none">
-          <Animated.View style={{ transform: [{ translateY: miraY }] }}>
-            <Pino tipo={modoEscolha === 'destino' ? 'destino' : 'origem'} />
-          </Animated.View>
+          {/* O PONTO FICA NO CHÃO, O CORPO LEVANTA (27/09/2026).
+              No vídeo do Grab, enquanto o pino está no ar fica um pontinho
+              no mapa a marcar o sítio exacto — e é esse pontinho que diz à
+              pessoa onde vai pousar. A mesma imagem, cortada em duas: a de
+              cima só mostra o corpo e sobe; a de baixo só mostra o ponto e
+              não se mexe. Pousado, as duas juntam-se e é o pino de sempre,
+              pixel a pixel. */}
+          <View style={{ width: MIRA_L, height: MIRA_A, transform: [{ translateY: SUBIR_MIRA }] }}>
+            <Animated.View
+              style={[
+                styles.miraParte,
+                { height: MIRA_A * CORTE_DO_PONTO, transform: [{ translateY: miraSobe }] },
+              ]}
+            >
+              <Image
+                source={IMAGEM[modoEscolha === 'destino' ? 'destino' : 'origem']}
+                style={{ width: MIRA_L, height: MIRA_A }}
+                resizeMode="contain"
+              />
+            </Animated.View>
+            <View
+              style={[
+                styles.miraParte,
+                { top: MIRA_A * CORTE_DO_PONTO, height: MIRA_A * (1 - CORTE_DO_PONTO) },
+              ]}
+            >
+              <Image
+                source={IMAGEM[modoEscolha === 'destino' ? 'destino' : 'origem']}
+                style={{ width: MIRA_L, height: MIRA_A, marginTop: -MIRA_A * CORTE_DO_PONTO }}
+                resizeMode="contain"
+              />
+            </View>
+          </View>
         </View>
       ) : null}
     </View>
@@ -2760,6 +2757,7 @@ const criarEstilos = () =>
       shadowOffset: { width: 0, height: 2 },
       elevation: 3,
     },
+    miraParte: { position: 'absolute', left: 0, top: 0, width: MIRA_L, overflow: 'hidden' },
     miraCaixa: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
     botaoGuiar: {
       position: 'absolute',
@@ -2793,29 +2791,6 @@ const criarEstilos = () =>
       ...elevacao.flutuante,
     },
     caminhoTexto: { ...tipo.pequeno, color: colors.text },
-    rotuloSolto: {
-      position: 'absolute',
-      width: ROTULO_L,
-      height: ROTULO_A,
-      alignItems: 'center',
-      justifyContent: 'flex-end',
-    },
-    rotuloCaixa: { alignItems: 'center' },
-    rotuloPastilha: {
-      maxWidth: ROTULO_L,
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-      borderRadius: radius.pill,
-    },
-    rotuloTexto: {
-      ...tipo.pequeno,
-      color: '#FFFFFF',
-      fontWeight: '700',
-      textAlign: 'center',
-    },
-    // O pé e o ponto, como no desenho dele: um risco fino e uma bola.
-    rotuloPe: { width: 3, height: 10 },
-    rotuloPonto: { width: 11, height: 11, borderRadius: 6 },
   });
 
 let styles = criarEstilos();

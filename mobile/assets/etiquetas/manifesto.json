@@ -1,0 +1,62 @@
+{
+  "pt": {
+    "origem": {
+      "texto": "Local de recolha",
+      "largura": 127.5,
+      "altura": 50.0,
+      "ancoraY": 0.89
+    },
+    "destino": {
+      "texto": "Local de destino",
+      "largura": 127.92,
+      "altura": 50.0,
+      "ancoraY": 0.89
+    },
+    "paragem": {
+      "texto": "Paragem",
+      "largura": 79.08,
+      "altura": 50.0,
+      "ancoraY": 0.89
+    }
+  },
+  "tet": {
+    "origem": {
+      "texto": "Fatin tula",
+      "largura": 80.0,
+      "altura": 50.0,
+      "ancoraY": 0.89
+    },
+    "destino": {
+      "texto": "Fatin hatun",
+      "largura": 92.58,
+      "altura": 50.0,
+      "ancoraY": 0.89
+    },
+    "paragem": {
+      "texto": "Para",
+      "largura": 49.5,
+      "altura": 50.0,
+      "ancoraY": 0.89
+    }
+  },
+  "en": {
+    "origem": {
+      "texto": "Pickup point",
+      "largura": 102.58,
+      "altura": 50.0,
+      "ancoraY": 0.89
+    },
+    "destino": {
+      "texto": "Drop-off point",
+      "largura": 118.25,
+      "altura": 50.0,
+      "ancoraY": 0.89
+    },
+    "paragem": {
+      "texto": "Stop",
+      "largura": 52.25,
+      "altura": 50.0,
+      "ancoraY": 0.89
+    }
+  }
+}

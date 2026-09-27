@@ -621,8 +621,15 @@ export default function RequestRideScreen({ navigation, route }) {
   const ultimoPerguntado = useRef(null);
   // Sair do modo de escolha esquece o sítio: ao voltar, pergunta-se sempre,
   // mesmo que seja no mesmo ponto — o nome que lá estava já foi apagado.
+  //
+  // E esquece o ponto da estrada: fica guardado durante a escolha (ver abaixo),
+  // e sem isto, ao voltar a escolher noutro sítio, a primeira coisa no mapa
+  // era uma linha aos pontinhos até à estrada da vez anterior.
   useEffect(() => {
-    if (!centro) ultimoPerguntado.current = null;
+    if (!centro) {
+      ultimoPerguntado.current = null;
+      setParagemCentro(null);
+    }
   }, [centro]);
   // QUAL É O PEDIDO A VALER. Sem isto, um arrasto durante a espera das
   // respostas deixava duas voltas em voo, e a que chegasse por último
@@ -639,7 +646,13 @@ export default function RequestRideScreen({ navigation, route }) {
     if (antes && metrosEntre(antes, { lat, lng }) < 5) return;
     ultimoPerguntado.current = { lat, lng };
     setNomeCentro(null);
-    setParagemCentro(null);
+    // O PONTO DA ESTRADA ANTERIOR FICA ATÉ CHEGAR O NOVO (27/09/2026). Era
+    // apagado aqui, e a linha aos pontinhos e a etiqueta sumiam durante meio
+    // segundo depois de cada paragem, voltando noutro sítio — um piscar a cada
+    // gesto. No vídeo do Grab ficam: a linha estica-se da mira até à estrada
+    // de antes e salta para a nova quando ela chega. Só serve para desenhar;
+    // o pedido não o usa.
+
     const meu = ++pedidoCentro.current;
     (async () => {
       // Precisão zero: um ponto posto à mão é exacto por definição — quem o
