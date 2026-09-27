@@ -53,6 +53,7 @@ import { tipo } from '../design/tipografia.js';
 import Icone from '../design/Icone.js';
 import { TIPOS_VEICULO, VEICULOS, nomeDoVeiculo, veiculo } from '../dados/tiposDeVeiculo.js';
 import BarraEstado from '../design/BarraEstado.js';
+import { metrosEntre } from '../lib/filtroPosicao.js';
 
 // HH:MM na hora do telemóvel, o mesmo formato das etapas da viagem
 // (design/EtapasViagem.js). Serve a "Última procura às …".
@@ -598,12 +599,31 @@ export default function RequestRideScreen({ navigation, route }) {
     else setOrigem((p) => (mesmo(p) ? { ...p, label: nome, provisorio: false } : p));
   }
 
-  // O centro do mapa mudou. Guarda a coordenada já e pergunta o nome depois.
+  // O centro do mapa mudou. Guarda a coordenada e pergunta o nome — as duas
+  // coisas já.
   //
-  // O nome é pedido só quando o mapa PARA há 500 ms. Sem essa espera, um
-  // arrasto de dois segundos dispararia uma dúzia de perguntas ao Nominatim
-  // — que é gratuito, partilhado, e aceita cerca de um pedido por segundo.
-  const relogioNome = useRef(null);
+  // SEM ESPERA (27/09/2026). O nome esperava meio segundo depois de o mapa
+  // parar, para um arrasto com hesitações não disparar uma pergunta por
+  // cada hesitação. Essa espera somava-se à rede, e em Díli a rede já é
+  // meio segundo: o nome chegava um segundo depois de o dedo sair do ecrã.
+  // O pedido do Simão foi o do Grab — o mapa pára, o nome aparece.
+  //
+  // O que se perde: quem arrasta com hesitação faz uma pergunta por cada
+  // paragem, e não uma no fim. Não há como saber, daqui, se o dedo ainda
+  // está no ecrã — o mapa nativo engole o toque assim que o gesto começa, e
+  // uma paragem com o dedo pousado é, para ele, uma paragem como outra
+  // qualquer.
+  //
+  // O que o protege: parar no MESMO sítio não volta a perguntar (ver
+  // `ultimoPerguntado`), e uma resposta que chegue depois de o mapa ter ido
+  // para outro sítio é deitada fora (ver `pedidoCentro`). O servidor tem os
+  // seus próprios tectos diários para o que custa dinheiro.
+  const ultimoPerguntado = useRef(null);
+  // Sair do modo de escolha esquece o sítio: ao voltar, pergunta-se sempre,
+  // mesmo que seja no mesmo ponto — o nome que lá estava já foi apagado.
+  useEffect(() => {
+    if (!centro) ultimoPerguntado.current = null;
+  }, [centro]);
   // QUAL É O PEDIDO A VALER. Sem isto, um arrasto durante a espera das
   // respostas deixava duas voltas em voo, e a que chegasse por último
   // escrevia por cima — mesmo sendo a do sítio antigo. O nome errado
@@ -612,11 +632,16 @@ export default function RequestRideScreen({ navigation, route }) {
   const pedidoCentro = useRef(0);
   function centroMudou({ lat, lng }) {
     setCentro({ lat, lng });
+    // O MESMO SÍTIO NÃO SE PERGUNTA DUAS VEZES. Cinco metros é menos do que
+    // a largura de uma casa: abaixo disso a resposta seria a mesma, e o nome
+    // que já está no ecrã é o certo.
+    const antes = ultimoPerguntado.current;
+    if (antes && metrosEntre(antes, { lat, lng }) < 5) return;
+    ultimoPerguntado.current = { lat, lng };
     setNomeCentro(null);
     setParagemCentro(null);
-    clearTimeout(relogioNome.current);
     const meu = ++pedidoCentro.current;
-    relogioNome.current = setTimeout(async () => {
+    (async () => {
       // Precisão zero: um ponto posto à mão é exacto por definição — quem o
       // apontou está a olhar para o mapa e viu onde o pôs.
       //
@@ -642,7 +667,7 @@ export default function RequestRideScreen({ navigation, route }) {
       // arrasto por causa da rede é pior do que aviso nenhum.
       setCoberturaCentro(cobertura ? !!cobertura.ok : null);
       setParagemCentro(naEstrada || null);
-    }, 500);
+    })();
   }
 
   function confirmarEscolha() {

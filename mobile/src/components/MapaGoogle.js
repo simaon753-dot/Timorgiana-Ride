@@ -7,6 +7,13 @@ import { colors, radius, spacing, registarEstilos, elevacao } from '../theme.js'
 import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 import { metrosEntre } from '../lib/filtroPosicao.js';
+import {
+  disporEtiquetas,
+  rect,
+  abaixoComHisterese,
+  escalaoComHisterese,
+  larguraTexto,
+} from '../lib/disporEtiquetas.js';
 import { abrirNoMapa } from '../lib/mapaLink.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
@@ -340,7 +347,13 @@ const ANCORA_Y = 0.9689;
 // propósito». Eu subi-o para 46 porque numa fotografia de iPhone a mira
 // aparecia mais pequena, e tinha razão... no iPhone. Ao «amarrá-los» parti o
 // Android. Uma medição de uma plataforma não é uma medição.
-const MIRA_ESCALA = Platform.OS === 'ios' ? 1 : 0.79;
+// A ESCALA É UM FACTO DO MARCADOR, não da mira (27/09/2026). É quanto o
+// mapa nativo desenha de um pino em relação ao que se declara — 1 no iPhone,
+// 0,79 no Android, medido nas fotografias do Simão. A mira usa-a para ficar
+// do tamanho do pino; o motor das etiquetas usa-a para saber que espaço um
+// pino ocupa no ecrã e não o tapar. Um número, dois leitores.
+const ESCALA_MARCADOR = Platform.OS === 'ios' ? 1 : 0.79;
+const MIRA_ESCALA = ESCALA_MARCADOR;
 const MIRA_L = Math.round(PINO_L * MIRA_ESCALA);
 const MIRA_A = Math.round(PINO_A * MIRA_ESCALA);
 
@@ -572,6 +585,29 @@ function RotuloLocal({ qual, texto }) {
 // distância é sujidade em cima do mapa.
 const PERTO = 0.0015;
 
+// OS NOSSOS LUGARES APARECEM AOS POUCOS (27/09/2026).
+//
+// Eram tudo ou nada: abaixo de três quilómetros de raio apareciam os seis de
+// uma vez, acima disso nenhum. Agora, como nos mapas a sério, quanto mais
+// perto mais nomes — e os primeiros a aparecer são os mais próximos do
+// centro, porque é o servidor que os devolve já por ordem de distância.
+//
+// Raio em metros → quantos nomes. Passa de 3 km: nenhum.
+const ESCALOES_NOSSOS = [
+  { ate: 700, n: 6 },
+  { ate: 1500, n: 4 },
+  { ate: 3000, n: 2 },
+];
+
+// QUEM GANHA QUANDO DUAS ETIQUETAS QUEREM O MESMO SÍTIO. Ver
+// `lib/disporEtiquetas.js`.
+//
+// O cartão do ponto escolhido primeiro — é a resposta à pergunta que a
+// pessoa está a fazer. Depois a etiqueta de onde o carro encosta, depois o
+// preço dos caminhos (que se toca), e por fim os nossos lugares, que são
+// contexto. Os pinos não entram aqui: esses nunca se escondem.
+const PRIORIDADE = { cartao: 100, rotulo: 90, caminho: 80, nosso: 50 };
+
 // A caixa da etiqueta. A altura conta a pastilha, o pé e o ponto: é por ela
 // que a etiqueta se levanta acima da coordenada, para o PONTO dela cair
 // exactamente onde caía a ponta do pino.
@@ -783,6 +819,26 @@ export default function MapaGoogle({
   // lá — e a app mostra coisas que nenhum outro mapa de Díli mostra.
   const [nossos, setNossos] = useState([]);
   const [nossosNoEcra, setNossosNoEcra] = useState([]);
+  // ONDE ESTÃO DESENHADOS TODOS OS PINOS DA VIAGEM, em pontos do ecrã — e não
+  // só os que têm cartão. São os obstáculos que nenhuma etiqueta pode tapar.
+  const [pinosDesenhados, setPinosDesenhados] = useState([]);
+  // PERTO, COM HISTERESE (27/09/2026). Era `delta < PERTO`, um só número, e
+  // a etiqueta da estrada piscava para quem parasse o mapa em cima do
+  // limite. Agora entra-se abaixo de 0,0015 e sai-se só acima de 0,0018. Em
+  // estado, e não calculado, porque a resposta depende de onde se VINHA.
+  const [perto, setPerto] = useState(false);
+  // Em que escalão de zoom estão os nossos lugares. Ver `ESCALOES_NOSSOS`.
+  // Num ref: só o lê quem vai buscar os nomes, e ninguém redesenha por isso.
+  const escalaoNossos = useRef(null);
+  // A MEMÓRIA DAS ETIQUETAS, para não piscarem. `disposicaoFinal` é o que
+  // está à vista agora; `memoria` é o que estava à vista quando o dedo
+  // tocou no mapa, e é contra ESSA que se desempata depois da paragem —
+  // quem estava à vista antes do gesto volta ao mesmo lado depois dele.
+  const disposicaoFinal = useRef(new Map());
+  const memoriaEtiquetas = useRef(new Map());
+  // Conta os gestos. Uma resposta do mapa nativo que chegue depois de um
+  // gesto novo ter começado é de uma câmara que já não existe.
+  const geracaoCamara = useRef(0);
   const regiaoRef = useRef(null);
   // O centro actual, para decidir de que lado do pino fica o cartão.
   const centroRef = useRef({ lat: c.lat, lng: c.lng });
@@ -1084,7 +1140,10 @@ export default function MapaGoogle({
     async (regiao) => {
       if (!token || !regiao) return;
       const raioM = (regiao.latitudeDelta * 111320) / 2;
-      if (raioM > 3000) {
+      const escalao = escalaoComHisterese(raioM, ESCALOES_NOSSOS, escalaoNossos.current);
+      escalaoNossos.current = escalao;
+      const quantos = ESCALOES_NOSSOS[escalao]?.n ?? 0;
+      if (!quantos) {
         setNossos([]);
         return;
       }
@@ -1092,7 +1151,11 @@ export default function MapaGoogle({
         const r = await api.lugaresPerto(token, regiao.latitude, regiao.longitude, raioM);
         // SÓ O QUE O GOOGLE NÃO CONHECE. O servidor já respondeu a essa
         // pergunta quando o lugar foi aprovado; aqui é só filtrar.
-        setNossos((r?.lugares || []).filter((l) => l.desenhar).slice(0, 12));
+        //
+        // E só os `quantos` primeiros: o servidor devolve-os por ordem de
+        // distância ao centro, portanto os que ficam são os que estão mais
+        // perto de onde a pessoa está a olhar.
+        setNossos((r?.lugares || []).filter((l) => l.desenhar).slice(0, quantos));
       } catch {
         // Sem rede não se desenha nada de novo. Os que já lá estavam ficam,
         // que é melhor do que os ver desaparecer a meio de um arrasto.
@@ -1102,22 +1165,42 @@ export default function MapaGoogle({
   );
 
   const recalcularCartoes = useCallback(async () => {
-    const comNome = pts.filter((p) => p.cartao && p.nome);
-    if (!mapaRef.current || !comNome.length) {
+    if (!mapaRef.current || !pts.length) {
       setCartoes([]);
+      setPinosDesenhados([]);
       return;
     }
+    const geracao = geracaoCamara.current;
     try {
+      // ONDE O PINO ESTÁ DESENHADO, e não onde o carro pára (27/09/2026).
+      //
+      // Os dois podem ser sítios diferentes — o pino no sítio que a pessoa
+      // apontou, o `lat`/`lng` na estrada. O cartão perguntava pela estrada
+      // e aparecia encostado a um ponto sem pino nenhum, às vezes a trinta
+      // metros do nome que estava a mostrar.
+      //
+      // Todos os pinos, e não só os que têm cartão: os outros não têm nome
+      // para mostrar, mas ocupam espaço, e nenhuma etiqueta os pode tapar.
       const pontos = await Promise.all(
-        comNome.map((p) =>
-          mapaRef.current.pointForCoordinate({ latitude: p.lat, longitude: p.lng })
+        pts.map((p) =>
+          mapaRef.current.pointForCoordinate({
+            latitude: p.pino ? p.pino.lat : p.lat,
+            longitude: p.pino ? p.pino.lng : p.lng,
+          })
         )
       );
-      setCartoes(comNome.map((p, i) => ({ ...p, x: pontos[i].x, y: pontos[i].y })));
+      // Um gesto começou entretanto: estas posições são de uma câmara que
+      // já não existe, e mostrá-las no fim do gesto era desenhar um frame
+      // com tudo no sítio errado antes de saltar para o certo.
+      if (geracao !== geracaoCamara.current) return;
+      const todos = pts.map((p, i) => ({ ...p, x: pontos[i].x, y: pontos[i].y }));
+      setPinosDesenhados(todos);
+      setCartoes(todos.filter((p) => p.cartao && p.nome));
     } catch {
       // Sem posições não se desenha nada. Um cartão no sítio errado é pior
       // do que nenhum: diz que aquele nome é daquele ponto, e não é.
       setCartoes([]);
+      setPinosDesenhados([]);
     }
   }, [pts]);
 
@@ -1129,7 +1212,10 @@ export default function MapaGoogle({
   // mapa sabe isso tudo e responde por nós.
   useEffect(() => {
     let vivo = true;
-    if (!mapaPronto || !mapaRef.current || !nossos.length) {
+    // A MEXER NÃO SE MEDE. Uma posição pedida a meio do gesto chegava a meio
+    // do gesto, ficava guardada, e era essa que se via no primeiro instante
+    // depois de parar — o nome no sítio antigo, e logo a seguir um salto.
+    if (aMexer || !mapaPronto || !mapaRef.current || !nossos.length) {
       setNossosNoEcra([]);
       return undefined;
     }
@@ -1453,7 +1539,7 @@ export default function MapaGoogle({
 
   useEffect(() => {
     let vivo = true;
-    if (!mapaPronto || !mapaRef.current || !ondeRotularCaminhos.length) {
+    if (aMexer || !mapaPronto || !mapaRef.current || !ondeRotularCaminhos.length) {
       setCaminhosNoEcra([]);
       return undefined;
     }
@@ -1478,8 +1564,7 @@ export default function MapaGoogle({
 
   useEffect(() => {
     let vivo = true;
-    const perto = delta != null && delta < PERTO;
-    if (!mapaPronto || !mapaRef.current || !perto || !aRotular.length) {
+    if (aMexer || !mapaPronto || !mapaRef.current || !perto || !aRotular.length) {
       setPinosNoEcra([]);
       return undefined;
     }
@@ -1500,10 +1585,7 @@ export default function MapaGoogle({
     return () => {
       vivo = false;
     };
-  }, [rotularKey, mapaPronto, aMexer, delta]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Estamos perto? Decide quem marca o ponto: o pino ou a etiqueta.
-  const perto = delta != null && delta < PERTO;
+  }, [rotularKey, mapaPronto, aMexer, delta, perto]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const centroMudou = useCallback(
     (regiao) => {
@@ -1522,6 +1604,7 @@ export default function MapaGoogle({
       centroRef.current = { lat: regiao.latitude, lng: regiao.longitude };
       regiaoRef.current = regiao;
       setDelta(regiao.latitudeDelta);
+      setPerto((antes) => abaixoComHisterese(regiao.latitudeDelta, PERTO, antes));
       recalcularCartoes();
       // COM TRAVÃO (21/09/2026). Cada paragem do mapa pedia os nomes da zona
       // ao servidor. Quem arrasta o mapa à procura de um sítio pára cinco ou
@@ -1544,16 +1627,6 @@ export default function MapaGoogle({
     if (modoEscolha && onCentro) onCentro({ type: 'centro', lat: c.lat, lng: c.lng });
   }, [modoEscolha]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // O react-native-maps não existe na web.
-  if (Platform.OS === 'web') {
-    return (
-      <View style={[styles.wrap, styles.fallback, fill ? styles.fill : { height }]}>
-        <Text style={styles.fallbackIcon}>🗺️</Text>
-        <Text style={styles.fallbackText}>O mapa está disponível na app do telemóvel.</Text>
-      </View>
-    );
-  }
-
   // ONDE COMEÇA A COLUNA DE BOTÕES (localização, bússola, seguir, satélite),
   // numa só conta para os quatro. Por omissão fica no canto de cima, descida
   // `topoDosBotoes`; com `botoesAoMeio` fica centrada na altura do mapa. Cada
@@ -1573,6 +1646,186 @@ export default function MapaGoogle({
       ? Math.max(spacing.sm, Math.round(altura / 2 - (nBotoes * 48) / 2))
       : spacing.sm + topoDosBotoes;
   const naColuna = (i) => (topoColuna !== spacing.sm ? { top: topoColuna + 48 * i } : null);
+
+  // ── A DISPOSIÇÃO DAS ETIQUETAS ─────────────────────────────────────
+  //
+  // Todas as famílias juntas, numa só conta, e só com a câmara parada. Ver
+  // `lib/disporEtiquetas.js` para o método; aqui monta-se o que ele precisa:
+  // os OBSTÁCULOS (o que nunca se tapa) e os CANDIDATOS (cada etiqueta, com
+  // os lados onde pode ficar e o espaço que ocuparia em cada um).
+  //
+  // Os tamanhos são estimados e não medidos. Medir obrigaria a desenhar
+  // primeiro e colocar depois, e isso é um frame com a etiqueta no sítio
+  // errado — exactamente o que se quer evitar.
+  const disposicao = useMemo(() => {
+    if (aMexer || !largura || !altura) return new Map();
+    const obstaculos = [];
+
+    // Os pinos, do tamanho a que o mapa nativo os DESENHA (ver
+    // `ESCALA_MARCADOR`), pendurados pela ponta.
+    const pl = PINO_L * ESCALA_MARCADOR;
+    const pa = PINO_A * ESCALA_MARCADOR;
+    for (const p of pinosDesenhados) {
+      obstaculos.push({
+        id: `pino:${p.qual}:${p.lat},${p.lng}`,
+        ...rect(p.x - pl / 2, p.y - pa * ANCORA_Y, pl, pa),
+      });
+    }
+    // A mira, com a ponta no centro exacto do ecrã.
+    if (modoEscolha) {
+      obstaculos.push({
+        id: 'mira',
+        ...rect(largura / 2 - MIRA_L / 2, altura / 2 - MIRA_A * ANCORA_Y, MIRA_L, MIRA_A),
+      });
+    }
+    // A coluna de botões, e o losango de guiar.
+    if (ferramentas) {
+      obstaculos.push(rect(largura - spacing.sm - 40, topoColuna, 40, 48 * (nBotoes - 1) + 40));
+    }
+    if (navegarPara) {
+      // Um quadrado de 40 rodado 45 graus ocupa 56 de lado a lado.
+      obstaculos.push(rect(largura - spacing.sm - 48, altura - spacing.xl - 48, 56, 56));
+    }
+
+    const candidatos = [];
+
+    // OS CARTÕES dos pontos escolhidos. Do lado de fora do ecrã primeiro —
+    // à esquerda quando o pino está encostado à direita —, e do outro lado
+    // se esse estiver ocupado.
+    for (const c of cartoes) {
+      const h = c.detalhe ? 46 : 32;
+      const dir = { lado: 'dir', caixa: rect(c.x + 16, c.y - 46, CARTAO_L, h) };
+      const esq = { lado: 'esq', caixa: rect(c.x - 16 - CARTAO_L, c.y - 46, CARTAO_L, h) };
+      candidatos.push({
+        id: `cartao:${c.lat},${c.lng}`,
+        prioridade: PRIORIDADE.cartao,
+        relacionados: [`pino:${c.qual}:${c.lat},${c.lng}`],
+        opcoes: c.x > largura * 0.55 ? [esq, dir] : [dir, esq],
+      });
+    }
+
+    // A ETIQUETA DA ESTRADA. Um lado só: aponta a um ponto exacto, e
+    // desviada deixava de apontar.
+    if (perto) {
+      for (const p of pinosNoEcra) {
+        const qual = qualDesenhado(p.qual, modoEscolha);
+        const texto = t(ROTULO_CHAVE[qual] || ROTULO_CHAVE.origem);
+        const pw = Math.min(ROTULO_L, larguraTexto(texto, 7.2) + 20);
+        const ph = pw >= ROTULO_L ? 42 : 26;
+        // A pastilha, o pé (10) e o ponto (11), por cima da coordenada.
+        candidatos.push({
+          id: `rotulo:${p.qual}:${p.lat},${p.lng}`,
+          prioridade: PRIORIDADE.rotulo,
+          // A etiqueta é do pino a que pertence — e a de pré-visualização
+          // (`centro`) é da MIRA. Pode encostar-lhe sem ser escondida: a
+          // mira é desenhada depois de tudo, fica sempre por cima, e esta é
+          // exactamente a etiqueta que diz onde o carro vai parar para o
+          // ponto que a mira está a apontar.
+          relacionados: [
+            ...pinosDesenhados
+              .filter((q) => q.qual === p.qual)
+              .map((q) => `pino:${q.qual}:${q.lat},${q.lng}`),
+            ...(p.qual === 'centro' ? ['mira'] : []),
+          ],
+          opcoes: [{ lado: 'c', caixa: rect(p.x - pw / 2, p.y - 21 - ph, pw, ph + 21) }],
+        });
+      }
+    }
+
+    // O PREÇO DE CADA CAMINHO. No sítio onde o caminho mais se afasta do
+    // escolhido; se estiver ocupado, logo acima ou logo abaixo, que continua
+    // em cima da mesma linha.
+    for (const c of caminhosNoEcra) {
+      const x = c.x - CAMINHO_L / 2;
+      candidatos.push({
+        id: `caminho:${c.indice}`,
+        prioridade: PRIORIDADE.caminho,
+        opcoes: [
+          { lado: 'c', caixa: rect(x, c.y - 18, CAMINHO_L, 28) },
+          { lado: 'cima', caixa: rect(x, c.y - 50, CAMINHO_L, 28) },
+          { lado: 'baixo', caixa: rect(x, c.y + 14, CAMINHO_L, 28) },
+        ],
+      });
+    }
+
+    // OS NOSSOS LUGARES. Já vêm por ordem de distância ao centro, e é essa a
+    // ordem de prioridade dentro da família: o mais perto de onde a pessoa
+    // está a olhar ganha ao mais afastado. Os que só a própria pessoa
+    // propôs, e ainda estão por rever, ficam atrás dos aceites.
+    nossosNoEcra.forEach((l, i) => {
+      const w = Math.min(150, 11 + larguraTexto(l.label, 6.6));
+      candidatos.push({
+        id: l.id,
+        prioridade: PRIORIDADE.nosso - i - (l.porRever ? 5 : 0),
+        opcoes: [
+          { lado: 'dir', caixa: rect(l.x + 6, l.y - 8, w, 16) },
+          { lado: 'esq', caixa: rect(l.x - 6 - w, l.y - 8, w, 16) },
+        ],
+      });
+    });
+
+    return disporEtiquetas(candidatos, obstaculos, { largura, altura }, memoriaEtiquetas.current);
+  }, [
+    aMexer,
+    largura,
+    altura,
+    pinosDesenhados,
+    modoEscolha,
+    ferramentas,
+    topoColuna,
+    nBotoes,
+    navegarPara,
+    cartoes,
+    perto,
+    pinosNoEcra,
+    caminhosNoEcra,
+    nossosNoEcra,
+    t,
+  ]);
+
+  // O que ficou à vista passa a ser o que se lembra no próximo gesto. Só com
+  // a câmara parada: durante o gesto a disposição está vazia de propósito, e
+  // guardá-la apagava a memória que se quer usar a seguir.
+  useEffect(() => {
+    if (!aMexer) disposicaoFinal.current = disposicao;
+  }, [disposicao, aMexer]);
+
+  // AS COORDENADAS DAS LINHAS, CALCULADAS UMA VEZ (27/09/2026).
+  //
+  // Eram construídas dentro do desenho — um array novo a cada desenho, com
+  // os mesmos pontos. O mapa nativo não compara pontos: recebe uma lista
+  // nova e redesenha a linha. E há pelo menos dois desenhos por gesto (o
+  // início, que esconde as etiquetas, e o fim, que as mostra), cada um a
+  // obrigar o mapa a refazer as linhas cinzentas dos caminhos e os troços a
+  // pé que não tinham mudado nada. É o tipo de redesenho que se vê como um
+  // tremor da linha no fim de um arrasto.
+  const linhasDosCaminhos = useMemo(
+    () => caminhos.map((c) => (c.linha || []).map((q) => ({ latitude: q.lat, longitude: q.lng }))),
+    [caminhos]
+  );
+  // `trocos` é um array novo a cada desenho de quem nos chama; a chave dos
+  // pontos é que diz se mudou.
+  const trocosKey = trocos
+    .map((tr) => `${tr.qual}:${tr.de.lat},${tr.de.lng}>${tr.para.lat},${tr.para.lng}`)
+    .join('|');
+  const linhasDosTrocos = useMemo(
+    () =>
+      trocos.map((tr) => [
+        { latitude: tr.de.lat, longitude: tr.de.lng },
+        { latitude: tr.para.lat, longitude: tr.para.lng },
+      ]),
+    [trocosKey] // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
+  // O react-native-maps não existe na web.
+  if (Platform.OS === 'web') {
+    return (
+      <View style={[styles.wrap, styles.fallback, fill ? styles.fill : { height }]}>
+        <Text style={styles.fallbackIcon}>🗺️</Text>
+        <Text style={styles.fallbackText}>O mapa está disponível na app do telemóvel.</Text>
+      </View>
+    );
+  }
 
   return (
     <View
@@ -1603,7 +1856,22 @@ export default function MapaGoogle({
         // O `aMexer` vale para os dois: levanta a mira, e esconde os
         // cartões enquanto as posições deles estão desactualizadas.
         onRegionChange={() => {
-          if (!aMexer) setAMexer(true);
+          if (aMexer) return;
+          // O GESTO COMEÇOU (27/09/2026). Três coisas, por esta ordem:
+          //
+          // 1. Lembrar o que estava à vista. É contra isto que se desempata
+          //    quando o mapa parar — quem estava lá antes volta ao mesmo lado.
+          memoriaEtiquetas.current = disposicaoFinal.current;
+          // 2. Contar o gesto, para as respostas atrasadas do mapa nativo
+          //    saberem que já não valem.
+          geracaoCamara.current += 1;
+          // 3. Deitar fora as posições. Estavam escondidas durante o gesto
+          //    de qualquer maneira; guardá-las era vê-las um instante no
+          //    sítio antigo quando o gesto acabasse, antes de as novas
+          //    chegarem. Assim cada etiqueta só volta quando já sabe onde.
+          setCartoes([]);
+          setPinosDesenhados([]);
+          setAMexer(true);
         }}
         // ARRASTAR DESLIGA O SEGUIMENTO.
         //
@@ -1700,10 +1968,7 @@ export default function MapaGoogle({
         {trocos.map((t, i) => (
           <Polyline
             key={`a-pe-${t.qual || i}`}
-            coordinates={[
-              { latitude: t.de.lat, longitude: t.de.lng },
-              { latitude: t.para.lat, longitude: t.para.lng },
-            ]}
+            coordinates={linhasDosTrocos[i]}
             // Como os do Google: pontos redondos e espaçados, cinzento
             // neutro. Não é a cor de nada nosso de propósito — este troço não
             // é da app, é o bocado que a pessoa faz a pé.
@@ -1749,7 +2014,7 @@ export default function MapaGoogle({
           i === caminhoEscolhido || !c.linha?.length ? null : (
             <Polyline
               key={`alt-toque-${i}`}
-              coordinates={c.linha.map((p) => ({ latitude: p.lat, longitude: p.lng }))}
+              coordinates={linhasDosCaminhos[i]}
               strokeColor="rgba(0,0,0,0.01)"
               strokeWidth={26}
               tappable
@@ -1762,7 +2027,7 @@ export default function MapaGoogle({
           i === caminhoEscolhido || !c.linha?.length ? null : (
             <Polyline
               key={`alt-${i}`}
-              coordinates={c.linha.map((p) => ({ latitude: p.lat, longitude: p.lng }))}
+              coordinates={linhasDosCaminhos[i]}
               strokeColor={ALTERNATIVA}
               {...corDaLinha(ALTERNATIVA)}
               strokeWidth={5}
@@ -1944,11 +2209,20 @@ export default function MapaGoogle({
             (l) =>
               !pts.some((p) => Math.abs(p.lat - l.lat) < 0.0002 && Math.abs(p.lng - l.lng) < 0.0002)
           )
+          // Só os que a disposição deixou ficar, e do lado que ela escolheu.
+          // À esquerda, o ponto passa para o fim da linha — fica encostado
+          // ao sítio, e o nome estende-se para o outro lado.
+          .filter((l) => disposicao.has(l.id))
           .map((l) => (
             <View
               key={l.id}
               pointerEvents="none"
-              style={[styles.nosso, { left: l.x + 6, top: l.y - 8 }]}
+              style={[
+                styles.nosso,
+                disposicao.get(l.id) === 'esq'
+                  ? { right: largura - l.x + 6, top: l.y - 8, flexDirection: 'row-reverse' }
+                  : { left: l.x + 6, top: l.y - 8 },
+              ]}
             >
               <View style={styles.nossoPonto} />
               <Text
@@ -1971,14 +2245,18 @@ export default function MapaGoogle({
           de quem acabou de arrastar o mapa. */}
       {!aMexer &&
         cartoes.map((c) => {
-          const aDireita = largura > 0 && c.x > largura * 0.55;
+          // O lado vem da disposição, que já sabe o que está à volta. Sem
+          // lugar livre de nenhum dos lados, o cartão não aparece — um nome
+          // em cima de outro pino diria que é desse, e não é.
+          const lado = disposicao.get(`cartao:${c.lat},${c.lng}`);
+          if (!lado) return null;
           return (
             <View
               key={`${c.lat},${c.lng}`}
               pointerEvents="none"
               style={[
                 styles.cartaoSolto,
-                aDireita ? { left: c.x - 16 - CARTAO_L } : { left: c.x + 16 },
+                lado === 'esq' ? { left: c.x - 16 - CARTAO_L } : { left: c.x + 16 },
                 { top: c.y - 46 },
               ]}
             >
@@ -1998,12 +2276,14 @@ export default function MapaGoogle({
       {!aMexer &&
         caminhosNoEcra.map((c) => {
           const dados = caminhos[c.indice];
-          if (!dados) return null;
+          const lado = disposicao.get(`caminho:${c.indice}`);
+          if (!dados || !lado) return null;
+          const top = lado === 'cima' ? c.y - 50 : lado === 'baixo' ? c.y + 14 : c.y - 18;
           return (
             <Pressable
               key={`cam-${c.indice}`}
               onPress={() => onEscolherCaminho && onEscolherCaminho(c.indice)}
-              style={[styles.caminhoPastilha, { left: c.x - CAMINHO_L / 2, top: c.y - 18 }]}
+              style={[styles.caminhoPastilha, { left: c.x - CAMINHO_L / 2, top }]}
               accessibilityRole="button"
             >
               <Text style={styles.caminhoTexto} numberOfLines={1}>
@@ -2025,18 +2305,20 @@ export default function MapaGoogle({
           cima: uma etiqueta atrasada diz que o carro pára ali, e não pára. */}
       {perto &&
         !aMexer &&
-        pinosNoEcra.map((p) => (
-          <View
-            key={`rotulo-${p.qual}-${p.lat},${p.lng}`}
-            pointerEvents="none"
-            style={[styles.rotuloSolto, { left: p.x - ROTULO_L / 2, top: p.y - ROTULO_A }]}
-          >
-            <RotuloLocal
-              qual={qualDesenhado(p.qual, modoEscolha)}
-              texto={t(ROTULO_CHAVE[qualDesenhado(p.qual, modoEscolha)] || ROTULO_CHAVE.origem)}
-            />
-          </View>
-        ))}
+        pinosNoEcra
+          .filter((p) => disposicao.has(`rotulo:${p.qual}:${p.lat},${p.lng}`))
+          .map((p) => (
+            <View
+              key={`rotulo-${p.qual}-${p.lat},${p.lng}`}
+              pointerEvents="none"
+              style={[styles.rotuloSolto, { left: p.x - ROTULO_L / 2, top: p.y - ROTULO_A }]}
+            >
+              <RotuloLocal
+                qual={qualDesenhado(p.qual, modoEscolha)}
+                texto={t(ROTULO_CHAVE[qualDesenhado(p.qual, modoEscolha)] || ROTULO_CHAVE.origem)}
+              />
+            </View>
+          ))}
 
       {/* ONDE O CARRO PÁRA.
           Um ponto na estrada e o rótulo por cima, na ponta da linha aos
