@@ -8,9 +8,12 @@
 // linha aos pontinhos desde onde a pessoa está até lá. Não é só bonito — diz
 // à pessoa ONDE ESPERAR, que é uma pergunta que ela tem e ninguém respondia.
 //
-// Usa o serviço `nearest` do OSRM, o mesmo motor que já desenha as rotas.
-// Gratuito, e devolve a que distância ficou — que é o que permite decidir se
-// vale a pena mexer no ponto.
+// DE ONDE VEM O PONTO, por esta ordem (desde 27/09/2026):
+//   1. uma paragem definida à mão no painel, se houver para este sítio;
+//   2. o nosso mapa, no servidor — só estradas por onde passam mota, carro e
+//      pick-up (ver `backend/src/estradasNossas.js`);
+//   3. o `nearest` do OSRM público, só se o servidor não conseguir ler o
+//      mapa. Era o primeiro até 27/09, e encostava a pátios e trilhos.
 
 const PRAZO_MS = 6000;
 
@@ -63,6 +66,28 @@ export async function pontoNaEstrada(lat, lng, token) {
           // ela própria".
           paragens:
             Array.isArray(nossa.paragens) && nossa.paragens.length > 1 ? nossa.paragens : null,
+        };
+      }
+      // O NOSSO MAPA (27/09/2026). O servidor procura a estrada mais próxima
+      // entre as que servem para mota, carro e pick-up — sem caminhos de
+      // serviço, carreiros nem passeios, e com os trilhos só como último
+      // recurso. Ver `backend/src/estradasNossas.js`.
+      //
+      // Se ele responde que NÃO HÁ estrada no raio, não se pergunta ao OSRM:
+      // ele encontraria precisamente o pátio ou o trilho que se quis evitar.
+      // Não encostar é melhor do que encostar a um sítio onde o carro não
+      // entra. Os mesmos limites de sempre (`PERTO_DE_MAIS_M`, `LONGE_...`).
+      if (nossa?.fonte === 'mapa') {
+        if (nossa.semEstrada || nossa.lat == null) return null;
+        const metros = Number(nossa.metros);
+        if (!Number.isFinite(metros) || metros < PERTO_DE_MAIS_M || metros > LONGE_DE_MAIS_M) {
+          return null;
+        }
+        return {
+          lat: nossa.lat,
+          lng: nossa.lng,
+          metros: Math.round(metros),
+          rua: nossa.rua || null,
         };
       }
     } catch {

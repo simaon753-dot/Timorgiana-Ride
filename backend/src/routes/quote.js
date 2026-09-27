@@ -7,6 +7,7 @@ import { preco, etaMinutos, straightKm } from '../routing.js';
 import { rotaCompleta, caminhosDaViagem, MODO } from '../rotas.js';
 import { limparDestinos } from '../destinosDaViagem.js';
 import { paragensQueCobrem } from '../paradas.js';
+import { estradaMaisPerto } from '../estradasNossas.js';
 import { nearestDrivers } from '../drivers.js';
 import { taxasPara } from '../taxasDeEntrada.js';
 // A LISTA DOS TIPOS, que faltava desde a fase 1 do Carry. Sem ela cada
@@ -378,6 +379,28 @@ quoteRouter.post(
           lng: p.lng,
         })),
       });
+    }
+    // SEM PARAGEM DEFINIDA À MÃO: A ESTRADA DO NOSSO MAPA QUE SERVE
+    // (27/09/2026). Antes a app ia daqui directamente ao OSRM público, que
+    // encosta a caminhos de serviço e trilhos — a etiqueta caía dentro de
+    // estaleiros e pátios. Ver `estradasNossas.js`.
+    //
+    // TRÊS RESPOSTAS DIFERENTES, e a app precisa de as distinguir:
+    //   `mapa` com ponto  — encontrou uma estrada que serve;
+    //   `mapa` sem ponto  — procurou e NÃO HÁ nenhuma no raio. A app não
+    //                        encosta a nada, e NÃO vai perguntar ao OSRM, que
+    //                        encontraria o trilho ou o pátio que se quis evitar;
+    //   `nenhuma`         — não foi possível ler o mapa. Aí sim, a app usa o
+    //                        OSRM, que é melhor do que nada.
+    try {
+      const e = await estradaMaisPerto(lat, lng);
+      return res.json(
+        e
+          ? { fonte: 'mapa', lat: e.lat, lng: e.lng, metros: e.metros, rua: e.rua, tipo: e.tipo }
+          : { fonte: 'mapa', semEstrada: true }
+      );
+    } catch (err) {
+      console.error('[paragem] mapa ilegível:', err.message);
     }
     return res.json({ fonte: 'nenhuma' });
   })
