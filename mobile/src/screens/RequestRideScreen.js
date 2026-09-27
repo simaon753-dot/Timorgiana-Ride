@@ -1323,6 +1323,7 @@ export default function RequestRideScreen({ navigation, route }) {
           // numa discussão sobre a tarifa não haveria como mostrar por onde é
           // que o preço passou.
           linhaDaRota={caminhoPosto?.linha || orcamento?.linha || null}
+          linhaSoDeFora
           caminhos={orcamento?.caminhos || []}
           caminhoEscolhido={caminho}
           onEscolherCaminho={setCaminho}

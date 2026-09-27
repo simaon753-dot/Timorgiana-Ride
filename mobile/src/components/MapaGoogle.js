@@ -695,6 +695,10 @@ export default function MapaGoogle({
   // rota duas vezes — e garante-se que a linha desenhada é EXACTAMENTE a
   // linha cobrada. Sem ela, este componente pede a sua.
   linhaDaRota = null,
+  // A LINHA SÓ VEM DE FORA (27/09/2026). No ecrã de pedir, a linha chega com
+  // a cotação; enquanto não chega fica a recta tracejada, e o mapa não pede
+  // nada por sua conta. Ver a nota no efeito da rota.
+  linhaSoDeFora = false,
   // O CAMINHO ATÉ À RECOLHA (23/09/2026, pedido do Simão).
   //
   // `{ lat, lng }` ou nada. Havendo, desenha-se uma segunda linha entre onde
@@ -1010,6 +1014,17 @@ export default function MapaGoogle({
       });
       return undefined;
     }
+
+    // QUEM TRAZ A LINHA É OUTRO, e ela ainda não chegou (27/09/2026).
+    //
+    // No ecrã de pedir, a cotação e o mapa pediam a mesma rota no mesmo
+    // segundo. Enquanto os pontos eram os mesmos, o servidor juntava os dois
+    // pedidos num só (`rotaCompleta`). Mas a cotação passou a partir do PINO
+    // e o mapa continuava a partir do ponto ENCOSTADO: duas rotas diferentes,
+    // duas chamadas ao Google por viagem — o /api/health mostrava-as com 16
+    // milésimos de intervalo. A linha provisória não trazia nada que a cotação
+    // não traga ao mesmo tempo; fica a recta até ela chegar.
+    if (linhaSoDeFora) return undefined;
 
     // PEDIDA AO NOSSO SERVIDOR, e não a um serviço de rotas directamente.
     //
