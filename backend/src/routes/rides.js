@@ -38,6 +38,7 @@ import { notificarPedidoNovo, notificarAceite, notificarAdminsSOS } from '../pus
 import { one, query } from '../db.js';
 import { preco, straightKm } from '../routing.js';
 import { caminhosDaViagem, TOLERANCIA_KM, pedidoDe } from '../rotas.js';
+import { fecharRasto } from '../rastos.js';
 import { podeIr } from '../cobertura.js';
 import { config } from '../config.js';
 import { registarDia } from '../assinatura.js';
@@ -881,6 +882,10 @@ ridesRouter.post(
     // registo do dia rebentar, o motorista trabalhou de graça — chato,
     // mas muito melhor do que a viagem não fechar e ele ficar sem poder
     // receber o passageiro seguinte.
+    // O rasto anónimo, se estiver ligado. Sem esperar: a conclusão não
+    // espera por nada que não seja dela. Ver `rastos.js`.
+    if (status === 'completed' && updated) fecharRasto(updated);
+
     if (status === 'completed' && updated?.driver_id) {
       try {
         await registarDia(updated.driver_id, rideId);

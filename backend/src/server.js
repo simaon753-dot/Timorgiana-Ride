@@ -38,7 +38,8 @@ import {
 } from './rides.js';
 import { notificarPedidoCaducado } from './push.js';
 import { registarSemEsperar, EVENTOS } from './eventos.js';
-import { limparAntigos, MESES_ACESSOS, MESES_EVENTOS } from './retencao.js';
+import { limparAntigos, MESES_ACESSOS, MESES_EVENTOS, MESES_RASTOS } from './retencao.js';
+import { varrerAbandonados } from './rastos.js';
 import { fileURLToPath } from 'node:url';
 
 const app = express();
@@ -519,6 +520,8 @@ async function start() {
       60 * 1000
     ).unref?.();
     setInterval(() => limparAvisosVelhos().catch(() => {}), 60 * 60 * 1000).unref?.();
+    // Os rastos de viagens canceladas ou perdidas. Ver `rastos.js`.
+    setInterval(varrerAbandonados, 30 * 60 * 1000).unref?.();
   } catch (e) {
     console.error('[arranque] não foi possível preparar a base de dados:', e.message);
     process.exit(1);
@@ -609,10 +612,11 @@ async function start() {
   async function varrerPrazos() {
     try {
       const feito = await limparAntigos();
-      if (feito.eventos || feito.acessos) {
+      if (feito.eventos || feito.acessos || feito.rastos) {
         console.log(
-          `[retenção] ${feito.eventos} evento(s) além de ${MESES_EVENTOS} meses e` +
-            ` ${feito.acessos} acesso(s) além de ${MESES_ACESSOS} meses, apagados`
+          `[retenção] ${feito.eventos} evento(s) além de ${MESES_EVENTOS} meses,` +
+            ` ${feito.acessos} acesso(s) além de ${MESES_ACESSOS} meses e` +
+            ` ${feito.rastos} rasto(s) além de ${MESES_RASTOS} meses, apagados`
         );
       }
     } catch (e) {

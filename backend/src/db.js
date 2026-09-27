@@ -896,6 +896,20 @@ export async function initSchema() {
     )
   `);
 
+  // OS RASTOS ANÓNIMOS DAS VIAGENS. Ver `rastos.js` — o que se corta, e
+  // porque é que nenhuma coluna liga um rasto a uma viagem ou a uma pessoa.
+  await query(`
+    CREATE TABLE IF NOT EXISTS rastos (
+      id         SERIAL PRIMARY KEY,
+      veiculo    TEXT,
+      mes        DATE NOT NULL,
+      dia_semana SMALLINT NOT NULL,
+      hora       SMALLINT NOT NULL,
+      pontos     TEXT NOT NULL,
+      n          INTEGER NOT NULL
+    )
+  `);
+
   // PARAGENS DEFINIDAS À MÃO. Ver `paradas.js`.
   //
   // Duas coordenadas por linha: onde é o SÍTIO, e onde PÁRA o carro. Existe

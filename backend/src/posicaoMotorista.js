@@ -1,5 +1,6 @@
 import { one } from './db.js';
 import { updateLocation } from './drivers.js';
+import { juntarPonto } from './rastos.js';
 
 // ONDE ESTÁ O MOTORISTA — num sítio só (21/09/2026).
 //
@@ -38,12 +39,14 @@ export async function guardarPosicao(io, driverId, lat, lng, precisao = null) {
   // A viagem a decorrer, para o passageiro ver o veículo a aproximar-se.
   // Inclui 'in_progress': durante a viagem é quando ele mais olha para o mapa.
   const viagem = await one(
-    `SELECT id, passenger_id FROM rides
+    `SELECT id, passenger_id, status, vehicle_type FROM rides
       WHERE driver_id = $1 AND status = ANY($2)
       ORDER BY id DESC LIMIT 1`,
     [driverId, ACTIVE_DRIVER]
   );
   if (viagem) {
+    // O rasto anónimo da viagem, se estiver ligado. Ver `rastos.js`.
+    juntarPonto(viagem, lat, lng, erro);
     io?.to(`user:${viagem.passenger_id}`).emit('ride:driverLocation', {
       rideId: viagem.id,
       lat,

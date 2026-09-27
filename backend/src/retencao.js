@@ -23,6 +23,13 @@ import { query } from './db.js';
 export const MESES_ACESSOS = Number(process.env.RETENCAO_ACESSOS_MESES) || 24;
 export const MESES_EVENTOS = Number(process.env.RETENCAO_EVENTOS_MESES) || 6;
 
+// OS RASTOS ANÓNIMOS — 24 meses (27/09/2026, proposta minha, por decidir).
+//   Servem para aprender as estradas e os tempos de Díli, e dois anos
+//   apanham as duas estações das chuvas duas vezes. Uma viagem de 10 km
+//   pesa à volta de 3 KB: com cem viagens por dia, cerca de 100 MB por ano —
+//   por isso tem prazo, como os eventos.
+export const MESES_RASTOS = Number(process.env.RETENCAO_RASTOS_MESES) || 24;
+
 // AS VIAGENS EM SI NÃO SE APAGAM AQUI, e é uma distinção que interessa.
 //
 // A linha da viagem é o registo de ganhos do motorista: o que ele conduziu e
@@ -52,6 +59,14 @@ export async function limparAntigos() {
     [String(MESES_ACESSOS)]
   );
   feito.acessos = acessos.length;
+
+  const rastos = await query(
+    `DELETE FROM rastos
+      WHERE mes < (NOW() - ($1 || ' months')::interval)::date
+      RETURNING id`,
+    [String(MESES_RASTOS)]
+  );
+  feito.rastos = rastos.length;
 
   return feito;
 }
