@@ -72,7 +72,10 @@ export const viagens = {
   'det.mensagens': '{n} mensagem(ns) trocadas na conversa (o conteúdo não é visível à administração).',
   'det.codigoRecolha': 'Código de recolha',
   'det.mapaIndisponivel': 'O mapa não carregou. As coordenadas estão abaixo.',
-  'det.mapaNota': 'Linha reta entre os pontos — não é o caminho feito.',
+  'det.mapaNota': 'Linha reta entre os pontos — não é o caminho feito (viagem anterior a 27/09/2026 ou sem GPS).',
+  'det.mapaComPassageiro': 'Com o passageiro',
+  'det.mapaIda': 'A caminho da recolha',
+  'det.mapaGps': 'Caminho feito, pelo GPS do motorista.',
   'det.verConta': 'Ver conta',
   'det.estrelas': '{n} estrelas',
 } as const;

@@ -404,7 +404,20 @@ async function api(req, res, url) {
     if (['in_progress', 'completed'].includes(v.estado)) eventos.push({ que: 'comecou', quando: em(9), quem: v.motorista });
     if (v.estado === 'completed') eventos.push({ que: 'terminou', quando: em(9 + v.min), quem: v.motorista, preco: v.preco });
     if (v.estado === 'cancelled') eventos.push({ que: 'cancelada', quando: em(6), quem: v.passageiro, detalhe: { motivo: v.motivoCancelamento } });
+    // UM PERCURSO FICTÍCIO nas concluídas: a ida à recolha e a viagem, por
+    // pontos inventados ao longo de Díli (não é o GPS de ninguém).
+    const percurso = v.estado === 'completed'
+      ? {
+          pontos: [
+            [-8.5602, 125.5701], [-8.5580, 125.5729], [-8.5561, 125.5755], [-8.5536, 125.5783],
+            [-8.5521, 125.5820], [-8.5490, 125.5861], [-8.5462, 125.5905], [-8.5408, 125.5942],
+            [-8.5350, 125.5980], [-8.5289, 125.6021], [-8.5240, 125.6050], [-8.5196, 125.6076],
+          ],
+          recolhaIndice: 3,
+        }
+      : null;
     return json(res, {
+      percurso,
       eventos: eventos.map((e) => ({ quemId: null, de: null, para: null, onde: null, preco: null, detalhe: null, ...e })),
       viagem: {
         id: v.id, estado: v.estado,

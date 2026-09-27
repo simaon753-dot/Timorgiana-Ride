@@ -274,9 +274,18 @@ export interface ViagemDetalhe {
   avaliacoes: { estrelas: number; de: string; para: string; quando: string }[];
 }
 
+// O caminho feito, com o GPS do motorista: [lat, lng] por ordem. Antes de
+// `recolhaIndice` é a ida à recolha; daí em diante, com o passageiro.
+export interface PercursoViagem {
+  pontos: [number, number][];
+  recolhaIndice: number | null;
+}
+
 export interface RespostaViagemDetalhe {
   eventos: EventoViagem[];
   viagem: ViagemDetalhe;
+  // Nulo nas viagens anteriores a 27/09/2026 e nas que ninguém conduziu.
+  percurso?: PercursoViagem | null;
 }
 
 export interface UtilizadorLinha {

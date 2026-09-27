@@ -54,6 +54,7 @@ import { emitirCodigo } from '../recuperacao.js';
 import { TIPOS_VEICULO } from '../config.js';
 import { fotoDaCarga } from '../fotosDaCarga.js';
 import { destinosDaViagem } from '../destinosDaViagem.js';
+import { percursoDe } from '../percursos.js';
 
 export const adminRouter = Router();
 adminRouter.use(requireAuth);
@@ -990,6 +991,9 @@ adminRouter.get(
       'SELECT COUNT(*)::int AS n FROM ride_fotos WHERE ride_id = $1',
       [id]
     );
+    // O caminho feito, com o GPS do motorista (ver `percursos.js`). Nulo nas
+    // viagens anteriores a 27/09/2026 e nas que ninguém chegou a conduzir.
+    const percurso = await percursoDe(id);
 
     res.json({
       // Por ordem de acontecimento, com hora, quem e onde. É o que permite
@@ -1005,6 +1009,7 @@ adminRouter.get(
         preco: e.fare_usd,
         detalhe: e.detalhe || null,
       })),
+      percurso,
       viagem: {
         id: r.id,
         estado: r.status,

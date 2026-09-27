@@ -60,6 +60,17 @@ export async function limparAntigos() {
   );
   feito.acessos = acessos.length;
 
+  // O caminho de cada viagem vai com a história minuto a minuto: é da mesma
+  // família, e serve para o mesmo — responder a uma queixa enquanto ela ainda
+  // pode ser feita.
+  const percursos = await query(
+    `DELETE FROM percursos
+      WHERE atualizado_em < NOW() - ($1 || ' months')::interval
+      RETURNING ride_id`,
+    [String(MESES_EVENTOS)]
+  );
+  feito.percursos = percursos.length;
+
   const rastos = await query(
     `DELETE FROM rastos
       WHERE mes < (NOW() - ($1 || ' months')::interval)::date

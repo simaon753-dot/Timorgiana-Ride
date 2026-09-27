@@ -44,6 +44,7 @@ import { one, query } from '../db.js';
 import { preco, straightKm } from '../routing.js';
 import { caminhosDaViagem, TOLERANCIA_KM, pedidoDe } from '../rotas.js';
 import { fecharRasto } from '../rastos.js';
+import { fecharPercurso } from '../percursos.js';
 import {
   criarOcorrencia,
   ocorrenciasDoAutor,
@@ -964,6 +965,11 @@ ridesRouter.post(
     // O rasto anónimo, se estiver ligado. Sem esperar: a conclusão não
     // espera por nada que não seja dela. Ver `rastos.js`.
     if (status === 'completed' && updated) fecharRasto(updated);
+    if (status === 'completed') {
+      fecharPercurso(rideId).catch((e) =>
+        console.error('[percursos] não foi possível fechar', rideId, e?.message)
+      );
+    }
 
     if (status === 'completed' && updated?.driver_id) {
       try {

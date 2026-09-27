@@ -39,5 +39,19 @@ ok(
 );
 
 _paraTeste.ligar(false);
+
+// 5. O percurso da viagem (percursos.js): a fronteira entre ir buscar e levar.
+const { juntarAoPercurso, _paraTestePercurso } = await import('../src/percursos.js');
+const w = { id: 50, status: 'accepted' };
+juntarAoPercurso(w, -8.55, 125.57, 10);
+juntarAoPercurso({ ...w, status: 'arriving' }, -8.551, 125.57, 10); // ~110 m
+juntarAoPercurso({ ...w, status: 'in_progress' }, -8.552, 125.57, 10);
+juntarAoPercurso({ ...w, status: 'in_progress' }, -8.553, 125.57, 10);
+const pr = _paraTestePercurso.emCurso.get(50);
+ok(pr.pontos.length === 4, 'o percurso junta a ida à recolha e a viagem');
+ok(pr.recolha === 2, 'a parte com passageiro começa no primeiro ponto em viagem');
+juntarAoPercurso({ id: 51, status: 'requested' }, -8.55, 125.57, 10);
+ok(!_paraTestePercurso.emCurso.has(51), 'um pedido por aceitar não tem percurso');
+
 console.log(falhas ? `\n${falhas} falha(s)` : '\ntudo certo');
 process.exit(falhas ? 1 : 0);

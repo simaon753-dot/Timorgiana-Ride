@@ -81,10 +81,22 @@ export function DetalheViagem({ id, aoFechar }: { id: number | null; aoFechar: (
           <Bloco titulo={t('det.percurso')}>
             {pontos.length ? (
               <Suspense fallback={<Esqueleto className="h-64 w-full rounded-xl" />}>
-                <MapaViagem pontos={pontos} />
+                <MapaViagem pontos={pontos} percurso={dados?.percurso} />
               </Suspense>
             ) : null}
-            <p className="mt-2 text-xs text-secundario">{t('det.mapaNota')}</p>
+            {dados?.percurso ? (
+              <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-secundario">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-block h-1 w-5 rounded-full bg-[#26877D]" aria-hidden /> {t('det.mapaComPassageiro')}
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-block w-5 border-t-2 border-dashed border-secundario" aria-hidden /> {t('det.mapaIda')}
+                </span>
+                <span>{t('det.mapaGps')}</span>
+              </p>
+            ) : (
+              <p className="mt-2 text-xs text-secundario">{t('det.mapaNota')}</p>
+            )}
             <ol className="mt-4 space-y-3">
               <li className="flex gap-3">
                 <span className="mt-1 size-3 shrink-0 rounded-full border-2 border-white bg-teal ring-1 ring-teal" aria-hidden />

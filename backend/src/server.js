@@ -40,6 +40,7 @@ import { notificarPedidoCaducado } from './push.js';
 import { registarSemEsperar, EVENTOS } from './eventos.js';
 import { limparAntigos, MESES_ACESSOS, MESES_EVENTOS, MESES_RASTOS } from './retencao.js';
 import { varrerAbandonados } from './rastos.js';
+import { gravarPercursos, GRAVAR_A_CADA_MS } from './percursos.js';
 import { fileURLToPath } from 'node:url';
 
 const app = express();
@@ -522,6 +523,8 @@ async function start() {
     setInterval(() => limparAvisosVelhos().catch(() => {}), 60 * 60 * 1000).unref?.();
     // Os rastos de viagens canceladas ou perdidas. Ver `rastos.js`.
     setInterval(varrerAbandonados, 30 * 60 * 1000).unref?.();
+    // O caminho das viagens em curso vai para a base de minuto a minuto.
+    setInterval(() => gravarPercursos().catch(() => {}), GRAVAR_A_CADA_MS).unref?.();
   } catch (e) {
     console.error('[arranque] não foi possível preparar a base de dados:', e.message);
     process.exit(1);

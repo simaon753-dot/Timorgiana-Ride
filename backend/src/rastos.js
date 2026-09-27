@@ -132,7 +132,7 @@ export function varrerAbandonados() {
 // É o formato que qualquer biblioteca de mapas lê (para as duas primeiras
 // colunas), e é compacto: diferenças entre pontos seguidos, em texto. Um
 // ponto custa à volta de 8 bytes em vez dos 40 de um JSON.
-function codificar(pontos) {
+export function codificar(pontos) {
   let saida = '';
   const antes = [0, 0, 0];
   for (const p of pontos) {

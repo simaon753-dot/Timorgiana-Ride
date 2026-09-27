@@ -1,6 +1,7 @@
 import { one } from './db.js';
 import { updateLocation } from './drivers.js';
 import { juntarPonto } from './rastos.js';
+import { juntarAoPercurso } from './percursos.js';
 
 // ONDE ESTÁ O MOTORISTA — num sítio só (21/09/2026).
 //
@@ -47,6 +48,8 @@ export async function guardarPosicao(io, driverId, lat, lng, precisao = null) {
   if (viagem) {
     // O rasto anónimo da viagem, se estiver ligado. Ver `rastos.js`.
     juntarPonto(viagem, lat, lng, erro);
+    // O caminho desta viagem, para o painel. Ver `percursos.js`.
+    juntarAoPercurso(viagem, lat, lng, erro);
     io?.to(`user:${viagem.passenger_id}`).emit('ride:driverLocation', {
       rideId: viagem.id,
       lat,

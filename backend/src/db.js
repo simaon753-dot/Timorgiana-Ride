@@ -923,6 +923,18 @@ export async function initSchema() {
   await query(`CREATE INDEX IF NOT EXISTS ocorrencias_ride ON ocorrencias (ride_id)`);
   await query(`CREATE INDEX IF NOT EXISTS ocorrencias_estado ON ocorrencias (estado)`);
 
+  // O CAMINHO DE CADA VIAGEM, para o painel. Ver `percursos.js`. Apaga-se
+  // com a viagem e, antes disso, com a história minuto a minuto (retencao.js).
+  await query(`
+    CREATE TABLE IF NOT EXISTS percursos (
+      ride_id        INTEGER PRIMARY KEY REFERENCES rides(id) ON DELETE CASCADE,
+      pontos         TEXT NOT NULL,
+      n              INTEGER NOT NULL,
+      recolha_indice INTEGER,
+      atualizado_em  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
   // OS RASTOS ANÓNIMOS DAS VIAGENS. Ver `rastos.js` — o que se corta, e
   // porque é que nenhuma coluna liga um rasto a uma viagem ou a uma pessoa.
   await query(`
