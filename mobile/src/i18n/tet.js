@@ -433,6 +433,7 @@ export default {
   // Tama
   loginTitle: 'Tama',
   loginSubtitle: 'Tama ho ita-nia númeru telemóvel.',
+  rotaRecomendada: 'Rekomendadu',
   ratePorque: 'Saida ida mak la di’ak?',
   rateOpcional: 'Bele hili to’o tolu. La obrigatóriu.',
   avalConducao: 'Lori kareta la ho kuidadu',

@@ -1302,7 +1302,13 @@ export default function RequestRideScreen({ navigation, route }) {
           <View style={styles.rotaBadge}>
             <Icone nome="relogio" tamanho={18} cor={colors.onTeal} />
             <Text style={styles.rotaTexto}>
-              {t('tripInfo', { km: orcamento.distanceKm, min: orcamento.durationMin })}
+              {/* Do caminho ESCOLHIDO (`opcao`), e não da cotação: com outro
+                  caminho posto, isto mostrava os números do recomendado ao
+                  lado de um preço que já era do outro. */}
+              {t('tripInfo', {
+                km: opcao?.distanceKm ?? orcamento.distanceKm,
+                min: opcao?.durationMin ?? orcamento.durationMin,
+              })}
               {orcamento.approximate ? ` · ${t('priceApprox')}` : ''}
             </Text>
           </View>
@@ -1592,7 +1598,12 @@ export default function RequestRideScreen({ navigation, route }) {
                 .map((o) => (
                   <CartaoVeiculo
                     key={o.type}
-                    opcao={o}
+                    // O ACTIVO MOSTRA O PREÇO DO CAMINHO ESCOLHIDO (27/09/2026).
+                    // Os outros veículos mostram o do recomendado deles — o
+                    // caminho escolhido é deste veículo, e noutro nem existe.
+                    // Estava `o` para todos, e o Simão fotografou o cartão a
+                    // dizer $21.75 por cima de um botão a dizer $20.95.
+                    opcao={o.type === veiculoAtual && opcao ? opcao : o}
                     ativo={veiculoAtual === o.type}
                     // Sem toque quando é o único: um cartão que responde ao
                     // dedo e não muda nada ensina que os toques não contam.
@@ -1605,8 +1616,8 @@ export default function RequestRideScreen({ navigation, route }) {
                   bens. O preço já está no cartão do veículo, ao lado do nome. */}
               <Estatisticas
                 t={t}
-                min={orcamento.durationMin}
-                km={orcamento.distanceKm}
+                min={opcao?.durationMin ?? orcamento.durationMin}
+                km={opcao?.distanceKm ?? orcamento.distanceKm}
                 terceiro={
                   veiculo(veiculoAtual).levaPessoas || carryPessoas
                     ? {

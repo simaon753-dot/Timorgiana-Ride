@@ -33,16 +33,11 @@ import {
 } from '../rides.js';
 import { registarSemEsperar, EVENTOS } from '../eventos.js';
 import { addMessage, addSystemMessage, listMessages } from '../messages.js';
-import {
-  addRating,
-  hasRated,
-  limparMotivos,
-  ESTRELAS_COM_MOTIVO,
-} from '../ratings.js';
+import { addRating, hasRated, limparMotivos, ESTRELAS_COM_MOTIVO } from '../ratings.js';
 import { notificarPedidoNovo, notificarAceite, notificarAdminsSOS } from '../push.js';
 import { one, query } from '../db.js';
 import { preco, straightKm } from '../routing.js';
-import { rotaCompleta, TOLERANCIA_KM } from '../rotas.js';
+import { caminhosDaViagem, TOLERANCIA_KM } from '../rotas.js';
 import { podeIr } from '../cobertura.js';
 import { config } from '../config.js';
 import { registarDia } from '../assinatura.js';
@@ -368,7 +363,12 @@ ridesRouter.post(
       // De borla, a memória de dez minutos do `rotaCompleta` faz com que este
       // pedido apanhe a MESMA rota que a cotação de há segundos: o preço não
       // é só calculado da mesma maneira, é o mesmo número.
-      const viagem = await rotaCompleta(
+      // A MESMA LISTA QUE A COTAÇÃO MOSTROU (27/09/2026) — `caminhosDaViagem`,
+      // e não a rota solta. Na mota, as alternativas vêm das do carro; se aqui
+      // se lesse só a rota da mota, o índice 1 não existia, a escolha era
+      // ignorada em silêncio, e cobrava-se o caminho recomendado a quem
+      // tinha escolhido outro.
+      const alternativas = await caminhosDaViagem(
         { lat: Number(originLat), lng: Number(originLng) },
         { lat: Number(destLat), lng: Number(destLng) },
         // Os desvios entram na distância, e é dessa distância que sai o
@@ -377,6 +377,7 @@ ridesRouter.post(
         paragens,
         TIPOS_VEICULO.includes(vehicleType) ? vehicleType : 'car'
       );
+      const viagem = { ...alternativas[0] };
       // O TIPO VEM DA LISTA, e não de um ternário de dois.
       //
       // Estava `vehicleType === 'motorbike' ? 'motorbike' : 'car'`, sobra do
@@ -406,7 +407,6 @@ ridesRouter.post(
       // novo e pede-se confirmação. Um preço que muda sozinho é pior do que
       // um preço que pede licença.
       const escolhido = Number(req.body?.caminho);
-      const alternativas = viagem.opcoes || [viagem];
       if (Number.isInteger(escolhido) && escolhido > 0 && escolhido < alternativas.length) {
         const c = alternativas[escolhido];
         const mostrado = Number(req.body?.caminhoKm);

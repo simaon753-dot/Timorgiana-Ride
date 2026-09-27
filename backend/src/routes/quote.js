@@ -4,7 +4,7 @@ import { MAX_ITENS, taxaDe, viagensDoPassageiro } from '../jastip.js';
 import { MINUTOS_ATE_DESISTIR } from '../rides.js';
 import { requireAuth } from '../auth.js';
 import { preco, etaMinutos, straightKm } from '../routing.js';
-import { rotaCompleta, MODO, MAX_CAMINHOS } from '../rotas.js';
+import { rotaCompleta, caminhosDaViagem, MODO } from '../rotas.js';
 import { limparDestinos } from '../destinosDaViagem.js';
 import { paragensQueCobrem } from '../paradas.js';
 import { nearestDrivers } from '../drivers.js';
@@ -99,7 +99,9 @@ quoteRouter.post(
     // está nas dependências), por isso o que se desenha corresponde sempre ao
     // preço que está em destaque. Sem `vehicleType` — uma app antiga —, fica
     // o automóvel, que é o que sempre foi.
-    const viagem = rotaDe(TIPOS_VEICULO.includes(req.body?.vehicleType) ? req.body.vehicleType : 'car');
+    const viagem = rotaDe(
+      TIPOS_VEICULO.includes(req.body?.vehicleType) ? req.body.vehicleType : 'car'
+    );
 
     // Para cada tipo de veículo: preço e quanto falta até chegar o mais
     // próximo. Sem motoristas disponíveis, a opção aparece indisponível
@@ -182,8 +184,21 @@ quoteRouter.post(
     const tipoEscolhido = TIPOS_VEICULO.includes(req.body?.vehicleType)
       ? req.body.vehicleType
       : 'car';
-    const caminhos = (viagem.opcoes || [viagem]).slice(0, MAX_CAMINHOS).map((c, i) => ({
+    // A MESMA LISTA com que a viagem vai ser cobrada — ver
+    // `caminhosDaViagem`. Montá-la aqui à mão era o risco de o índice
+    // escolhido no ecrã apontar a outro caminho na hora de cobrar.
+    const lista = await caminhosDaViagem(
+      { lat: oLat, lng: oLng },
+      { lat: dLat, lng: dLng },
+      paragens,
+      tipoEscolhido
+    );
+    const caminhos = lista.map((c, i) => ({
       indice: i,
+      // O primeiro é o que o Google recomenda para este veículo. A app
+      // escreve-o no mapa quando a pessoa escolhe outro, para ela saber
+      // de qual se está a afastar.
+      recomendado: i === 0,
       distanceKm: c.km,
       durationMin: c.min,
       linha: c.linha || null,

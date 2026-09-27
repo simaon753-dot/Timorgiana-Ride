@@ -434,6 +434,7 @@ export default {
 
   loginTitle: 'Sign in',
   loginSubtitle: 'Sign in with your phone number.',
+  rotaRecomendada: 'Recommended',
   ratePorque: 'What went wrong?',
   rateOpcional: 'You can pick up to three. It is optional.',
   avalConducao: 'Drove carelessly',

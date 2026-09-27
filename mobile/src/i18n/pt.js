@@ -436,6 +436,7 @@ export default {
   // Login
   loginTitle: 'Iniciar sessão',
   loginSubtitle: 'Entre com o seu número de telemóvel.',
+  rotaRecomendada: 'Recomendada',
   ratePorque: 'O que correu mal?',
   rateOpcional: 'Pode escolher até três. É opcional.',
   avalConducao: 'Conduziu sem cuidado',

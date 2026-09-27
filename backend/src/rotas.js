@@ -205,7 +205,15 @@ async function peloGoogle(a, b, intermedios = [], modo = 'DRIVE') {
         //
         // É o caso em que perder a funcionalidade não custa nada: quem
         // definiu onde passar já escolheu o caminho.
-        ...(intermedios.length ? {} : { computeAlternativeRoutes: true }),
+        //
+        // NEM EM DUAS RODAS (27/09/2026). Medido no /api/health, nos testes
+        // do Simão: com alternativas pedidas, `TWO_WHEELER` devolveu ZERO
+        // caminhos, quatro vezes seguidas, enquanto `DRIVE` devolvia dois.
+        // Não era «só um caminho» — era nenhum, e a mota caía no OSRM, com
+        // estradas que não batem com o mapa do Google e sem alternativas.
+        // As alternativas da mota vêm agora das do carro (ver
+        // `caminhosDaViagem`), que são caminhos válidos para ela também.
+        ...(intermedios.length || modo === 'TWO_WHEELER' ? {} : { computeAlternativeRoutes: true }),
         // Sem trânsito em tempo real de propósito: é um SKU mais caro, e a
         // nossa estimativa de tempo já assume a velocidade real de Díli.
         routingPreference: 'TRAFFIC_UNAWARE',
@@ -229,7 +237,7 @@ async function peloGoogle(a, b, intermedios = [], modo = 'DRIVE') {
     // Google ainda existe tal como veio. Sem isto, diagnosticar isto era
     // adivinhar — e já perdi um dia inteiro a mudar a mira nos dois sentidos
     // por não ter medido primeiro.
-    registarCaminhos(modo, intermedios.length, opcoes.length);
+    registarCaminhos(modo, !intermedios.length && modo !== 'TWO_WHEELER', opcoes.length);
     if (!opcoes.length) return null;
     // A PRIMEIRA CONTINUA A SER A ROTA, com a forma de sempre. Tudo o que já
     // lê `km`, `min` e `linha` não muda uma linha por causa disto; quem
@@ -287,6 +295,14 @@ async function calcularRota(a, b, intermedios, modo = 'DRIVE') {
     const g = await peloGoogle(a, b, intermedios, modo);
     if (g) return g;
   }
+  // SEM ROTA DE MOTA DO GOOGLE, A DE CARRO DO GOOGLE — e só depois o OSRM.
+  //
+  // Um caminho de carro é sempre um caminho válido para uma mota; o
+  // contrário é que não. E o do Google bate com as estradas do mapa que a
+  // pessoa está a ver, coisa que o OSRM não garante. Vai pela memória (e
+  // pela partilha de pedidos em curso) de `rotaCompleta`: a cotação já pede
+  // a rota de carro do mesmo percurso, e isto não custa uma chamada a mais.
+  if (modo !== 'DRIVE') return rotaCompleta(a, b, intermedios, 'car');
   // O OSRM público só tem perfil de automóvel: a rede de segurança não sabe
   // distinguir mota de carro. Fica assim de propósito — um caminho de carro é
   // uma resposta conservadora (nunca mais curta do que a real), e inventar um
@@ -352,13 +368,90 @@ export async function rotaCompleta(a, b, intermedios = [], tipoVeiculo = 'car') 
   // não pode ficar estragada para o próximo.
   if (guardada && Date.now() - guardada.em < MEMORIA_MS) return structuredClone(guardada.rota);
 
-  const rota = await calcularRota(a, b, intermedios, modo);
-  if (rota.fonte !== 'recta') {
-    // Cheia, sai a mais antiga (um Map guarda a ordem de entrada).
-    if (memoria.size >= MEMORIA_MAX) memoria.delete(memoria.keys().next().value);
-    memoria.set(chave, { em: Date.now(), rota: structuredClone(rota) });
+  // UM PEDIDO EM CURSO É PARTILHADO (27/09/2026). A memória só se enche
+  // quando a resposta CHEGA; até lá, dois pedidos iguais passavam os dois.
+  // Era o que acontecia em cada viagem nova: a cotação e a linha provisória
+  // do mapa pedem a mesma rota de carro no mesmo segundo, e o registo do
+  // /api/health mostrava `DRIVE` duas vezes por pedido — o dobro do tecto
+  // diário gasto para a mesma resposta.
+  const emVoo = emCurso.get(chave);
+  if (emVoo) return structuredClone(await emVoo);
+
+  const promessa = calcularRota(a, b, intermedios, modo);
+  emCurso.set(chave, promessa);
+  try {
+    const rota = await promessa;
+    if (rota.fonte !== 'recta') {
+      // Cheia, sai a mais antiga (um Map guarda a ordem de entrada).
+      if (memoria.size >= MEMORIA_MAX) memoria.delete(memoria.keys().next().value);
+      memoria.set(chave, { em: Date.now(), rota: structuredClone(rota) });
+    }
+    return structuredClone(rota);
+  } finally {
+    emCurso.delete(chave);
   }
-  return rota;
+}
+const emCurso = new Map();
+
+// ── OS CAMINHOS DE UMA VIAGEM ─────────────────────────────────────────
+//
+// A LISTA QUE O PASSAGEIRO VÊ E A LISTA COM QUE A VIAGEM É COBRADA TÊM DE
+// SER A MESMA, e por isso saem as duas daqui. A app manda o ÍNDICE do
+// caminho escolhido; se a cotação montasse a lista de uma maneira e a
+// criação da viagem de outra, o índice 1 de uma seria outro caminho na
+// outra — o passageiro escolhia um e pagava outro, sem aviso nenhum.
+//
+// O PRIMEIRO É O RECOMENDADO, e é o que o Google põe à frente para o modo
+// do veículo. Não é o mais curto: é o mais rápido, calculado por quem sabe
+// o tipo de estrada, os sentidos proibidos e as viragens que não se podem
+// fazer. Nós não temos melhor informação do que essa para Díli, e
+// reordenar por quilómetros seria recomendar o caminho mais lento.
+//
+// NA MOTA, as alternativas vêm das do carro: o Google não dá alternativas
+// em duas rodas (medido), e um caminho de carro é sempre válido para uma
+// mota. O preço de cada uma continua a ser o da mota — quem calcula o preço
+// é a cotação, com o tipo do veículo.
+//
+// SÓ OS QUE SÃO MESMO OUTROS. Ver `mesmoCaminho`.
+export async function caminhosDaViagem(a, b, intermedios = [], tipoVeiculo = 'car') {
+  const proprio = await rotaCompleta(a, b, intermedios, tipoVeiculo);
+  let lista = proprio.opcoes || [proprio];
+  if (peloGoogleModo(tipoVeiculo) === 'TWO_WHEELER' && !intermedios.length) {
+    const carro = await rotaCompleta(a, b, intermedios, 'car');
+    lista = [...lista, ...(carro.opcoes || [carro])];
+  }
+  const saida = [];
+  for (const c of lista) {
+    if (!c?.linha?.length) continue;
+    if (saida.some((x) => mesmoCaminho(x, c))) continue;
+    saida.push(c);
+    if (saida.length >= MAX_CAMINHOS) break;
+  }
+  return saida.length ? saida : [proprio];
+}
+
+// DOIS CAMINHOS SÃO O MESMO se nenhum ponto de um se afastar mais de
+// `DIFERENCA_MINIMA_M` do outro — medido nos dois sentidos, porque um
+// caminho pode estar contido no outro e ter um desvio só de um lado.
+//
+// Três rotas praticamente iguais não são três escolhas: são uma escolha
+// repetida, e obrigam o passageiro a comparar números que só diferem por
+// o Google ter arredondado uma esquina de outra maneira.
+const DIFERENCA_MINIMA_M = 150;
+export function mesmoCaminho(a, b) {
+  const amostra = (l) => l.filter((_, i) => i % 8 === 0 || i === l.length - 1);
+  const pa = amostra(a.linha);
+  const pb = amostra(b.linha);
+  const afastamento = (de, para) => {
+    let pior = 0;
+    for (const p of de) {
+      let perto = Infinity;
+      for (const q of para) perto = Math.min(perto, straightKm(p, q) * 1000);
+      pior = Math.max(pior, perto);
+    }
+    return pior;
+  };
+  return Math.max(afastamento(pa, pb), afastamento(pb, pa)) < DIFERENCA_MINIMA_M;
 }
 
 // AS ÚLTIMAS CHAMADAS AO GOOGLE, para se poder ver o que ele devolveu.
@@ -368,10 +461,10 @@ export async function rotaCompleta(a, b, intermedios = [], tipoVeiculo = 'car') 
 // guarda coordenadas — isto aparece no /api/health, que é público.
 const ULTIMAS = [];
 const ULTIMAS_MAX = 12;
-function registarCaminhos(modo, paragens, quantos) {
+function registarCaminhos(modo, pediuAlternativas, quantos) {
   ULTIMAS.unshift({
     modo,
-    pediuAlternativas: paragens === 0,
+    pediuAlternativas,
     caminhos: quantos,
     quando: new Date().toISOString(),
   });

@@ -248,6 +248,18 @@ const AFASTAMENTO_MINIMO_M = 120;
 // Largura da pastilha do caminho: cabe «31 min · $8,45» sem partir.
 const CAMINHO_L = 116;
 
+// O QUE A PASTILHA DE UM CAMINHO DIZ, e quanto espaço ocupa. Num só sítio
+// porque dois o lêem: o desenho, e o motor que decide se ela cabe. Se um
+// soubesse o texto e o outro uma largura fixa, a pastilha do recomendado —
+// que é mais comprida — podia ser dada como cabendo onde não cabe.
+function textoDoCaminho(dados, t) {
+  const base = `${dados.durationMin} min · $${Number(dados.fareUsd).toFixed(2)}`;
+  return dados.recomendado ? `${t('rotaRecomendada')} · ${base}` : base;
+}
+function larguraDoCaminho(texto) {
+  return Math.max(CAMINHO_L, larguraTexto(texto, 7) + 20);
+}
+
 const PEQUENO = {
   origem: require('../../assets/mapa/pino-origem-pequeno.png'),
   destino: require('../../assets/mapa/pino-destino-pequeno.png'),
@@ -1736,14 +1748,17 @@ export default function MapaGoogle({
     // escolhido; se estiver ocupado, logo acima ou logo abaixo, que continua
     // em cima da mesma linha.
     for (const c of caminhosNoEcra) {
-      const x = c.x - CAMINHO_L / 2;
+      const dados = caminhos[c.indice];
+      if (!dados) continue;
+      const w = larguraDoCaminho(textoDoCaminho(dados, t));
+      const x = c.x - w / 2;
       candidatos.push({
         id: `caminho:${c.indice}`,
         prioridade: PRIORIDADE.caminho,
         opcoes: [
-          { lado: 'c', caixa: rect(x, c.y - 18, CAMINHO_L, 28) },
-          { lado: 'cima', caixa: rect(x, c.y - 50, CAMINHO_L, 28) },
-          { lado: 'baixo', caixa: rect(x, c.y + 14, CAMINHO_L, 28) },
+          { lado: 'c', caixa: rect(x, c.y - 18, w, 28) },
+          { lado: 'cima', caixa: rect(x, c.y - 50, w, 28) },
+          { lado: 'baixo', caixa: rect(x, c.y + 14, w, 28) },
         ],
       });
     }
@@ -1779,6 +1794,7 @@ export default function MapaGoogle({
     perto,
     pinosNoEcra,
     caminhosNoEcra,
+    caminhos,
     nossosNoEcra,
     t,
   ]);
@@ -2279,15 +2295,17 @@ export default function MapaGoogle({
           const lado = disposicao.get(`caminho:${c.indice}`);
           if (!dados || !lado) return null;
           const top = lado === 'cima' ? c.y - 50 : lado === 'baixo' ? c.y + 14 : c.y - 18;
+          const texto = textoDoCaminho(dados, t);
+          const w = larguraDoCaminho(texto);
           return (
             <Pressable
               key={`cam-${c.indice}`}
               onPress={() => onEscolherCaminho && onEscolherCaminho(c.indice)}
-              style={[styles.caminhoPastilha, { left: c.x - CAMINHO_L / 2, top }]}
+              style={[styles.caminhoPastilha, { left: c.x - w / 2, top, width: w }]}
               accessibilityRole="button"
             >
               <Text style={styles.caminhoTexto} numberOfLines={1}>
-                {dados.durationMin} min · ${Number(dados.fareUsd).toFixed(2)}
+                {texto}
               </Text>
             </Pressable>
           );
