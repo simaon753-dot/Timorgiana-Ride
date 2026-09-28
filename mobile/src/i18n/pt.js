@@ -1,5 +1,6 @@
 // Português (europeu)
 export default {
+  precoTabela: 'Preço da tabela · {destino}',
   termosObrigatorios: 'Sem os aceitar, não pode ficar disponível.',
   admPagQrNota: 'A imagem do QR que o banco lhe deu. O motorista vê-a quando escolhe pagar por QR.',
   admPagQrCarregar: 'Carregar a imagem do QR',

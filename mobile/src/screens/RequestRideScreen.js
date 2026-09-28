@@ -1658,6 +1658,8 @@ export default function RequestRideScreen({ navigation, route }) {
                     // Estava `o` para todos, e o Simão fotografou o cartão a
                     // dizer $21.75 por cima de um botão a dizer $20.95.
                     opcao={o.type === veiculoAtual && opcao ? opcao : o}
+                    // Da opção e não de `opcao`: o caminho escolhido não o traz.
+                    destinoFixo={o.destinoFixo}
                     ativo={veiculoAtual === o.type}
                     // Sem toque quando é o único: um cartão que responde ao
                     // dedo e não muda nada ensina que os toques não contam.
@@ -2002,7 +2004,7 @@ function Ponto({ cor, rotulo, valor, vazio, onPress, onCorrigir }) {
   );
 }
 
-function CartaoVeiculo({ opcao, ativo, onPress, t }) {
+function CartaoVeiculo({ opcao, destinoFixo, ativo, onPress, t }) {
   const nome = nomeDoVeiculo(t, opcao.type);
   const v = veiculo(opcao.type);
   return (
@@ -2028,7 +2030,16 @@ function CartaoVeiculo({ opcao, ativo, onPress, t }) {
           {opcao.available ? t('motoristaAMin', { min: opcao.etaMin }) : t('noDriverNearby')}
         </Text>
       </View>
-      <Text style={styles.veiculoPreco}>${opcao.fareUsd.toFixed(2)}</Text>
+      <View style={{ alignItems: 'flex-end' }}>
+        <Text style={styles.veiculoPreco}>${opcao.fareUsd.toFixed(2)}</Text>
+        {/* PREÇO DA TABELA (28/09/2026). Sem isto, 120 km até Baucau a
+            custar o mesmo que 110 parecia um erro da app. */}
+        {destinoFixo ? (
+          <Text style={styles.veiculoTabela} numberOfLines={1}>
+            {t('precoTabela', { destino: destinoFixo })}
+          </Text>
+        ) : null}
+      </View>
     </Pressable>
   );
 }
@@ -2314,6 +2325,7 @@ const criarEstilos = () =>
     veiculoEta: { ...tipo.pequeno, color: colors.teal, marginTop: 1 },
     veiculoEtaSem: { color: colors.coralDark },
     veiculoPreco: { ...tipo.titulo, fontSize: 24, color: colors.teal },
+    veiculoTabela: { ...tipo.legenda, color: colors.teal },
     estatisticas: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
     estatistica: {
       flex: 1,

@@ -1,6 +1,7 @@
 // Tétum (Tétum Praça, de Díli) — PRIMEIRA VERSÃO.
 // As traduções devem ser revistas por um falante nativo antes do lançamento.
 export default {
+  precoTabela: 'Folin tabela · {destino}',
   termosObrigatorios: 'Se la aseita, labele sai disponível.',
   admPagQrNota: 'QR nia imajen ne’ebé banku fó. Motorista haree bainhira hili selu ho QR.',
   admPagQrCarregar: 'Karega QR nia imajen',

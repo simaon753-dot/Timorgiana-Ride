@@ -6,6 +6,7 @@
 // code passes them by those names; changing them here would silently break
 // the substitution.
 export default {
+  precoTabela: 'Table price · {destino}',
   termosObrigatorios: 'Until you accept them, you cannot go available.',
   admPagQrNota: 'The QR image your bank gave you. Drivers see it when they choose to pay by QR.',
   admPagQrCarregar: 'Upload the QR image',
