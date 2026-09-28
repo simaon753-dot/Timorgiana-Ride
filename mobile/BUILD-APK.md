@@ -122,9 +122,12 @@ Por esta ordem:
    certificado actual, se foi compilado antes de uma mudança de credenciais)
 4. Confirmar que a Maps SDK for Android está activada no projecto certo
 
-A saída de emergência: trocar o import de `MapaGoogle.js` para `OSMMap.js`
-em `RequestRideScreen.js` e `MapaExpandivel.js` e correr `npm run publicar`.
-Volta ao OpenStreetMap em minutos, sem APK novo.
+**Não há saída de emergência na app** (verificado a 29/09/2026). Havia: trocar
+o import para `OSMMap.js` e publicar. Mas o `OSMMap.js`, o `MapaProprio.js`, o
+`react-native-webview` e o MapLibre saíram do APK em Setembro, por pesarem
+dezenas de MB a quem instala. Voltar a eles é recuperar os ficheiros do git,
+reinstalar a biblioteca e compilar um APK novo. Com o mapa cinzento, a
+correcção é sempre a chave: os quatro passos acima.
 
 ## Passo 3c — A chave do mapa no iPhone (antes da 1.ª compilação iOS)
 
