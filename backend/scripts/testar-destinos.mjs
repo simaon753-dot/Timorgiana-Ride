@@ -27,6 +27,27 @@ ok(destinoFixo(DILI, COMORO) === null, 'dentro de Díli: fica a fórmula (Díli 
 ok(destinoFixo(AILEU, BAUCAU) === null, 'Aileu → Baucau: nenhuma ponta em Díli, fica a fórmula');
 ok(destinoFixo(DILI, SAME) === null, 'Same: proposta desligada, fica a fórmula');
 
+// AS VILAS REAIS, onde o nosso mapa escreve o nome (29/09/2026). Os casos de
+// cima usam pontos escolhidos à mão perto do ponto da tabela, e por isso não
+// apanhavam um ponto da tabela posto no sítio errado: Metinaro estava 7,2 km
+// ao lado da vila e cobrava-se a fórmula a quem ia para lá.
+const VILAS = [
+  ['Aileu', -8.7254, 125.566, 50],
+  ['Manatutu', -8.5108, 126.012, 60],
+  ['Gleno', -8.723, 125.436, 50],
+  ['Likisá', -8.5898, 125.3409, 40],
+  ['Hera', -8.5383, 125.6866, 15],
+  ['Metinaro', -8.5297, 125.741, 20],
+  ['Baucau', -8.4789, 126.4527, 80],
+  ['Batugade', -8.9472, 124.9726, 70],
+  ['Motaain (fronteira)', -8.9574, 124.9549, 70],
+  ['Maubisse', -8.8377, 125.5978, 70],
+];
+for (const [nome, lat, lng, esperado] of VILAS) {
+  const r = destinoFixo(DILI, { lat, lng });
+  ok(r?.precoUsd === esperado, `vila real: Díli → ${nome} = $${esperado} (deu ${r ? '$' + r.precoUsd : 'fórmula'})`);
+}
+
 const pontas = { origem: DILI, destino: BAUCAU };
 ok(
   preco('carry', 122, 210, null, { volume: 'grande', ajuda: 'nenhuma' }, pontas) === 80,

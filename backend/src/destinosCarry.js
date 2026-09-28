@@ -54,11 +54,18 @@ export const DESTINOS_PADRAO = [
     ativo: true,
   },
   { id: 'hera', nome: 'Hera', lat: -8.529, lng: 125.689, raioKm: 4, precoUsd: 15, ativo: true },
+  // METINARO E BATAS MOTA AIN ESTAVAM FORA DO SÍTIO (corrigido a 29/09/2026).
+  // O ponto de Metinaro ficava 7,2 km a leste da vila e o de Batas Mota Ain
+  // 14 km a leste da fronteira, ambos com raio mais pequeno do que o erro: quem
+  // escolhia a vila pagava pela fórmula ($33,25 em vez de $20 numa captura do
+  // Simão). Os pontos passaram para onde o NOSSO mapa desenha o nome (camada
+  // `places`), que é a fonte que bate com o que a pessoa vê. Os preços não
+  // mudaram. Ver os casos «vila real» em scripts/testar-destinos.mjs.
   {
     id: 'metinaro',
     nome: 'Metinaro',
-    lat: -8.527,
-    lng: 125.806,
+    lat: -8.5297,
+    lng: 125.741,
     raioKm: 5,
     precoUsd: 20,
     ativo: true,
@@ -75,8 +82,10 @@ export const DESTINOS_PADRAO = [
   {
     id: 'mota-ain',
     nome: 'Batas Mota Ain',
-    lat: -8.967,
-    lng: 125.1,
+    // O posto de fronteira de Mota Ain; a vila de Batugade fica a 2,2 km,
+    // dentro do raio.
+    lat: -8.9574,
+    lng: 124.9549,
     raioKm: 6,
     precoUsd: 70,
     ativo: true,
