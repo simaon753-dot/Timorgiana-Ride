@@ -53,6 +53,8 @@ export const api = {
       corpo: { phone, password, origem: 'painel' },
     }),
   eu: () => pedir<{ user: UtilizadorPublico }>('/auth/me'),
+  // Fecha a sessão do painel no servidor (28/09/2026).
+  sair: () => pedir<{ ok: true }>('/auth/sair', { method: 'POST' }),
   saude: () => pedir<Saude>('/health'),
 
   // Aprovações e motoristas

@@ -102,7 +102,7 @@ app.get('/api/health', async (req, res) => {
     // Quantas rotas já pedimos hoje ao Google, e se ele está sequer ligado.
     // Sem isto, a única forma de saber se a Routes API está activa era pedir
     // uma viagem e olhar para a linha — que é adivinhar com passos extra.
-    const rotas = { ...estadoDasRotas(), hoje: await usoDeHoje().catch(() => null) };
+    const rotas = { ...(await estadoDasRotas()), hoje: await usoDeHoje().catch(() => null) };
     // Se o email está ligado, e o último erro se houve algum.
     //
     // Sem isto, um código de confirmação que não chega é indistinguível de um

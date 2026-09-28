@@ -493,21 +493,56 @@ export function pedidoDe(nome, fn) {
   return quem.run(nome, fn);
 }
 
+// NA BASE DE DADOS E NÃO SÓ EM MEMÓRIA (28/09/2026). O plano gratuito do
+// Render adormece o servidor quando ninguém o usa, e acordar apagava a
+// memória: três vezes seguidas o Simão testou, pediu para ver o registo, e o
+// registo estava vazio porque o servidor tinha dormido entretanto. Fica a
+// memória para quando a base falhar, e a base para o resto.
+const REGISTO_MAX = 200;
 function registarCaminhos(modo, pediuAlternativas, quantos) {
-  ULTIMAS.unshift({
+  const linha = {
     para: quem.getStore() || 'outro',
     modo,
     pediuAlternativas,
     caminhos: quantos,
     quando: new Date().toISOString(),
-  });
+  };
+  ULTIMAS.unshift(linha);
   if (ULTIMAS.length > ULTIMAS_MAX) ULTIMAS.length = ULTIMAS_MAX;
+  query(
+    `INSERT INTO registo_rotas (para, modo, pediu_alternativas, caminhos) VALUES ($1, $2, $3, $4)`,
+    [linha.para, modo, pediuAlternativas, quantos]
+  )
+    .then(() =>
+      query(
+        `DELETE FROM registo_rotas WHERE id <= (SELECT MAX(id) FROM registo_rotas) - $1`,
+        [REGISTO_MAX]
+      )
+    )
+    .catch(() => {});
 }
 
-export function estadoDasRotas() {
+export async function estadoDasRotas() {
+  let ultimas = ULTIMAS;
+  try {
+    const rows = await query(
+      `SELECT para, modo, pediu_alternativas, caminhos, quando
+         FROM registo_rotas ORDER BY id DESC LIMIT $1`,
+      [ULTIMAS_MAX]
+    );
+    ultimas = rows.map((r) => ({
+      para: r.para,
+      modo: r.modo,
+      pediuAlternativas: r.pediu_alternativas,
+      caminhos: r.caminhos,
+      quando: r.quando,
+    }));
+  } catch {
+    // Sem a base, fica o que está em memória.
+  }
   // `null` quer dizer que a última chamada correu bem — ou que ainda não
   // houve nenhuma desde o arranque.
-  return { google: !!CHAVE, tectoDiario: POR_DIA, ultimoErroGoogle, ultimas: ULTIMAS };
+  return { google: !!CHAVE, tectoDiario: POR_DIA, ultimoErroGoogle, ultimas };
 }
 
 export async function usoDeHoje() {

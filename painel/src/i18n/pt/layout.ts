@@ -59,6 +59,8 @@ export const layout = {
 
   'entrar.titulo': 'Painel de administração',
   'entrar.sub': 'Entre com a sua conta de administrador.',
+  'entrar.saiuInativo': 'A sessão fechou-se sozinha: 30 minutos sem mexer no painel.',
+  'entrar.saiuExpirou': 'A sessão terminou. Por segurança, o painel pede a palavra-passe pelo menos a cada 12 horas.',
   'entrar.telefone': 'Telemóvel',
   'entrar.palavraPasse': 'Palavra-passe',
   'entrar.botao': 'Entrar',

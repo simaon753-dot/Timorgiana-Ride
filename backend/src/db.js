@@ -880,6 +880,8 @@ export async function initSchema() {
   // O painel de administração entra pelo mesmo /auth/login e tem a sua
   // própria ranhura — ver o comentário em `auth.js`.
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS sessao_painel TEXT`);
+  // A última vez que uma PESSOA mexeu no painel. Ver PAINEL_INATIVO_MIN em auth.js.
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS sessao_painel_visto TIMESTAMPTZ`);
 
   // CONTADORES POR DIA. Hoje só um — as chamadas de rota ao Google — mas a
   // tabela é geral porque o próximo há-de vir.
@@ -922,6 +924,20 @@ export async function initSchema() {
   `);
   await query(`CREATE INDEX IF NOT EXISTS ocorrencias_ride ON ocorrencias (ride_id)`);
   await query(`CREATE INDEX IF NOT EXISTS ocorrencias_estado ON ocorrencias (estado)`);
+
+  // AS ÚLTIMAS CHAMADAS DE ROTA AO GOOGLE, para o /api/health. Ver
+  // `registarCaminhos` em rotas.js — sem coordenadas, porque o /api/health é
+  // público.
+  await query(`
+    CREATE TABLE IF NOT EXISTS registo_rotas (
+      id                 SERIAL PRIMARY KEY,
+      para               TEXT NOT NULL,
+      modo               TEXT NOT NULL,
+      pediu_alternativas BOOLEAN NOT NULL,
+      caminhos           INTEGER NOT NULL,
+      quando             TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
 
   // O CAMINHO DE CADA VIAGEM, para o painel. Ver `percursos.js`. Apaga-se
   // com a viagem e, antes disso, com a história minuto a minuto (retencao.js).

@@ -8,7 +8,7 @@ import { Campo, Rotulo } from '@/components/ui/campo';
 import { IlustracaoPaisagem } from '@/components/ilustracoes';
 
 export function Entrar() {
-  const { entrar } = useSessao();
+  const { entrar, motivoSaida } = useSessao();
   const [telefone, setTelefone] = useState('');
   const [palavraPasse, setPalavraPasse] = useState('');
   const [erro, setErro] = useState<string | null>(null);
@@ -40,6 +40,12 @@ export function Entrar() {
           {erro ? (
             <p role="alert" className="rounded-lg border border-perigo/25 bg-perigo-claro px-3 py-2 text-sm text-perigo">
               {erro}
+            </p>
+          ) : motivoSaida ? (
+            // PORQUE É QUE SE ESTÁ AQUI (28/09/2026). Sem isto, o painel
+            // fechado ao fim de 30 minutos parecia uma avaria.
+            <p role="status" className="rounded-lg border border-borda bg-fundo px-3 py-2 text-sm text-secundario">
+              {motivoSaida === 'inativo' ? t('entrar.saiuInativo') : t('entrar.saiuExpirou')}
             </p>
           ) : null}
           <div>

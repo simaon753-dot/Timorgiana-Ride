@@ -14,8 +14,52 @@ import { LINGUAS } from './mensagens.js';
 // certo — incluindo os que foram copiados para fora do telemóvel.
 export function signToken(user, sid, sup) {
   return jwt.sign({ sub: user.id, role: user.role, sid, sup }, config.jwtSecret, {
-    expiresIn: config.jwtExpiresIn,
+    // O painel dura um dia de trabalho, e não 30 (ver PAINEL_* em baixo).
+    expiresIn: sup === 'painel' ? `${PAINEL_MAX_HORAS}h` : config.jwtExpiresIn,
   });
+}
+
+// O PAINEL FECHA-SE SOZINHO (28/09/2026).
+//
+// O Simão abriu o Mac, escreveu o endereço do painel e entrou — sem
+// palavra-passe. O token vivia 30 dias no navegador: quem se sentasse
+// àquele computador via os telefones, os documentos e os pagamentos de toda
+// a gente. A app do telemóvel tem o bloqueio do próprio telemóvel; um
+// portátil aberto numa secretária não tem nada.
+//
+// Duas regras, as duas AQUI e não no navegador, que se contorna:
+//   · no máximo `PAINEL_MAX_HORAS` desde que se entrou, faça-se o que se
+//     fizer — o token expira;
+//   · `PAINEL_INATIVO_MIN` sem ninguém mexer no painel, e a sessão acaba.
+//
+// «Mexer» é uma PESSOA a mexer. O painel pergunta sozinho ao servidor de
+// 20 em 20 segundos (Emergências) e de minuto a minuto (o sino); se cada
+// pergunta contasse, um separador esquecido ficava aberto para sempre. Por
+// isso o painel diz, em cada pedido, há quantos segundos alguém tocou no
+// teclado ou no rato (`X-Painel-Toque`), e só um toque recente conta.
+export const PAINEL_MAX_HORAS = 12;
+export const PAINEL_INATIVO_MIN = 30;
+// Um toque há menos disto conta como presença. Maior do que o intervalo das
+// perguntas automáticas, para uma pessoa a ler sem mexer no rato não perder
+// a vez entre duas.
+const TOQUE_RECENTE_S = 90;
+export const PAINEL_INATIVO = 'painel_inativo';
+
+// A conta chega com a linha inteira (`findUserById` lê tudo), por isso não é
+// preciso ir outra vez à base. Sem registo de presença — uma sessão aberta
+// antes desta regra existir — conta como parada: entra-se de novo uma vez.
+function painelParado(user) {
+  const visto = user.sessao_painel_visto ? new Date(user.sessao_painel_visto).getTime() : 0;
+  return Date.now() - visto > PAINEL_INATIVO_MIN * 60_000;
+}
+
+// Marca presença, no máximo uma escrita por minuto por conta.
+const ultimaMarca = new Map();
+function marcarPresenca(userId) {
+  const agora = Date.now();
+  if (agora - (ultimaMarca.get(userId) || 0) < 60_000) return;
+  ultimaMarca.set(userId, agora);
+  query('UPDATE users SET sessao_painel_visto = NOW() WHERE id = $1', [userId]).catch(() => {});
 }
 
 // DUAS SUPERFÍCIES, DUAS SESSÕES — e não duas por pessoa.
@@ -41,6 +85,10 @@ export async function abrirSessao(user, superficie = 'app') {
   // marcador no lugar de uma coluna. Vem de `COLUNA`, que é uma constante
   // deste ficheiro — nunca do que chega no pedido.
   await query(`UPDATE users SET ${coluna} = $2, sessao_em = NOW() WHERE id = $1`, [user.id, sid]);
+  if (superficie === 'painel') {
+    await query('UPDATE users SET sessao_painel_visto = NOW() WHERE id = $1', [user.id]);
+    ultimaMarca.set(user.id, Date.now());
+  }
   return signToken(user, sid, superficie);
 }
 
@@ -76,7 +124,10 @@ export async function abrirSessao(user, superficie = 'app') {
 // pelo canal de tempo real que já estava aberto: parece fora e está dentro.
 export async function estadoDaSessao(payload, user) {
   const coluna = COLUNA[payload.sup] || COLUNA.app;
-  if (payload.sid && payload.sid === user[coluna]) return 'viva';
+  if (payload.sid && payload.sid === user[coluna]) {
+    if (payload.sup === 'painel' && painelParado(user)) return 'inativo';
+    return 'viva';
+  }
 
   // Sem `sid` é um token anterior a esta mudança. E com a coluna a NULL a
   // sessão foi APAGADA de propósito — é o que a recuperação de senha faz, e
@@ -91,6 +142,14 @@ export async function estadoDaSessao(payload, user) {
 }
 
 export const SESSAO_NOUTRO = 'sessao_noutro_aparelho';
+
+// Sair a sério: a sessão desta superfície deixa de existir no servidor. Até
+// 28/09/2026 «sair» do painel só apagava o token do navegador — uma cópia
+// dele continuava a valer.
+export async function fecharSessao(userId, superficie) {
+  const coluna = COLUNA[superficie] || COLUNA.app;
+  await query(`UPDATE users SET ${coluna} = NULL WHERE id = $1`, [userId]);
+}
 
 // Middleware Express: exige um token válido no cabeçalho Authorization
 export async function requireAuth(req, res, next) {
@@ -116,6 +175,12 @@ export async function requireAuth(req, res, next) {
     // parece uma avaria; «a tua conta foi aberta noutro telemóvel» é um
     // aviso de segurança, e quem o receber sem ter sido ele muda a senha.
     const estado = await estadoDaSessao(payload, user);
+    if (estado === 'inativo') {
+      return res.status(401).json({
+        error: 'A sessão do painel terminou por inactividade. Entre de novo.',
+        motivo: PAINEL_INATIVO,
+      });
+    }
     if (estado === 'fora') {
       return res.status(401).json({
         error: 'A tua conta foi aberta noutro telemóvel. Entra de novo para continuares aqui.',
@@ -133,7 +198,15 @@ export async function requireAuth(req, res, next) {
     // estiver por um fio, TODAS as respostas o dizem.
     if (estado === 'a_terminar') res.set('X-Sessao', 'a-terminar');
 
+    // Presença no painel: só um toque recente de uma pessoa (ver em cima).
+    if (payload.sup === 'painel') {
+      const toque = Number(req.headers['x-painel-toque']);
+      if (Number.isFinite(toque) && toque >= 0 && toque < TOQUE_RECENTE_S) marcarPresenca(user.id);
+    }
+
     req.user = user;
+    // De que superfície é este pedido — para o /auth/sair fechar a certa.
+    req.sessaoSup = payload.sup === 'painel' ? 'painel' : 'app';
     // A língua de quem pede fica na conta (15/09/26): as notificações saem
     // sem pedido nenhum à frente, e é daqui que sabem em que língua ir. Só
     // se escreve quando muda.
@@ -187,7 +260,7 @@ export async function verifyToken(token) {
     // A MESMA REGRA do Express, e não uma parecida: um aparelho expulso que
     // mantivesse o canal de tempo real continuava a receber pedidos.
     const estado = await estadoDaSessao(payload, user);
-    if (estado === 'fora') return null;
+    if (estado === 'fora' || estado === 'inativo') return null;
     return { user, aTerminar: estado === 'a_terminar' };
   } catch {
     return null;

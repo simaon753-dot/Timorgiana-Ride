@@ -13,7 +13,7 @@ import { emailBemFormado } from '../email.js';
 import { emitirConfirmacao, confirmarComCodigo } from '../confirmacaoEmail.js';
 import { query } from '../db.js';
 import { getActiveRideForUser } from '../rides.js';
-import { abrirSessao, requireAuth } from '../auth.js';
+import { abrirSessao, requireAuth, fecharSessao } from '../auth.js';
 import { savePushToken } from '../drivers.js';
 import { usarCodigo } from '../recuperacao.js';
 import { porEndereco, segundosDeEspera, registarFalha, limparFalhas } from '../limitador.js';
@@ -149,9 +149,7 @@ authRouter.post('/register', async (req, res) => {
       console.error('[auth] confirmação de email:', e.message)
     );
 
-    return res
-      .status(201)
-      .json({ user: toPublicUser(created), token: await abrirSessao(created) });
+    return res.status(201).json({ user: toPublicUser(created), token: await abrirSessao(created) });
   } catch (err) {
     console.error('[auth/register]', err);
     return res.status(500).json({ error: 'Erro ao criar a conta.' });
@@ -322,6 +320,14 @@ authRouter.post('/termos', requireAuth, async (req, res) => {
 });
 
 // GET /api/auth/me — valida o token e devolve o utilizador atual
+// POST /api/auth/sair — fechar a sessão desta superfície NO SERVIDOR
+// (28/09/2026). O token deixa de valer em qualquer lado, e não só no
+// navegador que carregou em «Sair».
+authRouter.post('/sair', requireAuth, async (req, res) => {
+  await fecharSessao(req.user.id, req.sessaoSup);
+  return res.json({ ok: true });
+});
+
 authRouter.get('/me', requireAuth, (req, res) => {
   return res.json({ user: toPublicUser(req.user) });
 });

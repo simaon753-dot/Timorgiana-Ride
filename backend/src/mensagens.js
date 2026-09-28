@@ -214,6 +214,10 @@ export const MENSAGENS = {
   'Fotografia não encontrada.': ['La hetan fotografia.', 'Photo not found.'],
   'Conta não encontrada.': ['La hetan konta.', 'Account not found.'],
   'Viagem não encontrada.': ['La hetan viajen.', 'Ride not found.'],
+  'A sessão do painel terminou por inactividade. Entre de novo.': [
+    'Sesaun painel remata tanba la uza. Tama fali.',
+    'The panel session ended due to inactivity. Sign in again.',
+  ],
   // ── Ocorrências (Reportar)
   'Esta viagem não pode ser reportada.': [
     'Viajen ida-ne’e la bele relata.',

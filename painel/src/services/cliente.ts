@@ -1,8 +1,11 @@
 // O CLIENTE HTTP do painel.
 //
-// A sessão guarda-se com o MESMO nome que o painel antigo usava (`tr_token`):
-// quem já tinha entrado lá continua com a sessão aberta aqui, sem ter de voltar
-// a escrever a palavra-passe no dia da mudança.
+// A SESSÃO VIVE SÓ NESTE SEPARADOR (28/09/2026): `sessionStorage`, e não
+// `localStorage`. Fechar o separador ou o navegador é sair. Antes ficava no
+// navegador 30 dias, e quem abrisse o Mac do Simão entrava no painel sem
+// palavra-passe. As regras que não se contornam estão no servidor
+// (auth.js: 12 horas no máximo, 30 minutos parado); isto só não deixa o
+// token à espera num disco.
 //
 // A autorização é sempre do servidor. Esconder um botão aqui é cortesia; quem
 // decide se o pedido é aceite é a guarda `is_admin` de routes/admin.js.
@@ -17,14 +20,21 @@ export class ErroApi extends Error {
   }
 }
 
-let aoPerderSessao: (() => void) | null = null;
-export function quandoPerderSessao(fn: () => void) {
+export function quandoPerderSessao(fn: (motivo: MotivoSaida) => void) {
   aoPerderSessao = fn;
+}
+
+// O token que ficou no `localStorage` das versões anteriores apaga-se ao
+// abrir: era esse que deixava o painel aberto a quem chegasse.
+try {
+  localStorage.removeItem(CHAVE_SESSAO);
+} catch {
+  // Sem armazenamento: não há nada para apagar.
 }
 
 export function lerSessao(): string {
   try {
-    return localStorage.getItem(CHAVE_SESSAO) || '';
+    return sessionStorage.getItem(CHAVE_SESSAO) || '';
   } catch {
     return '';
   }
@@ -32,12 +42,32 @@ export function lerSessao(): string {
 
 export function gravarSessao(token: string | null) {
   try {
-    if (token) localStorage.setItem(CHAVE_SESSAO, token);
-    else localStorage.removeItem(CHAVE_SESSAO);
+    if (token) sessionStorage.setItem(CHAVE_SESSAO, token);
+    else sessionStorage.removeItem(CHAVE_SESSAO);
   } catch {
     // Sem armazenamento (janela privada estrita): a sessão dura até fechar.
   }
 }
+
+// HÁ QUANTO TEMPO UMA PESSOA MEXEU NO PAINEL. Vai em cada pedido
+// (`X-Painel-Toque`, em segundos): o servidor só conta como presença um toque
+// recente, e não as perguntas que o painel faz sozinho de minuto a minuto.
+let ultimoToque = Date.now();
+export function segundosSemToque() {
+  return Math.round((Date.now() - ultimoToque) / 1000);
+}
+if (typeof window !== 'undefined') {
+  const tocou = () => {
+    ultimoToque = Date.now();
+  };
+  for (const ev of ['pointerdown', 'keydown', 'wheel', 'touchstart']) {
+    window.addEventListener(ev, tocou, { passive: true, capture: true });
+  }
+}
+
+// PORQUE É QUE A SESSÃO ACABOU — para o ecrã de entrada o dizer.
+export type MotivoSaida = 'inativo' | 'expirou' | null;
+let aoPerderSessao: ((motivo: MotivoSaida) => void) | null = null;
 
 type Opcoes = Omit<RequestInit, 'body'> & { corpo?: unknown };
 
@@ -51,6 +81,7 @@ export async function pedir<T>(caminho: string, opcoes: Opcoes = {}): Promise<T>
       headers: {
         ...(corpo !== undefined ? { 'Content-Type': 'application/json' } : {}),
         ...(token ? { Authorization: 'Bearer ' + token } : {}),
+        'X-Painel-Toque': String(segundosSemToque()),
         ...(headers || {}),
       },
       body: corpo !== undefined ? JSON.stringify(corpo) : undefined,
@@ -59,8 +90,11 @@ export async function pedir<T>(caminho: string, opcoes: Opcoes = {}): Promise<T>
     throw new ErroApi('Sem ligação ao servidor. Verifique a internet e tente outra vez.', 0);
   }
   if (r.status === 401 || (r.status === 403 && caminho.startsWith('/admin'))) {
-    aoPerderSessao?.();
-    throw new ErroApi('A sessão terminou. Entre outra vez.', r.status);
+    const j = await r.json().catch(() => ({}));
+    const inativo = (j as { motivo?: string }).motivo === 'painel_inativo';
+    // No /auth/login um 401 é a palavra-passe errada, e não uma sessão perdida.
+    if (caminho !== '/auth/login') aoPerderSessao?.(inativo ? 'inativo' : 'expirou');
+    throw new ErroApi((j as { error?: string }).error || 'A sessão terminou. Entre outra vez.', r.status);
   }
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new ErroApi((j as { error?: string }).error || 'O pedido falhou.', r.status);
