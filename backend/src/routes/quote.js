@@ -4,7 +4,13 @@ import { MAX_ITENS, taxaDe, viagensDoPassageiro } from '../jastip.js';
 import { MINUTOS_ATE_DESISTIR } from '../rides.js';
 import { requireAuth } from '../auth.js';
 import { preco, etaMinutos, straightKm } from '../routing.js';
-import { rotaCompleta, caminhosDaViagem, MODO, pedidoDe } from '../rotas.js';
+import {
+  rotaCompleta,
+  caminhosDaViagem,
+  recolhaDoOutroLado,
+  MODO,
+  pedidoDe,
+} from '../rotas.js';
 import { limparDestinos } from '../destinosDaViagem.js';
 import { paragensQueCobrem } from '../paradas.js';
 import { estradaMaisPerto } from '../estradasNossas.js';
@@ -244,8 +250,49 @@ quoteRouter.post(
         ) / 100,
     }));
 
+    // A RECOLHA DO OUTRO LADO DA AVENIDA — ver `recolhaDoOutroLado`. Só se
+    // propõe se ficar pelo menos $0,25 mais barata: com um destino de preço
+    // fixo (tabela do Pickup) o preço é o mesmo dos dois lados, e oferecer
+    // uma travessia que não poupa nada seria pôr alguém a atravessar à toa.
+    let outroLado = null;
+    if (!paragens.length) {
+      const o = await recolhaDoOutroLado(
+        { lat: oLat, lng: oLng },
+        { lat: dLat, lng: dLng },
+        viagem
+      );
+      if (o) {
+        const fareUsd =
+          Math.round(
+            (preco(
+              tipoEscolhido,
+              o.km,
+              o.min,
+              tipoEscolhido === 'car' || (tipoEscolhido === 'carry' && carryPessoas) ? pessoas : null,
+              tipoEscolhido === 'carry' && carryPessoas ? null : carga,
+              pontas
+            ) +
+              taxaEncomenda) *
+              100
+          ) / 100;
+        const poupancaUsd = Math.round((caminhos[0].fareUsd - fareUsd) * 100) / 100;
+        if (poupancaUsd >= 0.25) {
+          outroLado = {
+            lat: o.lat,
+            lng: o.lng,
+            distanceKm: o.km,
+            durationMin: o.min,
+            fareUsd,
+            poupancaUsd,
+            poupancaKm: Math.round((viagem.km - o.km) * 10) / 10,
+          };
+        }
+      }
+    }
+
     return res.json({
       caminhos,
+      ...(outroLado ? { outroLado } : {}),
       distanceKm: viagem.km,
       durationMin: viagem.min,
       approximate: viagem.aproximado,

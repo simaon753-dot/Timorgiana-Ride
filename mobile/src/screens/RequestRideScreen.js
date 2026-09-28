@@ -1146,6 +1146,20 @@ export default function RequestRideScreen({ navigation, route }) {
     setDestino((d) => (d ? { ...d, lat: pa.lat, lng: pa.lng, encostadoPor: 'nossa' } : d));
   };
 
+  // RECOLHER DO OUTRO LADO DA AVENIDA (28/09/2026) — ver `recolhaDoOutroLado`
+  // no servidor. Só muda onde o CARRO pára, como `escolherParagem`: o pino e o
+  // nome ficam os da pessoa, e o troço a pé passa a atravessar a avenida, que
+  // é exactamente o que ela aceitou fazer ao tocar no botão.
+  const usarOutroLado = () => {
+    const o = orcamento?.outroLado;
+    if (!o || !origem) return;
+    const pino = origem.escolhido || { lat: origem.lat, lng: origem.lng };
+    setTroco({ de: pino, para: { lat: o.lat, lng: o.lng } });
+    setOrigem((p) =>
+      p ? { ...p, escolhido: pino, lat: o.lat, lng: o.lng, encostadoPor: 'nossa' } : p
+    );
+  };
+
   // O PINO FICA ONDE A PESSOA APONTOU. O ponto na estrada é que é do carro.
   //
   // Antes o pino saltava para a beira da estrada, porque é lá que o carro
@@ -1692,6 +1706,31 @@ export default function RequestRideScreen({ navigation, route }) {
                   Aqui e não antes, porque no Timor Plaza só o carro paga —
                   o aviso muda conforme o que se escolhe. */}
               <TaxasDeEntrada taxas={orcamento.taxasDeEntrada} tipoVeiculo={veiculoAtual} t={t} />
+
+              {/* DO OUTRO LADO FICA MAIS BARATO. Uma proposta, e não uma
+                  mudança feita por nós: quem atravessa a avenida é a pessoa,
+                  e a decisão é dela (Simão, 28/09/2026). */}
+              {orcamento.outroLado ? (
+                <View style={styles.outroLado}>
+                  <Icone nome="info" tamanho={22} cor={colors.teal} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.outroLadoTexto}>
+                      {t('outroLadoTexto', {
+                        poupanca: `$${orcamento.outroLado.poupancaUsd.toFixed(2)}`,
+                        km: orcamento.outroLado.poupancaKm,
+                      })}
+                    </Text>
+                    <Pressable
+                      onPress={usarOutroLado}
+                      hitSlop={8}
+                      accessibilityRole="button"
+                      style={({ pressed }) => [styles.outroLadoBotao, pressed && { opacity: 0.7 }]}
+                    >
+                      <Text style={styles.outroLadoBotaoTexto}>{t('outroLadoBotao')}</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ) : null}
 
               {/* O QUE FOI ENCOMENDADO, à vista enquanto se escolhe o veículo.
                   A taxa mostrada é a que o servidor devolveu com a cotação
@@ -2326,6 +2365,17 @@ const criarEstilos = () =>
     veiculoEtaSem: { color: colors.coralDark },
     veiculoPreco: { ...tipo.titulo, fontSize: 24, color: colors.teal },
     veiculoTabela: { ...tipo.legenda, color: colors.teal },
+    outroLado: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      backgroundColor: colors.tintaTeal,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    outroLadoTexto: { ...tipo.pequeno, color: colors.text },
+    outroLadoBotao: { alignSelf: 'flex-start', marginTop: spacing.xs },
+    outroLadoBotaoTexto: { ...tipo.corpoForte, color: colors.teal },
     estatisticas: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
     estatistica: {
       flex: 1,

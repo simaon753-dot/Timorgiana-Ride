@@ -1,6 +1,9 @@
 // Português (europeu)
 export default {
   precoTabela: 'Preço da tabela · {destino}',
+  outroLadoTexto:
+    'Deste lado, o carro tem de dar a volta. Do outro lado da avenida fica {poupanca} mais barato ({km} km a menos).',
+  outroLadoBotao: 'Mudar a recolha para o outro lado',
   termosObrigatorios: 'Sem os aceitar, não pode ficar disponível.',
   admPagQrNota: 'A imagem do QR que o banco lhe deu. O motorista vê-a quando escolhe pagar por QR.',
   admPagQrCarregar: 'Carregar a imagem do QR',

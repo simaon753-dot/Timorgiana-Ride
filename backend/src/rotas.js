@@ -168,7 +168,10 @@ function umaRota(rota) {
   return { km, min: duracaoRealista(km, seg / 60), linha: descomprimir(comprimida) };
 }
 
-async function peloGoogle(a, b, intermedios = [], modo = 'DRIVE') {
+// `rumo` (opcional): o sentido em que o carro ARRANCA, em graus. Diz ao
+// Google a que faixa encostar a origem numa avenida de faixas separadas —
+// ver `recolhaDoOutroLado`. Sem ele, o Google escolhe a mais perto do pino.
+async function peloGoogle(a, b, intermedios = [], modo = 'DRIVE', rumo = null) {
   const ctrl = new AbortController();
   const relogio = setTimeout(() => ctrl.abort(), 8000);
   try {
@@ -184,7 +187,12 @@ async function peloGoogle(a, b, intermedios = [], modo = 'DRIVE') {
         'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline',
       },
       body: JSON.stringify({
-        origin: { location: { latLng: { latitude: a.lat, longitude: a.lng } } },
+        origin: {
+          location: {
+            latLng: { latitude: a.lat, longitude: a.lng },
+            ...(rumo != null ? { heading: Math.round(rumo) % 360 } : {}),
+          },
+        },
         destination: { location: { latLng: { latitude: b.lat, longitude: b.lng } } },
         // PONTOS DO MEIO. A Routes v2 aceita-os como campo irmão da origem e
         // do destino, e devolve a distância e o tempo da rota INTEIRA — por
@@ -409,6 +417,86 @@ export async function rotaCompleta(a, b, intermedios = [], tipoVeiculo = 'car') 
   }
 }
 const emCurso = new Map();
+
+// ── A RECOLHA DO OUTRO LADO DA AVENIDA (28/09/2026) ───────────────────
+//
+// PORQUE EXISTE. A viagem 36 (Nicolau Lobato → Cristo Rei Beach) saiu com
+// 11,4 km e uma volta ao quarteirão pela Hudi-Laran. A avenida tem ali duas
+// faixas separadas, cada uma de sentido único; o pino ficou a sul, o Google
+// encostou a recolha à faixa sul — a que vai para OESTE — e o carro tinha de
+// ir para trás antes de ir para a frente. Não era erro do Google: era a faixa
+// onde o pino calhou, e ninguém a escolheu.
+//
+// Decisão do Simão (opção 2): a recolha FICA onde a pessoa está, e a app
+// diz-lhe quanto poupa do outro lado. Atravessar uma avenida a pé é decisão
+// de quem atravessa, não nossa.
+//
+// SÓ SE PERGUNTA QUANDO A ROTA ARRANCA A FUGIR DO DESTINO — mais de
+// `DESVIO_MIN_GRAUS` entre o sentido dos primeiros metros e a direcção do
+// destino. Na maioria das viagens isto é falso e não custa chamada nenhuma.
+const DESVIO_MIN_GRAUS = 110;
+// Até onde se admite que a outra faixa fica: atravessar a avenida, e não
+// andar até outro sítio.
+const OUTRO_LADO_MAX_M = 100;
+// Abaixo disto a diferença é ruído de arredondamento, não uma volta.
+const POUPANCA_MIN_KM = 0.3;
+
+function rumoEntre(p, q) {
+  const rad = Math.PI / 180;
+  const y = Math.sin((q.lng - p.lng) * rad) * Math.cos(q.lat * rad);
+  const x =
+    Math.cos(p.lat * rad) * Math.sin(q.lat * rad) -
+    Math.sin(p.lat * rad) * Math.cos(q.lat * rad) * Math.cos((q.lng - p.lng) * rad);
+  return (Math.atan2(y, x) / rad + 360) % 360;
+}
+
+function diferencaDeRumo(r1, r2) {
+  const d = Math.abs(r1 - r2) % 360;
+  return d > 180 ? 360 - d : d;
+}
+
+// O sentido em que a linha arranca: do primeiro ponto até ao primeiro que
+// esteja a 150 m ou mais. Um só segmento mede a esquina, não a estrada.
+function rumoDeArranque(linha) {
+  if (!linha || linha.length < 2) return null;
+  const inicio = linha[0];
+  for (const p of linha) if (straightKm(inicio, p) >= 0.15) return rumoEntre(inicio, p);
+  return rumoEntre(inicio, linha[linha.length - 1]);
+}
+
+// Devolve `{ lat, lng, km, min }` — o ponto da outra faixa onde o carro pára
+// e a rota a partir dele — ou `null` quando não há outro lado que valha a pena.
+// `rota` é a que a cotação já tem; `pino` é onde a pessoa apontou.
+export async function recolhaDoOutroLado(pino, b, rota) {
+  if (rota?.fonte !== 'google' || !rota.linha?.length) return null;
+  const arranque = rumoDeArranque(rota.linha);
+  if (arranque == null) return null;
+  if (diferencaDeRumo(arranque, rumoEntre(rota.linha[0], b)) < DESVIO_MIN_GRAUS) return null;
+
+  const rumo = (arranque + 180) % 360;
+  // Na memória de dez minutos, com resposta negativa incluída: a procura
+  // automática refaz a cotação de 20 em 20 segundos, e cada uma não pode
+  // gastar outra chamada para ouvir o mesmo «não».
+  const chave = 'OUTRO_LADO|' + chaveDaRota(pino, b, []);
+  const guardada = memoria.get(chave);
+  if (guardada && Date.now() - guardada.em < MEMORIA_MS) return structuredClone(guardada.rota);
+
+  let resposta = null;
+  if (await podePerguntar()) {
+    const g = await peloGoogle(pino, b, [], 'DRIVE', rumo);
+    const ponto = g?.linha?.[0];
+    if (
+      ponto &&
+      straightKm(pino, ponto) * 1000 <= OUTRO_LADO_MAX_M &&
+      rota.km - g.km >= POUPANCA_MIN_KM
+    ) {
+      resposta = { lat: ponto.lat, lng: ponto.lng, km: g.km, min: g.min };
+    }
+  }
+  if (memoria.size >= MEMORIA_MAX) memoria.delete(memoria.keys().next().value);
+  memoria.set(chave, { em: Date.now(), rota: resposta });
+  return structuredClone(resposta);
+}
 
 // ── OS CAMINHOS DE UMA VIAGEM ─────────────────────────────────────────
 //

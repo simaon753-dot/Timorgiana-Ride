@@ -2,6 +2,9 @@
 // As traduções devem ser revistas por um falante nativo antes do lançamento.
 export default {
   precoTabela: 'Folin tabela · {destino}',
+  outroLadoTexto:
+    'Iha sorin ne’e, karreta tenke fila fali. Iha avenida sorin seluk, folin {poupanca} baratu liu ({km} km menus).',
+  outroLadoBotao: 'Muda fatin foti ba sorin seluk',
   termosObrigatorios: 'Se la aseita, labele sai disponível.',
   admPagQrNota: 'QR nia imajen ne’ebé banku fó. Motorista haree bainhira hili selu ho QR.',
   admPagQrCarregar: 'Karega QR nia imajen',

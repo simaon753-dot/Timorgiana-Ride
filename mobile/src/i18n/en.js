@@ -7,6 +7,9 @@
 // the substitution.
 export default {
   precoTabela: 'Table price · {destino}',
+  outroLadoTexto:
+    'From this side, the car has to turn around. On the other side of the avenue it is {poupanca} cheaper ({km} km less).',
+  outroLadoBotao: 'Move pickup to the other side',
   termosObrigatorios: 'Until you accept them, you cannot go available.',
   admPagQrNota: 'The QR image your bank gave you. Drivers see it when they choose to pay by QR.',
   admPagQrCarregar: 'Upload the QR image',
