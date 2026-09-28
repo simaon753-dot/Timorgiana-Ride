@@ -1,5 +1,6 @@
 // Português (europeu)
 export default {
+  faltaParaContinuar: 'Falta: {lista}',
   precoTabela: 'Preço da tabela · {destino}',
   outroLadoTexto:
     'Deste lado, o carro tem de dar a volta. Do outro lado da avenida fica {poupanca} mais barato ({km} km a menos).',

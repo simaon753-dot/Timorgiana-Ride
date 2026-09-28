@@ -6,6 +6,7 @@
 // code passes them by those names; changing them here would silently break
 // the substitution.
 export default {
+  faltaParaContinuar: 'Still needed: {lista}',
   precoTabela: 'Table price · {destino}',
   outroLadoTexto:
     'From this side, the car has to turn around. On the other side of the avenue it is {poupanca} cheaper ({km} km less).',

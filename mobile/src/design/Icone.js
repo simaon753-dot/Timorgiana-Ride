@@ -316,6 +316,9 @@ function desenho(nome, p, cheio, preenchido, c) {
           <Polyline points="19,20.5 18.7,16.7 15,17.2" {...p} />
         </>
       );
+    // O par do «mais», para o seletor de quantidade (design/Quantidade.js).
+    case 'menos':
+      return <Line x1="5" y1="12" x2="19" y2="12" {...p} />;
     case 'mais':
       return (
         <>
@@ -355,6 +358,19 @@ function desenho(nome, p, cheio, preenchido, c) {
           <Circle cx="12" cy="9.2" r="1.4" {...p} />
           <Line x1="12" y1="15" x2="12" y2="20" {...p} />
           <Path d="M12 18c-2 0-3.2-1-3.4-2.6 2-.2 3.2.9 3.4 2.6z" {...p} />
+        </>
+      );
+    // A loja da encomenda (29/09/2026): toldo ondulado, montra e porta. Antes
+    // o ecrã usava o pino, que diz «onde» e não «que sítio».
+    case 'loja':
+      return (
+        <>
+          <Path d="M4 9l1.6-4.5h12.8L20 9" {...p} />
+          <Path
+            d="M4 9a2.67 2.67 0 0 0 5.33 0a2.67 2.67 0 0 0 5.34 0a2.67 2.67 0 0 0 5.33 0"
+            {...p}
+          />
+          <Path d="M5.5 11.6v7.9h13v-7.9M10 19.5v-4.5h4v4.5" {...p} />
         </>
       );
     case 'caixa':

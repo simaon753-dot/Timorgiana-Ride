@@ -1,6 +1,7 @@
 // Tétum (Tétum Praça, de Díli) — PRIMEIRA VERSÃO.
 // As traduções devem ser revistas por um falante nativo antes do lançamento.
 export default {
+  faltaParaContinuar: 'Seidauk iha: {lista}',
   precoTabela: 'Folin tabela · {destino}',
   outroLadoTexto:
     'Iha sorin ne’e, karreta tenke fila fali. Iha avenida sorin seluk, folin {poupanca} baratu liu ({km} km menus).',

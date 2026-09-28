@@ -6,7 +6,8 @@ import {
   ScrollView,
   StyleSheet,
   ActivityIndicator,
-  Image,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
@@ -14,6 +15,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { encolherFoto } from '../lib/encolherFoto.js';
 import BarraEstado from '../design/BarraEstado.js';
 import Icone from '../design/Icone.js';
+import Cartao from '../design/Cartao.js';
+import Quantidade from '../design/Quantidade.js';
+import FotosPedido from '../design/FotosPedido.js';
 import RodapeMarca from '../design/RodapeMarca.js';
 import Button from '../components/Button.js';
 import TextField from '../components/TextField.js';
@@ -151,167 +155,225 @@ export default function EncomendaScreen({ navigation }) {
     });
   }
 
+  // O QUE FALTA PARA CONTINUAR, dito por baixo do botão (29/09/2026). O botão
+  // desligado não dizia porquê, e numa lista de cinco blocos a pessoa ficava
+  // a procurar o que se esqueceu. Os nomes são os títulos dos próprios blocos.
+  const faltam = [
+    !artigosFeitos.length && t('encomendaArtigos'),
+    !loja.trim() && t('encomendaLojaNome'),
+    !lojaPonto && t('encomendaOndeComprar'),
+    !entrega && t('encomendaOndeEntregar'),
+  ].filter(Boolean);
+
+  // A DISPOSIÇÃO (29/09/2026): cada pergunta no seu cartão, pela ordem em que
+  // se decide — o quê, como é, até quanto, onde comprar, onde entregar — e o
+  // botão FIXO em baixo, fora da lista. Antes as secções eram títulos soltos e
+  // o botão vivia no fim da lista, onde só se chegava depois de tudo.
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <BarraEstado />
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <View style={styles.topo}>
-          <Pressable
-            onPress={() => navigation.goBack()}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={t('back')}
-            style={styles.voltar}
-          >
-            <Icone nome="voltar" tamanho={22} cor={colors.text} traco={2.4} />
-          </Pressable>
-          <View style={styles.pastilha}>
-            <Icone nome="caixa" tamanho={18} cor={colors.acentoCarry} />
-            <Text style={styles.pastilhaTexto}>{t('encomendaTitulo')}</Text>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <View style={styles.topo}>
+            <Pressable
+              onPress={() => navigation.goBack()}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t('back')}
+              style={styles.voltar}
+            >
+              <Icone nome="voltar" tamanho={22} cor={colors.text} traco={2.4} />
+            </Pressable>
+            <View style={styles.pastilha}>
+              <Icone nome="caixa" tamanho={18} cor={colors.acentoCarry} />
+              <Text style={styles.pastilhaTexto}>{t('encomendaTitulo')}</Text>
+            </View>
           </View>
-        </View>
 
-        <Text style={styles.titulo}>{t('encomendaTitulo')}</Text>
-        <Text style={styles.subtitulo}>{t('encomendaExplica')}</Text>
+          <Text style={styles.titulo}>{t('encomendaTitulo')}</Text>
+          <Text style={styles.subtitulo}>{t('encomendaExplica')}</Text>
 
-        {regras == null ? (
-          <ActivityIndicator style={styles.roda} color={colors.teal} />
-        ) : regras.erro || !regras.ativo ? (
-          <View style={styles.aviso}>
-            <Icone nome="info" tamanho={18} cor={colors.textMuted} />
-            <Text style={styles.avisoTexto}>{t('encomendaIndisponivel')}</Text>
-          </View>
-        ) : (
-          <>
-            {faltaEmail ? (
-              <View style={styles.aviso}>
-                <Icone nome="aviso" tamanho={18} cor={colors.danger} />
-                <View style={styles.avisoTextos}>
-                  <Text style={styles.avisoTexto}>{t('encomendaEmailFalta')}</Text>
-                  <Button
-                    title={t('encomendaIrPerfil')}
-                    variant="ghost"
-                    onPress={() => navigation.navigate('Perfil')}
+          {regras == null ? (
+            <ActivityIndicator style={styles.roda} color={colors.teal} />
+          ) : regras.erro || !regras.ativo ? (
+            <View style={styles.estado}>
+              <Icone nome="info" tamanho={20} cor={colors.textMuted} />
+              <Text style={styles.estadoTexto}>{t('encomendaIndisponivel')}</Text>
+            </View>
+          ) : (
+            <>
+              {faltaEmail ? (
+                <View style={styles.estado}>
+                  <Icone nome="aviso" tamanho={20} cor={colors.coralDark} />
+                  <View style={styles.estadoTextos}>
+                    <Text style={styles.estadoTexto}>{t('encomendaEmailFalta')}</Text>
+                    <Button
+                      title={t('encomendaIrPerfil')}
+                      variant="ghost"
+                      onPress={() => navigation.navigate('Perfil')}
+                    />
+                  </View>
+                </View>
+              ) : !podePedir ? (
+                <View style={styles.estado} accessibilityRole="text">
+                  <Icone nome="aviso" tamanho={20} cor={colors.coralDark} />
+                  <FraseComNumeros
+                    texto={t('encomendaFaltam', { n: '§n§', feitas: '§f§' })}
+                    n={regras.viagensMinimas}
+                    feitas={regras.viagensFeitas}
                   />
                 </View>
-              </View>
-            ) : !podePedir ? (
-              <View style={styles.aviso}>
-                <Icone nome="aviso" tamanho={18} cor={colors.danger} />
-                <Text style={styles.avisoTexto}>
-                  {t('encomendaFaltam', {
-                    n: regras.viagensMinimas,
-                    feitas: regras.viagensFeitas,
-                  })}
-                </Text>
-              </View>
-            ) : null}
+              ) : null}
 
-            <Text style={styles.seccao}>{t('encomendaArtigos')}</Text>
-            {itens.map((i, n) => (
-              <Artigo
-                key={i.chave}
-                artigo={i}
-                podeRetirar={itens.length > 1}
-                onMudar={(campo, valor) => mudarArtigo(i.chave, campo, valor)}
-                onRetirar={() => setItens((l) => l.filter((x) => x.chave !== i.chave))}
-                numero={n + 1}
-                t={t}
-              />
-            ))}
-            {itens.length < maxItens ? (
-              <Button
-                title={t('encomendaJuntarArtigo')}
-                variant="secondary"
-                icone="+"
-                onPress={() => setItens((l) => [...l, artigoVazio()])}
-              />
-            ) : (
-              <Text style={styles.nota}>{t('encomendaMaxItens', { n: maxItens })}</Text>
-            )}
-
-            <Text style={styles.seccao}>{t('encomendaFoto')}</Text>
-            <Text style={styles.nota}>{t('encomendaFotoNota')}</Text>
-            {fotos.length ? (
-              <View style={styles.fotos}>
-                {fotos.map((f, n) => (
-                  <Pressable
-                    key={f.uri}
-                    onPress={() => setFotos((l) => l.filter((x) => x.uri !== f.uri))}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${t('encomendaFoto')} ${n + 1}`}
-                  >
-                    <Image source={{ uri: f.uri }} style={styles.foto} resizeMode="cover" />
-                  </Pressable>
+              <Cartao icone="caixa" titulo={t('encomendaArtigos')}>
+                {itens.map((i, n) => (
+                  <Artigo
+                    key={i.chave}
+                    artigo={i}
+                    podeRetirar={itens.length > 1}
+                    onMudar={(campo, valor) => mudarArtigo(i.chave, campo, valor)}
+                    onRetirar={() => setItens((l) => l.filter((x) => x.chave !== i.chave))}
+                    numero={n + 1}
+                    primeiro={n === 0}
+                    t={t}
+                  />
                 ))}
-              </View>
-            ) : null}
-            {fotos.length < MAX_FOTOS ? (
-              <Button
-                title={t('encomendaFotoJuntar')}
-                variant="secondary"
-                icone="📷"
-                onPress={juntarFotografia}
-              />
-            ) : null}
+                {itens.length < maxItens ? (
+                  <Button
+                    title={t('encomendaJuntarArtigo')}
+                    variant="outline"
+                    iconeNome="mais"
+                    onPress={() => setItens((l) => [...l, artigoVazio()])}
+                  />
+                ) : (
+                  <Text style={styles.nota}>{t('encomendaMaxItens', { n: maxItens })}</Text>
+                )}
+              </Cartao>
 
-            <Text style={styles.seccao}>{t('encomendaTeto')}</Text>
-            <Text style={styles.nota}>{t('encomendaTetoNota')}</Text>
-            <View style={styles.tetos}>
-              {TETOS.filter((v) => v <= regras.tetoMax).map((v) => (
+              <Cartao icone="camera" titulo={t('encomendaFoto')}>
+                <Text style={styles.nota}>{t('encomendaFotoNota')}</Text>
+                <FotosPedido
+                  fotos={fotos}
+                  max={MAX_FOTOS}
+                  onRetirar={(f) => setFotos((l) => l.filter((x) => x.uri !== f.uri))}
+                  accoes={[
+                    {
+                      icone: 'camera',
+                      rotulo: t('encomendaFotoJuntar'),
+                      onPress: juntarFotografia,
+                    },
+                  ]}
+                  rotuloFoto={t('encomendaFoto')}
+                  rotuloRetirar={t('cargaFotoRemover')}
+                />
+              </Cartao>
+
+              {/* O TETO E A TAXA NUM CARTÃO SÓ: a taxa sai do teto, e lidos
+                  juntos vê-se porquê. A taxa vai discreta, à direita — não
+                  pode competir com o preço da viagem, que vem no ecrã a seguir. */}
+              <Cartao icone="carteira" titulo={t('encomendaTeto')}>
+                <Text style={styles.nota}>{t('encomendaTetoNota')}</Text>
+                <View style={styles.tetos}>
+                  {TETOS.filter((v) => v <= regras.tetoMax).map((v) => {
+                    const activo = teto === v;
+                    return (
+                      <Pressable
+                        key={v}
+                        onPress={() => setTeto(v)}
+                        style={[styles.teto, activo && styles.tetoActivo]}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: activo }}
+                      >
+                        {/* O visto, e não só a cor: quem não distingue o
+                            teal do cinzento sabe na mesma qual está escolhido. */}
+                        {activo ? (
+                          <Icone nome="visto" tamanho={14} cor={colors.teal} traco={3} />
+                        ) : null}
+                        <Text style={[styles.tetoTexto, activo && styles.tetoTextoActivo]}>
+                          {dolares(v)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                {taxa != null ? (
+                  <View style={styles.taxa}>
+                    <Icone nome="dinheiro" tamanho={20} cor={colors.teal} />
+                    <View style={styles.flex}>
+                      <Text style={styles.taxaRotulo}>{t('encomendaTaxaRotulo')}</Text>
+                      <Text style={styles.taxaNota}>{t('encomendaTaxaNota')}</Text>
+                    </View>
+                    <Text style={styles.taxaValor}>{dolares(taxa)}</Text>
+                  </View>
+                ) : null}
+              </Cartao>
+
+              <Cartao icone="loja" titulo={t('encomendaOndeComprar')}>
+                <TextField
+                  label={t('encomendaLojaNome')}
+                  value={loja}
+                  onChangeText={setLoja}
+                  placeholder={t('encomendaLojaExemplo')}
+                  maxLength={80}
+                  icone="loja"
+                  obrigatorio
+                />
+                <Text style={styles.rotulo}>{t('encomendaLojaPonto')}</Text>
+                <Lugar lugar={lojaPonto} onEscolher={() => setAApontar('loja')} icone="pin" t={t} />
+              </Cartao>
+
+              <Cartao icone="casa" titulo={t('encomendaOndeEntregar')}>
+                <Lugar
+                  lugar={entrega}
+                  onEscolher={() => setAApontar('entrega')}
+                  icone="casa"
+                  t={t}
+                />
                 <Pressable
-                  key={v}
-                  onPress={() => setTeto(v)}
-                  style={[styles.teto, teto === v && styles.tetoActivo]}
+                  onPress={usarAMinhaLocalizacao}
+                  disabled={aLocalizar}
+                  hitSlop={6}
                   accessibilityRole="button"
-                  accessibilityState={{ selected: teto === v }}
+                  accessibilityState={{ busy: aLocalizar }}
+                  style={({ pressed }) => [styles.aMinha, pressed && styles.premido]}
                 >
-                  <Text style={[styles.tetoTexto, teto === v && styles.tetoTextoActivo]}>
-                    {dolares(v)}
-                  </Text>
+                  {aLocalizar ? (
+                    <ActivityIndicator size="small" color={colors.teal} />
+                  ) : (
+                    <Icone nome="pin" tamanho={18} cor={colors.teal} />
+                  )}
+                  <Text style={styles.aMinhaTexto}>{semPino(t('useMyLocation'))}</Text>
                 </Pressable>
-              ))}
-            </View>
-            {taxa != null ? (
-              <>
-                <Text style={styles.taxa}>{t('encomendaTaxa', { v: dolares(taxa) })}</Text>
-                <Text style={styles.nota}>{t('encomendaTaxaNota')}</Text>
-              </>
+              </Cartao>
+            </>
+          )}
+
+          <RodapeMarca />
+        </ScrollView>
+
+        {/* O BOTÃO FIXO, fora da lista. Só aparece quando a encomenda está
+            disponível para esta conta: sem isso, um botão que nunca liga
+            ficava a ocupar o fundo do ecrã a prometer. */}
+        {regras && !regras.erro && regras.ativo ? (
+          <View style={styles.rodape}>
+            {podePedir && faltam.length ? (
+              <Text style={styles.faltam} numberOfLines={2}>
+                {t('faltaParaContinuar', { lista: faltam.join(' · ') })}
+              </Text>
             ) : null}
-
-            <Text style={styles.seccao}>{t('encomendaOndeComprar')}</Text>
-            <TextField
-              label={t('encomendaLojaNome')}
-              value={loja}
-              onChangeText={setLoja}
-              placeholder={t('encomendaLojaExemplo')}
-              maxLength={80}
-              obrigatorio
-            />
-            <Text style={styles.nota}>{t('encomendaLojaPonto')}</Text>
-            <Lugar lugar={lojaPonto} onEscolher={() => setAApontar('loja')} icone="pin" t={t} />
-
-            <Text style={styles.seccao}>{t('encomendaOndeEntregar')}</Text>
-            <Lugar lugar={entrega} onEscolher={() => setAApontar('entrega')} icone="casa" t={t} />
-            <Button
-              title={t('useMyLocation')}
-              variant="ghost"
-              icone="📍"
-              loading={aLocalizar}
-              onPress={usarAMinhaLocalizacao}
-            />
-
             <Button
               title={t('encomendaContinuar')}
               onPress={continuar}
               disabled={!pronto}
-              style={styles.continuar}
+              tamanho="grande"
+              iconeNomeDireita="seta"
             />
-          </>
-        )}
-
-        <RodapeMarca />
-      </ScrollView>
+          </View>
+        ) : null}
+      </KeyboardAvoidingView>
 
       <EscolherPonto
         visivel={!!aApontar}
@@ -327,21 +389,52 @@ export default function EncomendaScreen({ navigation }) {
   );
 }
 
+// O «📍» do princípio de `useMyLocation` sai só aqui: ao lado vai o pino
+// desenhado, e dois pinos seguidos diziam a mesma coisa duas vezes. O texto
+// fica igual nos dicionários, porque outros ecrãs o mostram tal como está.
+const semPino = (s) => String(s).replace(/^📍\s*/, '');
+
+// A frase das viagens que faltam, com os dois números em destaque. O texto
+// vem inteiro da tradução, com marcas no lugar dos números; assim a ordem das
+// palavras de cada língua não é tocada, e os números ganham peso sem que
+// ninguém tenha de voltar a traduzir nada.
+function FraseComNumeros({ texto, n, feitas }) {
+  const partes = String(texto).split('§');
+  return (
+    <Text style={styles.estadoTexto}>
+      {partes.map((p, i) =>
+        p === 'n' ? (
+          <Text key={i} style={styles.numeroForte}>
+            {n}
+          </Text>
+        ) : p === 'f' ? (
+          <Text key={i} style={[styles.numeroForte, styles.numeroFeitas]}>
+            {feitas}
+          </Text>
+        ) : (
+          p
+        )
+      )}
+    </Text>
+  );
+}
+
 // Uma linha da lista: quantos, o quê, e o detalhe que evita a pergunta.
 //
-// A QUANTIDADE À ESQUERDA e estreita, o nome a ocupar o resto: é a ordem em
-// que a frase se diz («dois arrozes»), e a caixa pequena diz sozinha que ali
-// vai um número e não uma descrição.
-function Artigo({ artigo, podeRetirar, onMudar, onRetirar, numero, t }) {
+// A QUANTIDADE À ESQUERDA, o nome a ocupar o resto: é a ordem em que a frase
+// se diz («dois arrozes»). Os artigos separam-se por um traço, e não cada um
+// no seu cartão: são uma lista, e cartões dentro de um cartão liam-se como
+// perguntas diferentes.
+function Artigo({ artigo, podeRetirar, onMudar, onRetirar, numero, primeiro, t }) {
   return (
-    <View style={styles.artigo}>
+    <View style={[styles.artigo, !primeiro && styles.artigoSeguinte]}>
       <View style={styles.artigoTopo}>
         <View style={styles.artigoQuantos}>
-          <TextField
-            label={t('encomendaArtigoQuantos')}
-            value={String(artigo.quantos)}
-            onChangeText={(v) => onMudar('quantos', v.replace(/[^0-9]/g, '').slice(0, 2))}
-            keyboardType="number-pad"
+          <Text style={styles.rotulo}>{t('encomendaArtigoQuantos')}</Text>
+          <Quantidade
+            valor={artigo.quantos}
+            onMudar={(v) => onMudar('quantos', v)}
+            rotulo={`${t('encomendaArtigoQuantos')} ${numero}`}
           />
         </View>
         <View style={styles.artigoNome}>
@@ -360,9 +453,16 @@ function Artigo({ artigo, podeRetirar, onMudar, onRetirar, numero, t }) {
         onChangeText={(v) => onMudar('detalhe', v)}
         placeholder={t('encomendaArtigoDetalheExemplo')}
         maxLength={60}
+        icone="lapis"
       />
       {podeRetirar ? (
-        <Pressable onPress={onRetirar} hitSlop={8} accessibilityRole="button">
+        <Pressable
+          onPress={onRetirar}
+          hitSlop={8}
+          accessibilityRole="button"
+          style={styles.retirarLinha}
+        >
+          <Icone nome="fechar" tamanho={16} cor={colors.danger} traco={2.6} />
           <Text style={styles.retirar}>{t('encomendaRetirarArtigo')}</Text>
         </Pressable>
       ) : null}
@@ -379,9 +479,15 @@ function escalaoDe(regras, teto) {
   return e ? e.taxa : null;
 }
 
+// A LINHA INTEIRA RESPONDE AO TOQUE, e não só a seta: é a forma de um campo,
+// e é assim que se lê.
 function Lugar({ lugar, onEscolher, icone, t }) {
   return (
-    <Pressable style={styles.lugar} onPress={onEscolher} accessibilityRole="button">
+    <Pressable
+      style={({ pressed }) => [styles.lugar, lugar && styles.lugarPosto, pressed && styles.premido]}
+      onPress={onEscolher}
+      accessibilityRole="button"
+    >
       <Icone nome={icone} tamanho={20} cor={lugar ? colors.teal : colors.textMuted} />
       <Text style={[styles.lugarTexto, !lugar && styles.lugarVazio]} numberOfLines={2}>
         {lugar ? lugar.label : t('lugarDefinir')}
@@ -394,13 +500,14 @@ function Lugar({ lugar, onEscolher, icone, t }) {
 const criarEstilos = () =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.paper },
+    flex: { flex: 1 },
     scroll: { paddingHorizontal: spacing.lg, paddingBottom: spacing.lg },
     topo: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.md,
       marginTop: spacing.sm,
-      marginBottom: spacing.lg,
+      marginBottom: spacing.md,
     },
     voltar: {
       width: 48,
@@ -420,65 +527,115 @@ const criarEstilos = () =>
       borderRadius: radius.pill,
     },
     pastilhaTexto: { ...tipo.corpoForte, color: colors.text },
-    titulo: { ...tipo.display, color: colors.text },
-    subtitulo: { ...tipo.corpo, color: colors.textMuted, marginTop: spacing.xs },
+    titulo: { ...tipo.displayPequeno, color: colors.text },
+    subtitulo: {
+      ...tipo.pequeno,
+      color: colors.textMuted,
+      marginTop: spacing.xs,
+      marginBottom: spacing.md,
+    },
     roda: { marginTop: spacing.xl },
-    aviso: {
+    // O ESTADO DA CONTA, num cartão calmo: tinta coral e não vermelho. Faltar
+    // viagens não é um erro — é um caminho, e diz-se quanto falta.
+    estado: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: spacing.sm,
+      backgroundColor: colors.tintaCoral,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      marginBottom: spacing.md,
+    },
+    estadoTextos: { flex: 1, gap: spacing.xs },
+    estadoTexto: { ...tipo.corpo, color: colors.text, flex: 1 },
+    numeroForte: { ...tipo.corpoForte, color: colors.text },
+    numeroFeitas: { color: colors.coralDark },
+    nota: { ...tipo.pequeno, color: colors.textMuted, marginBottom: spacing.sm },
+    rotulo: { ...tipo.corpoForte, color: colors.text, marginBottom: spacing.xs },
+    artigo: {},
+    artigoSeguinte: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+      paddingTop: spacing.md,
+    },
+    artigoTopo: { flexDirection: 'row', gap: spacing.sm },
+    artigoQuantos: { width: 136, marginBottom: spacing.md },
+    artigoNome: { flex: 1 },
+    retirarLinha: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      alignSelf: 'flex-start',
+      marginTop: -spacing.xs,
+      marginBottom: spacing.md,
+    },
+    retirar: { ...tipo.corpoForte, color: colors.danger },
+    tetos: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+    teto: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      minHeight: 44,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.pill,
+      backgroundColor: colors.white,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+    },
+    tetoActivo: { borderWidth: 2, borderColor: colors.teal, backgroundColor: colors.tintaTeal },
+    tetoTexto: { ...tipo.corpoForte, color: colors.textMuted },
+    tetoTextoActivo: { color: colors.teal },
+    taxa: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.sm,
-      backgroundColor: colors.white,
-      borderRadius: radius.lg,
+      backgroundColor: colors.tintaTeal,
+      borderRadius: radius.md,
       padding: spacing.md,
-      marginTop: spacing.lg,
+      marginTop: spacing.md,
     },
-    avisoTextos: { flex: 1, gap: spacing.xs },
-    avisoTexto: { ...tipo.corpo, color: colors.text, flex: 1 },
-    seccao: {
-      ...tipo.subtitulo,
-      color: colors.text,
-      marginTop: spacing.lg,
-      marginBottom: spacing.xs,
-    },
-    nota: { ...tipo.legenda, color: colors.textMuted, marginBottom: spacing.sm },
-    // Cada artigo num cartão: com as caixas soltas umas debaixo das outras,
-    // cinco artigos liam-se como quinze campos sem princípio nem fim.
-    artigo: {
-      backgroundColor: colors.white,
-      borderRadius: radius.lg,
-      padding: spacing.md,
-      marginBottom: spacing.sm,
-    },
-    artigoTopo: { flexDirection: 'row', gap: spacing.sm },
-    artigoQuantos: { width: 92 },
-    artigoNome: { flex: 1 },
-    retirar: { ...tipo.corpoForte, color: colors.danger, marginTop: spacing.xs },
-    fotos: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
-    foto: { width: 96, height: 96, borderRadius: radius.md },
-    tetos: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-    teto: {
-      paddingHorizontal: spacing.lg,
-      paddingVertical: spacing.sm,
-      borderRadius: radius.pill,
-      backgroundColor: colors.white,
-      borderWidth: 2,
-      borderColor: colors.border,
-    },
-    tetoActivo: { borderColor: colors.acentoCarry, backgroundColor: colors.tintaCarry },
-    tetoTexto: { ...tipo.corpoForte, color: colors.textMuted },
-    tetoTextoActivo: { color: colors.text },
-    taxa: { ...tipo.corpoForte, color: colors.text, marginTop: spacing.md },
+    taxaRotulo: { ...tipo.corpoForte, color: colors.text },
+    taxaNota: { ...tipo.legenda, color: colors.textMuted },
+    taxaValor: { ...tipo.corpoForte, color: colors.teal },
     lugar: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.sm,
-      backgroundColor: colors.white,
+      minHeight: 54,
+      backgroundColor: colors.inputBg,
+      borderWidth: 1.5,
+      borderColor: colors.border,
       borderRadius: radius.lg,
-      padding: spacing.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
     },
+    lugarPosto: { borderColor: colors.teal },
     lugarTexto: { ...tipo.corpo, color: colors.text, flex: 1 },
     lugarVazio: { color: colors.textMuted },
-    continuar: { marginTop: spacing.xl },
+    aMinha: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.xs,
+      minHeight: 44,
+      marginTop: spacing.sm,
+    },
+    aMinhaTexto: { ...tipo.corpoForte, color: colors.teal },
+    premido: { opacity: 0.8 },
+    rodape: {
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.sm,
+      backgroundColor: colors.paper,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+    },
+    faltam: {
+      ...tipo.legenda,
+      color: colors.textMuted,
+      textAlign: 'center',
+      marginBottom: spacing.xs,
+    },
   });
 
 let styles = criarEstilos();

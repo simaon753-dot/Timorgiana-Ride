@@ -3,6 +3,7 @@ import Degrade from '../design/Degrade.js';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, spacing, elevacao, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
+import Icone from '../design/Icone.js';
 
 // Botão.
 //
@@ -52,6 +53,12 @@ export default function Button({
   icone,
   // Seta ou ícone depois do texto ("Kontinua →").
   iconeDireita,
+  // O MESMO, MAS DESENHADO (29/09/2026): o nome de um ícone de `design/Icone`.
+  // `icone` e `iconeDireita` são texto — serviam emojis (📷, 📍), que mudam de
+  // desenho de telemóvel para telemóvel e não seguem a cor do botão. Os dois
+  // continuam a funcionar; estes ganham quando são dados.
+  iconeNome,
+  iconeNomeDireita,
   style,
 }) {
   const inactivo = disabled || loading;
@@ -88,11 +95,17 @@ export default function Button({
         <ActivityIndicator color={v.tinta} />
       ) : (
         <View style={styles.linha}>
-          {icone ? <Text style={[styles.icone, { color: v.tinta }]}>{icone}</Text> : null}
+          {iconeNome ? (
+            <Icone nome={iconeNome} tamanho={20} cor={v.tinta} traco={2.2} />
+          ) : icone ? (
+            <Text style={[styles.icone, { color: v.tinta }]}>{icone}</Text>
+          ) : null}
           <Text style={[styles.rotulo, { color: v.tinta }]} numberOfLines={1}>
             {title}
           </Text>
-          {iconeDireita ? (
+          {iconeNomeDireita ? (
+            <Icone nome={iconeNomeDireita} tamanho={20} cor={v.tinta} traco={2.2} />
+          ) : iconeDireita ? (
             <Text style={[styles.icone, styles.iconeDireita, { color: v.tinta }]}>
               {iconeDireita}
             </Text>
