@@ -188,7 +188,12 @@ function nomeDaResposta(j, lat, lng, precisaoM) {
 // O contador vive na BASE, e não em memória, pela mesma razão do das rotas:
 // no plano gratuito do Render o servidor reinicia a toda a hora, e um
 // contador em memória não é tecto nenhum.
-const NOMES_POR_DIA = Number(process.env.PLACES_MAX_DIA) || 400;
+//
+// 160, E NÃO 400 (29/09/2026, decisão do Simão). O Google dá o escalão
+// gratuito POR MÊS — 5.000 chamadas do Nearby Search Pro — e 400 por dia
+// deixava passar 12.000. Um tecto diário só protege o mês se for o mensal a
+// dividir por 31: 5.000 / 31 ≈ 161. No dia 27/09, com testes, foram 320.
+const NOMES_POR_DIA = Number(process.env.PLACES_MAX_DIA) || 160;
 
 // DE ONDE VIERAM OS NOMES, desde o arranque (22/09/2026).
 //
