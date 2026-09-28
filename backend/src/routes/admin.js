@@ -9,7 +9,10 @@ import {
   gravarServicoAtivo,
   estadoJastip,
   gravarRegrasJastip,
+  gravarDestinosCarry,
+  quandoMudaramDestinos,
 } from '../configServico.js';
+import { destinosEmVigor, DESTINOS_PADRAO, LIMITES_DESTINOS } from '../destinosCarry.js';
 import { historicoDe } from '../eventos.js';
 import { jastipPublico } from '../jastip.js';
 import { listarParadas, criarParada, apagarParada } from '../paradas.js';
@@ -423,6 +426,41 @@ adminRouter.put(
     if (erro) return res.status(400).json({ error: erro });
     await gravarTarifaCarry(limpo, req.user.id);
     res.json(estadoCarry());
+  })
+);
+
+// GET /api/admin/carry/destinos — a tabela de destinos de preço fixo
+//
+// Com os de partida ao lado, para o painel mostrar o que mudou, e com um
+// preço de EXEMPLO de Díli a cada destino calculado pela mesma função da
+// cotação: quem edita vê o número que o passageiro vai ver.
+async function estadoDestinos() {
+  const { destinos, personalizados } = destinosEmVigor();
+  const quando = quandoMudaramDestinos();
+  const quem = quando?.por
+    ? (await one('SELECT name FROM users WHERE id = $1', [quando.por]))?.name
+    : null;
+  return {
+    destinos,
+    personalizados,
+    padrao: DESTINOS_PADRAO,
+    limites: LIMITES_DESTINOS,
+    atualizado: quando ? { em: quando.em, porNome: quem || null } : null,
+  };
+}
+
+adminRouter.get(
+  '/carry/destinos',
+  wrap(async (_req, res) => res.json(await estadoDestinos()))
+);
+
+// PUT /api/admin/carry/destinos — gravar a tabela ({ destinos: null } repõe)
+adminRouter.put(
+  '/carry/destinos',
+  wrap(async (req, res) => {
+    const r = await gravarDestinosCarry(req.body?.destinos ?? null, req.user.id);
+    if (r.erro) return res.status(400).json({ error: r.erro });
+    res.json(await estadoDestinos());
   })
 );
 

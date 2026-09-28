@@ -453,7 +453,15 @@ ridesRouter.post(
         // via um preço no ecrã e a viagem nascia com outro — e o do ecrã é o
         // que ele aceitou.
         pessoasContam ? passengers : null,
-        carryPessoas ? null : { volume: cargaVolume, ajuda: cargaAjuda, paragens: paragens.length }
+        carryPessoas ? null : { volume: cargaVolume, ajuda: cargaAjuda, paragens: paragens.length },
+        // As mesmas pontas da cotação — a tabela de destinos do Pickup tem de
+        // dar aqui o mesmo número que deu no ecrã. Sem paragens, como lá.
+        paragens.length
+          ? null
+          : {
+              origem: { lat: Number(originLat), lng: Number(originLng) },
+              destino: { lat: Number(destLat), lng: Number(destLng) },
+            }
       );
       kmViagem = viagem.km;
       minViagem = viagem.min;

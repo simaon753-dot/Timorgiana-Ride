@@ -214,6 +214,25 @@ export const MENSAGENS = {
   'Fotografia não encontrada.': ['La hetan fotografia.', 'Photo not found.'],
   'Conta não encontrada.': ['La hetan konta.', 'Account not found.'],
   'Viagem não encontrada.': ['La hetan viajen.', 'Ride not found.'],
+  // ── Tabela de destinos do Pickup (28/09/2026)
+  'Lista de destinos inválida.': ['Lista destinu la válidu.', 'Invalid destination list.'],
+  'Demasiados destinos.': ['Destinu barak liu.', 'Too many destinations.'],
+  'Cada destino precisa de um nome (2 a 40 letras).': [
+    'Destinu ida-idak presiza naran (letra 2 to’o 40).',
+    'Each destination needs a name (2 to 40 letters).',
+  ],
+  'Há coordenadas fora de Timor-Leste.': [
+    'Iha koordenada balun iha Timor-Leste liur.',
+    'Some coordinates are outside Timor-Leste.',
+  ],
+  'O raio tem de ser de 0,5 a 30 km.': [
+    'Raiu tenke husi 0,5 to’o 30 km.',
+    'The radius must be 0.5 to 30 km.',
+  ],
+  'O preço tem de ser de $1 a $500.': [
+    'Folin tenke husi $1 to’o $500.',
+    'The price must be $1 to $500.',
+  ],
   // ── Entrada no painel com código (28/09/2026)
   'Esta conta não é de administrador.': [
     'Konta ida-ne’e la’ós administradór nian.',

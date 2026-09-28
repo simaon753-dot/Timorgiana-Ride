@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bike, Car, CreditCard, HardHat, ImageUp, Lock, Package, Plus, QrCode, RotateCcw, Save, ToggleRight, Trash2, Truck, User } from 'lucide-react';
+import { Bike, Car, MapPinned, CreditCard, HardHat, ImageUp, Lock, Package, Plus, QrCode, RotateCcw, Save, ToggleRight, Trash2, Truck, User } from 'lucide-react';
 import { t, tl, type Chave } from '@/i18n';
 import { api } from '@/services/admin';
 import { useDados } from '@/hooks/useDados';
@@ -19,11 +19,13 @@ import { DialogoConfirmacao } from '@/components/ui/confirmar';
 import { avisar, mensagemDe } from '@/components/ui/aviso';
 import { Avatar } from '@/components/ui/avatar';
 import { Dado } from '@/components/comuns';
+import { SeccaoDestinosCarry } from './DestinosCarry';
 
 const SECCOES = [
   { id: 'conta', rotulo: 'def.conta' as Chave, icone: User },
   { id: 'servicos', rotulo: 'def.servicos' as Chave, icone: ToggleRight },
   { id: 'carry', rotulo: 'def.carry' as Chave, icone: Truck },
+  { id: 'destinos', rotulo: 'dest.titulo' as Chave, icone: MapPinned },
   { id: 'encomenda', rotulo: 'def.encomenda' as Chave, icone: Package },
   { id: 'formas', rotulo: 'def.formas' as Chave, icone: CreditCard },
 ];
@@ -51,6 +53,7 @@ export function Definicoes() {
           <SeccaoConta />
           <SeccaoServicos />
           <SeccaoCarry />
+          <SeccaoDestinosCarry />
           <SeccaoEncomenda />
           <SeccaoFormas />
         </div>

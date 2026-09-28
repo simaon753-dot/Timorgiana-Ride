@@ -514,6 +514,27 @@ export interface EstadoCarry {
   atualizado: { em: string; por: number | null } | null;
 }
 
+// A TABELA DE DESTINOS DO PICKUP (28/09/2026) — preço fixo entre Díli e cada
+// destino, reconhecido por um ponto e um raio.
+export interface DestinoCarry {
+  id: string;
+  nome: string;
+  lat: number;
+  lng: number;
+  raioKm: number;
+  precoUsd: number;
+  ativo: boolean;
+  regra: 'desde_dili' | 'dentro';
+}
+type Limite = { min: number; max: number };
+export interface RespostaDestinosCarry {
+  destinos: DestinoCarry[];
+  personalizados: boolean;
+  padrao: DestinoCarry[];
+  limites: { maximo: number; nome: Limite; lat: Limite; lng: Limite; raioKm: Limite; precoUsd: Limite };
+  atualizado: { em: string; porNome: string | null } | null;
+}
+
 export interface RespostaCarry extends EstadoCarry {
   atualizadoPorNome: string | null;
   exemplos: { km: number; min: number; volume?: string; ajuda?: string; paragens?: number; pessoas?: number; preco: number }[];

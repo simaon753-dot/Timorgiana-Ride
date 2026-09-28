@@ -10,6 +10,7 @@ import { paragensQueCobrem } from '../paradas.js';
 import { estradaMaisPerto } from '../estradasNossas.js';
 import { nearestDrivers } from '../drivers.js';
 import { taxasPara } from '../taxasDeEntrada.js';
+import { destinoFixo } from '../destinosCarry.js';
 // A LISTA DOS TIPOS, que faltava desde a fase 1 do Carry. Sem ela cada
 // cotação rebentava com ReferenceError e a app ficava sem preço — só o pedido
 // (routes/rides.js, que a importa) calculava o valor. Ver
@@ -80,6 +81,11 @@ quoteRouter.post(
     const carryPessoas = req.body?.carryModo === 'pessoas';
     // As paragens contam no preço do Carry (a taxa por paragem do painel).
     carga.paragens = paragens.length;
+    // AS DUAS PONTAS, para a tabela de destinos do Pickup (28/09/2026). Só
+    // sem paragens: a tabela da rua é de ponto a ponto. Ver destinosCarry.js.
+    const pontas = paragens.length
+      ? null
+      : { origem: { lat: oLat, lng: oLng }, destino: { lat: dLat, lng: dLng } };
     // UMA ROTA POR MODO DE VIAGEM (22/09/2026).
     //
     // Até hoje calculava-se UMA rota de automóvel e repartia-se o mesmo `km`
@@ -172,13 +178,20 @@ quoteRouter.post(
                 r.km,
                 r.min,
                 tipo === 'car' || (tipo === 'carry' && carryPessoas) ? pessoas : null,
-                tipo === 'carry' && carryPessoas ? null : carga
+                tipo === 'carry' && carryPessoas ? null : carga,
+                pontas
               ) +
                 taxaEncomenda) *
                 100
             ) / 100,
           etaMin: maisPerto ? etaMinutos(maisPerto.km) : null,
           available: !!maisPerto,
+          // O NOME do destino de preço fixo, para a app poder dizer «preço da
+          // tabela: Baucau» em vez de deixar a pessoa a perguntar-se porque é
+          // que 120 km custam o mesmo que 110.
+          ...(tipo === 'carry' && pontas
+            ? { destinoFixo: destinoFixo(pontas.origem, pontas.destino)?.nome || null }
+            : {}),
         };
       })
     );
@@ -223,7 +236,8 @@ quoteRouter.post(
             c.km,
             c.min,
             tipoEscolhido === 'car' || (tipoEscolhido === 'carry' && carryPessoas) ? pessoas : null,
-            tipoEscolhido === 'carry' && carryPessoas ? null : carga
+            tipoEscolhido === 'carry' && carryPessoas ? null : carga,
+            pontas
           ) +
             taxaEncomenda) *
             100

@@ -1,5 +1,6 @@
 import { config, SERVICOS, JASTIP_PADRAO } from './config.js';
 import { query } from './db.js';
+import { aplicarDestinos, validarDestinos } from './destinosCarry.js';
 
 // OS PREÇOS DO CARRY, EDITÁVEIS NO PAINEL (14/09/26).
 //
@@ -41,6 +42,7 @@ export const CAMPOS_CARRY = [
 const ativos = new Map();
 let atualizado = null;
 let atualizadoServicos = new Map();
+let atualizadoDestinos = null;
 
 function lerCampo(obj, chave) {
   return chave.split('.').reduce((o, k) => (o == null ? o : o[k]), obj);
@@ -132,11 +134,14 @@ export async function carregarConfigServico() {
   try {
     const rows = await query(
       `SELECT chave, valor, atualizado_em, atualizado_por FROM config_servico
-        WHERE chave IN ('carry.tarifa', 'jastip.regras') OR chave LIKE '%.ativo'`
+        WHERE chave IN ('carry.tarifa', 'jastip.regras', 'carry.destinos') OR chave LIKE '%.ativo'`
     );
     const tarifa = rows.find((r) => r.chave === 'carry.tarifa');
     aplicar(tarifa?.valor || {});
     aplicarJastip(rows.find((r) => r.chave === 'jastip.regras')?.valor);
+    const dest = rows.find((r) => r.chave === 'carry.destinos');
+    aplicarDestinos(dest?.valor ?? null);
+    atualizadoDestinos = dest ? { em: dest.atualizado_em, por: dest.atualizado_por } : null;
     atualizado = tarifa ? { em: tarifa.atualizado_em, por: tarifa.atualizado_por } : null;
 
     ativos.clear();
@@ -213,6 +218,24 @@ async function gravar(chave, valor, porId) {
 
 export function gravarTarifaCarry(valores, porId) {
   return gravar('carry.tarifa', valores, porId);
+}
+
+// A TABELA DE DESTINOS DO PICKUP (28/09/2026). Ver `destinosCarry.js`.
+// `null` apaga o que foi gravado e volta aos de partida.
+export async function gravarDestinosCarry(lista, porId) {
+  if (lista == null) {
+    await query(`DELETE FROM config_servico WHERE chave = 'carry.destinos'`);
+    await carregarConfigServico();
+    return {};
+  }
+  const v = validarDestinos(lista);
+  if (v.erro) return v;
+  await gravar('carry.destinos', v.limpos, porId);
+  return {};
+}
+
+export function quandoMudaramDestinos() {
+  return atualizadoDestinos;
 }
 export function gravarCarryAtivo(ativo, porId) {
   return gravarServicoAtivo('carry', ativo, porId);

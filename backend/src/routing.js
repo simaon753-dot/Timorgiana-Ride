@@ -1,4 +1,5 @@
 import { config } from './config.js';
+import { destinoFixo } from './destinosCarry.js';
 
 // Distância em linha reta (Haversine), em km
 export function straightKm(a, b) {
@@ -70,8 +71,21 @@ export function duracaoRealista(km, minutosDoMotor) {
 // Sem tempo conhecido, estima-se dos quilómetros pela mesma velocidade que o
 // resto da app assume. É melhor do que cobrar zero pela parcela e melhor do
 // que recusar dar preço.
-export function preco(vehicleType, km, min = null, pessoas = null, carga = null) {
+// `pontas` ({ origem, destino }) é opcional e só o Carry o usa: é por elas
+// que se sabe se a viagem tem PREÇO FIXO DE DESTINO (ver `destinosCarry.js`).
+// Quem chama só as passa quando a viagem não tem paragens.
+export function preco(vehicleType, km, min = null, pessoas = null, carga = null, pontas = null) {
   const t = config.tarifas[vehicleType] || config.tarifas.car;
+
+  // O PREÇO DA TABELA DE DESTINOS ganha à fórmula (28/09/2026). É o preço da
+  // viagem inteira, como na rua — o volume não o multiplica —, e a ajuda a
+  // carregar soma-se por cima, porque a tabela da rua não a inclui.
+  const fixo =
+    vehicleType === 'carry' && pontas ? destinoFixo(pontas.origem, pontas.destino) : null;
+  if (fixo) {
+    const ajuda = (t.ajuda && carga && t.ajuda[carga.ajuda]) || 0;
+    return aoCentimoPermitido(fixo.precoUsd + ajuda);
+  }
   const minutos = Number.isFinite(Number(min)) && Number(min) > 0 ? Number(min) : estimarMin(km);
   const distancia = Math.max(0, Number(km) || 0);
 

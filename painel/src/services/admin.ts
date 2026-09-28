@@ -12,6 +12,8 @@ import type {
   Parada,
   RegrasJastip,
   RespostaCarry,
+  RespostaDestinosCarry,
+  DestinoCarry,
   RespostaContaDetalhe,
   RespostaMotoristas,
   RespostaNotificacoes,
@@ -156,6 +158,10 @@ export const api = {
   carry: () => pedir<RespostaCarry>('/admin/carry'),
   gravarTarifaCarry: (valores: Record<string, number>) =>
     pedir<EstadoCarry>('/admin/carry/tarifa', { method: 'PUT', corpo: { valores } }),
+  destinosCarry: () => pedir<RespostaDestinosCarry>('/admin/carry/destinos'),
+  // `null` repõe os destinos de partida.
+  gravarDestinosCarry: (destinos: Omit<DestinoCarry, 'id'>[] | (Partial<DestinoCarry> & object)[] | null) =>
+    pedir<RespostaDestinosCarry>('/admin/carry/destinos', { method: 'PUT', corpo: { destinos } }),
   carryAtivo: (ativo: boolean) => pedir<EstadoCarry>('/admin/carry/ativo', { method: 'PUT', corpo: { ativo } }),
 };
 

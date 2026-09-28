@@ -13,6 +13,8 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+// A tabela de destinos do Pickup é a do próprio servidor (só contas, sem base de dados).
+import { DESTINOS_PADRAO, LIMITES_DESTINOS, validarDestinos } from '../../backend/src/destinosCarry.js';
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 const RAIZ = path.resolve(AQUI, '../..');
@@ -165,6 +167,7 @@ const viagemDemo = (id, horas, extra = {}) => ({
 });
 // O fim do período gratuito, anunciado no painel (28/09/2026). Nulo = sem taxa até novo aviso.
 let inicioCobranca = null;
+let destinosDemo = null;
 let ocorrencias = [
   { id: 3, rideId: 1204, papelAutor: 'passenger', autor: 'Passageiro Exemplo', autorTelefone: '77000001', categoria: 'conducaoPerigosa', grave: true,
     descricao: 'Ia muito depressa na avenida de Comoro e passou dois semáforos vermelhos.', estado: 'aberta', resposta: null, notaInterna: null,
@@ -507,6 +510,22 @@ async function api(req, res, url) {
       pendentes: pedidos.filter((o) => o.estado === 'pendente'),
       decididos: pedidos.filter((o) => o.estado !== 'pendente'),
       formas, prazoHoras: 24,
+    });
+  }
+  if (p === '/admin/carry/destinos') {
+    if (req.method === 'PUT') {
+      const b = await corpoDe(req);
+      if (b.destinos == null) destinosDemo = null;
+      else {
+        const v = validarDestinos(b.destinos);
+        if (v.erro) return json(res, { error: v.erro }, 400);
+        destinosDemo = v.limpos;
+      }
+    }
+    const lista = (destinosDemo || DESTINOS_PADRAO).map((d) => ({ regra: 'desde_dili', ...d }));
+    return json(res, {
+      destinos: lista, personalizados: !!destinosDemo, padrao: DESTINOS_PADRAO, limites: LIMITES_DESTINOS,
+      atualizado: destinosDemo ? { em: new Date().toISOString(), porNome: 'Administrador (demonstração)' } : null,
     });
   }
   if (p === '/admin/assinatura/cobranca' && req.method === 'PUT') {
