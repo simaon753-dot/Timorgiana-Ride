@@ -9,6 +9,8 @@ import {
   Pressable,
   ActivityIndicator,
   ScrollView,
+  LayoutAnimation,
+  PanResponder,
 } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -269,6 +271,38 @@ export default function RequestRideScreen({ navigation, route }) {
   // "Avisar quando houver motorista": null | 'a_pedir' | 'pedido' | 'erro'.
   const [aviso, setAviso] = useState(null);
   const [aPedir, setAPedir] = useState(false);
+  // A ALTURA DO PAINEL: baixo, meio ou alto (29/09/2026). Arrasta-se pela pega
+  // ou toca-se nela. Começa no MEIO, que é a altura de sempre — quem não
+  // mexer vê o ecrã exactamente como via.
+  //
+  // Muda de posição no FIM do gesto, e não a acompanhar o dedo: o painel
+  // empurra o mapa, e redesenhar o mapa nativo a cada movimento do dedo
+  // deixava os dois aos soluços. Um salto animado no fim fica suave e custa
+  // um só redesenho. Em JavaScript, sem biblioteca nativa: chega pelo ar.
+  const [folha, setFolha] = useState('meio');
+  const gestoFolha = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 6,
+      onPanResponderRelease: (_, g) => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setFolha((f) => {
+          const i = ALTURAS_FOLHA.indexOf(f);
+          if (g.dy < -30) return ALTURAS_FOLHA[Math.min(i + 1, ALTURAS_FOLHA.length - 1)];
+          if (g.dy > 30) return ALTURAS_FOLHA[Math.max(i - 1, 0)];
+          // Um toque: do baixo ou do alto volta ao meio; do meio abre.
+          return f === 'meio' ? 'alto' : 'meio';
+        });
+      },
+    })
+  ).current;
+  const mexerFolha = (passo) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setFolha((f) => {
+      const i = ALTURAS_FOLHA.indexOf(f) + passo;
+      return ALTURAS_FOLHA[Math.max(0, Math.min(i, ALTURAS_FOLHA.length - 1))];
+    });
+  };
   const [pesquisa, setPesquisa] = useState(null); // 'origem' | 'destino' | null
   // Escolher no mapa: o pino fica fixo no centro e o mapa move-se por baixo.
   //
@@ -1291,6 +1325,21 @@ export default function RequestRideScreen({ navigation, route }) {
     cargaCompleta &&
     coberturaDestino !== false;
 
+  // O QUE FALTA PARA PEDIR, por baixo do botão (29/09/2026). O botão já só
+  // acende com o pedido completo, mas não dizia porquê — e no Pickup há três
+  // perguntas obrigatórias espalhadas por um painel comprido. Os nomes são os
+  // títulos das próprias perguntas.
+  const levaBens = !veiculo(veiculoAtual).levaPessoas && !carryPessoas;
+  const faltamPedido =
+    origem && destino && !aPedir
+      ? [
+          levaBens && !cargaTipo && t('cargaTiposTitulo'),
+          levaBens && cargaTipos.includes('outros') && !cargaOutro.trim() && t('cargaOutroTitulo'),
+          levaBens && !cargaDeclarado && t('resumoSeguranca'),
+          !outroCompleto && t('outraPessoaTitulo'),
+        ].filter(Boolean)
+      : [];
+
   const rotuloBotao = !(origem && destino)
     ? t('whereTo')
     : opcao
@@ -1520,10 +1569,23 @@ export default function RequestRideScreen({ navigation, route }) {
       <View
         style={[
           styles.painel,
+          { maxHeight: ALTURA_MAXIMA[folha] },
           (pesquisa || aEscolherNoMapa || aEscolherParagem) && styles.escondido,
         ]}
       >
-        <View style={styles.puxador} />
+        <View
+          {...gestoFolha.panHandlers}
+          style={styles.pegaZona}
+          accessible
+          accessibilityRole="adjustable"
+          accessibilityLabel={t('painelTamanho')}
+          accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
+          onAccessibilityAction={(e) =>
+            mexerFolha(e.nativeEvent.actionName === 'increment' ? 1 : -1)
+          }
+        >
+          <View style={styles.puxador} />
+        </View>
         {/* O indicador de deslize é mostrado de propósito. Escondido, o
             painel cortava a meio — a pergunta "quantas pessoas?" ficava
             visível e as respostas por baixo da dobra, sem nada a dizer
@@ -1947,6 +2009,11 @@ export default function RequestRideScreen({ navigation, route }) {
             </Text>
           </Pressable>
         ) : null}
+        {faltamPedido.length ? (
+          <Text style={styles.faltam} numberOfLines={2}>
+            {t('faltaParaContinuar', { lista: faltamPedido.join(' · ') })}
+          </Text>
+        ) : null}
         <Pressable
           style={[styles.botaoPedir, !podePedir && styles.botaoInativo]}
           onPress={pedir}
@@ -2140,36 +2207,63 @@ function ResumoCarry({
   preco,
   declarado,
 }) {
+  // FECHADO POR OMISSÃO (29/09/2026). Aberto, eram dez linhas de 56 px a
+  // repetir o que está logo acima — recolha, destino, carga, tamanho, ajuda —
+  // e era a maior parte do comprimento do painel. Fechado fica o que ainda
+  // não se viu junto: paragens, fotografias, preço, e se a declaração está
+  // feita. A lista inteira continua a um toque, para quem quer rever tudo
+  // antes de carregar em pedir.
+  const [aberto, setAberto] = useState(false);
   const nomes = tipos.map((x) => t(CHAVE_TIPO[x] || 'cargaOutros')).join(', ');
+  const alternar = (
+    <Pressable
+      onPress={() => setAberto((a) => !a)}
+      hitSlop={12}
+      accessibilityRole="button"
+      accessibilityState={{ expanded: aberto }}
+    >
+      <Text style={styles.resumoAlternar}>{aberto ? t('resumoEsconder') : t('resumoVerTudo')}</Text>
+    </Pressable>
+  );
   return (
     <View style={styles.resumo}>
-      <Cartao icone="documento" titulo={t('resumoTitulo')} lista>
-        <LinhaInfo icone="pin" rotulo={t('pickupPoint')} valor={origem?.label} />
-        <LinhaInfo icone="pin" rotulo={t('dropoffPoint')} valor={destino?.label} />
-        <LinhaInfo
-          icone="carry"
-          rotulo={t('resumoServico')}
-          valor={`${t('vehicleCarry')} · ${t('carryModoBens')}`}
-        />
-        <LinhaInfo icone="caixa" rotulo={t('resumoCarga')} valor={nomes || '—'} mau={!nomes} />
-        <LinhaInfo
-          icone="grafico"
-          rotulo={t('resumoTamanho')}
-          valor={t(CHAVE_VOLUME[volume] || 'cargaVolMedio')}
-        />
-        <LinhaInfo
-          icone="pessoa"
-          rotulo={t('resumoAssistencia')}
-          valor={t(CHAVE_AJUDA[ajuda] || 'cargaAjudaNenhuma')}
-        />
-        <LinhaInfo icone="rota" rotulo={t('resumoParagens')} valor={String(paragens)} />
-        <LinhaInfo icone="camera" rotulo={t('resumoFotos')} valor={String(fotos)} />
-        <LinhaInfo
-          icone="carteira"
-          rotulo={t('resumoPreco')}
-          valor={preco || t('fareToAgree')}
-          forte
-        />
+      <Cartao icone="documento" titulo={t('resumoTitulo')} direita={alternar} lista>
+        {aberto ? (
+          <>
+            <LinhaInfo icone="pin" rotulo={t('pickupPoint')} valor={origem?.label} />
+            <LinhaInfo icone="pin" rotulo={t('dropoffPoint')} valor={destino?.label} />
+            <LinhaInfo
+              icone="carry"
+              rotulo={t('resumoServico')}
+              valor={`${t('vehicleCarry')} · ${t('carryModoBens')}`}
+            />
+            <LinhaInfo icone="caixa" rotulo={t('resumoCarga')} valor={nomes || '—'} mau={!nomes} />
+            <LinhaInfo
+              icone="grafico"
+              rotulo={t('resumoTamanho')}
+              valor={t(CHAVE_VOLUME[volume] || 'cargaVolMedio')}
+            />
+            <LinhaInfo
+              icone="pessoa"
+              rotulo={t('resumoAssistencia')}
+              valor={t(CHAVE_AJUDA[ajuda] || 'cargaAjudaNenhuma')}
+            />
+            <LinhaInfo icone="rota" rotulo={t('resumoParagens')} valor={String(paragens)} />
+            <LinhaInfo icone="camera" rotulo={t('resumoFotos')} valor={String(fotos)} />
+            <LinhaInfo
+              icone="carteira"
+              rotulo={t('resumoPreco')}
+              valor={preco || t('fareToAgree')}
+              forte
+            />
+          </>
+        ) : (
+          <View style={styles.resumoFaixa}>
+            <MetricaResumo rotulo={t('resumoParagens')} valor={String(paragens)} />
+            <MetricaResumo rotulo={t('resumoFotos')} valor={String(fotos)} />
+            <MetricaResumo rotulo={t('resumoPreco')} valor={preco || t('fareToAgree')} forte />
+          </View>
+        )}
         <LinhaInfo
           icone="escudo"
           rotulo={t('resumoSeguranca')}
@@ -2181,6 +2275,27 @@ function ResumoCarry({
     </View>
   );
 }
+
+function MetricaResumo({ rotulo, valor, forte }) {
+  return (
+    <View style={styles.resumoMetrica}>
+      <Text style={styles.resumoMetricaRotulo} numberOfLines={1}>
+        {rotulo}
+      </Text>
+      <Text
+        style={[styles.resumoMetricaValor, forte && styles.resumoMetricaForte]}
+        numberOfLines={1}
+      >
+        {valor}
+      </Text>
+    </View>
+  );
+}
+
+// As três alturas do painel, pela ordem em que a pega as percorre. Em
+// percentagem do ecrã, como já era o `maxHeight` de 62%: o meio é esse.
+const ALTURAS_FOLHA = ['baixo', 'meio', 'alto'];
+const ALTURA_MAXIMA = { baixo: '34%', meio: '62%', alto: '88%' };
 
 const CHAVE_TIPO = Object.fromEntries(TIPOS_CARGA_LISTA.map((o) => [o.id, o.chave]));
 const CHAVE_AJUDA = Object.fromEntries(AJUDAS_CARGA_LISTA.map((o) => [o.id, o.chave]));
@@ -2283,13 +2398,27 @@ const criarEstilos = () =>
       paddingBottom: spacing.md,
       maxHeight: '62%',
     },
+    // A zona da pega é a largura toda e mais alta do que o traço: um traço de
+    // 4 px é um alvo que ninguém acerta à primeira.
+    pegaZona: {
+      alignSelf: 'stretch',
+      alignItems: 'center',
+      marginTop: -spacing.sm,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.md,
+    },
     puxador: {
       width: 40,
       height: 4,
       borderRadius: 2,
       backgroundColor: colors.border,
       alignSelf: 'center',
-      marginBottom: spacing.md,
+    },
+    faltam: {
+      ...tipo.legenda,
+      color: colors.textMuted,
+      textAlign: 'center',
+      marginBottom: spacing.xs,
     },
     ponto: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm },
     bolinha: {
@@ -2477,7 +2606,19 @@ const criarEstilos = () =>
       marginTop: spacing.md,
     },
     botaoInativo: { backgroundColor: colors.border },
-    resumo: { marginTop: spacing.lg },
+    resumo: { marginTop: spacing.md },
+    resumoAlternar: { ...tipo.corpoForte, color: colors.teal },
+    resumoFaixa: {
+      flexDirection: 'row',
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    resumoMetrica: { flex: 1 },
+    resumoMetricaRotulo: { ...tipo.legenda, color: colors.textMuted },
+    resumoMetricaValor: { ...tipo.corpoForte, color: colors.text },
+    resumoMetricaForte: { color: colors.teal },
     avisarBotao: {
       flexDirection: 'row',
       alignItems: 'center',

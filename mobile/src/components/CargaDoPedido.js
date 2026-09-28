@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Image, Alert, Modal, ScrollView } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Alert, Modal, ScrollView } from 'react-native';
 import Icone from '../design/Icone.js';
+import FotosPedido from '../design/FotosPedido.js';
 import Button from './Button.js';
 import * as ImagePicker from 'expo-image-picker';
 import { encolherFoto } from '../lib/encolherFoto.js';
@@ -204,6 +205,9 @@ export default function CargaDoPedido({
           "Médio" não quer dizer nada a quem está numa loja com uma caixa na
           mão; "enche meia caixa do Carry" quer. É a diferença entre uma
           escala inventada por nós e uma medida que a pessoa consegue ver. */}
+      {/* LADO A LADO desde 29/09/2026: empilhados, os três ocupavam mais de
+          200 px do painel para uma escolha de três. O visto diz qual está
+          escolhido a quem não distingue as cores. */}
       <View style={styles.volumes}>
         {VOLUMES.map((v) => {
           const activo = volume === v.id;
@@ -215,9 +219,12 @@ export default function CargaDoPedido({
               accessibilityRole="button"
               accessibilityState={{ selected: activo }}
             >
-              <Text style={[styles.volumeNome, activo && styles.volumeNomeActivo]}>
-                {t(v.chave)}
-              </Text>
+              <View style={styles.volumeTopo}>
+                <Text style={[styles.volumeNome, activo && styles.volumeNomeActivo]}>
+                  {t(v.chave)}
+                </Text>
+                {activo ? <Icone nome="visto" tamanho={16} cor={colors.teal} traco={3} /> : null}
+              </View>
               <Text style={styles.volumeNota}>{t(v.nota)}</Text>
             </Pressable>
           );
@@ -286,53 +293,25 @@ export default function CargaDoPedido({
           demais para a caixa, coisa que nenhuma lista de volumes ia dizer. */}
       <Text style={styles.seccao}>{t('cargaFotosTitulo')}</Text>
       <Text style={styles.fotosNota}>{t('cargaFotosNota')}</Text>
-      <View style={styles.fotos}>
-        {fotos.map((f, i) => (
-          <View key={f.uri} style={styles.foto}>
-            <Image
-              source={{ uri: f.uri }}
-              style={styles.fotoImagem}
-              accessibilityIgnoresInvertColors
-            />
-            {/* O ✕ é pequeno à vista e grande ao dedo: 26 de largura com
-                `hitSlop` de 9 dá os 44 que um dedo precisa. Desenhá-lo com 44
-                tapava a fotografia que ele serve para remover. */}
-            <Pressable
-              style={styles.fotoRemover}
-              hitSlop={9}
-              onPress={() => onFotos?.(fotos.filter((_, j) => j !== i))}
-              accessibilityRole="button"
-              accessibilityLabel={t('cargaFotoRemover')}
-            >
-              <Text style={styles.fotoRemoverTexto}>✕</Text>
-            </Pressable>
-          </View>
-        ))}
-        {fotos.length < MAX_FOTOS ? (
-          <>
-            <Pressable
-              style={styles.fotoAdd}
-              onPress={() => tirarFoto(false)}
-              disabled={aTirar}
-              accessibilityRole="button"
-              accessibilityLabel={t('cargaFotoCamera')}
-            >
-              <Icone nome="camera" tamanho={26} cor={colors.teal} />
-              <Text style={styles.fotoAddTexto}>{t('cargaFotoCamera')}</Text>
-            </Pressable>
-            <Pressable
-              style={styles.fotoAdd}
-              onPress={() => tirarFoto(true)}
-              disabled={aTirar}
-              accessibilityRole="button"
-              accessibilityLabel={t('cargaFotoGaleria')}
-            >
-              <Icone nome="galeria" tamanho={26} cor={colors.teal} />
-              <Text style={styles.fotoAddTexto}>{t('cargaFotoGaleria')}</Text>
-            </Pressable>
-          </>
-        ) : null}
-      </View>
+      <FotosPedido
+        fotos={fotos}
+        max={MAX_FOTOS}
+        onRetirar={(f) => onFotos?.(fotos.filter((x) => x !== f))}
+        accoes={[
+          {
+            icone: 'camera',
+            rotulo: t('cargaFotoCamera'),
+            onPress: () => !aTirar && tirarFoto(false),
+          },
+          {
+            icone: 'galeria',
+            rotulo: t('cargaFotoGaleria'),
+            onPress: () => !aTirar && tirarFoto(true),
+          },
+        ]}
+        rotuloFoto={t('cargaFotosTitulo')}
+        rotuloRetirar={t('cargaFotoRemover')}
+      />
 
       {/* A declaração, à vista e por marcar. Ver a nota no topo do ficheiro. */}
       <Pressable
@@ -342,7 +321,7 @@ export default function CargaDoPedido({
         accessibilityState={{ checked: declarado }}
       >
         <View style={[styles.caixa, declarado && styles.caixaMarcada]}>
-          {declarado ? <Text style={styles.visto}>✓</Text> : null}
+          {declarado ? <Icone nome="visto" tamanho={16} cor={colors.onTeal} traco={3} /> : null}
         </View>
         <Text style={styles.declaracaoTexto}>{t('cargaDeclaracao')}</Text>
       </Pressable>
@@ -409,10 +388,12 @@ export const VOLUMES_CARGA_LISTA = VOLUMES;
 
 const criarEstilos = () =>
   StyleSheet.create({
+    // `md` e não `lg` entre secções (29/09/2026): sete secções a 24 px eram
+    // quase um ecrã de telemóvel só de espaço.
     seccao: {
       ...tipo.etiqueta,
       color: colors.textMuted,
-      marginTop: spacing.lg,
+      marginTop: spacing.md,
       marginBottom: spacing.sm,
     },
 
@@ -429,7 +410,8 @@ const criarEstilos = () =>
     },
     fichaActiva: { backgroundColor: colors.teal, borderColor: colors.teal },
     fichaTexto: { ...tipo.pequeno, color: colors.text },
-    fichaTextoActivo: { color: colors.onTeal, fontWeight: '700' },
+    // `corpoForte` e não `fontWeight`: ver SISTEMA.md, «nunca fontWeight sem família».
+    fichaTextoActivo: { ...tipo.corpoForte, fontSize: 13.5, color: colors.onTeal },
 
     tiposCarga: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     tipoCarga: {
@@ -437,8 +419,8 @@ const criarEstilos = () =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.sm,
-      minHeight: 60,
-      paddingVertical: spacing.sm,
+      minHeight: 50,
+      paddingVertical: spacing.xs,
       paddingHorizontal: spacing.md,
       borderRadius: radius.lg,
       borderWidth: 1.5,
@@ -446,21 +428,22 @@ const criarEstilos = () =>
       backgroundColor: colors.white,
     },
     tipoCargaActivo: { borderColor: colors.teal, backgroundColor: colors.tintaTeal },
-    tipoCargaEmoji: { fontSize: 30, lineHeight: 38 },
+    tipoCargaEmoji: { fontSize: 26, lineHeight: 32 },
     tipoCargaNome: { ...tipo.pequeno, color: colors.text, flex: 1 },
     tipoCargaNomeActivo: { ...tipo.corpoForte, fontSize: 13.5, color: colors.teal },
-    volumes: { gap: spacing.sm },
+    volumes: { flexDirection: 'row', gap: spacing.sm },
     volume: {
-      borderWidth: 1,
+      flex: 1,
+      borderWidth: 1.5,
       borderColor: colors.border,
       backgroundColor: colors.white,
       borderRadius: radius.lg,
-      paddingVertical: spacing.md,
-      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.sm,
       minHeight: 56,
-      justifyContent: 'center',
     },
-    volumeActivo: { borderColor: colors.teal, backgroundColor: colors.tintaTeal },
+    volumeActivo: { borderWidth: 2, borderColor: colors.teal, backgroundColor: colors.tintaTeal },
+    volumeTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     volumeNome: { ...tipo.corpoForte, color: colors.text },
     volumeNomeActivo: { color: colors.teal },
     volumeNota: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },
@@ -525,34 +508,6 @@ const criarEstilos = () =>
       marginTop: -4,
       marginBottom: spacing.sm,
     },
-    fotos: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-    foto: { width: 78, height: 78 },
-    fotoImagem: { width: 78, height: 78, borderRadius: radius.md, backgroundColor: colors.border },
-    fotoRemover: {
-      position: 'absolute',
-      top: -6,
-      right: -6,
-      width: 26,
-      height: 26,
-      borderRadius: 13,
-      backgroundColor: colors.text,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    fotoRemoverTexto: { color: colors.white, fontSize: 13, lineHeight: 15 },
-    fotoAdd: {
-      width: 96,
-      height: 78,
-      gap: 2,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderStyle: 'dashed',
-      borderColor: colors.teal,
-      backgroundColor: colors.tintaTeal,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    fotoAddTexto: { ...tipo.legenda, fontSize: 11, color: colors.teal, textAlign: 'center' },
     proibidosLigacao: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -596,7 +551,7 @@ const criarEstilos = () =>
       flexDirection: 'row',
       alignItems: 'flex-start',
       gap: spacing.md,
-      marginTop: spacing.lg,
+      marginTop: spacing.md,
       backgroundColor: colors.tintaCoral,
       borderWidth: 1,
       borderColor: colors.contornoCoral,
@@ -614,7 +569,6 @@ const criarEstilos = () =>
       marginTop: 1,
     },
     caixaMarcada: { backgroundColor: colors.teal },
-    visto: { color: colors.white, fontWeight: '900', fontSize: 14, lineHeight: 16 },
     declaracaoTexto: { ...tipo.pequeno, color: colors.text, flex: 1 },
   });
 

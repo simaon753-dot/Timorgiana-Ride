@@ -1,6 +1,9 @@
 // Tétum (Tétum Praça, de Díli) — PRIMEIRA VERSÃO.
 // As traduções devem ser revistas por um falante nativo antes do lançamento.
 export default {
+  resumoVerTudo: 'Haree hotu',
+  resumoEsconder: 'Subar',
+  painelTamanho: 'Hasa’e ka hatun painel',
   faltaParaContinuar: 'Seidauk iha: {lista}',
   precoTabela: 'Folin tabela · {destino}',
   outroLadoTexto:

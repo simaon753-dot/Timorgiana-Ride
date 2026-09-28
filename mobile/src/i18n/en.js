@@ -6,6 +6,9 @@
 // code passes them by those names; changing them here would silently break
 // the substitution.
 export default {
+  resumoVerTudo: 'See all',
+  resumoEsconder: 'Hide',
+  painelTamanho: 'Resize the panel',
   faltaParaContinuar: 'Still needed: {lista}',
   precoTabela: 'Table price · {destino}',
   outroLadoTexto:

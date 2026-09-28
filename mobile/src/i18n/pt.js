@@ -1,5 +1,8 @@
 // Português (europeu)
 export default {
+  resumoVerTudo: 'Ver tudo',
+  resumoEsconder: 'Esconder',
+  painelTamanho: 'Aumentar ou reduzir o painel',
   faltaParaContinuar: 'Falta: {lista}',
   precoTabela: 'Preço da tabela · {destino}',
   outroLadoTexto:
