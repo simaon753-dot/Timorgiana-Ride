@@ -519,7 +519,21 @@ export async function recolhaDoOutroLado(pino, b, rota) {
     anotarOutroLado({ motivo: 'memoria', proposta: !!guardada.rota, ...base });
     return structuredClone(guardada.rota);
   }
+  // DUAS COTAÇÕES NO MESMO SEGUNDO partilham a procura, como em `rotaCompleta`.
+  // No segundo teste do Simão chegaram duas juntas e cada uma fez as suas
+  // três tentativas: seis chamadas ao Google para uma resposta.
+  const emVoo = emCurso.get(chave);
+  if (emVoo) return structuredClone(await emVoo);
+  const promessa = procurarOutraFaixa(pino, b, rota, arranque, rumo, base, chave);
+  emCurso.set(chave, promessa);
+  try {
+    return structuredClone(await promessa);
+  } finally {
+    emCurso.delete(chave);
+  }
+}
 
+async function procurarOutraFaixa(pino, b, rota, arranque, rumo, base, chave) {
   // O PONTO VAI EM CIMA DA OUTRA FAIXA, e não o pino com um rumo. A primeira
   // versão mandava o pino e `heading` contrário; o registo do teste do Simão
   // mostrou o Google a devolver a MESMA rota (11,4 km, a arrancar para
