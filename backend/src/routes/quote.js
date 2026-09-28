@@ -8,6 +8,7 @@ import {
   rotaCompleta,
   caminhosDaViagem,
   recolhaDoOutroLado,
+  anotarOutroLado,
   MODO,
   pedidoDe,
 } from '../rotas.js';
@@ -276,7 +277,8 @@ quoteRouter.post(
               100
           ) / 100;
         const poupancaUsd = Math.round((caminhos[0].fareUsd - fareUsd) * 100) / 100;
-        if (poupancaUsd >= 0.25) {
+        if (poupancaUsd < 0.25) anotarOutroLado({ motivo: 'poupa-pouco-dinheiro', poupancaUsd });
+        else {
           outroLado = {
             lat: o.lat,
             lng: o.lng,

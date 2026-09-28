@@ -464,14 +464,38 @@ function rumoDeArranque(linha) {
   return rumoEntre(inicio, linha[linha.length - 1]);
 }
 
+// AS ÚLTIMAS DECISÕES, no /api/health (28/09/2026). A primeira versão não
+// dizia porque é que não propunha nada, e o primeiro teste do Simão falhou sem
+// deixar rasto. Só números e o motivo — NUNCA coordenadas: o /api/health é
+// público, e o sítio de onde alguém pede um carro é a casa dessa pessoa.
+const DECISOES = [];
+export function anotarOutroLado(d) {
+  DECISOES.unshift({ quando: new Date().toISOString(), ...d });
+  if (DECISOES.length > 10) DECISOES.length = 10;
+}
+const r0 = (x) => (x == null ? null : Math.round(x));
+
 // Devolve `{ lat, lng, km, min }` — o ponto da outra faixa onde o carro pára
 // e a rota a partir dele — ou `null` quando não há outro lado que valha a pena.
 // `rota` é a que a cotação já tem; `pino` é onde a pessoa apontou.
 export async function recolhaDoOutroLado(pino, b, rota) {
-  if (rota?.fonte !== 'google' || !rota.linha?.length) return null;
+  if (rota?.fonte !== 'google' || !rota.linha?.length) {
+    anotarOutroLado({ motivo: 'rota-nao-google', fonte: rota?.fonte || null });
+    return null;
+  }
   const arranque = rumoDeArranque(rota.linha);
-  if (arranque == null) return null;
-  if (diferencaDeRumo(arranque, rumoEntre(rota.linha[0], b)) < DESVIO_MIN_GRAUS) return null;
+  const paraDestino = rumoEntre(rota.linha[0], b);
+  const base = {
+    rotaKm: rota.km,
+    arranque: r0(arranque),
+    paraDestino: r0(paraDestino),
+    desvio: arranque == null ? null : r0(diferencaDeRumo(arranque, paraDestino)),
+    pinoAteLinhaM: r0(straightKm(pino, rota.linha[0]) * 1000),
+  };
+  if (arranque == null || base.desvio < DESVIO_MIN_GRAUS) {
+    anotarOutroLado({ motivo: 'arranca-para-o-destino', ...base });
+    return null;
+  }
 
   const rumo = (arranque + 180) % 360;
   // Na memória de dez minutos, com resposta negativa incluída: a procura
@@ -479,20 +503,31 @@ export async function recolhaDoOutroLado(pino, b, rota) {
   // gastar outra chamada para ouvir o mesmo «não».
   const chave = 'OUTRO_LADO|' + chaveDaRota(pino, b, []);
   const guardada = memoria.get(chave);
-  if (guardada && Date.now() - guardada.em < MEMORIA_MS) return structuredClone(guardada.rota);
+  if (guardada && Date.now() - guardada.em < MEMORIA_MS) {
+    anotarOutroLado({ motivo: 'memoria', proposta: !!guardada.rota, ...base });
+    return structuredClone(guardada.rota);
+  }
 
   let resposta = null;
-  if (await podePerguntar()) {
-    const g = await peloGoogle(pino, b, [], 'DRIVE', rumo);
+  const d = { ...base, rumoPedido: r0(rumo) };
+  if (!(await podePerguntar())) d.motivo = 'sem-google-ou-tecto';
+  else {
+    const g = await quem.run('outro-lado', () => peloGoogle(pino, b, [], 'DRIVE', rumo));
     const ponto = g?.linha?.[0];
-    if (
-      ponto &&
-      straightKm(pino, ponto) * 1000 <= OUTRO_LADO_MAX_M &&
-      rota.km - g.km >= POUPANCA_MIN_KM
-    ) {
-      resposta = { lat: ponto.lat, lng: ponto.lng, km: g.km, min: g.min };
+    if (!ponto) d.motivo = 'google-sem-resposta';
+    else {
+      d.outroKm = g.km;
+      d.outroArranque = r0(rumoDeArranque(g.linha));
+      d.pinoAteOutroM = r0(straightKm(pino, ponto) * 1000);
+      if (d.pinoAteOutroM > OUTRO_LADO_MAX_M) d.motivo = 'outro-lado-longe';
+      else if (rota.km - g.km < POUPANCA_MIN_KM) d.motivo = 'poupa-pouco';
+      else {
+        d.motivo = 'proposta';
+        resposta = { lat: ponto.lat, lng: ponto.lng, km: g.km, min: g.min };
+      }
     }
   }
+  anotarOutroLado(d);
   if (memoria.size >= MEMORIA_MAX) memoria.delete(memoria.keys().next().value);
   memoria.set(chave, { em: Date.now(), rota: resposta });
   return structuredClone(resposta);
@@ -630,7 +665,7 @@ export async function estadoDasRotas() {
   }
   // `null` quer dizer que a última chamada correu bem — ou que ainda não
   // houve nenhuma desde o arranque.
-  return { google: !!CHAVE, tectoDiario: POR_DIA, ultimoErroGoogle, ultimas };
+  return { google: !!CHAVE, tectoDiario: POR_DIA, ultimoErroGoogle, ultimas, outroLado: DECISOES };
 }
 
 export async function usoDeHoje() {
