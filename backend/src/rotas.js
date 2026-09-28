@@ -440,6 +440,18 @@ const DESVIO_MIN_GRAUS = 110;
 const OUTRO_LADO_MAX_M = 100;
 // Abaixo disto a diferença é ruído de arredondamento, não uma volta.
 const POUPANCA_MIN_KM = 0.3;
+// Quanto se anda para a direita à procura da outra faixa. Na Nicolau Lobato
+// as duas faixas estão a 13 m; há separadores mais largos. Uma chamada por
+// tentativa, e pára à primeira que muda de faixa.
+const DESLOCAMENTOS_M = [12, 25, 40];
+
+function deslocar(p, rumo, metros) {
+  const rad = (rumo * Math.PI) / 180;
+  return {
+    lat: p.lat + (metros * Math.cos(rad)) / 110574,
+    lng: p.lng + (metros * Math.sin(rad)) / (111320 * Math.cos((p.lat * Math.PI) / 180)),
+  };
+}
 
 function rumoEntre(p, q) {
   const rad = Math.PI / 180;
@@ -508,25 +520,50 @@ export async function recolhaDoOutroLado(pino, b, rota) {
     return structuredClone(guardada.rota);
   }
 
+  // O PONTO VAI EM CIMA DA OUTRA FAIXA, e não o pino com um rumo. A primeira
+  // versão mandava o pino e `heading` contrário; o registo do teste do Simão
+  // mostrou o Google a devolver a MESMA rota (11,4 km, a arrancar para
+  // oeste): numa via de faixas separadas o `heading` escolhe o lado da mesma
+  // estrada, não a outra faixa. O Google encosta sempre à mais perto.
+  //
+  // Em Timor-Leste conduz-se pela esquerda: a faixa do sentido contrário fica
+  // à DIREITA de quem segue. Parte-se do ponto onde o Google encostou (no
+  // mapa DELE, para não somar o desvio do OpenStreetMap) e anda-se para a
+  // direita até ele mudar de faixa. Quem confirma é o resultado: só conta uma
+  // rota que arranque mesmo no sentido contrário.
   let resposta = null;
-  const d = { ...base, rumoPedido: r0(rumo) };
-  if (!(await podePerguntar())) d.motivo = 'sem-google-ou-tecto';
-  else {
-    const g = await quem.run('outro-lado', () => peloGoogle(pino, b, [], 'DRIVE', rumo));
-    const ponto = g?.linha?.[0];
-    if (!ponto) d.motivo = 'google-sem-resposta';
-    else {
-      d.outroKm = g.km;
-      d.outroArranque = r0(rumoDeArranque(g.linha));
-      d.pinoAteOutroM = r0(straightKm(pino, ponto) * 1000);
-      if (d.pinoAteOutroM > OUTRO_LADO_MAX_M) d.motivo = 'outro-lado-longe';
-      else if (rota.km - g.km < POUPANCA_MIN_KM) d.motivo = 'poupa-pouco';
-      else {
-        d.motivo = 'proposta';
-        resposta = { lat: ponto.lat, lng: ponto.lng, km: g.km, min: g.min };
-      }
+  const d = { ...base, rumoPedido: r0(rumo), tentativas: [] };
+  const direita = (arranque + 90) % 360;
+  for (const m of DESLOCAMENTOS_M) {
+    if (!(await podePerguntar())) {
+      d.motivo = 'sem-google-ou-tecto';
+      break;
     }
+    const tentativa = deslocar(rota.linha[0], direita, m);
+    const g = await quem.run('outro-lado', () => peloGoogle(tentativa, b, [], 'DRIVE', rumo));
+    const ponto = g?.linha?.[0];
+    if (!ponto) {
+      d.tentativas.push({ m, resposta: false });
+      continue;
+    }
+    const t = {
+      m,
+      km: g.km,
+      arranque: r0(rumoDeArranque(g.linha)),
+      pinoM: r0(straightKm(pino, ponto) * 1000),
+    };
+    d.tentativas.push(t);
+    // Ainda na mesma faixa: tentar mais longe.
+    if (t.arranque == null || diferencaDeRumo(t.arranque, arranque) < 90) continue;
+    if (t.pinoM > OUTRO_LADO_MAX_M) d.motivo = 'outro-lado-longe';
+    else if (rota.km - g.km < POUPANCA_MIN_KM) d.motivo = 'poupa-pouco';
+    else {
+      d.motivo = 'proposta';
+      resposta = { lat: ponto.lat, lng: ponto.lng, km: g.km, min: g.min };
+    }
+    break;
   }
+  if (!d.motivo) d.motivo = 'google-nao-muda-de-faixa';
   anotarOutroLado(d);
   if (memoria.size >= MEMORIA_MAX) memoria.delete(memoria.keys().next().value);
   memoria.set(chave, { em: Date.now(), rota: resposta });
