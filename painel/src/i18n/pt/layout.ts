@@ -59,6 +59,11 @@ export const layout = {
 
   'entrar.titulo': 'Painel de administração',
   'entrar.sub': 'Entre com a sua conta de administrador.',
+  'entrar.codigo': 'Código de 6 algarismos',
+  'entrar.codigoEnviado': 'Enviámos um código para {para}. Escreva-o aqui para entrar — expira em 10 minutos.',
+  'entrar.codigoFormato': 'O código tem 6 algarismos.',
+  'entrar.confirmar': 'Confirmar e entrar',
+  'entrar.outroCodigo': 'Não recebeu? Voltar e pedir outro código',
   'entrar.saiuInativo': 'A sessão fechou-se sozinha: 30 minutos sem mexer no painel.',
   'entrar.saiuExpirou': 'A sessão terminou. Por segurança, o painel pede a palavra-passe pelo menos a cada 12 horas.',
   'entrar.telefone': 'Telemóvel',

@@ -93,7 +93,7 @@ export async function pedir<T>(caminho: string, opcoes: Opcoes = {}): Promise<T>
     const j = await r.json().catch(() => ({}));
     const inativo = (j as { motivo?: string }).motivo === 'painel_inativo';
     // No /auth/login um 401 é a palavra-passe errada, e não uma sessão perdida.
-    if (caminho !== '/auth/login') aoPerderSessao?.(inativo ? 'inativo' : 'expirou');
+    if (!caminho.startsWith('/auth/login')) aoPerderSessao?.(inativo ? 'inativo' : 'expirou');
     throw new ErroApi((j as { error?: string }).error || 'A sessão terminou. Entre outra vez.', r.status);
   }
   const j = await r.json().catch(() => ({}));

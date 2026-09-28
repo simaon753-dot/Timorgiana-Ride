@@ -214,6 +214,28 @@ export const MENSAGENS = {
   'Fotografia não encontrada.': ['La hetan fotografia.', 'Photo not found.'],
   'Conta não encontrada.': ['La hetan konta.', 'Account not found.'],
   'Viagem não encontrada.': ['La hetan viajen.', 'Ride not found.'],
+  // ── Entrada no painel com código (28/09/2026)
+  'Esta conta não é de administrador.': [
+    'Konta ida-ne’e la’ós administradór nian.',
+    'This account is not an administrator account.',
+  ],
+  'Para entrar no painel, confirme primeiro o seu email na aplicação (Perfil). O código de entrada vai para esse email.':
+    [
+      'Atu tama painel, konfirma uluk ita-nia email iha aplikasaun (Perfil). Kódigu atu tama sei ba email ne’e.',
+      'To sign in to the panel, first confirm your email in the app (Profile). The sign-in code is sent to that email.',
+    ],
+  'Pediu demasiados códigos. Espere alguns minutos e tente de novo.': [
+    'Ita husu kódigu barak liu. Hein minutu balun no koko fali.',
+    'You requested too many codes. Wait a few minutes and try again.',
+  ],
+  'Não foi possível enviar o código por email. Tente de novo dentro de um minuto.': [
+    'La konsege haruka kódigu liuhusi email. Koko fali iha minutu ida nia laran.',
+    'The code could not be sent by email. Try again in a minute.',
+  ],
+  'Código errado ou expirado. Peça outro, entrando de novo.': [
+    'Kódigu sala ka liu ona. Husu fali ida, hodi tama fali.',
+    'Wrong or expired code. Request another by signing in again.',
+  ],
   'A sessão do painel terminou por inactividade. Entre de novo.': [
     'Sesaun painel remata tanba la uza. Tama fali.',
     'The panel session ended due to inactivity. Sign in again.',

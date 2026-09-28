@@ -12,7 +12,7 @@ npm run verificar    # TypeScript
 npm run compilar     # verificar + compilar para backend/publico/painel/
 ```
 
-Qualquer telefone e palavra-passe entram na demonstração. Ela **não liga a
+Qualquer telefone e palavra-passe entram na demonstração, e depois qualquer código de 6 algarismos. Ela **não liga a
 base de dados nenhuma**: nunca apontar o painel de desenvolvimento para a
 produção.
 

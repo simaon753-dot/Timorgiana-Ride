@@ -14,6 +14,7 @@ import { emitirConfirmacao, confirmarComCodigo } from '../confirmacaoEmail.js';
 import { query } from '../db.js';
 import { getActiveRideForUser } from '../rides.js';
 import { abrirSessao, requireAuth, fecharSessao } from '../auth.js';
+import { codigoObrigatorio, emitirCodigoPainel, confirmarCodigoPainel } from '../codigoPainel.js';
 import { savePushToken } from '../drivers.js';
 import { usarCodigo } from '../recuperacao.js';
 import { porEndereco, segundosDeEspera, registarFalha, limparFalhas } from '../limitador.js';
@@ -29,6 +30,7 @@ const ROLES = ['passenger', 'driver'];
 // Generosa de propósito: atrás do Render muita gente partilha o mesmo endereço
 // aparente. Ver o cabeçalho de `limitador.js`.
 authRouter.post('/login', porEndereco({ max: 40, minutos: 15 }));
+authRouter.post('/login/codigo', porEndereco({ max: 20, minutos: 15 }));
 authRouter.post('/register', porEndereco({ max: 10, minutos: 60 }));
 authRouter.post('/recuperar', porEndereco({ max: 20, minutos: 60 }));
 
@@ -217,6 +219,28 @@ authRouter.post('/login', async (req, res) => {
     // que ganha é uma sessão de painel — continua a haver uma só de cada.
     const superficie = req.body?.origem === 'painel' ? 'painel' : 'app';
 
+    // O PAINEL TEM UM SEGUNDO PASSO (28/09/2026). A palavra-passe certa não
+    // dá token: dá um código por email, e o token só sai em /login/codigo.
+    // Ver `codigoPainel.js`.
+    if (superficie === 'painel') {
+      // Quem não é administrador não tem nada a fazer no painel — nem a
+      // meio caminho. Antes recebia um token que o painel depois recusava.
+      if (!row.is_admin) {
+        return res.status(403).json({ error: 'Esta conta não é de administrador.' });
+      }
+      if (codigoObrigatorio()) {
+        if (!row.email || !row.email_confirmado) {
+          return res.status(403).json({
+            error:
+              'Para entrar no painel, confirme primeiro o seu email na aplicação (Perfil). O código de entrada vai para esse email.',
+          });
+        }
+        const c = await emitirCodigoPainel(row);
+        if (c.erro) return res.status(429).json({ error: c.erro });
+        return res.json({ passo: 'codigo', desafio: c.desafio, para: c.para });
+      }
+    }
+
     // ENTRAR AQUI FECHA A SESSÃO DE LÁ — MENOS A MEIO DE UMA VIAGEM.
     //
     // Com uma viagem a decorrer, o aparelho antigo fica vivo até ela acabar
@@ -320,6 +344,29 @@ authRouter.post('/termos', requireAuth, async (req, res) => {
 });
 
 // GET /api/auth/me — valida o token e devolve o utilizador atual
+// POST /api/auth/login/codigo — o segundo passo do painel (28/09/2026)
+//
+// `{ desafio, codigo }`: o número que o /login devolveu e os seis algarismos
+// do email. Certo, abre a sessão do painel; errado, a mesma resposta para
+// todas as falhas (ver `confirmarCodigoPainel`).
+authRouter.post('/login/codigo', async (req, res) => {
+  try {
+    const userId = await confirmarCodigoPainel(req.body?.desafio, req.body?.codigo);
+    if (!userId) {
+      return res
+        .status(401)
+        .json({ error: 'Código errado ou expirado. Peça outro, entrando de novo.' });
+    }
+    const row = await findUserById(userId);
+    if (!row?.is_admin)
+      return res.status(403).json({ error: 'Esta conta não é de administrador.' });
+    return res.json({ user: toPublicUser(row), token: await abrirSessao(row, 'painel') });
+  } catch (err) {
+    console.error('[auth/login/codigo]', err);
+    return res.status(500).json({ error: 'Erro ao iniciar sessão.' });
+  }
+});
+
 // POST /api/auth/sair — fechar a sessão desta superfície NO SERVIDOR
 // (28/09/2026). O token deixa de valer em qualquer lado, e não só no
 // navegador que carregou em «Sair».

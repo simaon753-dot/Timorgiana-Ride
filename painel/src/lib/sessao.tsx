@@ -15,7 +15,9 @@ type Estado = 'a-verificar' | 'fora' | 'dentro';
 interface Sessao {
   estado: Estado;
   utilizador: UtilizadorPublico | null;
-  entrar: (telefone: string, palavraPasse: string) => Promise<void>;
+  // Devolve o segundo passo quando o servidor pede o código por email.
+  entrar: (telefone: string, palavraPasse: string) => Promise<{ desafio: number; para: string } | null>;
+  confirmarCodigo: (desafio: number, codigo: string) => Promise<void>;
   sair: () => void;
   // Porque é que a última sessão acabou, para o ecrã de entrada o dizer.
   motivoSaida: MotivoSaida;
@@ -89,6 +91,17 @@ export function FornecedorSessao({ children }: { children: ReactNode }) {
 
   const entrar = useCallback(async (telefone: string, palavraPasse: string) => {
     const r = await api.entrar(telefone.trim(), palavraPasse);
+    if (r.passo === 'codigo') return { desafio: r.desafio, para: r.para };
+    if (!r.user?.isAdmin) throw new Error('Esta conta não é de administrador.');
+    gravarSessao(r.token);
+    setUtilizador(r.user);
+    setMotivoSaida(null);
+    setEstado('dentro');
+    return null;
+  }, []);
+
+  const confirmarCodigo = useCallback(async (desafio: number, codigo: string) => {
+    const r = await api.confirmarCodigo(desafio, codigo.trim());
     if (!r.user?.isAdmin) throw new Error('Esta conta não é de administrador.');
     gravarSessao(r.token);
     setUtilizador(r.user);
@@ -97,8 +110,8 @@ export function FornecedorSessao({ children }: { children: ReactNode }) {
   }, []);
 
   const valor = useMemo(
-    () => ({ estado, utilizador, entrar, sair: () => sair(null), motivoSaida }),
-    [estado, utilizador, entrar, sair, motivoSaida]
+    () => ({ estado, utilizador, entrar, confirmarCodigo, sair: () => sair(null), motivoSaida }),
+    [estado, utilizador, entrar, confirmarCodigo, sair, motivoSaida]
   );
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }

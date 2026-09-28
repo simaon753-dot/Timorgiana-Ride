@@ -43,14 +43,24 @@ const q = (params: Record<string, string | number | undefined | null>) => {
 
 export const api = {
   // Sessão
+  // Com o código por email (28/09/2026) a resposta pode ser o SEGUNDO PASSO:
+  // `passo: 'codigo'`, sem token — ver `confirmarCodigo`.
   entrar: (phone: string, password: string) =>
-    pedir<{ token: string; user: UtilizadorPublico }>('/auth/login', {
+    pedir<
+      | { token: string; user: UtilizadorPublico; passo?: undefined }
+      | { passo: 'codigo'; desafio: number; para: string; token?: undefined; user?: undefined }
+    >('/auth/login', {
       method: 'POST',
       // `origem` diz ao servidor que isto é o painel, e não um telemóvel
       // (23/09/2026). Sem isto, abrir o painel no portátil deitaria a app
       // fora do telemóvel do administrador — uma conta tem uma sessão de
       // app e uma de painel, não uma só.
       corpo: { phone, password, origem: 'painel' },
+    }),
+  confirmarCodigo: (desafio: number, codigo: string) =>
+    pedir<{ token: string; user: UtilizadorPublico }>('/auth/login/codigo', {
+      method: 'POST',
+      corpo: { desafio, codigo },
     }),
   eu: () => pedir<{ user: UtilizadorPublico }>('/auth/me'),
   // Fecha a sessão do painel no servidor (28/09/2026).

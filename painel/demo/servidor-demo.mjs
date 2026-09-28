@@ -330,7 +330,15 @@ async function api(req, res, url) {
   let x;
 
   if (p === '/health') return json(res, { service: 'TimorgianaRide', versao: 'demo', desde: ha(1), ok: true });
-  if (p === '/auth/login') return json(res, { token: 'demo', user: EU });
+  // O SEGUNDO PASSO, como no servidor (28/09/2026). Na demonstração não se
+  // manda email nenhum: qualquer código de 6 algarismos serve.
+  if (p === '/auth/login') return json(res, { passo: 'codigo', desafio: 1, para: 'a•••••o@exemplo.tl' });
+  if (p === '/auth/login/codigo') {
+    const b = await corpoDe(req);
+    if (!/^\d{6}$/.test(String(b.codigo || ''))) return json(res, { error: 'Código errado ou expirado. Peça outro, entrando de novo.' }, 401);
+    return json(res, { token: 'demo', user: EU });
+  }
+  if (p === '/auth/sair') return json(res, { ok: true });
   if (p === '/auth/me') return json(res, { user: EU });
 
   if (p === '/admin/drivers') {

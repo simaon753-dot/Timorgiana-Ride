@@ -925,6 +925,19 @@ export async function initSchema() {
   await query(`CREATE INDEX IF NOT EXISTS ocorrencias_ride ON ocorrencias (ride_id)`);
   await query(`CREATE INDEX IF NOT EXISTS ocorrencias_estado ON ocorrencias (estado)`);
 
+  // OS CÓDIGOS DE ENTRADA NO PAINEL. Ver `codigoPainel.js`.
+  await query(`
+    CREATE TABLE IF NOT EXISTS codigos_painel (
+      id          SERIAL PRIMARY KEY,
+      user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      codigo_hash TEXT NOT NULL,
+      expira      TIMESTAMPTZ NOT NULL,
+      tentativas  INTEGER NOT NULL DEFAULT 0,
+      usado       BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
   // AS ÚLTIMAS CHAMADAS DE ROTA AO GOOGLE, para o /api/health. Ver
   // `registarCaminhos` em rotas.js — sem coordenadas, porque o /api/health é
   // público.

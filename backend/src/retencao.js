@@ -1,4 +1,5 @@
 import { query } from './db.js';
+import { limparCodigosPainel } from './codigoPainel.js';
 
 // QUANTO TEMPO SE GUARDA CADA COISA
 //
@@ -92,6 +93,9 @@ export async function limparAntigos() {
     [String(MESES_OCORRENCIAS)]
   );
   feito.ocorrencias = ocorrencias.length;
+
+  // Os códigos de entrada no painel: um dia depois já não servem para nada.
+  feito.codigosPainel = await limparCodigosPainel();
 
   return feito;
 }

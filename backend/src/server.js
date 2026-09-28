@@ -285,13 +285,10 @@ app.get(['/painel', '/painel/*'], (req, res) => {
   res.sendFile(`${PASTA_PAINEL}index.html`);
 });
 
-// O PAINEL ANTIGO fica disponível enquanto o novo se estreia — se alguma coisa
-// falhar no novo, o trabalho de aprovar não pára. Sai quando o Simão o disser.
-app.get('/painel-antigo', (req, res) => {
-  res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
-  res.sendFile(fileURLToPath(new URL('../publico/painel-antigo.html', import.meta.url)));
-});
+// O PAINEL ANTIGO SAIU a 28/09/2026. Não tinha o código por email nem o
+// fecho por inactividade, e uma porta mais fraca ao lado da forte é por onde
+// se entra. Quem tiver o endereço guardado vai para o novo.
+app.get('/painel-antigo', (req, res) => res.redirect(301, '/painel/'));
 
 app.use('/api/auth', authRouter);
 app.use('/api/rides', ridesRouter);
