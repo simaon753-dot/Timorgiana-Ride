@@ -699,15 +699,18 @@ export default function RequestRideScreen({ navigation, route }) {
   // corrigia-se ao arrastar outra vez; um ponto de paragem errado ficava
   // desenhado no mapa, e isso é uma afirmação sobre onde o carro pára.
   const pedidoCentro = useRef(0);
-  function centroMudou({ lat, lng }) {
+  function centroMudou({ lat, lng, nome: nomeParagem }) {
     setCentro({ lat, lng });
+    // A MIRA ENCAIXOU NUMA PARAGEM: o nome é o que o Simão lhe deu, e sabe-se
+    // já — não se espera pela pergunta ao servidor, nem ela o substitui.
+    if (nomeParagem) setNomeCentro(nomeParagem);
     // O MESMO SÍTIO NÃO SE PERGUNTA DUAS VEZES. Cinco metros é menos do que
     // a largura de uma casa: abaixo disso a resposta seria a mesma, e o nome
     // que já está no ecrã é o certo.
     const antes = ultimoPerguntado.current;
     if (antes && metrosEntre(antes, { lat, lng }) < 5) return;
     ultimoPerguntado.current = { lat, lng };
-    setNomeCentro(null);
+    if (!nomeParagem) setNomeCentro(null);
     // O PONTO DA ESTRADA ANTERIOR FICA ATÉ CHEGAR O NOVO (27/09/2026). Era
     // apagado aqui, e a linha aos pontinhos e a etiqueta sumiam durante meio
     // segundo depois de cada paragem, voltando noutro sítio — um piscar a cada
@@ -736,7 +739,7 @@ export default function RequestRideScreen({ navigation, route }) {
       ]);
       // Chegou tarde: entretanto o mapa já foi para outro sítio.
       if (meu !== pedidoCentro.current) return;
-      setNomeCentro(nome || rotuloCoordenadas(lat, lng));
+      setNomeCentro(nomeParagem || nome || rotuloCoordenadas(lat, lng));
       setPertoDoCentro(perto?.lugares || []);
       // Sem resposta fica `null` e não se diz nada. Um aviso que pisca a cada
       // arrasto por causa da rede é pior do que aviso nenhum.

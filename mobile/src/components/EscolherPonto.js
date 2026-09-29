@@ -49,16 +49,17 @@ export default function EscolherPonto({ visivel, titulo, onEscolher, onFechar })
   // partilhado. Perguntar a cada quadro do arrasto seria abusivo, e mais
   // lento: as respostas chegariam todas atrasadas e fora de ordem.
   const centroMudou = useCallback(
-    ({ lat, lng }) => {
+    ({ lat, lng, nome: nomeParagem }) => {
       setCentro({ lat, lng });
-      setNome(null);
+      // A mira encaixou numa paragem do painel: o nome é o dela, e já.
+      setNome(nomeParagem || null);
       if (relogio.current) clearTimeout(relogio.current);
       relogio.current = setTimeout(async () => {
         const [n, r] = await Promise.all([
           nomeDoLugar(lat, lng, 0, token).catch(() => null),
           token ? api.lugaresPerto(token, lat, lng).catch(() => null) : null,
         ]);
-        setNome(n || null);
+        setNome(nomeParagem || n || null);
         setPerto(r?.lugares || []);
       }, ESPERA_MS);
     },

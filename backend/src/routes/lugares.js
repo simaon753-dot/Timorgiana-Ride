@@ -7,6 +7,7 @@ import { normalizar } from '../texto.js';
 import { MUNICIPIOS, ondeFica } from '../administrativo.js';
 import { lugaresPerto } from '../lugaresNossos.js';
 import { podeIr } from '../cobertura.js';
+import { paradasPerto } from '../paradas.js';
 
 export const lugaresRouter = Router();
 
@@ -67,6 +68,21 @@ lugaresRouter.get(
       Number.isFinite(raio) ? raio : undefined
     );
     res.json({ lugares });
+  })
+);
+
+// GET /api/lugares/paragens?lat=&lng=&raio= — as paragens à volta do ponto
+//
+// As que o Simão definiu no painel, para o mapa as desenhar pequenas enquanto
+// se escolhe um sítio — e para a mira encaixar nelas. Ver `paradasPerto`.
+lugaresRouter.get(
+  '/paragens',
+  wrap(async (req, res) => {
+    const lat = Number(req.query.lat);
+    const lng = Number(req.query.lng);
+    const raio = Number(req.query.raio);
+    const paragens = await paradasPerto(lat, lng, Number.isFinite(raio) ? raio : undefined);
+    res.json({ paragens });
   })
 );
 

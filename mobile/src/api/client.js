@@ -307,6 +307,12 @@ export const api = {
     request(`/lugares/perto?lat=${lat}&lng=${lng}${raio ? `&raio=${Math.round(raio)}` : ''}`, {
       token,
     }),
+  // As paragens do painel à volta de um ponto, para o mapa as desenhar e a
+  // mira encaixar nelas. Ver `paradasPerto` no servidor.
+  paragensPerto: (token, lat, lng, raio) =>
+    request(`/lugares/paragens?lat=${lat}&lng=${lng}${raio ? `&raio=${Math.round(raio)}` : ''}`, {
+      token,
+    }),
   lugarAdministrativo: (token, lat, lng) =>
     request(`/lugares/administrativo?lat=${lat}&lng=${lng}`, { token }),
   // A árvore toda, para escolher à mão quando as coordenadas não chegam.

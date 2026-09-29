@@ -53,6 +53,30 @@ export function criarParada({ nome, lat, lng, paradaLat, paradaLng, raioM, admin
   );
 }
 
+// AS PARAGENS À VOLTA DE ONDE A PESSOA ESTÁ A APONTAR (29/09/2026).
+//
+// Para o mapa as desenhar enquanto se escolhe um ponto, como os pontos de
+// recolha do Grab («Telkom Kuta Entrance»): um marcador pequeno onde o carro
+// PÁRA — `parada_lat/lng`, e não o centro do sítio que ela cobre — e a mira
+// encaixa nele quando a pessoa a larga perto. Só o que o mapa precisa:
+// nome e coordenada. O raio e quem a criou são do painel.
+export function paradasPerto(lat, lng, raioM) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return Promise.resolve([]);
+  const raio = Math.min(3000, Math.max(50, Number(raioM) || 1500));
+  return query(
+    `SELECT id, nome, parada_lat AS lat, parada_lng AS lng
+       FROM paradas p
+      WHERE 6371000 * 2 * asin(sqrt(
+              power(sin(radians($1 - p.parada_lat) / 2), 2) +
+              cos(radians(p.parada_lat)) * cos(radians($1)) *
+              power(sin(radians($2 - p.parada_lng) / 2), 2)
+            )) <= $3
+      ORDER BY power($1 - p.parada_lat, 2) + power($2 - p.parada_lng, 2)
+      LIMIT 40`,
+    [lat, lng, raio]
+  );
+}
+
 export function apagarParada(id) {
   return one('DELETE FROM paradas WHERE id = $1 RETURNING id, nome', [id]);
 }
