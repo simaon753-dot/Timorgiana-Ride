@@ -18,7 +18,7 @@ import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 import { metrosEntre } from '../lib/filtroPosicao.js';
 import { paragemParaEncaixar, SOBRE_PX } from '../lib/encaixeParagem.js';
-import { zoomDaRegiao, paragensAVista } from '../lib/visibilidadeParagens.js';
+import { zoomDaRegiao, paragensAVista, paragensPertoDaMira } from '../lib/visibilidadeParagens.js';
 import {
   disporEtiquetas,
   rect,
@@ -963,9 +963,13 @@ export default function MapaGoogle({
   const paradasMiraRef = useRef(paradasMira);
   paradasMiraRef.current = paradasMira;
   const relogioParagens = useRef(null);
+  // Onde e quando se pediu da última vez — para, num arrasto comprido, pedir
+  // a zona nova durante o próprio gesto (ver `onRegionChange`).
+  const ultimaBusca = useRef(null);
   const buscarParagensMira = useCallback(
     async (regiao) => {
       if (!token || !regiao) return;
+      ultimaBusca.current = { lat: regiao.latitude, lng: regiao.longitude, t: Date.now() };
       const raioM = (regiao.latitudeDelta * 111320) / 2;
       // CONTINUA A PEDIR COM OS PONTOS ESCONDIDOS (zoom baixo): assim, ao
       // aproximar o mapa, eles aparecem no instante, sem esperar pela rede.
@@ -978,7 +982,9 @@ export default function MapaGoogle({
           token,
           regiao.latitude,
           regiao.longitude,
-          Math.max(300, raioM * 1.5)
+          // Bem mais do que os 250 m à volta da mira: é esta folga que deixa
+          // as paragens da zona nova aparecerem enquanto o mapa ainda desliza.
+          Math.max(1200, raioM * 1.5)
         );
         setParadasMira(r?.paragens || []);
       } catch {
@@ -1015,6 +1021,32 @@ export default function MapaGoogle({
   useEffect(() => {
     verPontos(regiaoRef.current || regiaoInicial);
   }, [largura]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // E SÓ AS PERTO DA MIRA — ver `paragensPertoDaMira`. Também a cada
+  // fotograma: ao arrastar, as que ficam para trás somem e as da zona nova
+  // aparecem, sem esperar que o mapa pare. Só redesenha quando uma entra ou
+  // sai. `centroVivo` é o centro de agora, e não o da última paragem da
+  // câmara: é contra ele que se medem as paragens que chegam da rede.
+  const [pertoDaMira, setPertoDaMira] = useState(() => new Set());
+  const pertoDaMiraRef = useRef(pertoDaMira);
+  const centroVivo = useRef(null);
+  const modoEscolhaRef = useRef(modoEscolha);
+  modoEscolhaRef.current = modoEscolha;
+  const verPertoDaMira = useCallback((regiao) => {
+    if (regiao) centroVivo.current = { lat: regiao.latitude, lng: regiao.longitude };
+    const r = paragensPertoDaMira(
+      modoEscolhaRef.current ? centroVivo.current : null,
+      paradasMiraRef.current,
+      pertoDaMiraRef.current
+    );
+    if (r === pertoDaMiraRef.current) return;
+    pertoDaMiraRef.current = r;
+    setPertoDaMira(r);
+  }, []);
+  // Chegou uma lista nova, ou entrou-se no modo de escolha: mede-se já.
+  useEffect(() => {
+    verPertoDaMira(centroVivo.current ? null : regiaoRef.current || regiaoInicial);
+  }, [paradasMira, modoEscolha]); // eslint-disable-line react-hooks/exhaustive-deps
   // Para o `centroMudou`, que é um useCallback e não deve mudar a cada desenho.
   const alturaRef = useRef(altura);
   alturaRef.current = altura;
@@ -1747,12 +1779,13 @@ export default function MapaGoogle({
       // Só encaixa em paragens À VISTA: uma que o zoom escondeu não pode
       // puxar a mira para si.
       verPontos(regiao);
+      verPertoDaMira(regiao);
       const alvo =
         modoEscolha && pontosAVistaRef.current
           ? paragemParaEncaixar({
               regiao,
               altura: alturaRef.current,
-              paragens: paradasMiraRef.current,
+              paragens: paradasMiraRef.current.filter((p) => pertoDaMiraRef.current.has(p.id)),
             })
           : null;
       // «Em cima» é a ponta a menos de pixel e meio — ou a mesma paragem em
@@ -1817,7 +1850,15 @@ export default function MapaGoogle({
         });
       }
     },
-    [modoEscolha, onCentro, recalcularCartoes, buscarNossos, buscarParagensMira, verPontos]
+    [
+      modoEscolha,
+      onCentro,
+      recalcularCartoes,
+      buscarNossos,
+      buscarParagensMira,
+      verPontos,
+      verPertoDaMira,
+    ]
   );
   const centroMudouRef = useRef(centroMudou);
   centroMudouRef.current = centroMudou;
@@ -2070,6 +2111,21 @@ export default function MapaGoogle({
           // Antes do `return`: os pontos aparecem e somem DURANTE a pinça, e
           // não só no primeiro fotograma do gesto.
           verPontos(regiao);
+          verPertoDaMira(regiao);
+          // UM ARRASTO COMPRIDO pede a zona nova durante o gesto — no máximo
+          // uma vez a cada 0,7 s, e só depois de o centro se ter afastado
+          // 600 m do sítio do último pedido. Os arrastos curtos não pedem
+          // nada: a lista que já cá está chega-lhes.
+          if (modoEscolha && regiao) {
+            const u = ultimaBusca.current;
+            if (
+              !u ||
+              (Date.now() - u.t > 700 &&
+                metrosEntre(u, { lat: regiao.latitude, lng: regiao.longitude }) > 600)
+            ) {
+              buscarParagensMira(regiao);
+            }
+          }
           if (aMexer) return;
           // O GESTO COMEÇOU (27/09/2026). Três coisas, por esta ordem:
           //
@@ -2397,22 +2453,24 @@ export default function MapaGoogle({
             se está a escolher — teal na recolha, coral no destino — como a
             própria mira. Tocar numa leva a mira até ela, e aí encaixa. */}
         {modoEscolha && pontosAVista
-          ? paradasMira.map((p) => (
-              <Marker
-                key={`paragem-${p.id}`}
-                coordinate={{ latitude: p.lat, longitude: p.lng }}
-                anchor={{ x: 0.5, y: 0.5 }}
-                zIndex={870}
-                image={DISCRETO[modoEscolha] || DISCRETO.destino}
-                title={p.nome || undefined}
-                onPress={() =>
-                  mapaRef.current?.animateCamera(
-                    { center: { latitude: p.lat, longitude: p.lng } },
-                    { duration: 250 }
-                  )
-                }
-              />
-            ))
+          ? paradasMira
+              .filter((p) => pertoDaMira.has(p.id))
+              .map((p) => (
+                <Marker
+                  key={`paragem-${p.id}`}
+                  coordinate={{ latitude: p.lat, longitude: p.lng }}
+                  anchor={{ x: 0.5, y: 0.5 }}
+                  zIndex={870}
+                  image={DISCRETO[modoEscolha] || DISCRETO.destino}
+                  title={p.nome || undefined}
+                  onPress={() =>
+                    mapaRef.current?.animateCamera(
+                      { center: { latitude: p.lat, longitude: p.lng } },
+                      { duration: 250 }
+                    )
+                  }
+                />
+              ))
           : null}
 
         {/* A ETIQUETA DA ESTRADA, DESENHADA PELO PRÓPRIO MAPA (27/09/2026).

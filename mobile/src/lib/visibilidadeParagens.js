@@ -33,3 +33,43 @@ export function paragensAVista(zoom, viamSe) {
   if (zoom == null) return false;
   return zoom >= (viamSe ? ZOOM_MIN_PARAGENS - FOLGA_ZOOM : ZOOM_MIN_PARAGENS);
 }
+
+// SÓ AS QUE ESTÃO PERTO DA MIRA (29/09/2026, pedido seguinte do Simão).
+//
+// Com o zoom certo, ainda se viam todas as paragens da vista. Agora só as que
+// estão à volta da ponta da mira — as da rua para onde se está a apontar — e,
+// ao arrastar, as que ficam para trás somem e as da zona nova aparecem. As
+// duas regras somam-se: zoom perto E paragem perto da mira.
+//
+// O RAIO, num sítio só: 250 metros à volta da ponta da mira, as
+// proximidades de uma rua. Entra-se a 250 e sai-se a 280, para uma paragem
+// na fronteira não acender e apagar enquanto o mapa desliza.
+export const RAIO_PARAGENS_MIRA_M = 250;
+export const FOLGA_RAIO_M = 30;
+
+function metros(a, b) {
+  const R = 6371000;
+  const rad = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * rad;
+  const dLng = (b.lng - a.lng) * rad;
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(s));
+}
+
+// Os `id` das paragens à volta de `centro` (a ponta da mira). `antes` é o Set
+// devolvido da última vez: quem lá estava só sai além da folga. Devolve O
+// MESMO Set quando nada mudou — quem chama compara por identidade e, a cada
+// fotograma do arrasto, só redesenha quando uma paragem entra ou sai.
+export function paragensPertoDaMira(centro, paragens, antes) {
+  const novas = new Set();
+  if (centro) {
+    for (const p of paragens) {
+      const limite = antes.has(p.id) ? RAIO_PARAGENS_MIRA_M + FOLGA_RAIO_M : RAIO_PARAGENS_MIRA_M;
+      if (metros(centro, p) <= limite) novas.add(p.id);
+    }
+  }
+  const igual = novas.size === antes.size && [...novas].every((id) => antes.has(id));
+  return igual ? antes : novas;
+}
