@@ -23,13 +23,20 @@ import { resolve, dirname } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 const ficheiros = [];
-(function andar(d) {
+// O CÓDIGO DO SERVIDOR: src/ e, desde 29/09/2026, o módulo do mapa (mapa/).
+// Do mapa saltam-se os dados, a receita e a página do navegador — que não é
+// código do servidor e importa por endereços que só o navegador conhece.
+const FORA_DO_SERVIDOR = new Set(['publico', 'receita', 'rede', 'node_modules']);
+function andar(d) {
   for (const n of readdirSync(d)) {
     const p = `${d}/${n}`;
-    if (statSync(p).isDirectory()) andar(p);
-    else if (n.endsWith('.js') || n.endsWith('.mjs')) ficheiros.push(p);
+    if (statSync(p).isDirectory()) {
+      if (!FORA_DO_SERVIDOR.has(n)) andar(p);
+    } else if (n.endsWith('.js') || n.endsWith('.mjs')) ficheiros.push(p);
   }
-})('src');
+}
+andar('src');
+andar('mapa');
 
 // OS GUIÕES TAMBÉM. Ficaram de fora até 06/09/2026, e a falta apareceu no
 // pior momento possível: a meio de um ensaio com o Simão à espera, a mexer
@@ -73,7 +80,9 @@ if (!problemas.length) {
     // Os guiões, ao serem importados, CORREM: abrem sockets, ligam-se à
     // base, entram ao serviço. Para eles a análise chega — é o que apanha a
     // crase perdida, que foi o defeito que criou este verificador.
-    if (f.startsWith('scripts/')) continue;
+    // Os guiões não se carregam: correm quando se importam (o de construir a
+    // rede, sem argumentos, termina o processo — e com ele este verificador).
+    if (f.startsWith('scripts/') || f.includes('/scripts/')) continue;
     try {
       await import(`../${f}`);
     } catch (e) {

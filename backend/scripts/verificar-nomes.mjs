@@ -27,22 +27,86 @@ const mod = await import('@babel/traverse');
 const traverse = mod.default?.default ?? mod.default ?? mod.traverse;
 
 const aqui = dirname(fileURLToPath(import.meta.url));
-const raiz = resolve(aqui, '..', process.argv[2] || 'src');
+// src/ e o módulo do mapa (29/09/2026); ou a pasta que se passar.
+const raizes = process.argv[2]
+  ? [resolve(aqui, '..', process.argv[2])]
+  : [resolve(aqui, '..', 'src'), resolve(aqui, '..', 'mapa')];
+const FORA_DO_SERVIDOR = new Set(['publico', 'receita', 'rede', 'node_modules']);
 
 // O que o Node põe à disposição sem importar.
 const AMBIENTE = new Set([
-  'console', 'process', 'Buffer', 'globalThis', 'setTimeout', 'clearTimeout', 'setInterval',
-  'clearInterval', 'setImmediate', 'clearImmediate', 'queueMicrotask', 'structuredClone',
-  'fetch', 'Request', 'Response', 'Headers', 'FormData', 'AbortController', 'AbortSignal',
-  'URL', 'URLSearchParams', 'TextEncoder', 'TextDecoder', 'crypto', 'performance', 'Blob',
-  'atob', 'btoa', 'Event', 'EventTarget', 'Promise', 'JSON', 'Math', 'Date', 'Number',
-  'String', 'Boolean', 'Array', 'Object', 'Error', 'TypeError', 'RangeError', 'SyntaxError',
-  'Map', 'Set', 'WeakMap', 'WeakSet', 'Symbol', 'Proxy', 'Reflect', 'BigInt', 'RegExp',
-  'Intl', 'isNaN', 'isFinite', 'parseInt', 'parseFloat', 'encodeURIComponent',
-  'decodeURIComponent', 'encodeURI', 'decodeURI', 'undefined', 'NaN', 'Infinity',
-  'Uint8Array', 'ArrayBuffer', 'DataView', 'Int32Array', 'Float64Array',
-  // As tabelas da rede de estradas (rotasNossas.js, 29/09/2026).
-  'Float32Array', 'Int8Array',
+  'console',
+  'process',
+  'Buffer',
+  'globalThis',
+  'setTimeout',
+  'clearTimeout',
+  'setInterval',
+  'clearInterval',
+  'setImmediate',
+  'clearImmediate',
+  'queueMicrotask',
+  'structuredClone',
+  'fetch',
+  'Request',
+  'Response',
+  'Headers',
+  'FormData',
+  'AbortController',
+  'AbortSignal',
+  'URL',
+  'URLSearchParams',
+  'TextEncoder',
+  'TextDecoder',
+  'crypto',
+  'performance',
+  'Blob',
+  'atob',
+  'btoa',
+  'Event',
+  'EventTarget',
+  'Promise',
+  'JSON',
+  'Math',
+  'Date',
+  'Number',
+  'String',
+  'Boolean',
+  'Array',
+  'Object',
+  'Error',
+  'TypeError',
+  'RangeError',
+  'SyntaxError',
+  'Map',
+  'Set',
+  'WeakMap',
+  'WeakSet',
+  'Symbol',
+  'Proxy',
+  'Reflect',
+  'BigInt',
+  'RegExp',
+  'Intl',
+  'isNaN',
+  'isFinite',
+  'parseInt',
+  'parseFloat',
+  'encodeURIComponent',
+  'decodeURIComponent',
+  'encodeURI',
+  'decodeURI',
+  'undefined',
+  'NaN',
+  'Infinity',
+  'Uint8Array',
+  'ArrayBuffer',
+  'DataView',
+  'Int32Array',
+  'Float64Array',
+  // As tabelas da rede de estradas (mapa/rotas.js, 29/09/2026).
+  'Float32Array',
+  'Int8Array',
 ]);
 
 function naoDeclarados(codigo) {
@@ -57,24 +121,34 @@ function naoDeclarados(codigo) {
 }
 
 // O VERIFICADOR VERIFICA-SE A SI PRÓPRIO: um nome plantado tem de ser visto.
-if (!naoDeclarados('export function f() { return NOME_PLANTADO.map((x) => x); }').includes('NOME_PLANTADO')) {
-  console.error('  ✗ a análise de âmbito não viu um nome plantado — este verificador não está a funcionar');
+if (
+  !naoDeclarados('export function f() { return NOME_PLANTADO.map((x) => x); }').includes(
+    'NOME_PLANTADO'
+  )
+) {
+  console.error(
+    '  ✗ a análise de âmbito não viu um nome plantado — este verificador não está a funcionar'
+  );
   process.exit(1);
 }
 
 const ficheiros = [];
-(function andar(d) {
+function andar(d) {
   for (const n of readdirSync(d)) {
     const p = join(d, n);
-    if (statSync(p).isDirectory()) andar(p);
-    else if (n.endsWith('.js')) ficheiros.push(p);
+    if (statSync(p).isDirectory()) {
+      if (!FORA_DO_SERVIDOR.has(n)) andar(p);
+    } else if (n.endsWith('.js')) ficheiros.push(p);
   }
-})(raiz);
+}
+for (const r of raizes) andar(r);
 
 const problemas = [];
 for (const f of ficheiros) {
   for (const nome of naoDeclarados(readFileSync(f, 'utf8'))) {
-    problemas.push(`${relative(raiz, f)}: "${nome}" é usado mas não está declarado nem importado`);
+    problemas.push(
+      `${relative(resolve(aqui, '..'), f)}: "${nome}" é usado mas não está declarado nem importado`
+    );
   }
 }
 if (problemas.length) {

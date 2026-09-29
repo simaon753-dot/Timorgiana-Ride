@@ -1,6 +1,6 @@
 # Rede de estradas de Timor-Leste
 
-`estradas-tl.bin` é a rede de estradas que `src/rotasNossas.js` usa para
+`estradas-tl.bin` é a rede de estradas que `mapa/rotas.js` usa para
 calcular rotas sem o Google.
 
 **Dados © colaboradores do OpenStreetMap**, disponíveis sob a
@@ -9,11 +9,11 @@ Recorte de Timor-Leste distribuído pela [Geofabrik](https://download.geofabrik.
 
 ## Refazer
 
-1. Descarregar o recorte mais recente para `../mapa-proprio/osm/`
+1. Descarregar o recorte mais recente para `mapa/receita/osm/`
    (o ficheiro `.osm.pbf` não vai para o git):
    `https://download.geofabrik.de/asia/east-timor-latest.osm.pbf`
 2. No `backend/`:
-   `node scripts/construir-rede.mjs ../mapa-proprio/osm/<ficheiro>.osm.pbf`
+   `node mapa/scripts/construir-rede.mjs mapa/receita/osm/<ficheiro>.osm.pbf`
 3. Comparar com as viagens reais antes de publicar:
    `node --env-file=.env scripts/comparar-rotas.mjs`
 

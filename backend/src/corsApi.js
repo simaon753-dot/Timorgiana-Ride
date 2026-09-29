@@ -12,7 +12,7 @@
 //   · O painel — servido por este mesmo servidor, portanto da mesma origem.
 //   · Nenhuma WebView da app: o OSMMap (Leaflet numa WebView) foi substituído
 //     pelo MapaGoogle, que é nativo.
-//   · As páginas de piloto/ e mapa-proprio/ não fazem chamada nenhuma.
+//   · As páginas de piloto/ e backend/mapa/receita/ não fazem chamada nenhuma.
 //
 // SÓ A /api. Os ficheiros públicos — termos, privacidade, e o mapa próprio
 // (timor-leste.pmtiles, estilo.json) — continuam abertos a qualquer origem.

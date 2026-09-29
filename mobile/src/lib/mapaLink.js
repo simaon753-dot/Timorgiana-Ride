@@ -88,7 +88,7 @@ export function navegarAte(Linking, lat, lng, t, nome = '', opcoes = {}) {
 
 // A NAVEGAÇÃO NOSSA (29/09/2026, passo 3): uma página do nosso servidor, com
 // o nosso mapa, as rotas nossas e a voz do telemóvel. Abre no navegador —
-// não precisa de APK — e na língua da app. Ver backend/src/routes/navegar.js.
+// não precisa de APK — e na língua da app. Ver backend/mapa/servidor.js.
 function abrirNavegacaoNossa(Linking, lat, lng, nome, rideId) {
   // DENTRO DA APP desde a versão 1.5.0 (ecrã Navegar, com voz e ecrã
   // ligado). O navegador fica como reserva, se a navegação da app ainda não

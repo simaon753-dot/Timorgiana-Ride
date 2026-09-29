@@ -15,7 +15,7 @@ import { colors, spacing, registarEstilos } from '../theme.js';
 
 // A NAVEGAÇÃO NOSSA DENTRO DA APP (29/09/2026, versão 1.5.0).
 //
-// É a MESMA página de /navegar (backend/publico/navegar), aberta aqui
+// É a MESMA página de /navegar (backend/mapa/publico/navegar), aberta aqui
 // dentro em vez de no navegador. Decisão do Simão (opção B): mapa nosso e
 // sem Google, e a página que já foi ensaiada — em vez de um mapa novo.
 //

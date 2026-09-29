@@ -1,11 +1,11 @@
-// A NAVEGAÇÃO NOSSA — a página (29/09/2026). Ver src/routes/navegar.js.
+// A NAVEGAÇÃO NOSSA — a página (29/09/2026). Ver backend/mapa/servidor.js.
 //
 //   /navegar?para=LAT,LNG&nome=…&lingua=pt|tet|en
 //   /navegar?para=…&de=LAT,LNG&simular=1   ← um carro percorre a rota sozinho
 //   /navegar?recolha=LAT,LNG&nomeRecolha=…&para=LAT,LNG&nome=…
 //           &paragens=LAT,LNG;LAT,LNG&fase=recolha|destino   ← a viagem inteira
 //
-// O mapa é o nosso (/mapa), a rota vem de /navegar/rota (rotasNossas.js, sem
+// O mapa é o nosso (/mapa), a rota vem de /navegar/rota (mapa/rotas.js, sem
 // Google), a posição vem do GPS do telemóvel, a voz do próprio telemóvel.
 import {
   Map as MapaLibre,

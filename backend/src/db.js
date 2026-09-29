@@ -953,7 +953,7 @@ export async function initSchema() {
   `);
 
   // AS ROTAS NOSSAS AO LADO DAS DO GOOGLE (29/09/2026). Ver
-  // `compararComGoogle` em rotasNossas.js. Só distâncias e tempos — nunca
+  // `compararComGoogle` em comparacaoRotas.js. Só distâncias e tempos — nunca
   // coordenadas: o resumo vai para o /api/health, que é público.
   await query(`
     CREATE TABLE IF NOT EXISTS comparacao_rotas (

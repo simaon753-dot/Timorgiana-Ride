@@ -14,11 +14,11 @@ import {
 } from '../rotas.js';
 import { limparDestinos } from '../destinosDaViagem.js';
 import { paragensQueCobrem } from '../paradas.js';
-import { estradaMaisPerto } from '../estradasNossas.js';
+import { estradaMaisPerto } from '../../mapa/index.js';
 import { nearestDrivers } from '../drivers.js';
 import { taxasPara } from '../taxasDeEntrada.js';
 import { destinoFixo } from '../destinosCarry.js';
-import { compararComGoogle } from '../rotasNossas.js';
+import { compararComGoogle } from '../comparacaoRotas.js';
 // A LISTA DOS TIPOS, que faltava desde a fase 1 do Carry. Sem ela cada
 // cotação rebentava com ReferenceError e a app ficava sem preço — só o pedido
 // (routes/rides.js, que a importa) calculava o valor. Ver
@@ -467,7 +467,7 @@ quoteRouter.post(
     // SEM PARAGEM DEFINIDA À MÃO: A ESTRADA DO NOSSO MAPA QUE SERVE
     // (27/09/2026). Antes a app ia daqui directamente ao OSRM público, que
     // encosta a caminhos de serviço e trilhos — a etiqueta caía dentro de
-    // estaleiros e pátios. Ver `estradasNossas.js`.
+    // estaleiros e pátios. Ver `mapa/estradas.js`.
     //
     // TRÊS RESPOSTAS DIFERENTES, e a app precisa de as distinguir:
     //   `mapa` com ponto  — encontrou uma estrada que serve;

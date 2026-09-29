@@ -1,5 +1,5 @@
 import { normalizar } from './texto.js';
-import { estaNaAgua } from './mosaicos.js';
+import { estaNaAgua } from '../mapa/index.js';
 
 // Onde é que uma viagem pode ir de facto.
 //

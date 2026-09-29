@@ -1,12 +1,12 @@
 // CONSTRÓI A REDE DE ESTRADAS DE TIMOR-LESTE a partir do OpenStreetMap
 // (29/09/2026). Corre neste computador; o resultado vai para o servidor.
 //
-//   node scripts/construir-rede.mjs ../mapa-proprio/osm/east-timor-AAMMDD.osm.pbf
+//   node mapa/scripts/construir-rede.mjs mapa/receita/osm/east-timor-AAMMDD.osm.pbf
 //
 // PORQUE EXISTE. O Simão quer que os motoristas naveguem sem o Google. O
 // primeiro passo foi o Organic Maps; este é o segundo: rotas calculadas por
-// NÓS, sobre os mesmos dados do nosso mapa. Sai daqui `rede/estradas-tl.bin`,
-// que `src/rotasNossas.js` lê.
+// NÓS, sobre os mesmos dados do nosso mapa. Sai daqui `mapa/rede/estradas-tl.bin`,
+// que `mapa/rotas.js` lê. Corre-se a partir de `backend/`.
 //
 // O FICHEIRO .osm.pbf NÃO VAI PARA O GIT (17,8 MB, ver .gitignore). Para
 // actualizar: descarregar o recorte novo da Geofabrik
@@ -26,7 +26,7 @@ import { PbfReader } from 'pbf';
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 const ORIGEM = process.argv[2];
 if (!ORIGEM) {
-  console.error('Uso: node scripts/construir-rede.mjs <ficheiro .osm.pbf>');
+  console.error('Uso (em backend/): node mapa/scripts/construir-rede.mjs <ficheiro .osm.pbf>');
   process.exit(1);
 }
 const SAIDA = path.join(AQUI, '..', 'rede', 'estradas-tl.bin');

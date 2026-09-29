@@ -25,11 +25,9 @@ import { one } from './db.js';
 import { lugaresRouter } from './routes/lugares.js';
 import { estadoDaBusca, marcarPorPerguntar, nomesDeHoje } from './lugares.js';
 import { estadoDasRotas, usoDeHoje } from './rotas.js';
-import { estadoDasRotasNossas } from './rotasNossas.js';
-import { navegarRouter } from './routes/navegar.js';
+import { estadoDasRotasNossas } from './comparacaoRotas.js';
+import { mapaRouter } from '../mapa/index.js';
 import { estadoDoEmail } from './email.js';
-import { mosaico } from './mosaicos.js';
-import { gzipSync } from 'node:zlib';
 import { municipioDe } from './municipios.js';
 import {
   ACTIVE_DRIVER,
@@ -157,80 +155,9 @@ app.get('/api/config/emergencia', (req, res) => {
 // mais nada aqui para uma pessoa ver. Sem isto apanhava um 404 seco.
 app.get('/', (req, res) => res.redirect('/painel'));
 
-// O MAPA PRÓPRIO, servido daqui.
-//
-// São 33 MB com Timor-Leste inteiro, do país à rua. Fica no repositório e o
-// Render serve-o — não há terceiro serviço, não há conta nova, não há chave
-// que possa ser revogada. É a única dependência do mapa que não pode fechar
-// por causa de uma facturação.
-//
-// PEDIDOS POR TROÇOS, e é o que faz isto funcionar. O formato PMTiles é um
-// ficheiro só, e quem o lê pede apenas os bytes dos mosaicos que está a
-// mostrar — uns kilobytes por ecrã, não os 33 MB. O `sendFile` do Express
-// responde a `Range` sozinho; sem isso, cada abertura do mapa descarregava o
-// país inteiro.
-//
-// CORS aberto porque quem pede é a app, de outra origem. O ficheiro é
-// público por natureza: são dados do OpenStreetMap, que qualquer um pode ir
-// buscar à fonte.
-app.get('/mapa/timor-leste.pmtiles', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Range');
-  res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Range, ETag');
-  // Um mês. O mapa só muda quando alguém correr a receita outra vez, e a
-  // diferença entre ter os dados de ontem ou os do mês passado não se vê a
-  // conduzir em Díli.
-  res.setHeader('Cache-Control', 'public, max-age=2592000');
-  res.sendFile(fileURLToPath(new URL('../publico/timor-leste.pmtiles', import.meta.url)));
-});
-
-// OS MOSAICOS, um a um, num endereço que qualquer motor de mapas entende.
-//
-// A rota do ficheiro inteiro aqui em cima serve o browser, onde o MapLibre de
-// JavaScript sabe ler `pmtiles://`. O MAPLIBRE NATIVO DO TELEMÓVEL NÃO SABE —
-// vê esse endereço, não o entende, e não desenha nada.
-//
-// Foi erro meu: testei o mapa no browser, onde funciona, e não na app, onde
-// não podia funcionar. O Simão instalou um APK para descobrir isso.
-app.get('/mapa/:z/:x/:y.mvt', async (req, res) => {
-  const z = Number(req.params.z);
-  const x = Number(req.params.x);
-  const y = Number(req.params.y);
-  if (![z, x, y].every(Number.isInteger) || z < 0 || z > 15) return res.status(400).end();
-  try {
-    const bruto = await mosaico(z, x, y);
-    // Sem conteúdo e não erro: um mosaico vazio é o mar, ou um sítio onde não
-    // há nada desenhado. O motor de mapas espera 204 e não estranha.
-    if (!bruto) return res.status(204).end();
-
-    res.setHeader('Content-Type', 'application/vnd.mapbox-vector-tile');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
-
-    // O leitor devolve o mosaico já descomprimido. Volta a comprimir-se antes
-    // de sair: são cerca de metade dos bytes, e num plano gratuito a largura
-    // de banda é a conta que se paga a sério.
-    if (/\bgzip\b/.test(String(req.headers['accept-encoding'] || ''))) {
-      res.setHeader('Content-Encoding', 'gzip');
-      return res.end(gzipSync(bruto));
-    }
-    return res.end(bruto);
-  } catch (e) {
-    console.error('[mapa] mosaico', z, x, y, e.message);
-    return res.status(500).end();
-  }
-});
-
-// O estilo, ao lado do mapa.
-//
-// SEPARADO do ficheiro dos mosaicos de propósito: mudar as cores passa a ser
-// substituir um ficheiro de texto e publicar o servidor. Ninguém instala APK
-// nenhum para o mapa mudar de aspecto.
-app.get('/mapa/estilo.json', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Cache-Control', 'public, max-age=3600');
-  res.sendFile(fileURLToPath(new URL('../publico/estilo.json', import.meta.url)));
-});
+// O MAPA PRÓPRIO (/mapa) E A NAVEGAÇÃO (/navegar), servidos pelo módulo do
+// mapa (backend/mapa/, desde 29/09/2026). Os endereços são os de sempre.
+app.use(mapaRouter);
 
 // OS DOCUMENTOS LEGAIS, num endereço público.
 //
@@ -303,8 +230,6 @@ app.get(['/painel', '/painel/*'], (req, res) => {
 // se entra. Quem tiver o endereço guardado vai para o novo.
 app.get('/painel-antigo', (req, res) => res.redirect(301, '/painel/'));
 
-// A navegação nossa, sem Google: a página e as rotas (ver routes/navegar.js).
-app.use(navegarRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/rides', ridesRouter);
 app.use('/api/driver', driverRouter);

@@ -1,5 +1,11 @@
 # Um mapa próprio, como o do Grab
 
+> **Esta pasta é a receita de 07/09/2026, guardada como estava.** Desde então
+> o passo 4 foi feito: o mapa está no ar, servido pelo nosso servidor
+> (`/mapa/timor-leste.pmtiles`, ficheiros em `../publico/`). O passo 5 não: a
+> app usa o mapa nativo do Google desde 06/09/2026, e o nosso mapa entra na
+> app só pela navegação (`/navegar`, desde a versão 1.5.0). Ver `../LEIA-ME.md`.
+
 O Simão viu o mapa do Grab, reparou que ele diz "© OpenMapTiles · OpenStreetMap
 contributors", e perguntou se dava para fazer o mesmo. Dá — e isto é o que se
 fez em 07/09/2026 para lho mostrar.

@@ -3,14 +3,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
-import { rotaPorPontos } from '../rotasNossas.js';
+import { rotaPorPontos } from './rotas.js';
+import { mosaico } from './mosaicos.js';
 
 // A NAVEGAÇÃO NOSSA, SEM GOOGLE — o passo 3 (29/09/2026).
 //
 //   /navegar?para=LAT,LNG&nome=…&lingua=pt|tet|en
 //
 // Uma página que o motorista abre a partir do «Navegar» da app: o nosso mapa,
-// as rotas nossas (rotasNossas.js), o GPS do telemóvel e a voz. Não precisa
+// as rotas nossas (rotas.js), o GPS do telemóvel e a voz. Não precisa
 // de APK — é uma página — e não depende do Google em nada.
 //
 // PÚBLICA, SEM CONTA. Uma rota é só geometria entre dois pontos que quem pede
@@ -24,13 +25,8 @@ import { rotaPorPontos } from '../rotasNossas.js';
 // coerente com o resto: um mapa sem Google que dependesse de terceiros para
 // abrir não seria bem nosso. Licença BSD-3, ao lado dos ficheiros.
 
-const PASTA = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '..',
-  '..',
-  'publico',
-  'navegar'
-);
+const AQUI = path.dirname(fileURLToPath(import.meta.url));
+const PASTA = path.join(AQUI, 'publico', 'navegar');
 
 // Só estes ficheiros, e nenhum outro caminho: um nome vindo do pedido nunca
 // chega ao sistema de ficheiros sem estar nesta lista.
@@ -96,18 +92,21 @@ function ponto(texto) {
   return { lat, lng };
 }
 
-export const navegarRouter = Router();
+// TUDO O QUE O MAPA SERVE, num só router (desde 29/09/2026, quando o mapa
+// passou para backend/mapa/): o mapa de Timor-Leste e o estilo em /mapa, a
+// navegação em /navegar. Os endereços são os de sempre.
+export const mapaRouter = Router();
 
-navegarRouter.get('/navegar', (req, res) => servir(req, res, 'index.html'));
-navegarRouter.get('/navegar/app.js', (req, res) => servir(req, res, 'app.js'));
-navegarRouter.get('/navegar/vendor/:versao/:ficheiro', (req, res) =>
+mapaRouter.get('/navegar', (req, res) => servir(req, res, 'index.html'));
+mapaRouter.get('/navegar/app.js', (req, res) => servir(req, res, 'app.js'));
+mapaRouter.get('/navegar/vendor/:versao/:ficheiro', (req, res) =>
   servir(req, res, `vendor/${req.params.versao}/${req.params.ficheiro}`)
 );
 
 // GET /navegar/rota?de=LAT,LNG&para=LAT,LNG[&via=LAT,LNG;LAT,LNG]
 //
 // `via`: as paragens pelo meio, por ordem — no máximo duas, como no Pickup.
-navegarRouter.get('/navegar/rota', limite, (req, res) => {
+mapaRouter.get('/navegar/rota', limite, (req, res) => {
   const de = ponto(req.query.de);
   const para = ponto(req.query.para);
   const textoVia = String(req.query.via || '').trim();
@@ -131,4 +130,65 @@ navegarRouter.get('/navegar/rota', limite, (req, res) => {
     return res.end(gzipSync(corpo));
   }
   return res.end(corpo);
+});
+
+// ── O MAPA PRÓPRIO (/mapa), que antes vivia em src/server.js ─────────────
+//
+// São 33 MB com Timor-Leste inteiro, do país à rua. Fica no repositório e o
+// Render serve-o — não há terceiro serviço, não há conta nova, não há chave
+// que possa ser revogada. É a única dependência do mapa que não pode fechar
+// por causa de uma facturação.
+//
+// PEDIDOS POR TROÇOS, e é o que faz isto funcionar. O formato PMTiles é um
+// ficheiro só, e quem o lê pede apenas os bytes dos mosaicos que está a
+// mostrar — uns kilobytes por ecrã, não os 33 MB. O `sendFile` do Express
+// responde a `Range` sozinho; sem isso, cada abertura do mapa descarregava o
+// país inteiro.
+//
+// CORS aberto porque quem pede é a app e o painel, de outra origem. O
+// ficheiro é público por natureza: são dados do OpenStreetMap.
+mapaRouter.get('/mapa/timor-leste.pmtiles', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Range');
+  res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Range, ETag');
+  // Um mês. O mapa só muda quando alguém correr a receita outra vez.
+  res.setHeader('Cache-Control', 'public, max-age=2592000');
+  res.sendFile(path.join(AQUI, 'publico', 'timor-leste.pmtiles'));
+});
+
+// OS MOSAICOS, um a um, num endereço que qualquer motor de mapas entende.
+// O MapLibre nativo do telemóvel não sabe ler `pmtiles://` — foi um APK
+// instalado pelo Simão que o mostrou.
+mapaRouter.get('/mapa/:z/:x/:y.mvt', async (req, res) => {
+  const z = Number(req.params.z);
+  const x = Number(req.params.x);
+  const y = Number(req.params.y);
+  if (![z, x, y].every(Number.isInteger) || z < 0 || z > 15) return res.status(400).end();
+  try {
+    const bruto = await mosaico(z, x, y);
+    // Sem conteúdo e não erro: um mosaico vazio é o mar, ou um sítio onde não
+    // há nada desenhado. O motor de mapas espera 204 e não estranha.
+    if (!bruto) return res.status(204).end();
+    res.setHeader('Content-Type', 'application/vnd.mapbox-vector-tile');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+    // O leitor devolve o mosaico descomprimido; volta a comprimir-se antes de
+    // sair — metade dos bytes, e a largura de banda é a conta a sério.
+    if (/\bgzip\b/.test(String(req.headers['accept-encoding'] || ''))) {
+      res.setHeader('Content-Encoding', 'gzip');
+      return res.end(gzipSync(bruto));
+    }
+    return res.end(bruto);
+  } catch (e) {
+    console.error('[mapa] mosaico', z, x, y, e.message);
+    return res.status(500).end();
+  }
+});
+
+// O estilo, ao lado do mapa. SEPARADO do ficheiro dos mosaicos: mudar as
+// cores é substituir um ficheiro de texto e publicar o servidor.
+mapaRouter.get('/mapa/estilo.json', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.sendFile(path.join(AQUI, 'publico', 'estilo.json'));
 });

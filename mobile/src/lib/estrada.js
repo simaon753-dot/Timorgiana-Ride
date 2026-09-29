@@ -11,7 +11,7 @@
 // DE ONDE VEM O PONTO, por esta ordem (desde 27/09/2026):
 //   1. uma paragem definida à mão no painel, se houver para este sítio;
 //   2. o nosso mapa, no servidor — só estradas por onde passam mota, carro e
-//      pick-up (ver `backend/src/estradasNossas.js`);
+//      pick-up (ver `backend/mapa/estradas.js`);
 //   3. o `nearest` do OSRM público, só se o servidor não conseguir ler o
 //      mapa. Era o primeiro até 27/09, e encostava a pátios e trilhos.
 
@@ -74,7 +74,7 @@ export async function pontoNaEstrada(lat, lng, token) {
       // O NOSSO MAPA (27/09/2026). O servidor procura a estrada mais próxima
       // entre as que servem para mota, carro e pick-up — sem caminhos de
       // serviço, carreiros nem passeios, e com os trilhos só como último
-      // recurso. Ver `backend/src/estradasNossas.js`.
+      // recurso. Ver `backend/mapa/estradas.js`.
       //
       // Se ele responde que NÃO HÁ estrada no raio, não se pergunta ao OSRM:
       // ele encontraria precisamente o pátio ou o trilho que se quis evitar.

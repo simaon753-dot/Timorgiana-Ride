@@ -48,7 +48,7 @@ let leitor = null;
 
 function obter() {
   if (!leitor) {
-    const caminho = fileURLToPath(new URL('../publico/timor-leste.pmtiles', import.meta.url));
+    const caminho = fileURLToPath(new URL('./publico/timor-leste.pmtiles', import.meta.url));
     leitor = new PMTiles(new FicheiroLocal(caminho));
   }
   return leitor;

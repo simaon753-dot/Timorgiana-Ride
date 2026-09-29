@@ -11,7 +11,7 @@
 // viagem muito mais longa ou mais curta aponta uma estrada em falta, um
 // sentido único errado ou uma ponte que não existe — e mostra onde.
 import { query } from '../src/db.js';
-import { rotaNossa } from '../src/rotasNossas.js';
+import { rotaNossa } from '../mapa/index.js';
 
 const rows = await query(
   `SELECT id, created_at::date::text AS dia, vehicle_type, distance_km,

@@ -23,7 +23,11 @@ const babel = require('@babel/parser');
 const pg = require('libpg-query');
 
 const aqui = dirname(fileURLToPath(import.meta.url));
-const raiz = resolve(aqui, '..', process.argv[2] || 'src');
+// src/ e o módulo do mapa (29/09/2026); ou a pasta que se passar.
+const raizes = process.argv[2]
+  ? [resolve(aqui, '..', process.argv[2])]
+  : [resolve(aqui, '..', 'src'), resolve(aqui, '..', 'mapa')];
+const FORA_DO_SERVIDOR = new Set(['publico', 'receita', 'rede', 'node_modules']);
 
 if (pg.loadModule) await pg.loadModule();
 const erroDe = async (sql) => {
@@ -59,7 +63,8 @@ function variantes(no, consts) {
     if (i >= no.expressions.length) return;
     const e = no.expressions[i];
     if (e.type === 'Identifier' && consts[e.name] != null) partes.push(consts[e.name]);
-    else if (q.value.cooked.endsWith('$')) partes.push('1'); // $${n} — número de parâmetro
+    else if (q.value.cooked.endsWith('$'))
+      partes.push('1'); // $${n} — número de parâmetro
     else {
       incognitas.push(partes.length);
       partes.push(null);
@@ -80,13 +85,15 @@ function variantes(no, consts) {
 }
 
 const ficheiros = [];
-(function andar(d) {
+function andar(d) {
   for (const n of readdirSync(d)) {
     const p = join(d, n);
-    if (statSync(p).isDirectory()) andar(p);
-    else if (n.endsWith('.js')) ficheiros.push(p);
+    if (statSync(p).isDirectory()) {
+      if (!FORA_DO_SERVIDOR.has(n)) andar(p);
+    } else if (n.endsWith('.js')) ficheiros.push(p);
   }
-})(raiz);
+}
+for (const r of raizes) andar(r);
 
 let total = 0;
 let contadas = 0;
@@ -98,7 +105,11 @@ for (const f of ficheiros) {
   const chamadas = [];
   (function visitar(n) {
     if (!n || typeof n.type !== 'string') return;
-    if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier' && n.init?.type === 'TemplateLiteral') {
+    if (
+      n.type === 'VariableDeclarator' &&
+      n.id.type === 'Identifier' &&
+      n.init?.type === 'TemplateLiteral'
+    ) {
       consts[n.id.name] = variantes(n.init, consts)[0];
     }
     if (n.type === 'TemplateLiteral' || n.type === 'StringLiteral') nos.push(n);
@@ -124,7 +135,8 @@ for (const f of ficheiros) {
       }
       primeiro ??= e;
     }
-    if (!alguma) problemas.push(`${relative(raiz, f)}:${n.loc.start.line} — ${primeiro}`);
+    if (!alguma)
+      problemas.push(`${relative(resolve(aqui, '..'), f)}:${n.loc.start.line} — ${primeiro}`);
   }
 
   // QUANTOS $n E QUANTOS VALORES. Uma consulta com 24 marcadores e 23 valores
@@ -137,7 +149,11 @@ for (const f of ficheiros) {
     if (!sqlNo || valores?.type !== 'ArrayExpression') continue;
     if (valores.elements.some((e) => !e || e.type === 'SpreadElement')) continue;
     if (sqlNo.type !== 'TemplateLiteral' && sqlNo.type !== 'StringLiteral') continue;
-    if (sqlNo.type === 'TemplateLiteral' && sqlNo.quasis.some((q, i) => i < sqlNo.expressions.length && q.value.cooked.endsWith('$'))) continue;
+    if (
+      sqlNo.type === 'TemplateLiteral' &&
+      sqlNo.quasis.some((q, i) => i < sqlNo.expressions.length && q.value.cooked.endsWith('$'))
+    )
+      continue;
     const sql = sqlNo.type === 'StringLiteral' ? sqlNo.value : variantes(sqlNo, consts)[0];
     if (!EH_SQL.test(sql)) continue;
     // Sem comentários nem texto entre plicas: um "$50" num comentário SQL não é
@@ -147,7 +163,9 @@ for (const f of ficheiros) {
     const maior = marcas.length ? Math.max(...marcas) : 0;
     contadas++;
     if (maior !== valores.elements.length) {
-      problemas.push(`${relative(raiz, f)}:${c.loc.start.line} — usa $1…$${maior} e recebe ${valores.elements.length} valor(es)`);
+      problemas.push(
+        `${relative(resolve(aqui, '..'), f)}:${c.loc.start.line} — usa $1…$${maior} e recebe ${valores.elements.length} valor(es)`
+      );
     }
   }
 }
