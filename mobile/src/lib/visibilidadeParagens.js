@@ -10,10 +10,16 @@
 // cada fotograma do gesto e só redesenha quando a resposta muda.
 
 // O LIMITE, num sítio só. Nível de zoom do Google (o mesmo dos mapas: 0 é o
-// mundo, cada nível mais é o dobro de perto). 16 é o nível em que se lêem os
-// nomes das ruas — uns 950 m de largura num telemóvel; a vista de escolher um
-// ponto (0,006 graus) anda pelos 16,5, e um nível para fora já os esconde.
-export const ZOOM_MIN_PARAGENS = 16;
+// mundo, cada nível mais é o dobro de perto).
+//
+// 18, e não 16 (29/09/2026, corrigido pelo Simão no telemóvel dele). A vista
+// com que o mapa abre um ponto (0,008 graus; 0,006 no botão da localização)
+// fica no nível 17 a 17,3 num telemóvel — e com o limite em 16 a etiqueta já
+// lá estava sem ninguém aproximar. Não era isso: no vídeo do Grab o ponto
+// só aparece com o mapa BEM aproximado e some ao afastar. 18 fica acima da
+// vista normal e chega-se lá com um aperto de dedos. (Antes de 29/09 a
+// etiqueta aparecia aos 0,0015 graus, uns 19.)
+export const ZOOM_MIN_PARAGENS = 18;
 
 // Quem já os estava a ver só os perde um pouco abaixo do limite. Sem esta
 // folga, parar o mapa em cima da fronteira fazia-os piscar.

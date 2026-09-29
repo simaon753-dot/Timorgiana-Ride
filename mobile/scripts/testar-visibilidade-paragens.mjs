@@ -32,16 +32,31 @@ confirma(
   Math.abs(zoomDaRegiao({ longitudeDelta: 0.006 }, LARGURA) - 16.5) < 0.6
 );
 
-// 2. Cidade inteira: sem pontos. Ruas: com pontos.
+// 2. A VISTA NORMAL NÃO MOSTRA (a correcção do Simão, 29/09): o mapa abre
+//    um ponto a 0,008 graus (0,006 no botão da localização), que num
+//    telemóvel com ~700 pontos de mapa em altura dá o nível 17 a 17,3.
+const nivelDaVista = (latDelta, alturaMapa = 700) =>
+  Math.log2((360 * alturaMapa) / (256 * latDelta));
+confirma(
+  'a vista de abrir um ponto (0,008): escondidos',
+  !paragensAVista(nivelDaVista(0.008), false)
+);
+confirma('o botão da localização (0,006): escondidos', !paragensAVista(nivelDaVista(0.006), false));
+confirma(
+  'um aperto de dedos a partir dela (x2): aparecem',
+  paragensAVista(nivelDaVista(0.006) + 1, false)
+);
+
+// 3. Cidade inteira: sem pontos. Ruas bem de perto: com pontos.
 confirma('zoom 13 (a cidade): escondidos', !paragensAVista(13, false));
 confirma('zoom 15 (intermédio): continuam escondidos', !paragensAVista(15, false));
 confirma(
   `zoom ${ZOOM_MIN_PARAGENS} (o limite): aparecem`,
   paragensAVista(ZOOM_MIN_PARAGENS, false)
 );
-confirma('zoom 18 (as ruas): aparecem', paragensAVista(18, false));
+confirma('zoom 19 (bem de perto): aparecem', paragensAVista(19, false));
 
-// 3. A folga: quem os estava a ver não os perde logo abaixo do limite.
+// 4. A folga: quem os estava a ver não os perde logo abaixo do limite.
 const quase = ZOOM_MIN_PARAGENS - FOLGA_ZOOM / 2;
 confirma('um pouco abaixo do limite, vindo de perto: continuam', paragensAVista(quase, true));
 confirma('o mesmo zoom, vindo de longe: não aparecem', !paragensAVista(quase, false));
@@ -50,12 +65,12 @@ confirma(
   !paragensAVista(ZOOM_MIN_PARAGENS - FOLGA_ZOOM - 0.01, true)
 );
 
-// 4. Sem medida não se inventa: escondidos, e sem rebentar.
+// 5. Sem medida não se inventa: escondidos, e sem rebentar.
 confirma('sem largura: zoom null', zoomDaRegiao(regiaoNoZoom(17), 0) === null);
 confirma('sem região: zoom null', zoomDaRegiao(null, LARGURA) === null);
 confirma('zoom null: escondidos', !paragensAVista(null, true));
 
-// 5. Rápido: um milhão de decisões, que é muito mais do que um gesto pede.
+// 6. Rápido: um milhão de decisões, que é muito mais do que um gesto pede.
 const t = performance.now();
 let v = false;
 for (let i = 0; i < 1e6; i++)

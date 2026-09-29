@@ -607,7 +607,7 @@ function VeiculoAndar({ alvo, tipo }) {
 // Era 0,0015 graus de altura de ecrã (uns 165 m, nível ~19): o Simão tinha
 // dito a 27/09 que a etiqueta devia aparecer «até ao limite». A 29/09, com
 // o vídeo do Grab, decidiu outra coisa: a paragem, a etiqueta e a linha aos
-// pontinhos aparecem JUNTAS, a partir do nível 16 — o mesmo limite dos
+// pontinhos aparecem JUNTAS, com o mapa bem aproximado — o mesmo limite dos
 // pontos de paragem (`ZOOM_MIN_PARAGENS` em lib/visibilidadeParagens.js).
 
 // OS NOSSOS LUGARES APARECEM AOS POUCOS (27/09/2026).
@@ -2073,7 +2073,8 @@ export default function MapaGoogle({
             carro, e esta não é — é o caminho dela. Responde a uma pergunta
             que a pessoa tem e a que ninguém respondia: onde é que eu espero?
             Cinzento-escuro em vez do teal, para não competir com a rota. */}
-        {/* A PARTIR DO NÍVEL 16, como a paragem e a etiqueta (29/09/2026). */}
+        {/* Só com o mapa bem aproximado, como a paragem e a etiqueta — ver
+            `ZOOM_MIN_PARAGENS` (29/09/2026). */}
         {pontosAVista &&
           trocos.map((t, i) => (
             <Polyline
