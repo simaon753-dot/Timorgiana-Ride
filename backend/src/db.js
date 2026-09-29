@@ -1011,6 +1011,11 @@ export async function initSchema() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+  // A PROCURA POR ZONA (29/09/2026): as consultas das paragens começam por
+  // uma caixa em graus à volta do ponto, e estes índices servem essa caixa —
+  // com milhares de paragens, a base só faz contas de distância às da zona.
+  await query('CREATE INDEX IF NOT EXISTS idx_paradas_sitio ON paradas(lat, lng)');
+  await query('CREATE INDEX IF NOT EXISTS idx_paradas_paragem ON paradas(parada_lat, parada_lng)');
 
   // AS ETAPAS DE UMA ENTREGA DE BENS (14/09/26). Não são estados novos da
   // viagem — a máquina de estados fica como está —, são horas que o motorista

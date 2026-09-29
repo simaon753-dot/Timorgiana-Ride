@@ -699,18 +699,15 @@ export default function RequestRideScreen({ navigation, route }) {
   // corrigia-se ao arrastar outra vez; um ponto de paragem errado ficava
   // desenhado no mapa, e isso é uma afirmação sobre onde o carro pára.
   const pedidoCentro = useRef(0);
-  function centroMudou({ lat, lng, nome: nomeParagem }) {
+  function centroMudou({ lat, lng }) {
     setCentro({ lat, lng });
-    // A MIRA ENCAIXOU NUMA PARAGEM: o nome é o que o Simão lhe deu, e sabe-se
-    // já — não se espera pela pergunta ao servidor, nem ela o substitui.
-    if (nomeParagem) setNomeCentro(nomeParagem);
     // O MESMO SÍTIO NÃO SE PERGUNTA DUAS VEZES. Cinco metros é menos do que
     // a largura de uma casa: abaixo disso a resposta seria a mesma, e o nome
     // que já está no ecrã é o certo.
     const antes = ultimoPerguntado.current;
     if (antes && metrosEntre(antes, { lat, lng }) < 5) return;
     ultimoPerguntado.current = { lat, lng };
-    if (!nomeParagem) setNomeCentro(null);
+    setNomeCentro(null);
     // O PONTO DA ESTRADA ANTERIOR FICA ATÉ CHEGAR O NOVO (27/09/2026). Era
     // apagado aqui, e a linha aos pontinhos e a etiqueta sumiam durante meio
     // segundo depois de cada paragem, voltando noutro sítio — um piscar a cada
@@ -735,11 +732,13 @@ export default function RequestRideScreen({ navigation, route }) {
         // propósito: se a previsão usasse outro caminho, mostrava-se uma
         // coisa e confirmava-se outra, e o dia em que divergissem ninguém
         // saberia qual das duas estava certa.
-        pontoNaEstrada(lat, lng, token).catch(() => null),
+        // A que já está à vista vai junto: o servidor mantém-na enquanto
+        // continuar boa, em vez de a trocar por outra uns metros melhor.
+        pontoNaEstrada(lat, lng, token, paragemCentro).catch(() => null),
       ]);
       // Chegou tarde: entretanto o mapa já foi para outro sítio.
       if (meu !== pedidoCentro.current) return;
-      setNomeCentro(nomeParagem || nome || rotuloCoordenadas(lat, lng));
+      setNomeCentro(nome || rotuloCoordenadas(lat, lng));
       setPertoDoCentro(perto?.lugares || []);
       // Sem resposta fica `null` e não se diz nada. Um aviso que pisca a cada
       // arrasto por causa da rede é pior do que aviso nenhum.

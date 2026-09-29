@@ -50,10 +50,16 @@ import { api } from '../api/client.js';
 // sítio não são um empate nosso para resolver, são duas maneiras de lá chegar,
 // e quem sabe qual serve é quem vai. A primeira continua a ser a que fica
 // posta; as outras aparecem no mapa para se poder tocar numa delas.
-export async function pontoNaEstrada(lat, lng, token) {
+// `atual`: a paragem que já está à vista, se houver — ver a estabilidade
+// em backend/src/escolherParagem.js.
+export async function pontoNaEstrada(lat, lng, token, atual = null) {
   if (token) {
     try {
-      const nossa = await api.paragemPara(token, { lat, lng });
+      const nossa = await api.paragemPara(token, {
+        lat,
+        lng,
+        atual: atual?.lat != null ? { lat: atual.lat, lng: atual.lng } : undefined,
+      });
       if (nossa?.fonte === 'nossa' && nossa.lat != null) {
         return {
           // De onde veio: só uma paragem do painel MUDA a coordenada da

@@ -55,25 +55,30 @@ export function criarParada({ nome, lat, lng, paradaLat, paradaLng, raioM, admin
 
 // AS PARAGENS À VOLTA DE ONDE A PESSOA ESTÁ A APONTAR (29/09/2026).
 //
-// Para o mapa as desenhar enquanto se escolhe um ponto, como os pontos de
-// recolha do Grab («Telkom Kuta Entrance»): um marcador pequeno onde o carro
-// PÁRA — `parada_lat/lng`, e não o centro do sítio que ela cobre — e a mira
-// encaixa nele quando a pessoa a larga perto. Só o que o mapa precisa:
-// nome e coordenada. O raio e quem a criou são do painel.
+// As candidatas da `escolherParagem.js`, ao lado da estrada: a coordenada é
+// a de onde o carro PÁRA — `parada_lat/lng`, e não o centro do sítio que ela
+// cobre. Só o que a escolha precisa: nome e coordenada.
 export function paradasPerto(lat, lng, raioM) {
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return Promise.resolve([]);
   const raio = Math.min(3000, Math.max(50, Number(raioM) || 1500));
+  // A caixa em graus que contém o círculo — ver `paragensQueCobrem`.
+  const dLat = raio / 110574;
+  const dLng = raio / (111320 * Math.cos((lat * Math.PI) / 180));
   return query(
     `SELECT id, nome, parada_lat AS lat, parada_lng AS lng
        FROM paradas p
-      WHERE 6371000 * 2 * asin(sqrt(
+      -- Com tipo explícito: $1 - $4 são dois parâmetros sem tipo, e o
+      -- Postgres recusa escolher a subtracção («operator is not unique»).
+      WHERE p.parada_lat BETWEEN $1::float8 - $4::float8 AND $1::float8 + $4::float8
+        AND p.parada_lng BETWEEN $2::float8 - $5::float8 AND $2::float8 + $5::float8
+        AND 6371000 * 2 * asin(sqrt(
               power(sin(radians($1 - p.parada_lat) / 2), 2) +
               cos(radians(p.parada_lat)) * cos(radians($1)) *
               power(sin(radians($2 - p.parada_lng) / 2), 2)
             )) <= $3
       ORDER BY power($1 - p.parada_lat, 2) + power($2 - p.parada_lng, 2)
       LIMIT 40`,
-    [lat, lng, raio]
+    [lat, lng, raio, dLat, dLng]
   );
 }
 
@@ -110,7 +115,12 @@ export async function paragensQueCobrem(lat, lng) {
               power(sin(radians($2 - p.lng) / 2), 2)
             )) AS metros
        FROM paradas p
-      WHERE 6371000 * 2 * asin(sqrt(
+      -- A CAIXA PRIMEIRO: nenhuma paragem cobre mais de 2 km (o tecto do
+      -- painel), e 0,0185 graus são uns 2 km em Timor-Leste. Com os índices
+      -- de db.js, a base só faz a conta de baixo às paragens da zona.
+      WHERE p.lat BETWEEN $1 - 0.0185 AND $1 + 0.0185
+        AND p.lng BETWEEN $2 - 0.0185 AND $2 + 0.0185
+        AND 6371000 * 2 * asin(sqrt(
               power(sin(radians($1 - p.lat) / 2), 2) +
               cos(radians(p.lat)) * cos(radians($1)) *
               power(sin(radians($2 - p.lng) / 2), 2)

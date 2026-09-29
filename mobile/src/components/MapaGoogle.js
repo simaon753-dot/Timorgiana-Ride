@@ -17,12 +17,10 @@ import { colors, radius, spacing, registarEstilos, elevacao } from '../theme.js'
 import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 import { metrosEntre } from '../lib/filtroPosicao.js';
-import { paragemParaEncaixar, SOBRE_PX } from '../lib/encaixeParagem.js';
-import { zoomDaRegiao, paragensAVista, paragensPertoDaMira } from '../lib/visibilidadeParagens.js';
+import { zoomDaRegiao, paragensAVista } from '../lib/visibilidadeParagens.js';
 import {
   disporEtiquetas,
   rect,
-  abaixoComHisterese,
   escalaoComHisterese,
   larguraTexto,
 } from '../lib/disporEtiquetas.js';
@@ -281,9 +279,7 @@ function larguraDoCaminho(texto) {
 //
 // Uma paragem definida no painel desenha-se como um ponto da cor do lado a
 // que pertence, agarrado à coordenada onde o carro pára. Não cresce com o
-// zoom nem quando a mira se aproxima: quem se destaca é a MIRA, que encaixa
-// nele (ver `lib/encaixeParagem.js`). O ponto é a paragem, que existe e
-// fica; a mira é só a ferramenta de apontar. Pequeno de propósito, para não
+// zoom nem quando a mira se aproxima. Pequeno de propósito, para não
 // tapar nomes de ruas nem os sítios do mapa. O desenho sai de
 // scripts/desenhar-pontos-paragem.py, com a cor medida nos próprios pinos.
 const DISCRETO = {
@@ -606,15 +602,13 @@ function VeiculoAndar({ alvo, tipo }) {
 // só desenha marcadores que sejam imagens. Ver o bloco das etiquetas dentro do
 // `<MapView>`, e `dados/etiquetasMapa.js`.
 
-// A PARTIR DE QUE ZOOM se troca o pino pela etiqueta.
+// A PARTIR DE QUE ZOOM aparece a etiqueta da estrada.
 //
-// `latitudeDelta` é a altura do mapa em graus: quanto MENOR, mais perto.
-//
-// 0,0015 graus são uns 165 metros de altura de ecrã — o zoom a que se vê um
-// quintal. Comecei em 0,0035 (uns 390 m) e o Simão disse que a etiqueta deve
-// aparecer «até ao limite»: é informação de detalhe, e detalhe a meia
-// distância é sujidade em cima do mapa.
-const PERTO = 0.0015;
+// Era 0,0015 graus de altura de ecrã (uns 165 m, nível ~19): o Simão tinha
+// dito a 27/09 que a etiqueta devia aparecer «até ao limite». A 29/09, com
+// o vídeo do Grab, decidiu outra coisa: a paragem, a etiqueta e a linha aos
+// pontinhos aparecem JUNTAS, a partir do nível 16 — o mesmo limite dos
+// pontos de paragem (`ZOOM_MIN_PARAGENS` em lib/visibilidadeParagens.js).
 
 // OS NOSSOS LUGARES APARECEM AOS POUCOS (27/09/2026).
 //
@@ -868,10 +862,9 @@ export default function MapaGoogle({
   // ONDE ESTÃO DESENHADOS TODOS OS PINOS DA VIAGEM, em pontos do ecrã — e não
   // só os que têm cartão. São os obstáculos que nenhuma etiqueta pode tapar.
   const [pinosDesenhados, setPinosDesenhados] = useState([]);
-  // PERTO, COM HISTERESE (27/09/2026). Era `delta < PERTO`, um só número, e
-  // a etiqueta da estrada piscava para quem parasse o mapa em cima do
-  // limite. Agora entra-se abaixo de 0,0015 e sai-se só acima de 0,0018. Em
-  // estado, e não calculado, porque a resposta depende de onde se VINHA.
+  // PERTO: se a etiqueta da estrada se mostra. Desde 29/09/2026 é a regra
+  // do zoom 16 (`pontosAVista`), com a folga dela contra o piscar; lida com o
+  // mapa parado, porque durante o gesto as etiquetas estão escondidas.
   const [perto, setPerto] = useState(false);
   // Em que escalão de zoom estão os nossos lugares. Ver `ESCALOES_NOSSOS`.
   // Num ref: só o lê quem vai buscar os nomes, e ninguém redesenha por isso.
@@ -954,58 +947,13 @@ export default function MapaGoogle({
     return metrosEntre({ lat: dono.lat, lng: dono.lng }, p) <= ALTERNATIVA_PERTO_M;
   });
 
-  // AS PARAGENS À VOLTA DA MIRA, enquanto se escolhe um ponto no mapa. Todas
-  // as que o Simão definiu no painel perto de onde se está a olhar — e não só
-  // as alternativas de um ponto já escolhido —, pedidas ao servidor com o
-  // mesmo travão dos nossos lugares. Fora do modo de escolha não há mira, e
-  // a lista esvazia-se.
-  const [paradasMira, setParadasMira] = useState([]);
-  const paradasMiraRef = useRef(paradasMira);
-  paradasMiraRef.current = paradasMira;
-  const relogioParagens = useRef(null);
-  // Onde e quando se pediu da última vez — para, num arrasto comprido, pedir
-  // a zona nova durante o próprio gesto (ver `onRegionChange`).
-  const ultimaBusca = useRef(null);
-  const buscarParagensMira = useCallback(
-    async (regiao) => {
-      if (!token || !regiao) return;
-      ultimaBusca.current = { lat: regiao.latitude, lng: regiao.longitude, t: Date.now() };
-      const raioM = (regiao.latitudeDelta * 111320) / 2;
-      // CONTINUA A PEDIR COM OS PONTOS ESCONDIDOS (zoom baixo): assim, ao
-      // aproximar o mapa, eles aparecem no instante, sem esperar pela rede.
-      // Só a partir de 3 km deixa de pedir, e fica com a lista que tinha —
-      // voltando a aproximar, ela serve até chegar a nova. São no máximo as
-      // 40 mais perto do centro, sejam cem ou mil no painel.
-      if (raioM > 3000) return;
-      try {
-        const r = await api.paragensPerto(
-          token,
-          regiao.latitude,
-          regiao.longitude,
-          // Bem mais do que os 250 m à volta da mira: é esta folga que deixa
-          // as paragens da zona nova aparecerem enquanto o mapa ainda desliza.
-          Math.max(1200, raioM * 1.5)
-        );
-        setParadasMira(r?.paragens || []);
-      } catch {
-        // Sem rede ficam as que já lá estavam, como os nossos lugares.
-      }
-    },
-    [token]
-  );
-  useEffect(() => {
-    if (!modoEscolha) {
-      setParadasMira([]);
-      return;
-    }
-    buscarParagensMira(regiaoRef.current || regiaoInicial);
-  }, [modoEscolha]); // eslint-disable-line react-hooks/exhaustive-deps
   // OS PONTOS DE PARAGEM SÓ SE VÊEM COM O MAPA PERTO — ver
   // `lib/visibilidadeParagens.js`. Decide-se a CADA FOTOGRAMA de qualquer
   // movimento da câmara (pinça, botões, enquadramento automático, arrasto),
   // e só se redesenha quando a resposta muda: atravessar o limite é o único
   // momento em que alguma coisa acontece no ecrã. Vale para os pontos das
-  // alternativas e para os da mira; os pinos da viagem não entram.
+  // alternativas e para a paragem da mira — a etiqueta e a linha aos
+  // pontinhos (o `perto`); os pinos da viagem não entram.
   const [pontosAVista, setPontosAVista] = useState(false);
   const pontosAVistaRef = useRef(false);
   const larguraRef = useRef(largura);
@@ -1021,39 +969,6 @@ export default function MapaGoogle({
   useEffect(() => {
     verPontos(regiaoRef.current || regiaoInicial);
   }, [largura]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // E SÓ AS PERTO DA MIRA — ver `paragensPertoDaMira`. Também a cada
-  // fotograma: ao arrastar, as que ficam para trás somem e as da zona nova
-  // aparecem, sem esperar que o mapa pare. Só redesenha quando uma entra ou
-  // sai. `centroVivo` é o centro de agora, e não o da última paragem da
-  // câmara: é contra ele que se medem as paragens que chegam da rede.
-  const [pertoDaMira, setPertoDaMira] = useState(() => new Set());
-  const pertoDaMiraRef = useRef(pertoDaMira);
-  const centroVivo = useRef(null);
-  const modoEscolhaRef = useRef(modoEscolha);
-  modoEscolhaRef.current = modoEscolha;
-  const verPertoDaMira = useCallback((regiao) => {
-    if (regiao) centroVivo.current = { lat: regiao.latitude, lng: regiao.longitude };
-    const r = paragensPertoDaMira(
-      modoEscolhaRef.current ? centroVivo.current : null,
-      paradasMiraRef.current,
-      pertoDaMiraRef.current
-    );
-    if (r === pertoDaMiraRef.current) return;
-    pertoDaMiraRef.current = r;
-    setPertoDaMira(r);
-  }, []);
-  // Chegou uma lista nova, ou entrou-se no modo de escolha: mede-se já.
-  useEffect(() => {
-    verPertoDaMira(centroVivo.current ? null : regiaoRef.current || regiaoInicial);
-  }, [paradasMira, modoEscolha]); // eslint-disable-line react-hooks/exhaustive-deps
-  // Para o `centroMudou`, que é um useCallback e não deve mudar a cada desenho.
-  const alturaRef = useRef(altura);
-  alturaRef.current = altura;
-  // A última paragem em que a mira encaixou, e o relógio de reserva do
-  // encaixe. Ver `centroMudou`.
-  const ultimoEncaixe = useRef(null);
-  const relogioEncaixe = useRef(null);
 
   // ── Enquadrar ──────────────────────────────────────────────────────
   //
@@ -1765,52 +1680,8 @@ export default function MapaGoogle({
   }, [rotularKey, mapaPronto, aMexer, delta, perto]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const centroMudou = useCallback(
-    (regiao, jaEncaixou = false) => {
-      // A MIRA ENCAIXA NA PARAGEM (29/09/2026). Largado o mapa com a ponta
-      // da mira perto de uma paragem, o mapa desliza o que falta e a ponta
-      // fica exactamente sobre o centro do ponto — e o sítio escolhido passa
-      // a ser a coordenada da paragem, com o nome dela. Só quando a câmara
-      // PÁRA: encaixar durante o arrasto era lutar contra o dedo.
-      //
-      // Enquanto desliza não se faz mais nada — a mira continua levantada e
-      // pousa já em cima da paragem, quando o mapa voltar a parar. Se o mapa
-      // não avisar que parou (um movimento de um pixel às vezes não avisa),
-      // o relógio segue como se tivesse parado ali.
-      // Só encaixa em paragens À VISTA: uma que o zoom escondeu não pode
-      // puxar a mira para si.
+    (regiao) => {
       verPontos(regiao);
-      verPertoDaMira(regiao);
-      const alvo =
-        modoEscolha && pontosAVistaRef.current
-          ? paragemParaEncaixar({
-              regiao,
-              altura: alturaRef.current,
-              paragens: paradasMiraRef.current.filter((p) => pertoDaMiraRef.current.has(p.id)),
-            })
-          : null;
-      // «Em cima» é a ponta a menos de pixel e meio — ou a mesma paragem em
-      // que acabou de encaixar, a poucos metros: um arredondamento da câmara
-      // não pode pô-la a encaixar outra vez, e outra.
-      const sobre =
-        alvo &&
-        (alvo.px <= SOBRE_PX || jaEncaixou || (alvo.id === ultimoEncaixe.current && alvo.m < 5))
-          ? alvo
-          : null;
-      clearTimeout(relogioEncaixe.current);
-      if (alvo && !sobre && mapaRef.current) {
-        ultimoEncaixe.current = alvo.id;
-        mapaRef.current.animateCamera(
-          { center: { latitude: alvo.lat, longitude: alvo.lng } },
-          { duration: 180 }
-        );
-        relogioEncaixe.current = setTimeout(
-          () =>
-            centroMudouRef.current?.({ ...regiao, latitude: alvo.lat, longitude: alvo.lng }, true),
-          700
-        );
-        return;
-      }
-      if (!alvo) ultimoEncaixe.current = null;
       setAMexer(false);
       // O rumo não vem na região; pergunta-se à câmara.
       // Envolvido, e não encadeado directamente: se `getCamera` não existir
@@ -1826,7 +1697,9 @@ export default function MapaGoogle({
       centroRef.current = { lat: regiao.latitude, lng: regiao.longitude };
       regiaoRef.current = regiao;
       setDelta(regiao.latitudeDelta);
-      setPerto((antes) => abaixoComHisterese(regiao.latitudeDelta, PERTO, antes));
+      // A ETIQUETA DA ESTRADA segue a regra do zoom 16 — ver o topo do
+      // ficheiro. Decide-se com o mapa parado, que é quando ela aparece.
+      setPerto(pontosAVistaRef.current);
       recalcularCartoes();
       // COM TRAVÃO (21/09/2026). Cada paragem do mapa pedia os nomes da zona
       // ao servidor. Quem arrasta o mapa à procura de um sítio pára cinco ou
@@ -1835,33 +1708,12 @@ export default function MapaGoogle({
       // arrastar, e é o que separa o arrasto da paragem.
       clearTimeout(relogioNossos.current);
       relogioNossos.current = setTimeout(() => buscarNossos(regiao), 500);
-      if (modoEscolha) {
-        clearTimeout(relogioParagens.current);
-        relogioParagens.current = setTimeout(() => buscarParagensMira(regiao), 500);
-      }
       if (modoEscolha && onCentro) {
-        // Em cima de uma paragem, o sítio escolhido É a paragem: a coordenada
-        // exacta dela e o nome que o Simão lhe deu.
-        onCentro({
-          type: 'centro',
-          lat: sobre ? sobre.lat : regiao.latitude,
-          lng: sobre ? sobre.lng : regiao.longitude,
-          nome: sobre?.nome || null,
-        });
+        onCentro({ type: 'centro', lat: regiao.latitude, lng: regiao.longitude });
       }
     },
-    [
-      modoEscolha,
-      onCentro,
-      recalcularCartoes,
-      buscarNossos,
-      buscarParagensMira,
-      verPontos,
-      verPertoDaMira,
-    ]
+    [modoEscolha, onCentro, recalcularCartoes, buscarNossos, verPontos]
   );
-  const centroMudouRef = useRef(centroMudou);
-  centroMudouRef.current = centroMudou;
 
   // O PRIMEIRO ENVIO É IMEDIATO. Quem abre o modo de escolha já está a
   // apontar para algum sítio, e esperar pelo primeiro arrasto deixava o
@@ -2111,21 +1963,6 @@ export default function MapaGoogle({
           // Antes do `return`: os pontos aparecem e somem DURANTE a pinça, e
           // não só no primeiro fotograma do gesto.
           verPontos(regiao);
-          verPertoDaMira(regiao);
-          // UM ARRASTO COMPRIDO pede a zona nova durante o gesto — no máximo
-          // uma vez a cada 0,7 s, e só depois de o centro se ter afastado
-          // 600 m do sítio do último pedido. Os arrastos curtos não pedem
-          // nada: a lista que já cá está chega-lhes.
-          if (modoEscolha && regiao) {
-            const u = ultimaBusca.current;
-            if (
-              !u ||
-              (Date.now() - u.t > 700 &&
-                metrosEntre(u, { lat: regiao.latitude, lng: regiao.longitude }) > 600)
-            ) {
-              buscarParagensMira(regiao);
-            }
-          }
           if (aMexer) return;
           // O GESTO COMEÇOU (27/09/2026). Três coisas, por esta ordem:
           //
@@ -2236,19 +2073,21 @@ export default function MapaGoogle({
             carro, e esta não é — é o caminho dela. Responde a uma pergunta
             que a pessoa tem e a que ninguém respondia: onde é que eu espero?
             Cinzento-escuro em vez do teal, para não competir com a rota. */}
-        {trocos.map((t, i) => (
-          <Polyline
-            key={`a-pe-${t.qual || i}`}
-            coordinates={linhasDosTrocos[i]}
-            // Como os do Google: pontos redondos e espaçados, cinzento
-            // neutro. Não é a cor de nada nosso de propósito — este troço não
-            // é da app, é o bocado que a pessoa faz a pé.
-            strokeColor="#5A6B66"
-            strokeWidth={4}
-            lineCap="round"
-            lineDashPattern={[1, 9]}
-          />
-        ))}
+        {/* A PARTIR DO NÍVEL 16, como a paragem e a etiqueta (29/09/2026). */}
+        {pontosAVista &&
+          trocos.map((t, i) => (
+            <Polyline
+              key={`a-pe-${t.qual || i}`}
+              coordinates={linhasDosTrocos[i]}
+              // Como os do Google: pontos redondos e espaçados, cinzento
+              // neutro. Não é a cor de nada nosso de propósito — este troço não
+              // é da app, é o bocado que a pessoa faz a pé.
+              strokeColor="#5A6B66"
+              strokeWidth={4}
+              lineCap="round"
+              lineDashPattern={[1, 9]}
+            />
+          ))}
 
         {/* A ROTA, DESENHADA COMO O GOOGLE DESENHA A DELE.
             O caminho já era o deles — as coordenadas vêm da Routes API, por
@@ -2448,30 +2287,6 @@ export default function MapaGoogle({
             onPress={onEscolherParagem ? () => onEscolherParagem(p) : undefined}
           />
         ))}
-
-        {/* AS PARAGENS À VOLTA DA MIRA, só no modo de escolha. Da cor do que
-            se está a escolher — teal na recolha, coral no destino — como a
-            própria mira. Tocar numa leva a mira até ela, e aí encaixa. */}
-        {modoEscolha && pontosAVista
-          ? paradasMira
-              .filter((p) => pertoDaMira.has(p.id))
-              .map((p) => (
-                <Marker
-                  key={`paragem-${p.id}`}
-                  coordinate={{ latitude: p.lat, longitude: p.lng }}
-                  anchor={{ x: 0.5, y: 0.5 }}
-                  zIndex={870}
-                  image={DISCRETO[modoEscolha] || DISCRETO.destino}
-                  title={p.nome || undefined}
-                  onPress={() =>
-                    mapaRef.current?.animateCamera(
-                      { center: { latitude: p.lat, longitude: p.lng } },
-                      { duration: 250 }
-                    )
-                  }
-                />
-              ))
-          : null}
 
         {/* A ETIQUETA DA ESTRADA, DESENHADA PELO PRÓPRIO MAPA (27/09/2026).
             Era uma vista por cima do mapa e escondia-se durante o gesto — a

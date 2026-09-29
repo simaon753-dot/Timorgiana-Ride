@@ -13,7 +13,8 @@ import {
   pedidoDe,
 } from '../rotas.js';
 import { limparDestinos } from '../destinosDaViagem.js';
-import { paragensQueCobrem } from '../paradas.js';
+import { paragensQueCobrem, paradasPerto } from '../paradas.js';
+import { escolherParagem, RAIO_PARAGENS_PERTO_M } from '../escolherParagem.js';
 import { estradaMaisPerto } from '../../mapa/index.js';
 import { nearestDrivers } from '../drivers.js';
 import { taxasPara } from '../taxasDeEntrada.js';
@@ -433,11 +434,15 @@ quoteRouter.post(
     const lat = num(req.body?.lat);
     const lng = num(req.body?.lng);
     if (lat == null || lng == null) return res.status(400).json({ error: 'Faltam coordenadas.' });
+    // A paragem que a app já está a mostrar, se houver — para a manter
+    // enquanto continuar boa. Ver a estabilidade em `escolherParagem.js`.
+    const aLat = num(req.body?.atual?.lat);
+    const aLng = num(req.body?.atual?.lng);
+    const atual = aLat != null && aLng != null ? { lat: aLat, lng: aLng } : null;
 
     const nossas = await paragensQueCobrem(lat, lng);
-    if (nossas.length) {
-      const principal = nossas[0];
-      return res.json({
+    const responderPainel = (principal, lista) =>
+      res.json({
         // A MAIS PERTO CONTINUA A VIR EM PRIMEIRO e nestes mesmos campos.
         //
         // Não é indecisão: é o que mantém as versões antigas da app a
@@ -456,14 +461,14 @@ quoteRouter.post(
         // TODAS, incluindo a primeira. A app precisa da lista inteira para
         // saber quais são as outras — mandar só as restantes obrigava-a a
         // remontar o conjunto, e é o género de conta que se faz mal uma vez.
-        paragens: nossas.map((p) => ({
+        paragens: lista.map((p) => ({
           id: p.id,
           nome: p.nome,
           lat: p.lat,
           lng: p.lng,
         })),
       });
-    }
+    if (nossas.length) return responderPainel(nossas[0], nossas);
     // SEM PARAGEM DEFINIDA À MÃO: A ESTRADA DO NOSSO MAPA QUE SERVE
     // (27/09/2026). Antes a app ia daqui directamente ao OSRM público, que
     // encosta a caminhos de serviço e trilhos — a etiqueta caía dentro de
@@ -476,16 +481,40 @@ quoteRouter.post(
     //                        encontraria o trilho ou o pátio que se quis evitar;
     //   `nenhuma`         — não foi possível ler o mapa. Aí sim, a app usa o
     //                        OSRM, que é melhor do que nada.
-    try {
-      const e = await estradaMaisPerto(lat, lng);
-      return res.json(
-        e
-          ? { fonte: 'mapa', lat: e.lat, lng: e.lng, metros: e.metros, rua: e.rua, tipo: e.tipo }
-          : { fonte: 'mapa', semEstrada: true }
-      );
-    } catch (err) {
-      console.error('[paragem] mapa ilegível:', err.message);
+    //
+    // A MELHOR, E NÃO SÓ A MAIS PERTO (29/09/2026): as paragens do painel à
+    // volta da mira entram como candidatas ao lado da estrada, e ganha a de
+    // menor custo — ver `escolherParagem.js`. Uma do painel responde como
+    // sempre (`nossa`), e a app passa a conduzir para lá.
+    const [perto, estrada] = await Promise.all([
+      paradasPerto(lat, lng, RAIO_PARAGENS_PERTO_M),
+      estradaMaisPerto(lat, lng).catch((err) => {
+        console.error('[paragem] mapa ilegível:', err.message);
+        return undefined;
+      }),
+    ]);
+    const escolha = escolherParagem({
+      ponto: { lat, lng },
+      perto,
+      estrada: estrada || null,
+      atual,
+    });
+    if (escolha?.tipo === 'painel') return responderPainel(escolha.principal, escolha.lista);
+    if (escolha?.tipo === 'estrada') {
+      const e = escolha.estrada;
+      return res.json({
+        fonte: 'mapa',
+        lat: e.lat,
+        lng: e.lng,
+        metros: e.metros,
+        rua: e.rua,
+        tipo: e.tipo,
+      });
     }
-    return res.json({ fonte: 'nenhuma' });
+    // Nenhuma: se o mapa foi lido, é que não há estrada no raio; se não foi,
+    // não se sabe — e a app, só nesse caso, pergunta ao OSRM.
+    return res.json(
+      estrada === undefined ? { fonte: 'nenhuma' } : { fonte: 'mapa', semEstrada: true }
+    );
   })
 );
