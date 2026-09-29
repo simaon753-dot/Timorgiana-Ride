@@ -17,6 +17,7 @@ import { colors, radius, spacing, registarEstilos, elevacao } from '../theme.js'
 import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 import { metrosEntre } from '../lib/filtroPosicao.js';
+import { paragensADestacar, chaveParagem } from '../lib/destaqueParagens.js';
 import {
   disporEtiquetas,
   rect,
@@ -274,6 +275,21 @@ function larguraDoCaminho(texto) {
 const PEQUENO = {
   origem: require('../../assets/mapa/pino-origem-pequeno.png'),
   destino: require('../../assets/mapa/pino-destino-pequeno.png'),
+};
+
+// DISCRETAS ATÉ SEREM PRECISAS (29/09/2026, pedido do Simão).
+//
+// O pino pequeno de uma alternativa estava sempre à vista, e com dois ou
+// três à volta de um sítio o mapa enchia-se de gotas que ninguém estava a
+// olhar. Agora uma alternativa é um PONTO da mesma cor — o menor sinal que
+// ainda diz «há aqui outra paragem» — e só volta a ser o pino pequeno quando
+// interessa: quando a pessoa aproxima o mapa, ou quando encosta a mira a ela
+// para escolher. É o mesmo sítio em dois tamanhos; o desenho do ponto sai
+// de scripts/desenhar-pontos-paragem.py, com a cor medida nos próprios pinos.
+// QUANDO se destacam decide-o `lib/destaqueParagens.js`.
+const DISCRETO = {
+  origem: require('../../assets/mapa/ponto-paragem-origem.png'),
+  destino: require('../../assets/mapa/ponto-paragem-destino.png'),
 };
 
 // A PARTIR DE QUE DISTÂNCIA uma alternativa deixa de se mostrar.
@@ -928,6 +944,46 @@ export default function MapaGoogle({
     }),
     [c.lat, c.lng]
   );
+
+  // AS ALTERNATIVAS QUE SE DESENHAM: só as que estão perto do ponto a que
+  // pertencem. Ver `ALTERNATIVA_PERTO_M`. Sem o ponto correspondente no ecrã
+  // não há com que comparar, e aí mostra-se — não se esconde informação por
+  // falta de informação.
+  const paragensVisiveis = paragens.filter((p) => {
+    const dono = pts.find((x) => x.qual === p.qual);
+    if (!dono) return true;
+    return metrosEntre({ lat: dono.lat, lng: dono.lng }, p) <= ALTERNATIVA_PERTO_M;
+  });
+  const paragensKey = paragensVisiveis.map(chaveParagem).join('|');
+
+  // QUAIS SE DESTACAM — ver `DISCRETO` e `lib/destaqueParagens.js`. Corre A
+  // CADA FOTOGRAMA do gesto (`onRegionChange`), para o pino crescer no
+  // momento em que a mira lhe chega e não só quando o mapa pára; por isso só
+  // redesenha quando o conjunto muda (a função devolve o mesmo Set).
+  const [destacadas, setDestacadas] = useState(() => new Set());
+  const destacadasRef = useRef(destacadas);
+  const pertoParagens = useRef(false);
+  const destacarParagens = useRef(null);
+  destacarParagens.current = (regiao) => {
+    if (!regiao) return;
+    const r = paragensADestacar({
+      regiao,
+      altura,
+      paragens: paragensVisiveis,
+      modoEscolha,
+      antes: destacadasRef.current,
+      estavaPerto: pertoParagens.current,
+    });
+    pertoParagens.current = r.perto;
+    if (r.destacadas === destacadasRef.current) return;
+    destacadasRef.current = r.destacadas;
+    setDestacadas(r.destacadas);
+  };
+  // Também quando as alternativas, o modo ou o tamanho do mapa mudam — sem
+  // gesto nenhum, o mapa não avisava.
+  useEffect(() => {
+    destacarParagens.current(regiaoRef.current || regiaoInicial);
+  }, [paragensKey, modoEscolha, altura]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Enquadrar ──────────────────────────────────────────────────────
   //
@@ -1654,6 +1710,7 @@ export default function MapaGoogle({
       }
       centroRef.current = { lat: regiao.latitude, lng: regiao.longitude };
       regiaoRef.current = regiao;
+      destacarParagens.current(regiao);
       setDelta(regiao.latitudeDelta);
       setPerto((antes) => abaixoComHisterese(regiao.latitudeDelta, PERTO, antes));
       recalcularCartoes();
@@ -1915,7 +1972,10 @@ export default function MapaGoogle({
         }}
         // O `aMexer` vale para os dois: levanta a mira, e esconde os
         // cartões enquanto as posições deles estão desactualizadas.
-        onRegionChange={() => {
+        onRegionChange={(regiao) => {
+          // Antes do `return`: a mira a chegar a uma alternativa decide-se
+          // DURANTE o gesto, e não só no primeiro fotograma dele.
+          destacarParagens.current(regiao);
           if (aMexer) return;
           // O GESTO COMEÇOU (27/09/2026). Três coisas, por esta ordem:
           //
@@ -2220,30 +2280,29 @@ export default function MapaGoogle({
             balão nativo do Google, desenhado por ele e não por nós — é a
             única maneira de pôr aqui o nome do sítio sem partir o marcador.
             Sem o nome isto eram dois pontos cinzentos iguais, e escolher
-            entre dois pontos iguais não é escolher. */}
-        {paragens
-          // SÓ AS QUE ESTÃO PERTO DO PONTO A QUE PERTENCEM. Ver
-          // `ALTERNATIVA_PERTO_M`. Sem o ponto correspondente no ecrã não há
-          // com que comparar, e aí mostra-se — não se esconde informação por
-          // falta de informação.
-          .filter((p) => {
-            const dono = pts.find((x) => x.qual === p.qual);
-            if (!dono) return true;
-            return metrosEntre({ lat: dono.lat, lng: dono.lng }, p) <= ALTERNATIVA_PERTO_M;
-          })
-          .map((p) => (
+            entre dois pontos iguais não é escolher.
+
+            DISCRETAS até serem precisas: um ponto, que passa a pino pequeno
+            com o mapa perto ou a mira encostada. Ver `DISCRETO`. */}
+        {paragensVisiveis.map((p) => {
+          const destaque = destacadas.has(chaveParagem(p));
+          return (
             <Marker
-              key={`outra-${p.qual}-${p.lat},${p.lng}`}
+              key={`outra-${chaveParagem(p)}`}
               coordinate={{ latitude: p.lat, longitude: p.lng }}
-              // Pela PONTA, como os pinos grandes: é um pino, e um pino
-              // aponta com o bico. Centrado, apontaria ao lado.
-              anchor={{ x: 0.5, y: ANCORA_Y }}
+              // O PINO pela ponta — um pino aponta com o bico, e centrado
+              // apontaria ao lado. O PONTO pelo centro, que é onde ele marca.
+              // Os dois assentam na mesma coordenada: o pino cresce do ponto.
+              anchor={destaque ? { x: 0.5, y: ANCORA_Y } : { x: 0.5, y: 0.5 }}
               zIndex={880}
-              image={PEQUENO[p.qual] || PEQUENO.origem}
+              image={
+                destaque ? PEQUENO[p.qual] || PEQUENO.origem : DISCRETO[p.qual] || DISCRETO.origem
+              }
               title={p.nome || undefined}
               onPress={onEscolherParagem ? () => onEscolherParagem(p) : undefined}
             />
-          ))}
+          );
+        })}
 
         {/* A ETIQUETA DA ESTRADA, DESENHADA PELO PRÓPRIO MAPA (27/09/2026).
             Era uma vista por cima do mapa e escondia-se durante o gesto — a
