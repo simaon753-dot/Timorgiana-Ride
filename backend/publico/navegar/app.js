@@ -569,8 +569,16 @@ async function aoPosicao(pos) {
 
 // A câmara segue o carro, virada para onde ele vai, mais afastada a andar
 // depressa — a 60 km/h precisa-se de ver mais longe do que a 20.
+let jaCentrou = false;
 function acompanhar(pos, agora, rumoCarro) {
   if (!seguir) return;
+  // A PRIMEIRA VEZ SALTA: o mapa abre centrado no destino, e voar de lá até
+  // ao carro levava segundos em que o carro não se via (ensaio de 29/09).
+  if (!jaCentrou) {
+    jaCentrou = true;
+    mapa.jumpTo({ center: [pos.lng, pos.lat], zoom: 17, bearing: rumoCarro ?? 0, pitch: 45 });
+    return;
+  }
   const v = pos.velocidade || 0;
   const zoom = v > 16 ? 15.5 : v > 9 ? 16.3 : 17;
   const topo = $('faixa').offsetHeight || 100;
