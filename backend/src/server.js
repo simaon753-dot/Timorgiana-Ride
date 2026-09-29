@@ -25,6 +25,7 @@ import { one } from './db.js';
 import { lugaresRouter } from './routes/lugares.js';
 import { estadoDaBusca, marcarPorPerguntar, nomesDeHoje } from './lugares.js';
 import { estadoDasRotas, usoDeHoje } from './rotas.js';
+import { estadoDasRotasNossas } from './rotasNossas.js';
 import { estadoDoEmail } from './email.js';
 import { mosaico } from './mosaicos.js';
 import { gzipSync } from 'node:zlib';
@@ -109,7 +110,18 @@ app.get('/api/health', async (req, res) => {
     // que a pessoa não abriu — e a diferença é toda: num caso corrige-se a
     // configuração, no outro telefona-se à pessoa. Nunca mostra a chave, só
     // se ela existe.
-    res.json({ ...base, ok: true, database: 'ok', rotas, email: estadoDoEmail() });
+    // A memória do servidor, desde que as rotas nossas carregam uma rede de
+    // ~46 MB: no plano gratuito do Render o tecto é 512 MB, e é aqui que se vê
+    // se nos aproximamos dele.
+    res.json({
+      ...base,
+      ok: true,
+      database: 'ok',
+      rotas,
+      rotasNossas: await estadoDasRotasNossas(),
+      memoriaMB: Math.round(process.memoryUsage().rss / 1e6),
+      email: estadoDoEmail(),
+    });
   } catch (e) {
     console.error('[health] base de dados inacessível:', e.message);
     res.status(503).json({ ...base, ok: false, database: 'inacessível' });

@@ -952,6 +952,20 @@ export async function initSchema() {
     )
   `);
 
+  // AS ROTAS NOSSAS AO LADO DAS DO GOOGLE (29/09/2026). Ver
+  // `compararComGoogle` em rotasNossas.js. Só distâncias e tempos — nunca
+  // coordenadas: o resumo vai para o /api/health, que é público.
+  await query(`
+    CREATE TABLE IF NOT EXISTS comparacao_rotas (
+      id         SERIAL PRIMARY KEY,
+      km_google  REAL NOT NULL,
+      km_nossa   REAL,
+      min_google INTEGER,
+      min_nossa  INTEGER,
+      quando     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
   // O CAMINHO DE CADA VIAGEM, para o painel. Ver `percursos.js`. Apaga-se
   // com a viagem e, antes disso, com a história minuto a minuto (retencao.js).
   await query(`

@@ -59,3 +59,7 @@ desenho/imagens/
 # --- Capturas para a loja com dados pessoais (o repositório é público) ---
 loja/capturas/por-refazer/
 loja/capturas/antigas/
+
+# Dados brutos do OpenStreetMap (Geofabrik): ficam só neste computador.
+# A rede de estradas que sai deles é que vai para o servidor.
+*.osm.pbf

@@ -41,6 +41,8 @@ const AMBIENTE = new Set([
   'Intl', 'isNaN', 'isFinite', 'parseInt', 'parseFloat', 'encodeURIComponent',
   'decodeURIComponent', 'encodeURI', 'decodeURI', 'undefined', 'NaN', 'Infinity',
   'Uint8Array', 'ArrayBuffer', 'DataView', 'Int32Array', 'Float64Array',
+  // As tabelas da rede de estradas (rotasNossas.js, 29/09/2026).
+  'Float32Array', 'Int8Array',
 ]);
 
 function naoDeclarados(codigo) {

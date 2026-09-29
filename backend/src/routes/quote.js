@@ -18,6 +18,7 @@ import { estradaMaisPerto } from '../estradasNossas.js';
 import { nearestDrivers } from '../drivers.js';
 import { taxasPara } from '../taxasDeEntrada.js';
 import { destinoFixo } from '../destinosCarry.js';
+import { compararComGoogle } from '../rotasNossas.js';
 // A LISTA DOS TIPOS, que faltava desde a fase 1 do Carry. Sem ela cada
 // cotação rebentava com ReferenceError e a app ficava sem preço — só o pedido
 // (routes/rides.js, que a importa) calculava o valor. Ver
@@ -269,7 +270,9 @@ quoteRouter.post(
               tipoEscolhido,
               o.km,
               o.min,
-              tipoEscolhido === 'car' || (tipoEscolhido === 'carry' && carryPessoas) ? pessoas : null,
+              tipoEscolhido === 'car' || (tipoEscolhido === 'carry' && carryPessoas)
+                ? pessoas
+                : null,
               tipoEscolhido === 'carry' && carryPessoas ? null : carga,
               pontas
             ) +
@@ -291,6 +294,11 @@ quoteRouter.post(
         }
       }
     }
+
+    // AS ROTAS NOSSAS AO LADO, em silêncio (29/09/2026). Não mudam nada na
+    // resposta — ver `compararComGoogle`.
+    if (!paragens.length)
+      compararComGoogle({ lat: oLat, lng: oLng }, { lat: dLat, lng: dLng }, viagem);
 
     return res.json({
       caminhos,
