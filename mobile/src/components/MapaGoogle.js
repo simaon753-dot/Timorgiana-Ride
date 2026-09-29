@@ -18,6 +18,7 @@ import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 import { metrosEntre } from '../lib/filtroPosicao.js';
 import { paragemParaEncaixar, SOBRE_PX } from '../lib/encaixeParagem.js';
+import { zoomDaRegiao, paragensAVista } from '../lib/visibilidadeParagens.js';
 import {
   disporEtiquetas,
   rect,
@@ -966,11 +967,12 @@ export default function MapaGoogle({
     async (regiao) => {
       if (!token || !regiao) return;
       const raioM = (regiao.latitudeDelta * 111320) / 2;
-      // Com o mapa muito afastado os pontos ficavam uns em cima dos outros.
-      if (raioM > 3000) {
-        setParadasMira([]);
-        return;
-      }
+      // CONTINUA A PEDIR COM OS PONTOS ESCONDIDOS (zoom baixo): assim, ao
+      // aproximar o mapa, eles aparecem no instante, sem esperar pela rede.
+      // Só a partir de 3 km deixa de pedir, e fica com a lista que tinha —
+      // voltando a aproximar, ela serve até chegar a nova. São no máximo as
+      // 40 mais perto do centro, sejam cem ou mil no painel.
+      if (raioM > 3000) return;
       try {
         const r = await api.paragensPerto(
           token,
@@ -992,6 +994,27 @@ export default function MapaGoogle({
     }
     buscarParagensMira(regiaoRef.current || regiaoInicial);
   }, [modoEscolha]); // eslint-disable-line react-hooks/exhaustive-deps
+  // OS PONTOS DE PARAGEM SÓ SE VÊEM COM O MAPA PERTO — ver
+  // `lib/visibilidadeParagens.js`. Decide-se a CADA FOTOGRAMA de qualquer
+  // movimento da câmara (pinça, botões, enquadramento automático, arrasto),
+  // e só se redesenha quando a resposta muda: atravessar o limite é o único
+  // momento em que alguma coisa acontece no ecrã. Vale para os pontos das
+  // alternativas e para os da mira; os pinos da viagem não entram.
+  const [pontosAVista, setPontosAVista] = useState(false);
+  const pontosAVistaRef = useRef(false);
+  const larguraRef = useRef(largura);
+  larguraRef.current = largura;
+  const verPontos = useCallback((regiao) => {
+    const zoom = zoomDaRegiao(regiao, larguraRef.current);
+    if (zoom == null) return;
+    const v = paragensAVista(zoom, pontosAVistaRef.current);
+    if (v === pontosAVistaRef.current) return;
+    pontosAVistaRef.current = v;
+    setPontosAVista(v);
+  }, []);
+  useEffect(() => {
+    verPontos(regiaoRef.current || regiaoInicial);
+  }, [largura]); // eslint-disable-line react-hooks/exhaustive-deps
   // Para o `centroMudou`, que é um useCallback e não deve mudar a cada desenho.
   const alturaRef = useRef(altura);
   alturaRef.current = altura;
@@ -1721,13 +1744,17 @@ export default function MapaGoogle({
       // pousa já em cima da paragem, quando o mapa voltar a parar. Se o mapa
       // não avisar que parou (um movimento de um pixel às vezes não avisa),
       // o relógio segue como se tivesse parado ali.
-      const alvo = modoEscolha
-        ? paragemParaEncaixar({
-            regiao,
-            altura: alturaRef.current,
-            paragens: paradasMiraRef.current,
-          })
-        : null;
+      // Só encaixa em paragens À VISTA: uma que o zoom escondeu não pode
+      // puxar a mira para si.
+      verPontos(regiao);
+      const alvo =
+        modoEscolha && pontosAVistaRef.current
+          ? paragemParaEncaixar({
+              regiao,
+              altura: alturaRef.current,
+              paragens: paradasMiraRef.current,
+            })
+          : null;
       // «Em cima» é a ponta a menos de pixel e meio — ou a mesma paragem em
       // que acabou de encaixar, a poucos metros: um arredondamento da câmara
       // não pode pô-la a encaixar outra vez, e outra.
@@ -1790,7 +1817,7 @@ export default function MapaGoogle({
         });
       }
     },
-    [modoEscolha, onCentro, recalcularCartoes, buscarNossos, buscarParagensMira]
+    [modoEscolha, onCentro, recalcularCartoes, buscarNossos, buscarParagensMira, verPontos]
   );
   const centroMudouRef = useRef(centroMudou);
   centroMudouRef.current = centroMudou;
@@ -2039,7 +2066,10 @@ export default function MapaGoogle({
         }}
         // O `aMexer` vale para os dois: levanta a mira, e esconde os
         // cartões enquanto as posições deles estão desactualizadas.
-        onRegionChange={() => {
+        onRegionChange={(regiao) => {
+          // Antes do `return`: os pontos aparecem e somem DURANTE a pinça, e
+          // não só no primeiro fotograma do gesto.
+          verPontos(regiao);
           if (aMexer) return;
           // O GESTO COMEÇOU (27/09/2026). Três coisas, por esta ordem:
           //
@@ -2350,7 +2380,7 @@ export default function MapaGoogle({
             `DISCRETO`. No modo de escolha dão lugar às paragens à volta da
             mira (abaixo), que já as incluem: seriam dois pontos no mesmo
             sítio. */}
-        {(modoEscolha ? [] : paragensVisiveis).map((p) => (
+        {(modoEscolha || !pontosAVista ? [] : paragensVisiveis).map((p) => (
           <Marker
             key={`outra-${p.qual}-${p.lat},${p.lng}`}
             coordinate={{ latitude: p.lat, longitude: p.lng }}
@@ -2366,7 +2396,7 @@ export default function MapaGoogle({
         {/* AS PARAGENS À VOLTA DA MIRA, só no modo de escolha. Da cor do que
             se está a escolher — teal na recolha, coral no destino — como a
             própria mira. Tocar numa leva a mira até ela, e aí encaixa. */}
-        {modoEscolha
+        {modoEscolha && pontosAVista
           ? paradasMira.map((p) => (
               <Marker
                 key={`paragem-${p.id}`}
