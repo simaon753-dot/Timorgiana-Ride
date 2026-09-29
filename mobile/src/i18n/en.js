@@ -7,8 +7,9 @@
 // the substitution.
 export default {
   navegarCom: 'Navigate with',
+  navegarNossa: 'TimorgianaRide (no Google)',
   navegarComNota:
-    'Organic Maps does not use Google and works offline once the East Timor map is downloaded.',
+    'TimorgianaRide uses our own map. Organic Maps works offline once the East Timor map is downloaded. Neither uses Google.',
   organicFalta: 'Organic Maps is not installed',
   organicFaltaNota:
     'It is free. After installing it, download the «East Timor» map inside it, ideally on Wi-Fi.',

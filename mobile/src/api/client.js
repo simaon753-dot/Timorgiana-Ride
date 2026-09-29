@@ -6,6 +6,11 @@ let linguaActual = null;
 export function definirLingua(l) {
   linguaActual = l;
 }
+// Para quem não é um componente e precisa da língua — a página de
+// navegação nossa abre na língua da app (lib/mapaLink.js).
+export function linguaDaApp() {
+  return linguaActual;
+}
 
 export class ApiError extends Error {
   constructor(message, status, motivo) {

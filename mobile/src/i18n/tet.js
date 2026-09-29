@@ -2,8 +2,9 @@
 // As traduções devem ser revistas por um falante nativo antes do lançamento.
 export default {
   navegarCom: 'Navega ho',
+  navegarNossa: 'TimorgianaRide (la ho Google)',
   navegarComNota:
-    'Organic Maps la uza Google no funsiona la ho internet, hafoin tun mapa Timor-Leste nian («East Timor»).',
+    'TimorgianaRide uza ami-nia mapa. Organic Maps funsiona la ho internet, hafoin tun mapa «East Timor». Rua ne’e la uza Google.',
   organicFalta: 'Organic Maps seidauk instala',
   organicFaltaNota:
     'Gratuitu. Hafoin instala, tun mapa «East Timor» iha laran, di’ak liu ho Wi-Fi.',

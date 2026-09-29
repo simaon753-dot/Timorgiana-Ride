@@ -1,8 +1,9 @@
 // Português (europeu)
 export default {
   navegarCom: 'Navegar com',
+  navegarNossa: 'TimorgianaRide (sem Google)',
   navegarComNota:
-    'O Organic Maps não usa o Google e funciona sem internet, depois de descarregado o mapa de Timor-Leste («East Timor»).',
+    'A TimorgianaRide usa o nosso mapa. O Organic Maps funciona sem internet, depois de descarregado o mapa «East Timor». Nenhum dos dois usa o Google.',
   organicFalta: 'O Organic Maps não está instalado',
   organicFaltaNota:
     'É gratuito. Depois de o instalar, descarregue lá dentro o mapa «East Timor», de preferência com Wi-Fi.',

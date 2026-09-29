@@ -1,5 +1,7 @@
 import { Alert } from 'react-native';
 import * as Location from 'expo-location';
+import { getBaseUrl } from '../serverUrl.js';
+import { linguaDaApp } from '../api/client.js';
 
 // Link de mapa para ABRIR NOUTRA APLICAÇÃO — não é o mapa da nossa app.
 //
@@ -47,17 +49,35 @@ const ORGANIC_MAPS_LOJA_WEB = 'https://play.google.com/store/apps/details?id=app
 
 export function navegarAte(Linking, lat, lng, t, nome = '') {
   if (lat == null || lng == null) return;
-  Alert.alert(t('navegarCom'), t('navegarComNota'), [
-    { text: t('cancel'), style: 'cancel' },
-    {
-      text: 'Google Maps',
-      onPress: () =>
-        Linking.openURL(
-          `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`
-        ).catch(() => abrirNoMapa(Linking, lat, lng)),
-    },
-    { text: 'Organic Maps', onPress: () => abrirOrganicMaps(Linking, lat, lng, t, nome) },
-  ]);
+  // TRÊS BOTÕES, que é o máximo de um aviso no Android; cancelar é tocar
+  // fora dele. A nossa em último, que no Android é o lugar do botão principal.
+  Alert.alert(
+    t('navegarCom'),
+    t('navegarComNota'),
+    [
+      {
+        text: 'Google Maps',
+        onPress: () =>
+          Linking.openURL(
+            `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`
+          ).catch(() => abrirNoMapa(Linking, lat, lng)),
+      },
+      { text: 'Organic Maps', onPress: () => abrirOrganicMaps(Linking, lat, lng, t, nome) },
+      { text: t('navegarNossa'), onPress: () => abrirNavegacaoNossa(Linking, lat, lng, nome) },
+    ],
+    { cancelable: true }
+  );
+}
+
+// A NAVEGAÇÃO NOSSA (29/09/2026, passo 3): uma página do nosso servidor, com
+// o nosso mapa, as rotas nossas e a voz do telemóvel. Abre no navegador —
+// não precisa de APK — e na língua da app. Ver backend/src/routes/navegar.js.
+function abrirNavegacaoNossa(Linking, lat, lng, nome) {
+  const lingua = ['pt', 'tet', 'en'].includes(linguaDaApp()) ? linguaDaApp() : 'tet';
+  const url =
+    `${getBaseUrl()}/navegar?para=${lat},${lng}` +
+    `&nome=${encodeURIComponent(nome || '')}&lingua=${lingua}`;
+  return Linking.openURL(url);
 }
 
 async function abrirOrganicMaps(Linking, lat, lng, t, nome) {
