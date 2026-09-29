@@ -22,8 +22,17 @@
 //
 // Correr:  cd juridico && node textos-app.mjs
 // Escreve: juridico/app/Textos da App.docx
+//
+// SÓ O QUE FALTA REVER (29/09/2026):  node textos-app.mjs --por-rever
+// Escreve: juridico/app/Textos da App - por rever.docx
+// Os textos cujo tétum não é um que o Simão já leu: os novos e os mudados
+// depois das revisões dele (REVISOES, em baixo). O importar-textos.py lê este
+// Word igual ao outro — os textos que não vêm ficam como estão. DEPOIS DE
+// IMPORTAR UMA REVISÃO, juntar o commit da importação a REVISOES; senão os
+// mesmos textos voltam a sair como por rever.
 
 import { createRequire } from 'node:module';
+import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
@@ -38,7 +47,33 @@ const LINGUAS = ['pt', 'tet', 'en'];
 const SRC = fileURLToPath(new URL('../mobile/src/', import.meta.url));
 const textos = {};
 for (const l of LINGUAS) textos[l] = (await import(new URL(`../mobile/src/i18n/${l}.js`, import.meta.url))).default;
-const CHAVES = Object.keys(textos.pt);
+
+// ── O que o Simão já leu ────────────────────────────────────────────────
+// `tudo`: leu o ficheiro inteiro, e cada texto dele conta como lido. Senão só
+// contam os que aquele commit mudou.
+const POR_REVER = process.argv.includes('--por-rever');
+const REVISOES = [
+  { commit: '4b5bcb9', tudo: true }, // 15/09/2026: os 900 textos, 247 corrigidos
+  { commit: '3062b52', tudo: false }, // 22/09/2026: o tétum das etiquetas do mapa
+];
+const RAIZ = fileURLToPath(new URL('..', import.meta.url));
+async function tetEm(commit) {
+  const js = execFileSync('git', ['show', `${commit}:mobile/src/i18n/tet.js`], { cwd: RAIZ, encoding: 'utf8' });
+  return (await import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'))).default;
+}
+const lidos = new Map(); // chave → os tétuns que ele leu para ela
+if (POR_REVER) {
+  for (const r of REVISOES) {
+    const depois = await tetEm(r.commit);
+    const antes = r.tudo ? null : await tetEm(`${r.commit}^`);
+    for (const [k, v] of Object.entries(depois)) {
+      if (antes && antes[k] === v) continue;
+      if (!lidos.has(k)) lidos.set(k, new Set());
+      lidos.get(k).add(v);
+    }
+  }
+}
+const CHAVES = Object.keys(textos.pt).filter((k) => !POR_REVER || !lidos.get(k)?.has(textos.tet[k]));
 
 // ── Em que ecrã aparece cada chave ──────────────────────────────────────
 const ECRAS = {
@@ -78,6 +113,17 @@ const ECRAS = {
   'components/RatingPanel.js': 'Avaliação',
   'screens/ChatScreen.js': 'Conversa',
   'screens/HistoryScreen.js': 'Histórico',
+  'screens/DetalheViagemScreen.js': 'Histórico',
+  'screens/ReportarScreen.js': 'Ocorrências',
+  'screens/EncomendaScreen.js': 'Encomenda',
+  'components/Encomenda.js': 'Encomenda',
+  'screens/NavegarScreen.js': 'Navegação',
+  'lib/mapaLink.js': 'Navegação',
+  'components/MapaGoogle.js': 'Viagem em curso',
+  'components/EsperaPedido.js': 'Pedir viagem',
+  'components/AvisoSessao.js': 'Iniciar sessão',
+  'components/EditarNome.js': 'Perfil',
+  'dados/servicos.js': 'Início do passageiro',
   'screens/DriverHomeScreen.js': 'Início do motorista',
   'components/FotoDeTurno.js': 'Início do motorista',
   'components/BotaoPower.js': 'Início do motorista',
@@ -100,7 +146,8 @@ const SEM_USO = 'Não encontrados no código (talvez sem uso)';
 const ORDEM = [
   'Entrada', 'Iniciar sessão', 'Recuperar acesso', 'Registo', 'Veículo do motorista',
   'Início do passageiro', 'Escolher destino', 'Carro Pickup', 'Pedir viagem',
-  'Viagem em curso', 'Emergência', 'Cancelamentos', 'Avaliação', 'Conversa', 'Histórico',
+  'Encomenda', 'Viagem em curso', 'Navegação', 'Emergência', 'Cancelamentos', 'Avaliação',
+  'Conversa', 'Histórico', 'Ocorrências',
   'Mensagens automáticas', 'Início do motorista', 'Documentos do motorista', 'Ganhos',
   'Assinatura', 'Perfil', 'Opções', 'Termos', 'Servidor', 'Painel de administração',
   COMUNS, SEM_USO,
@@ -117,6 +164,8 @@ const PREFIXOS = [
   ['tipo', 'Escolher destino'],
   ['carga', 'Carro Pickup'],
   ['assin', 'Assinatura'],
+  ['aval', 'Avaliação'],
+  ['ocor', 'Ocorrências'],
 ];
 
 function ficheiros(dir, base = '') {
@@ -146,6 +195,8 @@ function grupoDe(k) {
 }
 const grupos = new Map(ORDEM.map((g) => [g, []]));
 for (const k of CHAVES) grupos.get(grupoDe(k)).push(k);
+// Por rever, um texto que ninguém vê não vale o tempo de quem revê.
+const deFora = POR_REVER ? grupos.get(SEM_USO).splice(0) : [];
 
 // ── O Word ───────────────────────────────────────────────────────────────
 const LARGURAS = [2200, 4212, 4212, 4212];
@@ -199,6 +250,11 @@ for (const [nome, ks] of grupos) {
 }
 
 const INSTRUCOES = [
+  ...(POR_REVER
+    ? [
+        'Estes são só os textos escritos ou mudados depois da sua revisão de 15/09/2026 (e da das etiquetas do mapa, a 22/09). O tétum é rascunho meu; o português e o inglês também são novos. Os outros textos da aplicação ficam como estão.',
+      ]
+    : []),
   'Corrija o texto nas colunas Português, Tétum e English. NÃO mexa na coluna Chave: é por ela que cada texto volta ao sítio certo da aplicação.',
   'Os marcadores entre chavetas — {nome}, {h}, {valor}, {dias} — são trocados pela aplicação por um nome ou um número. Mantenha-os escritos da mesma maneira; pode mudá-los de lugar na frase. Um texto a que falte ou sobre um marcador não é importado, e fica na lista de avisos.',
   'O que está entre ** e ** aparece a negrito ou como ligação. Mantenha os asteriscos aos pares.',
@@ -255,7 +311,9 @@ const doc = new Document({
           border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: 'D8D2C8', space: 8 } },
           children: [
             letra(
-              `Todas as palavras que a aplicação mostra: ${total} textos, em três línguas  ·  para revisão`,
+              POR_REVER
+                ? `Só os textos novos ou mudados desde a sua última revisão: ${total} textos  ·  o tétum é rascunho`
+                : `Todas as palavras que a aplicação mostra: ${total} textos, em três línguas  ·  para revisão`,
               { size: 17, color: C.CINZA }
             ),
           ],
@@ -283,6 +341,8 @@ const doc = new Document({
 
 mkdirSync(new URL('./app/', import.meta.url), { recursive: true });
 const b = await Packer.toBuffer(doc);
-writeFileSync(new URL('./app/Textos da App.docx', import.meta.url), b);
-console.log(`  ✓ app/Textos da App.docx  (${(b.length / 1024).toFixed(0)} KB, ${total} textos)`);
+const NOME = POR_REVER ? 'Textos da App - por rever.docx' : 'Textos da App.docx';
+writeFileSync(new URL(`./app/${NOME}`, import.meta.url), b);
+console.log(`  ✓ app/${NOME}  (${(b.length / 1024).toFixed(0)} KB, ${total} textos)`);
 for (const [nome, ks] of grupos) if (ks.length) console.log(`     ${String(ks.length).padStart(4)}  ${nome}`);
+if (deFora.length) console.log(`  (de fora, sem uso no código: ${deFora.join(', ')})`);
