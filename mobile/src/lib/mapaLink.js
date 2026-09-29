@@ -48,8 +48,17 @@ export function abrirNoMapa(Linking, lat, lng) {
 const ORGANIC_MAPS_LOJA = 'market://details?id=app.organicmaps';
 const ORGANIC_MAPS_LOJA_WEB = 'https://play.google.com/store/apps/details?id=app.organicmaps';
 
-export function navegarAte(Linking, lat, lng, t, nome = '') {
+// `opcoes`: `rideId` (a navegação nossa mostra a viagem inteira) e `via`
+// (as paragens do Pickup que faltam, por ordem — ver lib/paragensFeitas.js).
+export function navegarAte(Linking, lat, lng, t, nome = '', opcoes = {}) {
   if (lat == null || lng == null) return;
+  const via = (opcoes.via || []).filter((p) => p?.lat != null && p?.lng != null);
+  // O Google leva as paragens como pontos de passagem; o Organic Maps só
+  // sabe ir a um sítio, por isso vai à PRÓXIMA paragem e, dela, ao destino.
+  const pontosGoogle = via.length
+    ? `&waypoints=${encodeURIComponent(via.map((p) => `${p.lat},${p.lng}`).join('|'))}`
+    : '';
+  const primeiro = via[0] || { lat, lng, label: nome };
   // TRÊS BOTÕES, que é o máximo de um aviso no Android; cancelar é tocar
   // fora dele. A nossa em último, que no Android é o lugar do botão principal.
   Alert.alert(
@@ -60,11 +69,18 @@ export function navegarAte(Linking, lat, lng, t, nome = '') {
         text: 'Google Maps',
         onPress: () =>
           Linking.openURL(
-            `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`
+            `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}${pontosGoogle}&travelmode=driving`
           ).catch(() => abrirNoMapa(Linking, lat, lng)),
       },
-      { text: 'Organic Maps', onPress: () => abrirOrganicMaps(Linking, lat, lng, t, nome) },
-      { text: t('navegarNossa'), onPress: () => abrirNavegacaoNossa(Linking, lat, lng, nome) },
+      {
+        text: 'Organic Maps',
+        onPress: () =>
+          abrirOrganicMaps(Linking, primeiro.lat, primeiro.lng, t, primeiro.label || ''),
+      },
+      {
+        text: t('navegarNossa'),
+        onPress: () => abrirNavegacaoNossa(Linking, lat, lng, nome, opcoes.rideId),
+      },
     ],
     { cancelable: true }
   );
@@ -73,13 +89,13 @@ export function navegarAte(Linking, lat, lng, t, nome = '') {
 // A NAVEGAÇÃO NOSSA (29/09/2026, passo 3): uma página do nosso servidor, com
 // o nosso mapa, as rotas nossas e a voz do telemóvel. Abre no navegador —
 // não precisa de APK — e na língua da app. Ver backend/src/routes/navegar.js.
-function abrirNavegacaoNossa(Linking, lat, lng, nome) {
+function abrirNavegacaoNossa(Linking, lat, lng, nome, rideId) {
   // DENTRO DA APP desde a versão 1.5.0 (ecrã Navegar, com voz e ecrã
   // ligado). O navegador fica como reserva, se a navegação da app ainda não
   // estiver pronta.
   const nav = navegacao.current;
   if (nav?.isReady()) {
-    nav.navigate('Navegar', { lat, lng, nome });
+    nav.navigate('Navegar', { lat, lng, nome, rideId });
     return Promise.resolve(true);
   }
   const lingua = ['pt', 'tet', 'en'].includes(linguaDaApp()) ? linguaDaApp() : 'tet';

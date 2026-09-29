@@ -25,7 +25,7 @@ import {
   larguraTexto,
 } from '../lib/disporEtiquetas.js';
 import { etiquetaDoMapa } from '../dados/etiquetasMapa.js';
-import { navegarAte } from '../lib/mapaLink.js';
+import { abrirNoMapa } from '../lib/mapaLink.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
 
@@ -2534,9 +2534,12 @@ export default function MapaGoogle({
       {ferramentas && navegarPara ? (
         <Pressable
           style={styles.botaoGuiar}
-          onPress={() =>
-            navegarAte(Linking, navegarPara.lat, navegarPara.lng, t, navegarPara.label || '')
-          }
+          // O PASSAGEIRO, e não o motorista: este botão só aparece na viagem
+          // de quem pede (ViagemPassageiro), para ir a pé até à recolha ou
+          // seguir o destino. Por isso deixa o telemóvel escolher a
+          // aplicação, como sempre — a escolha de navegação de condução
+          // (navegarAte) foi-lhe posta por engano a 29/09 e saiu no mesmo dia.
+          onPress={() => abrirNoMapa(Linking, navegarPara.lat, navegarPara.lng)}
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel={t('guiarAteLa')}

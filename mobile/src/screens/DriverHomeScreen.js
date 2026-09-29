@@ -22,6 +22,7 @@ import { statusMeta } from '../components/StatusBadge.js';
 import Avatar from '../design/Avatar.js';
 import BotaoAccao from '../design/BotaoAccao.js';
 import { navegarAte } from '../lib/mapaLink.js';
+import { paragensPorFazer, verificarParagens } from '../lib/paragensFeitas.js';
 import MapaExpandivel from '../components/MapaExpandivel.js';
 import MotivoCancelamento from '../components/MotivoCancelamento.js';
 import PedirCodigo from '../components/PedirCodigo.js';
@@ -135,6 +136,12 @@ export default function DriverHomeScreen({ navigation }) {
 
   // Espelho do ecrã do passageiro: aqui só entram viagens que EU conduzo.
   const activeRide = viagemBruta && viagemBruta.driver?.id === user?.id ? viagemBruta : null;
+
+  // AS PARAGENS DO PICKUP por onde já se passou, a cada posição do motorista
+  // (ver lib/paragensFeitas.js): é o que deixa o «Navegar» levar à próxima.
+  useEffect(() => {
+    verificarParagens(activeRide, minhaPosicao);
+  }, [activeRide, minhaPosicao]);
 
   // Documentos por aceitar. A privacidade também: o ecrã do passageiro já a
   // pedia, mas quem está no modo de motorista nunca passa por lá.
@@ -817,7 +824,10 @@ function ActiveRideCard({
               alvo.lat,
               alvo.lng,
               t,
-              aIrBuscar ? ride.originLabel : ride.destLabel
+              aIrBuscar ? ride.originLabel : ride.destLabel,
+              // A viagem, para a navegação nossa a mostrar inteira; e, já com
+              // o passageiro, as paragens do Pickup que faltam.
+              { rideId: ride.id, via: aIrBuscar ? [] : paragensPorFazer(ride) }
             )
           }
           accessibilityRole="button"
