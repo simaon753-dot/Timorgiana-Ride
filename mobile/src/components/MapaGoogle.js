@@ -25,7 +25,7 @@ import {
   larguraTexto,
 } from '../lib/disporEtiquetas.js';
 import { etiquetaDoMapa } from '../dados/etiquetasMapa.js';
-import { abrirNoMapa } from '../lib/mapaLink.js';
+import { navegarAte } from '../lib/mapaLink.js';
 import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
 
@@ -2534,7 +2534,9 @@ export default function MapaGoogle({
       {ferramentas && navegarPara ? (
         <Pressable
           style={styles.botaoGuiar}
-          onPress={() => abrirNoMapa(Linking, navegarPara.lat, navegarPara.lng)}
+          onPress={() =>
+            navegarAte(Linking, navegarPara.lat, navegarPara.lng, t, navegarPara.label || '')
+          }
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel={t('guiarAteLa')}

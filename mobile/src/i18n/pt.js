@@ -1,5 +1,12 @@
 // Português (europeu)
 export default {
+  navegarCom: 'Navegar com',
+  navegarComNota:
+    'O Organic Maps não usa o Google e funciona sem internet, depois de descarregado o mapa de Timor-Leste («East Timor»).',
+  organicFalta: 'O Organic Maps não está instalado',
+  organicFaltaNota:
+    'É gratuito. Depois de o instalar, descarregue lá dentro o mapa «East Timor», de preferência com Wi-Fi.',
+  organicInstalar: 'Instalar',
   resumoVerTudo: 'Ver tudo',
   resumoEsconder: 'Esconder',
   painelTamanho: 'Aumentar ou reduzir o painel',

@@ -1,6 +1,13 @@
 // Tétum (Tétum Praça, de Díli) — PRIMEIRA VERSÃO.
 // As traduções devem ser revistas por um falante nativo antes do lançamento.
 export default {
+  navegarCom: 'Navega ho',
+  navegarComNota:
+    'Organic Maps la uza Google no funsiona la ho internet, hafoin tun mapa Timor-Leste nian («East Timor»).',
+  organicFalta: 'Organic Maps seidauk instala',
+  organicFaltaNota:
+    'Gratuitu. Hafoin instala, tun mapa «East Timor» iha laran, di’ak liu ho Wi-Fi.',
+  organicInstalar: 'Instala',
   resumoVerTudo: 'Haree hotu',
   resumoEsconder: 'Subar',
   painelTamanho: 'Hasa’e ka hatun painel',

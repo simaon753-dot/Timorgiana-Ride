@@ -21,7 +21,7 @@ import BarraTopo from '../components/BarraTopo.js';
 import { statusMeta } from '../components/StatusBadge.js';
 import Avatar from '../design/Avatar.js';
 import BotaoAccao from '../design/BotaoAccao.js';
-import { abrirNoMapa } from '../lib/mapaLink.js';
+import { navegarAte } from '../lib/mapaLink.js';
 import MapaExpandivel from '../components/MapaExpandivel.js';
 import MotivoCancelamento from '../components/MotivoCancelamento.js';
 import PedirCodigo from '../components/PedirCodigo.js';
@@ -811,7 +811,15 @@ function ActiveRideCard({
       {active && alvo.lat != null && alvo.lng != null ? (
         <Pressable
           style={({ pressed }) => [styles.hareeMapa, pressed && { opacity: 0.8 }]}
-          onPress={() => abrirNoMapa(Linking, alvo.lat, alvo.lng)}
+          onPress={() =>
+            navegarAte(
+              Linking,
+              alvo.lat,
+              alvo.lng,
+              t,
+              aIrBuscar ? ride.originLabel : ride.destLabel
+            )
+          }
           accessibilityRole="button"
         >
           <Icone nome="mapa" tamanho={18} cor={colors.teal} />
