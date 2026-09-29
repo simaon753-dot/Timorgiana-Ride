@@ -25,6 +25,13 @@ const SIMULAR = params.get('simular') === '1';
 const SIMULAR_X = Math.max(1, Math.min(10, Number(params.get('x')) || 1));
 // Só na simulação: sair da rota de propósito, para ensaiar o recálculo.
 const SIMULAR_DESVIO = params.get('desvio') === '1';
+// DENTRO DA APP (ecrã Navegar, versão 1.5.0): a voz, o ecrã ligado e o sair
+// são da app, porque o WebView do Android não tem a voz do navegador. Fala-se
+// com ela por mensagens. Fora da app, tudo como antes.
+const NA_APP = params.get('naApp') === '1' && !!window.ReactNativeWebView;
+function paraApp(mensagem) {
+  window.ReactNativeWebView.postMessage(JSON.stringify(mensagem));
+}
 const PARTIDA_FIXA = lerPonto(params.get('de'));
 
 function lerPonto(texto) {
@@ -252,7 +259,9 @@ function falar(texto) {
   // Na simulação, o que se diria fica também escrito na consola — é a
   // única forma de conferir a voz num ensaio sem som.
   if (SIMULAR && texto) console.info('[voz]', texto);
-  if (!vozLigada || !window.speechSynthesis || !texto) return;
+  if (!vozLigada || !texto) return;
+  if (NA_APP) return paraApp({ tipo: 'falar', texto, lingua: LINGUA });
+  if (!window.speechSynthesis) return;
   const u = new SpeechSynthesisUtterance(texto);
   u.lang = LINGUA === 'en' ? 'en-GB' : 'pt-PT';
   if (vozEscolhida) u.voice = vozEscolhida;
@@ -263,12 +272,14 @@ function falar(texto) {
 $('voz').addEventListener('click', () => {
   vozLigada = !vozLigada;
   $('voz').setAttribute('aria-pressed', String(vozLigada));
-  if (!vozLigada && window.speechSynthesis) speechSynthesis.cancel();
+  if (!vozLigada && NA_APP) paraApp({ tipo: 'calar' });
+  else if (!vozLigada && window.speechSynthesis) speechSynthesis.cancel();
 });
 
 // ── Ecrã sempre ligado ─────────────────────────────────────────────────
 let trinco = null;
 async function manterEcra() {
+  if (NA_APP) return; // a app mantém o ecrã ligado enquanto este ecrã está aberto
   try {
     if ('wakeLock' in navigator && document.visibilityState === 'visible') {
       trinco = await navigator.wakeLock.request('screen');
@@ -658,7 +669,7 @@ if (!DESTINO) {
   $('comecar').disabled = true;
   $('erroInicio').textContent = T.faltaDestino;
 }
-$('comecar').addEventListener('click', () => {
+function comecar() {
   $('erroInicio').textContent = '';
   // O toque desbloqueia a voz: uma frase vazia agora deixa as seguintes sair.
   if (window.speechSynthesis) speechSynthesis.speak(new SpeechSynthesisUtterance(''));
@@ -672,9 +683,18 @@ $('comecar').addEventListener('click', () => {
   $('faixaTexto').textContent = NOME_DESTINO || T.destino;
   if (SIMULAR) comecarSimulacao();
   else comecarGps();
-});
+}
+$('comecar').addEventListener('click', comecar);
+// Dentro da app arranca logo: o ecrã de início existe para o toque que
+// desbloqueia a voz do navegador, e aqui a voz é a da app.
+if (NA_APP && DESTINO) comecar();
+
 $('sair').addEventListener('click', () => {
   navegando = false;
+  if (NA_APP) {
+    if (vigia != null) navigator.geolocation.clearWatch(vigia);
+    return paraApp({ tipo: 'sair' });
+  }
   if (vigia != null) navigator.geolocation.clearWatch(vigia);
   if (window.speechSynthesis) speechSynthesis.cancel();
   if (trinco) trinco.release().catch(() => {});
