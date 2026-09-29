@@ -558,6 +558,43 @@ export function rotaParaNavegar(a, b) {
   };
 }
 
+// A ROTA POR VÁRIOS PONTOS: partida, paragens pelo meio, destino
+// (29/09/2026, para o Pickup com paragens). Troço a troço, e junta-se tudo
+// numa linha só; a chegada de cada troço do meio passa a instrução
+// «paragem» com o número dela. `paragens` diz onde cada uma fica na linha
+// (em metros), para a página saber quando se passou por ela.
+export function rotaPorPontos(pontos) {
+  if (pontos.length === 2) return rotaParaNavegar(pontos[0], pontos[1]);
+  const linha = [];
+  const instrucoes = [];
+  const paragens = [];
+  let antes = 0;
+  let km = 0;
+  let min = 0;
+  for (let i = 0; i < pontos.length - 1; i++) {
+    const r = rotaParaNavegar(pontos[i], pontos[i + 1]);
+    if (!r) return null;
+    const ultimo = i === pontos.length - 2;
+    const comprimento = r.instrucoes[r.instrucoes.length - 1].metros;
+    for (const ins of r.instrucoes) {
+      // A partida dos troços seguintes não se diz: o carro não parou de andar.
+      if (i > 0 && ins.tipo === 'partida') continue;
+      const metros = ins.metros + antes;
+      if (ins.tipo === 'chegada' && !ultimo) {
+        instrucoes.push({ ...ins, tipo: 'paragem', indice: i + 1, metros });
+        paragens.push({ indice: i + 1, metros, lat: ins.lat, lng: ins.lng });
+        continue;
+      }
+      instrucoes.push({ ...ins, metros });
+    }
+    linha.push(...(linha.length ? r.linha.slice(1) : r.linha));
+    antes += comprimento;
+    km += r.km;
+    min += r.min;
+  }
+  return { km: Math.round(km * 10) / 10, min, fonte: 'nossa', linha, instrucoes, paragens };
+}
+
 // Para o /api/health e para quem quiser saber de que dados vêm as rotas.
 export function sobreARede() {
   if (!fs.existsSync(FICHEIRO)) return { existe: false };

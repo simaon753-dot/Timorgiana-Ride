@@ -74,6 +74,22 @@
       #comecar:disabled { opacity: .45; }
       #erroInicio { color: #c0392b; margin-top: 12px; font-size: 15px; min-height: 1em; }
 
+      /* O BOTÃO DA VIAGEM (Cheguei, Iniciar viagem…), por cima da barra. */
+      #accao { position: absolute; left: 16px; right: 16px; z-index: 4; display: none;
+        bottom: calc(env(safe-area-inset-bottom) + 92px); min-height: 56px; border: none; border-radius: 18px;
+        background: var(--coral); color: var(--sobre-coral); font-size: 18px; font-weight: 800;
+        box-shadow: 0 2px 10px rgba(0,0,0,.25); }
+      #accao.visivel { display: block; }
+      body.com-accao #recentrar { bottom: calc(env(safe-area-inset-bottom) + 160px); }
+
+      /* OS PINOS COM ETIQUETA: a etiqueta por cima do pino, sempre direita. */
+      .marcador { display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+      .etiqueta { background: #fff; border: 2px solid; border-radius: 10px; padding: 3px 9px; margin-bottom: 3px;
+        box-shadow: 0 1px 5px rgba(0,0,0,.25); max-width: 190px; text-align: center; }
+      .etiqueta strong { display: block; font-size: 13px; color: var(--texto); white-space: nowrap; }
+      .etiqueta span { display: block; font-size: 11px; color: var(--mudo); white-space: nowrap;
+        overflow: hidden; text-overflow: ellipsis; }
+
       .maplibregl-ctrl-attrib { font-size: 11px; }
     </style>
   </head>
@@ -89,6 +105,7 @@
     </div>
     <div id="estado" role="status"></div>
     <button id="recentrar" type="button"></button>
+    <button id="accao" type="button"></button>
 
     <div id="barra">
       <div id="resumo">

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
-import { rotaParaNavegar } from '../rotasNossas.js';
+import { rotaPorPontos } from '../rotasNossas.js';
 
 // A NAVEGAÇÃO NOSSA, SEM GOOGLE — o passo 3 (29/09/2026).
 //
@@ -104,14 +104,20 @@ navegarRouter.get('/navegar/vendor/:versao/:ficheiro', (req, res) =>
   servir(req, res, `vendor/${req.params.versao}/${req.params.ficheiro}`)
 );
 
-// GET /navegar/rota?de=LAT,LNG&para=LAT,LNG
+// GET /navegar/rota?de=LAT,LNG&para=LAT,LNG[&via=LAT,LNG;LAT,LNG]
+//
+// `via`: as paragens pelo meio, por ordem — no máximo duas, como no Pickup.
 navegarRouter.get('/navegar/rota', limite, (req, res) => {
   const de = ponto(req.query.de);
   const para = ponto(req.query.para);
-  if (!de || !para) return res.status(400).json({ erro: 'pontos-invalidos' });
+  const textoVia = String(req.query.via || '').trim();
+  const via = textoVia ? textoVia.split(';').map(ponto) : [];
+  if (!de || !para || via.some((p) => !p) || via.length > 2) {
+    return res.status(400).json({ erro: 'pontos-invalidos' });
+  }
   let r = null;
   try {
-    r = rotaParaNavegar(de, para);
+    r = rotaPorPontos([de, ...via, para]);
   } catch (e) {
     console.error('[navegar] rota:', e.message);
     return res.status(500).json({ erro: 'falhou' });

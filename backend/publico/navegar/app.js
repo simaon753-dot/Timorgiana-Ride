@@ -2,6 +2,8 @@
 //
 //   /navegar?para=LAT,LNG&nome=…&lingua=pt|tet|en
 //   /navegar?para=…&de=LAT,LNG&simular=1   ← um carro percorre a rota sozinho
+//   /navegar?recolha=LAT,LNG&nomeRecolha=…&para=LAT,LNG&nome=…
+//           &paragens=LAT,LNG;LAT,LNG&fase=recolha|destino   ← a viagem inteira
 //
 // O mapa é o nosso (/mapa), a rota vem de /navegar/rota (rotasNossas.js, sem
 // Google), a posição vem do GPS do telemóvel, a voz do próprio telemóvel.
@@ -33,6 +35,24 @@ function paraApp(mensagem) {
   window.ReactNativeWebView.postMessage(JSON.stringify(mensagem));
 }
 const PARTIDA_FIXA = lerPonto(params.get('de'));
+
+// A VIAGEM INTEIRA (29/09/2026, pedido do Simão). Com `recolha`, a página
+// mostra o caminho do motorista até ao passageiro e, a seguir, até ao destino
+// (`para`), passando pelas paragens do Pickup. `fase` diz onde se está:
+// 'recolha' (a ir buscar) ou 'destino' (com o passageiro). A mudança de uma
+// para a outra não apaga nada: a continuação, que já estava desenhada, passa
+// a ser a linha principal.
+const RECOLHA = lerPonto(params.get('recolha'));
+const NOME_RECOLHA = (params.get('nomeRecolha') || '').slice(0, 80);
+const PARAGENS = String(params.get('paragens') || '')
+  .split(';')
+  .map(lerPonto)
+  .filter(Boolean)
+  .slice(0, 2);
+const MODO_VIAGEM = !!(RECOLHA && lerPonto(params.get('para')));
+let fase = MODO_VIAGEM && params.get('fase') !== 'destino' ? 'recolha' : 'destino';
+let paragensPorFazer = PARAGENS.slice();
+let estadoViagem = null; // o que a app diz: accepted, arriving, in_progress
 
 function lerPonto(texto) {
   const [lat, lng] = String(texto || '')
@@ -153,6 +173,49 @@ const TEXTOS = {
   },
 };
 const T = TEXTOS[LINGUA];
+// Os textos da viagem inteira (29/09/2026). O tétum é rascunho, a rever.
+const TEXTOS_VIAGEM = {
+  pt: {
+    localRecolha: 'Local de recolha',
+    localDestino: 'Local de destino',
+    paragemN: (n) => `Paragem ${n}`,
+    chegouRecolha: 'Chegou ao local de recolha',
+    chegouParagem: (n) => `Chegou à paragem ${n}`,
+    cheguei: 'Cheguei',
+    iniciar: 'Iniciar viagem',
+    voltarViagem: 'Voltar à viagem',
+    seguirDestino: 'Seguir para o destino',
+    chegaRecolha: 'chega ao local de recolha',
+    chegaDestino: 'chega ao destino',
+  },
+  tet: {
+    localRecolha: 'Fatin foti',
+    localDestino: 'Fatin destinu',
+    paragemN: (n) => `Paragen ${n}`,
+    chegouRecolha: 'Ita to’o ona iha fatin foti',
+    chegouParagem: (n) => `Ita to’o ona iha paragen ${n}`,
+    cheguei: 'Ha’u to’o ona',
+    iniciar: 'Hahú viajen',
+    voltarViagem: 'Fila ba viajen',
+    seguirDestino: 'La’o ba destinu',
+    chegaRecolha: 'to’o iha fatin foti',
+    chegaDestino: 'to’o iha destinu',
+  },
+  en: {
+    localRecolha: 'Pickup point',
+    localDestino: 'Destination',
+    paragemN: (n) => `Stop ${n}`,
+    chegouRecolha: 'You have reached the pickup point',
+    chegouParagem: (n) => `You have reached stop ${n}`,
+    cheguei: 'I have arrived',
+    iniciar: 'Start trip',
+    voltarViagem: 'Back to trip',
+    seguirDestino: 'Go to destination',
+    chegaRecolha: 'you reach the pickup point',
+    chegaDestino: 'you reach the destination',
+  },
+};
+Object.assign(T, TEXTOS_VIAGEM[LINGUA]);
 
 function frase(i) {
   const [base, l = null] = String(i.tipo).split('-');
@@ -162,6 +225,10 @@ function frase(i) {
   if (base === 'ligeiramente') return T.ligeiramente(l, i.rua);
   if (base === 'apertada') return T.apertada(l, i.rua);
   if (i.tipo === 'rotunda') return T.rotunda(Math.max(1, i.saida || 1), i.rua);
+  if (i.tipo === 'paragem') return T.paragemN(i.indice || 1);
+  // A chegada como PRÓXIMA manobra diz para onde se vai; o «chegou» é dito
+  // quando se chega (ver aoPosicao).
+  if (MODO_VIAGEM) return fase === 'recolha' ? T.localRecolha : T.localDestino;
   return T.chegada();
 }
 
@@ -184,7 +251,8 @@ function distFala(m) {
 // ── Elementos ──────────────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
 document.documentElement.lang = LINGUA === 'tet' ? 'tet' : LINGUA;
-$('inicioTitulo').textContent = NOME_DESTINO || T.destino;
+$('inicioTitulo').textContent =
+  MODO_VIAGEM && fase === 'recolha' ? NOME_RECOLHA || T.localRecolha : NOME_DESTINO || T.destino;
 $('inicioNota').textContent = SIMULAR ? `${T.nota} ${T.simulacao}` : T.nota;
 $('comecar').textContent = T.comecar;
 $('recentrar').textContent = T.recentrar;
@@ -216,7 +284,7 @@ function desenharSeta(tipo) {
   let desenho;
   if (tipo === 'partida' || tipo === 'frente') {
     desenho = `<path d="M28 48V14" ${traco}/>${cabeca('M28 6l10 12H18z')}`;
-  } else if (tipo === 'chegada') {
+  } else if (tipo === 'chegada' || tipo === 'paragem') {
     desenho = `<path d="M28 50V10" ${traco}/><path d="M30 10h16l-5 7 5 7H30z" fill="#FF6B4A"/>`;
   } else if (tipo === 'rotunda') {
     desenho = `<circle cx="28" cy="30" r="10" ${traco}/><path d="M28 50V40M34 22l8-10" ${traco}/>${cabeca('M46 6l-2 14-11-8z')}`;
@@ -305,6 +373,21 @@ const vazio = { type: 'FeatureCollection', features: [] };
 function camadas() {
   if (camadasProntas || !mapa.isStyleLoaded()) return;
   camadasProntas = true;
+  // A CONTINUAÇÃO (da recolha ao destino), por baixo e mais clara, a tracejado:
+  // vê-se para onde se vai a seguir sem se confundir com o caminho de agora.
+  mapa.addSource('seguinte', { type: 'geojson', data: vazio });
+  mapa.addLayer({
+    id: 'seguinte',
+    type: 'line',
+    source: 'seguinte',
+    layout: { 'line-join': 'round', 'line-cap': 'round' },
+    paint: {
+      'line-color': '#0E5C54',
+      'line-width': 6,
+      'line-opacity': 0.4,
+      'line-dasharray': [1.4, 1],
+    },
+  });
   mapa.addSource('rota', { type: 'geojson', data: vazio });
   mapa.addLayer({
     id: 'rota-contorno',
@@ -321,6 +404,7 @@ function camadas() {
     paint: { 'line-color': '#2E9E7E', 'line-width': 7 },
   });
   if (rota) desenharRota();
+  desenharSeguinte();
 }
 // Em vários momentos, e não só no `styledata`: o estilo pode acabar de
 // carregar depois do último desses eventos, e aí a linha nunca entrava — o
@@ -336,14 +420,50 @@ elCarro.innerHTML =
 const carro = new Marker({ element: elCarro, rotationAlignment: 'map', pitchAlignment: 'map' });
 let carroNoMapa = false;
 
-if (DESTINO) {
-  const elDestino = document.createElement('div');
-  elDestino.innerHTML =
-    '<svg width="34" height="44" viewBox="0 0 34 44" aria-hidden="true"><path d="M17 43C17 43 32 27 32 16A15 15 0 0 0 2 16c0 11 15 27 15 27z" fill="#FF6B4A" stroke="#fff" stroke-width="3"/><circle cx="17" cy="16" r="5.5" fill="#fff"/></svg>';
-  new Marker({ element: elDestino, anchor: 'bottom' })
-    .setLngLat([DESTINO.lng, DESTINO.lat])
-    .addTo(mapa);
+// OS PINOS COM ETIQUETA. São elementos da página presos ao mapa, e não
+// desenho dentro dele: acompanham o ponto a cada movimento, zoom ou rotação,
+// ficam sempre direitos, e nunca são escondidos para dar lugar a um nome de
+// rua — que é o que um texto desenhado no mapa faria.
+function marcadorComEtiqueta(cor, titulo, sub) {
+  const el = document.createElement('div');
+  el.className = 'marcador';
+  const etiqueta = document.createElement('div');
+  etiqueta.className = 'etiqueta';
+  etiqueta.style.borderColor = cor;
+  const forte = document.createElement('strong');
+  forte.textContent = titulo;
+  etiqueta.appendChild(forte);
+  if (sub) {
+    const pequeno = document.createElement('span');
+    pequeno.textContent = sub;
+    etiqueta.appendChild(pequeno);
+  }
+  el.appendChild(etiqueta);
+  el.insertAdjacentHTML(
+    'beforeend',
+    `<svg width="34" height="44" viewBox="0 0 34 44" aria-hidden="true"><path d="M17 43C17 43 32 27 32 16A15 15 0 0 0 2 16c0 11 15 27 15 27z" fill="${cor}" stroke="#fff" stroke-width="3"/><circle cx="17" cy="16" r="5.5" fill="#fff"/></svg>`
+  );
+  return el;
 }
+const pino = (el, p) =>
+  new Marker({ element: el, anchor: 'bottom' }).setLngLat([p.lng, p.lat]).addTo(mapa);
+if (DESTINO) {
+  pino(
+    marcadorComEtiqueta(
+      '#FF6B4A',
+      MODO_VIAGEM ? T.localDestino : NOME_DESTINO || T.destino,
+      MODO_VIAGEM ? NOME_DESTINO : ''
+    ),
+    DESTINO
+  );
+}
+let pinoRecolha =
+  MODO_VIAGEM && fase === 'recolha'
+    ? pino(marcadorComEtiqueta('#0E5C54', T.localRecolha, NOME_RECOLHA), RECOLHA)
+    : null;
+const pinosParagem = new Map(
+  PARAGENS.map((p, i) => [p, pino(marcadorComEtiqueta('#0A463F', T.paragemN(i + 1), ''), p)])
+);
 
 let seguir = true;
 mapa.on('dragstart', () => {
@@ -358,6 +478,7 @@ $('recentrar').addEventListener('click', () => {
 });
 $('geral').addEventListener('click', () => {
   if (!rota) return;
+  // «Ver o percurso» mostra também a continuação, antes da recolha.
   seguir = false;
   $('recentrar').classList.add('visivel');
   verTudo();
@@ -368,15 +489,79 @@ let rota = null; // { linha: [[lng,lat]…], instrucoes, km, min, acum: [], tota
 let indiceProjeccao = 0;
 let ditas = new Map(); // instrução → { longe, perto }
 
-function prepararRota(r) {
+function comMedidas(r) {
   const acum = new Float64Array(r.linha.length);
   for (let k = 1; k < r.linha.length; k++) {
     acum[k] = acum[k - 1] + metros(r.linha[k - 1], r.linha[k]);
   }
-  rota = { ...r, acum, total: acum[r.linha.length - 1] };
+  return { ...r, acum, total: acum[r.linha.length - 1] };
+}
+function prepararRota(r) {
+  rota = r.acum ? r : comMedidas(r);
   indiceProjeccao = 0;
   ditas = new Map();
+  paragensMarcadas = new Set();
   desenharRota();
+}
+
+// A continuação, da recolha ao destino — só antes da recolha.
+let rotaSeguinte = null;
+let paragensMarcadas = new Set();
+function desenharSeguinte() {
+  if (!camadasProntas) return;
+  mapa.getSource('seguinte').setData(
+    rotaSeguinte
+      ? {
+          type: 'Feature',
+          properties: {},
+          geometry: { type: 'LineString', coordinates: rotaSeguinte.linha },
+        }
+      : vazio
+  );
+}
+async function pedirSeguinte() {
+  if (!MODO_VIAGEM || fase !== 'recolha' || rotaSeguinte) return;
+  try {
+    const r = await fetch(urlRota(RECOLHA, DESTINO, PARAGENS));
+    if (r.ok && fase === 'recolha') {
+      rotaSeguinte = comMedidas(await r.json());
+      desenharSeguinte();
+    }
+  } catch {
+    // Sem a continuação, a navegação até à recolha funciona na mesma.
+  }
+}
+
+// Para onde se navega AGORA: a recolha, ou o destino pelas paragens que faltam.
+function alvo() {
+  return fase === 'recolha' ? { para: RECOLHA, via: [] } : { para: DESTINO, via: paragensPorFazer };
+}
+function urlRota(de, para, via) {
+  const v = via && via.length ? `&via=${via.map((p) => `${p.lat},${p.lng}`).join(';')}` : '';
+  return `/navegar/rota?de=${de.lat},${de.lng}&para=${para.lat},${para.lng}${v}`;
+}
+
+// A PASSAGEM DE FASE: a continuação, que já estava desenhada, passa a ser a
+// linha principal no mesmo instante — sem nada a desaparecer enquanto se
+// pede uma rota nova. Só se pede se a continuação não chegou a vir.
+function mudarFase() {
+  if (fase === 'destino' || !MODO_VIAGEM) return;
+  fase = 'destino';
+  aEsperar = false;
+  chegou = false;
+  if (pinoRecolha) {
+    pinoRecolha.remove();
+    pinoRecolha = null;
+  }
+  if (rotaSeguinte) {
+    prepararRota(rotaSeguinte);
+    rotaSeguinte = null;
+    desenharSeguinte();
+    falar(frase(rota.instrucoes[0]));
+  } else if (ultimaPosicao) {
+    pedirRota(ultimaPosicao).then((ok) => ok && falar(frase(rota.instrucoes[0])));
+  }
+  actualizarAccao();
 }
 
 function desenharRota() {
@@ -393,8 +578,11 @@ function verTudo() {
   if (!rota) return;
   const b = new LngLatBounds();
   for (const c of rota.linha) b.extend(c);
+  for (const c of rotaSeguinte?.linha || []) b.extend(c);
   mapa.fitBounds(b, {
-    padding: { top: 140, bottom: 140, left: 40, right: 40 },
+    // Margem para as ETIQUETAS dos pinos, e não só para os pinos: com 40 px
+    // as das pontas saíam cortadas («ocal de destino»).
+    padding: { top: 170, bottom: 150, left: 100, right: 100 },
     bearing: 0,
     pitch: 0,
     duration: 800,
@@ -405,9 +593,8 @@ async function pedirRota(de, recalculo = false) {
   mostrarEstado(recalculo ? T.recalcular : T.aCalcular);
   for (let tentativa = 0; tentativa < 5; tentativa++) {
     try {
-      const r = await fetch(
-        `/navegar/rota?de=${de.lat},${de.lng}&para=${DESTINO.lat},${DESTINO.lng}`
-      );
+      const a = alvo();
+      const r = await fetch(urlRota(de, a.para, a.via));
       if (r.status === 404) {
         mostrarEstado(T.semRota);
         return false;
@@ -483,6 +670,7 @@ let foraDaRota = 0;
 let ultimoRecalculo = 0;
 let aPedirRota = false;
 let chegou = false;
+let aEsperar = false; // chegou à recolha, à espera do passageiro
 
 async function aoPosicao(pos) {
   const p = [pos.lng, pos.lat];
@@ -500,6 +688,7 @@ async function aoPosicao(pos) {
     aPedirRota = false;
     if (ok) falar(frase(rota.instrucoes[0]));
     if (!ok) return;
+    pedirSeguinte();
   }
   if (chegou) return;
 
@@ -524,8 +713,48 @@ async function aoPosicao(pos) {
   }
 
   const restante = Math.max(0, rota.total - proj.s);
+
+  // AS PARAGENS POR ONDE JÁ SE PASSOU saem da lista — um recálculo daqui para
+  // a frente já não volta a elas — e a app fica a saber, para o «Navegar» de
+  // fora (Google, Organic) também as saltar.
+  for (const par of rota.paragens || []) {
+    if (paragensMarcadas.has(par.indice) || proj.s < par.metros - 30) continue;
+    paragensMarcadas.add(par.indice);
+    let perto = null;
+    for (const q of paragensPorFazer) {
+      const d = metros([q.lng, q.lat], [par.lng, par.lat]);
+      if (d < 200 && (!perto || d < perto.d)) perto = { q, d };
+    }
+    if (perto) {
+      paragensPorFazer = paragensPorFazer.filter((q) => q !== perto.q);
+      if (NA_APP) paraApp({ tipo: 'paragemFeita', lat: perto.q.lat, lng: perto.q.lng });
+    }
+  }
+
+  // NA RECOLHA: diz-se uma vez, e espera-se pelo passageiro. Se o carro se
+  // afastar outra vez, volta a navegar até lá.
+  if (fase === 'recolha' && MODO_VIAGEM) {
+    if (restante < 25 && !aEsperar) {
+      aEsperar = true;
+      desenharSeta('chegada');
+      $('faixaDist').textContent = '';
+      $('faixaTexto').textContent = T.chegouRecolha;
+      falar(T.chegouRecolha);
+      $('resumoTempo').textContent = T.localRecolha;
+      $('resumoResto').textContent = NOME_RECOLHA;
+      actualizarAccao();
+    } else if (aEsperar && restante > 80) {
+      aEsperar = false;
+      actualizarAccao();
+    }
+    if (aEsperar) {
+      acompanhar(pos, false, rumoCarro);
+      return;
+    }
+  }
   if (restante < 25) {
     chegou = true;
+    actualizarAccao();
     desenharSeta('chegada');
     $('faixaDist').textContent = '';
     $('faixaTexto').textContent = T.chegada();
@@ -545,11 +774,20 @@ async function aoPosicao(pos) {
     const d = ditas.get(proxima) || { longe: false, perto: false };
     if (!d.longe && falta <= 400 && falta > 120) {
       d.longe = true;
-      const f = frase(proxima);
+      // A CHEGADA diz-se «daqui a 300 metros, chega ao local de recolha», e
+      // perto não se repete: o «chegou» diz-se ao chegar (ver acima). No
+      // primeiro ensaio ouvia-se «local de recolha» e logo «chegou ao local
+      // de recolha», a mesma coisa duas vezes.
+      const f =
+        proxima.tipo === 'chegada'
+          ? fase === 'recolha'
+            ? T.chegaRecolha
+            : T.chegaDestino
+          : frase(proxima);
       falar(T.daqui(distFala(falta)) + f.charAt(0).toLowerCase() + f.slice(1));
-    } else if (!d.perto && falta <= 60) {
+    } else if (!d.perto && falta <= 60 && proxima.tipo !== 'chegada') {
       d.perto = d.longe = true;
-      falar(frase(proxima));
+      falar(proxima.tipo === 'paragem' ? T.chegouParagem(proxima.indice || 1) : frase(proxima));
     }
     ditas.set(proxima, d);
   }
@@ -677,6 +915,47 @@ if (!DESTINO) {
   $('comecar').disabled = true;
   $('erroInicio').textContent = T.faltaDestino;
 }
+// ── A acção da viagem (29/09/2026) ─────────────────────────────────────
+//
+// Dentro da app, o botão do passo seguinte da viagem, para o motorista não
+// ter de sair da navegação: «Cheguei», «Iniciar viagem» (a app pede o código
+// do passageiro) e, no destino, «Voltar à viagem». Quem faz a acção é a app,
+// com as mesmas funções do cartão da viagem; a página só pede. No navegador,
+// sem app, fica só «Seguir para o destino», que muda de fase aqui.
+function accaoActual() {
+  if (NA_APP) {
+    if (fase === 'recolha' && estadoViagem === 'accepted')
+      return { rotulo: T.cheguei, accao: 'cheguei' };
+    if (fase === 'recolha' && estadoViagem === 'arriving')
+      return { rotulo: T.iniciar, accao: 'iniciar' };
+    if (fase === 'destino' && chegou) return { rotulo: T.voltarViagem, accao: 'voltar' };
+    return null;
+  }
+  if (MODO_VIAGEM && fase === 'recolha' && aEsperar)
+    return { rotulo: T.seguirDestino, accao: 'fase' };
+  return null;
+}
+function actualizarAccao() {
+  const a = navegando ? accaoActual() : null;
+  $('accao').classList.toggle('visivel', !!a);
+  document.body.classList.toggle('com-accao', !!a);
+  if (a) {
+    $('accao').textContent = a.rotulo;
+    $('accao').dataset.accao = a.accao;
+  }
+}
+$('accao').addEventListener('click', () => {
+  const a = $('accao').dataset.accao;
+  if (a === 'fase') return mudarFase();
+  if (NA_APP) paraApp({ tipo: 'accao', accao: a });
+});
+// A app diz o estado da viagem; ao passar a «em curso», muda-se de fase.
+window.tgaEstado = (e) => {
+  estadoViagem = e;
+  if (e === 'in_progress') mudarFase();
+  actualizarAccao();
+};
+
 function comecar() {
   $('erroInicio').textContent = '';
   // O toque desbloqueia a voz: uma frase vazia agora deixa as seguintes sair.
@@ -691,6 +970,10 @@ function comecar() {
   $('faixaTexto').textContent = NOME_DESTINO || T.destino;
   if (SIMULAR) comecarSimulacao();
   else comecarGps();
+  actualizarAccao();
+  // A app responde com o estado da viagem (tgaEstado). Pedido daqui, e não
+  // só mandado por ela ao carregar: assim não se perde se chegar cedo.
+  if (NA_APP) paraApp({ tipo: 'pronta' });
 }
 $('comecar').addEventListener('click', comecar);
 // Dentro da app arranca logo: o ecrã de início existe para o toque que
