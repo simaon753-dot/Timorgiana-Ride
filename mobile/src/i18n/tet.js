@@ -1,6 +1,7 @@
 // Tétum (Tétum Praça, de Díli) — PRIMEIRA VERSÃO.
 // As traduções devem ser revistas por um falante nativo antes do lançamento.
 export default {
+  navegarSemDestino: 'Destinu la iha. Fila no toka fali iha Navega.',
   navegarCom: 'Navega ho',
   navegarNossa: 'TimorgianaRide (la ho Google)',
   navegarComNota:

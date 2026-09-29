@@ -2,6 +2,7 @@ import { Alert } from 'react-native';
 import * as Location from 'expo-location';
 import { getBaseUrl } from '../serverUrl.js';
 import { linguaDaApp } from '../api/client.js';
+import { navegacao } from '../navigation/navegacao.js';
 
 // Link de mapa para ABRIR NOUTRA APLICAÇÃO — não é o mapa da nossa app.
 //
@@ -73,6 +74,14 @@ export function navegarAte(Linking, lat, lng, t, nome = '') {
 // o nosso mapa, as rotas nossas e a voz do telemóvel. Abre no navegador —
 // não precisa de APK — e na língua da app. Ver backend/src/routes/navegar.js.
 function abrirNavegacaoNossa(Linking, lat, lng, nome) {
+  // DENTRO DA APP desde a versão 1.5.0 (ecrã Navegar, com voz e ecrã
+  // ligado). O navegador fica como reserva, se a navegação da app ainda não
+  // estiver pronta.
+  const nav = navegacao.current;
+  if (nav?.isReady()) {
+    nav.navigate('Navegar', { lat, lng, nome });
+    return Promise.resolve(true);
+  }
   const lingua = ['pt', 'tet', 'en'].includes(linguaDaApp()) ? linguaDaApp() : 'tet';
   const url =
     `${getBaseUrl()}/navegar?para=${lat},${lng}` +

@@ -6,6 +6,7 @@
 // code passes them by those names; changing them here would silently break
 // the substitution.
 export default {
+  navegarSemDestino: 'The destination is missing. Go back and tap Navigate again.',
   navegarCom: 'Navigate with',
   navegarNossa: 'TimorgianaRide (no Google)',
   navegarComNota:

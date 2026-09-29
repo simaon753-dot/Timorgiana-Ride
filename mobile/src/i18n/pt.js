@@ -1,5 +1,6 @@
 // Português (europeu)
 export default {
+  navegarSemDestino: 'Falta o destino. Volte e toque outra vez em Navegar.',
   navegarCom: 'Navegar com',
   navegarNossa: 'TimorgianaRide (sem Google)',
   navegarComNota:
