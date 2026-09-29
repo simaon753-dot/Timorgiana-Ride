@@ -21,32 +21,32 @@ export const LINGUAS = ['pt', 'tet', 'en'];
 // 'texto em português': ['tétum', 'inglês']
 export const MENSAGENS = {
   // ── Assinatura e pagamentos
-  'Número de dias inválido.': ['Númeru loron la válidu.', 'Invalid number of days.'],
+  'Número de dias inválido.': ['Númeru loron nian inválidu.', 'Invalid number of days.'],
   'Escreva as instruções (conta, titular ou morada) antes de ligar esta forma.': [
-    'Hakerek instrusaun (konta, na’in ka enderesu) antes liga forma ida-ne’e.',
+    'Hakerek instrusaun (konta, na’in ka enderesu) antes atu liga ba forma ida-ne’e.',
     'Write the instructions (account, holder or address) before switching this method on.',
   ],
   'Só uma conta de motorista pode carregar dias.': [
-    'Konta motorista de’it mak bele karega loron.',
+    'Konta motorista nian de’it mak bele halo karegamentu ba loron.',
     'Only a driver account can top up days.',
   ],
   'Os carregamentos abrem quando for anunciado o fim do período gratuito.': [
-    'Karegamentu loke bainhira anunsia ofisialmente períodu gratuitu nia rohan.',
+    'Karegamentu loke bainhira iha anúnsia ofisialmente kona-ba rohan husi períodu gratuitu nian.',
     'Top-ups open when the end of the free period is announced.',
   ],
   'A cobrança tem de ser anunciada com pelo menos 30 dias de antecedência.': [
-    'Tenke anunsia kobransa pelumenus loron 30 molok.',
+    'Tenke anúnsia kobransa pelumenus loron 30 molok.',
     'Charging must be announced at least 30 days in advance.',
   ],
   'A cobrança já começou. Para a suspender, marque um novo dia de início.': [
-    'Kobransa hahú ona. Atu suspende, marka loron foun ba hahú.',
+    'Kobransa hahú ona. Atu suspende, marka inísiu husi loron foun ida.',
     'Charging has already started. To suspend it, set a new start date.',
   ],
-  'Data inválida.': ['Data la válidu.', 'Invalid date.'],
-  'Pacote inválido.': ['Pakote la válidu.', 'Invalid package.'],
-  'Forma de pagamento inválida.': ['Forma pagamentu la válidu.', 'Invalid payment method.'],
+  'Data inválida.': ['Data inválida.', 'Invalid date.'],
+  'Pacote inválido.': ['Pakote inválidu.', 'Invalid package.'],
+  'Forma de pagamento inválida.': ['Forma pagamentu inválida.', 'Invalid payment method.'],
   'Esta forma de pagamento não está disponível.': [
-    'Forma pagamentu ida-ne’e la disponível.',
+    'Forma husi pagamentu ida-ne’e seidauk disponível.',
     'This payment method is not available.',
   ],
   'Formato não aceite. Envie uma fotografia do comprovativo.': [
@@ -62,14 +62,14 @@ export const MENSAGENS = {
     'Proof of payment too large (maximum 4 MB).',
   ],
   'Já tem um pedido à espera de confirmação.': [
-    'Ita iha ona pedidu ida hein hela konfirmasaun.',
+    'Ita iha ona pedidu ida ne’ebé hein hela konfirmasaun.',
     'You already have a request awaiting confirmation.',
   ],
   'Este pedido já não está à espera.': [
-    'Pedidu ida-ne’e la hein ona.',
+    'Pedidu ida-ne’e la hein tiha ona.',
     'This request is no longer pending.',
   ],
-  'Pedido não encontrado.': ['La hetan pedidu.', 'Request not found.'],
+  'Pedido não encontrado.': ['Pedidu buka la hetan.', 'Request not found.'],
   'Este pedido já foi decidido.': [
     'Pedidu ida-ne’e desidi tiha ona.',
     'This request has already been decided.',
@@ -78,17 +78,17 @@ export const MENSAGENS = {
     'Hakerek motivu: motorista presiza hatene saida mak atu hadi’a.',
     'Give the reason: the driver needs to know what to correct.',
   ],
-  'Motivo de devolução inválido.': ['Motivu devolusaun la válidu.', 'Invalid refund reason.'],
+  'Motivo de devolução inválido.': ['Motivu devolusaun inválidu.', 'Invalid refund reason.'],
   'Esta conta não tem dias por usar.': [
-    'Konta ne’e la iha loron ne’ebé seidauk uza.',
+    'Konta ne’e la iha hela loron ruma ne’ebé mak seidauk uza.',
     'This account has no unused days.',
   ],
   'Carregue a imagem do QR antes de ligar esta forma.': [
-    'Karega QR nia imajen uluk antes liga forma ida-ne’e.',
+    'Karega QR nia imajen uluk antes liga ba forma ida-ne’e.',
     'Upload the QR image before switching this method on.',
   ],
   'Desligue o pagamento por QR antes de retirar a imagem.': [
-    'Dezliga pagamentu ho QR uluk antes hamoos imajen.',
+    'Dezliga uluk pagamentu ho QR antes hamoos imajen.',
     'Switch QR payment off before removing the image.',
   ],
   'Formato não aceite. Envie a imagem do QR (JPEG, PNG ou WebP).': [
@@ -104,18 +104,18 @@ export const MENSAGENS = {
 
   // ── Sessão e permissões
   'Token em falta.': ['Falta token.', 'Missing token.'],
-  'Token inválido ou expirado.': ['Token la válidu ka kaduka ona.', 'Invalid or expired token.'],
-  'Utilizador não encontrado.': ['La hetan utilizadór.', 'User not found.'],
+  'Token inválido ou expirado.': ['Token inválidu ka kaduka ona.', 'Invalid or expired token.'],
+  'Utilizador não encontrado.': ['La hetan utilizadór ruma.', 'User not found.'],
   'O caminho mudou. Confirma o preço novo.': [
-    'Dalan muda ona. Konfirma presu foun.',
+    'Dalan muda tiha ona. Konfirma presu foun.',
     'The route changed. Confirm the new price.',
   ],
   'A tua conta foi aberta noutro telemóvel. Entra de novo para continuares aqui.': [
-    'Ita-nia konta loke ona iha telemóvel seluk. Tama fali atu kontinua iha ne’e.',
+    'Ita-nia konta loke ona iha telemóvel seluk. Tama fila-fali atu kontinua iha ne’e.',
     'Your account was opened on another phone. Sign in again to continue here.',
   ],
   'Serviço indisponível. Tenta de novo.': [
-    'Servisu la disponível. Koko fila-fali.',
+    'Servisu la disponível hela. Koko fila-fali.',
     'Service unavailable. Try again.',
   ],
   'Sem permissão para esta ação.': [
@@ -128,7 +128,7 @@ export const MENSAGENS = {
   ],
   'Sem permissão.': ['La iha permisaun.', 'No permission.'],
   'Não autenticado.': ['Seidauk autentika.', 'Not authenticated.'],
-  'Falha na autenticação.': ['Autentikasaun falla.', 'Authentication failed.'],
+  'Falha na autenticação.': ['Falla iha autentikasaun.', 'Authentication failed.'],
   'Demasiadas tentativas. Espera {0} segundos.': [
     'Koko barak liu ona. Hein segundu {0}.',
     'Too many attempts. Wait {0} seconds.',
@@ -147,7 +147,7 @@ export const MENSAGENS = {
   ],
 
   // ── Documentos e fotografias
-  'Tipo de documento inválido.': ['Tipu dokumentu la válidu.', 'Invalid document type.'],
+  'Tipo de documento inválido.': ['Dokumentu nia tipu inválidu.', 'Invalid document type.'],
   'Formato não aceite. Usa JPEG, PNG ou PDF.': [
     'Formatu la aseita. Uza JPEG, PNG ka PDF.',
     'Format not accepted. Use JPEG, PNG or PDF.',
@@ -177,9 +177,9 @@ export const MENSAGENS = {
   'Fotografia em falta.': ['Falta fotografia.', 'Photo missing.'],
   'Sem fotografia.': ['La iha fotografia.', 'No photo.'],
   'Ficheiro em falta.': ['Falta fixeiru.', 'File missing.'],
-  'Motivo desconhecido.': ['Motivu la koñesidu.', 'Unknown reason.'],
+  'Motivo desconhecido.': ['Motivu deskoñesidu.', 'Unknown reason.'],
   'O teu documento ({0}) caducou em {1}.': [
-    'Ita-nia dokumentu ({0}) kaduka ona iha {1}.',
+    'Ita-nia dokumentu ({0}) kaduka tiha ona iha {1}.',
     'Your document ({0}) expired on {1}.',
   ],
   'Falta a data de validade do teu documento ({0}).': [
@@ -187,7 +187,7 @@ export const MENSAGENS = {
     'The expiry date of your document ({0}) is missing.',
   ],
   'Faltam documentos na tua conta.': [
-    'Falta dokumentu iha ita-nia konta.',
+    'Falta dokumentu sira husi ita-nia konta.',
     'Documents are missing from your account.',
   ],
 
@@ -198,31 +198,31 @@ export const MENSAGENS = {
     'The password must have at least 6 characters.',
   ],
   'Demasiadas tentativas. Peça um código novo.': [
-    'Koko barak liu ona. Husu kódigu foun.',
+    'Koko barak liu ona. Husu fali kódigu foun.',
     'Too many attempts. Ask for a new code.',
   ],
 
   // ── Painel de administração
-  'Documento não encontrado.': ['La hetan dokumentu.', 'Document not found.'],
-  'Decisão inválida.': ['Desizaun la válidu.', 'Invalid decision.'],
+  'Documento não encontrado.': ['La hetan dokumentu ruma.', 'Document not found.'],
+  'Decisão inválida.': ['Desizaun inválida.', 'Invalid decision.'],
   'Indica o motivo da decisão.': [
-    'Hakerek motivu desizaun nian.',
+    'Hakerek motivu husi desizaun.',
     'Give the reason for the decision.',
   ],
-  'Motorista não encontrado.': ['La hetan motorista.', 'Driver not found.'],
-  'Alerta não encontrado.': ['La hetan alerta.', 'Alert not found.'],
-  'Fotografia não encontrada.': ['La hetan fotografia.', 'Photo not found.'],
-  'Conta não encontrada.': ['La hetan konta.', 'Account not found.'],
-  'Viagem não encontrada.': ['La hetan viajen.', 'Ride not found.'],
+  'Motorista não encontrado.': ['La hetan motorista ruma.', 'Driver not found.'],
+  'Alerta não encontrado.': ['La hetan alerta ruma.', 'Alert not found.'],
+  'Fotografia não encontrada.': ['La hetan fotografia ruma.', 'Photo not found.'],
+  'Conta não encontrada.': ['La hetan konta ruma.', 'Account not found.'],
+  'Viagem não encontrada.': ['La hetan viajen ruma.', 'Ride not found.'],
   // ── Tabela de destinos do Pickup (28/09/2026)
-  'Lista de destinos inválida.': ['Lista destinu la válidu.', 'Invalid destination list.'],
+  'Lista de destinos inválida.': ['Lista destinu nian inválida.', 'Invalid destination list.'],
   'Demasiados destinos.': ['Destinu barak liu.', 'Too many destinations.'],
   'Cada destino precisa de um nome (2 a 40 letras).': [
-    'Destinu ida-idak presiza naran (letra 2 to’o 40).',
+    'Kada destinu presiza iha naran ida (letra 2 to’o 40).',
     'Each destination needs a name (2 to 40 letters).',
   ],
   'Há coordenadas fora de Timor-Leste.': [
-    'Iha koordenada balun iha Timor-Leste liur.',
+    'Iha koordenada balun fora husi Timor-Leste.',
     'Some coordinates are outside Timor-Leste.',
   ],
   'O raio tem de ser de 0,5 a 30 km.': [
@@ -230,7 +230,7 @@ export const MENSAGENS = {
     'The radius must be 0.5 to 30 km.',
   ],
   'O preço tem de ser de $1 a $500.': [
-    'Folin tenke husi $1 to’o $500.',
+    'Folin tenke hahu husi $1 to’o $500.',
     'The price must be $1 to $500.',
   ],
   // ── Entrada no painel com código (28/09/2026)
@@ -240,7 +240,7 @@ export const MENSAGENS = {
   ],
   'Para entrar no painel, confirme primeiro o seu email na aplicação (Perfil). O código de entrada vai para esse email.':
     [
-      'Atu tama painel, konfirma uluk ita-nia email iha aplikasaun (Perfil). Kódigu atu tama sei ba email ne’e.',
+      'Atu tama painel, konfirma uluk ita-nia email iha aplikasaun (Perfil). Kódigu tama nian sei haruka ba email ida-ne’e.',
       'To sign in to the panel, first confirm your email in the app (Profile). The sign-in code is sent to that email.',
     ],
   'Pediu demasiados códigos. Espere alguns minutos e tente de novo.': [
@@ -248,20 +248,20 @@ export const MENSAGENS = {
     'You requested too many codes. Wait a few minutes and try again.',
   ],
   'Não foi possível enviar o código por email. Tente de novo dentro de um minuto.': [
-    'La konsege haruka kódigu liuhusi email. Koko fali iha minutu ida nia laran.',
+    'La konsege haruka kódigu liuhusi email. Koko fila-fali iha minutu ida nia laran.',
     'The code could not be sent by email. Try again in a minute.',
   ],
   'Código errado ou expirado. Peça outro, entrando de novo.': [
-    'Kódigu sala ka liu ona. Husu fali ida, hodi tama fali.',
+    'Kódigu sala ka liu ona. Husu fali seluk, hodi tama fila-fali.',
     'Wrong or expired code. Request another by signing in again.',
   ],
   'A sessão do painel terminou por inactividade. Entre de novo.': [
-    'Sesaun painel remata tanba la uza. Tama fali.',
+    'Sesaun painel remata tanba la iha atividade ruma. Tama fila-fali.',
     'The panel session ended due to inactivity. Sign in again.',
   ],
   // ── Ocorrências (Reportar)
   'Esta viagem não pode ser reportada.': [
-    'Viajen ida-ne’e la bele relata.',
+    'La bele relata viajen ida-ne’e.',
     'This trip cannot be reported.',
   ],
   'Já passou o prazo para reportar esta viagem.': [
@@ -271,41 +271,44 @@ export const MENSAGENS = {
   'Escolha o tipo de problema.': ['Hili problema nia tipu.', 'Choose the type of problem.'],
   'Descreva o que aconteceu.': ['Deskreve saida mak akontese.', 'Describe what happened.'],
   'Já reportou esta viagem várias vezes. A equipa vai analisar.': [
-    'Ita relata ona viajen ida-ne’e dala barak. Ekipa sei analiza.',
+    'Ita relata dala barak ona viajen ida-ne’e. Ekipa sei analiza ba ida-ne’e.',
     'You have already reported this trip several times. The team will review it.',
   ],
-  'Ocorrência não encontrada.': ['La hetan okorrénsia.', 'Incident not found.'],
-  'Motorista inválido.': ['Motorista la válidu.', 'Invalid driver.'],
-  'Forma de pagamento desconhecida.': ['Forma pagamentu la koñesidu.', 'Unknown payment method.'],
-  'Sem comprovativo.': ['La iha komprovativu.', 'No proof of payment.'],
-  'Conta inválida.': ['Konta la válidu.', 'Invalid account.'],
-  'Documento inválido.': ['Dokumentu la válidu.', 'Invalid document.'],
-  'Estado inválido.': ['Estadu la válidu.', 'Invalid status.'],
+  'Ocorrência não encontrada.': ['La hetan okorrénsia ruma.', 'Incident not found.'],
+  'Motorista inválido.': ['Motorista inválida.', 'Invalid driver.'],
+  'Forma de pagamento desconhecida.': [
+    'Forma husi pagamentu ne’e deskoñesidu.',
+    'Unknown payment method.',
+  ],
+  'Sem comprovativo.': ['La iha komprovativu ruma.', 'No proof of payment.'],
+  'Conta inválida.': ['Konta inválida.', 'Invalid account.'],
+  'Documento inválido.': ['Dokumentu inválidu.', 'Invalid document.'],
+  'Estado inválido.': ['Estadu inválidu.', 'Invalid status.'],
   'Indica a data no formato AAAA-MM-DD.': [
     'Hakerek data ho formatu AAAA-MM-DD.',
     'Give the date in the format YYYY-MM-DD.',
   ],
   'Não há viagens terminadas até essa data.': [
-    'La iha viajen ne’ebé remata ona to’o data ne’e.',
+    'La iha viajen ne’ebé remata ona to’o data ida-ne’e.',
     'There are no finished rides up to that date.',
   ],
-  'Confirmação em falta.': ['Falta konfirmasaun.', 'Confirmation missing.'],
-  'Falta o nome.': ['Falta naran.', 'The name is missing.'],
+  'Confirmação em falta.': ['Falta hela konfirmasaun.', 'Confirmation missing.'],
+  'Falta o nome.': ['Falta hela naran.', 'The name is missing.'],
   'Faltam coordenadas do sítio ou da paragem.': [
-    'Falta koordenada fatin nian ka paragem nian.',
+    'Falta hela koordenada fatin nian ka paragem nian.',
     'Coordinates of the place or stop are missing.',
   ],
   'Essas coordenadas não são de Timor-Leste.': [
     'Koordenada hirak-ne’e la’ós Timor-Leste nian.',
     'Those coordinates are not in Timor-Leste.',
   ],
-  'Paragem não encontrada.': ['La hetan paragem.', 'Stop not found.'],
+  'Paragem não encontrada.': ['La hetan paragem ruma.', 'Stop not found.'],
 
   // ── Registo e entrada
   'Nome é obrigatório.': ['Naran obrigatóriu.', 'Name is required.'],
   'O nome é demasiado curto.': ['Naran badak liu.', 'That name is too short.'],
   'O nome é demasiado longo.': ['Naran naruk liu.', 'That name is too long.'],
-  'Número de telemóvel inválido.': ['Númeru telemóvel la válidu.', 'Invalid mobile number.'],
+  'Número de telemóvel inválido.': ['Númeru telemóvel inválidu.', 'Invalid mobile number.'],
   'A palavra-passe deve ter pelo menos 6 caracteres.': [
     'Seña tenke iha pelumenus karákter 6.',
     'The password must be at least 6 characters.',
@@ -314,7 +317,7 @@ export const MENSAGENS = {
     'Hakerek email ida ne’ebé válidu — ne’e atu rekupera fila-fali ita-nia konta.',
     'Enter a valid email — it is how you recover your account.',
   ],
-  'Tipo de conta inválido.': ['Tipu konta la válidu.', 'Invalid account type.'],
+  'Tipo de conta inválido.': ['Tipu husi konta ne’e inválidu.', 'Invalid account type.'],
   'Motoristas têm de indicar a matrícula do veículo.': [
     'Motorista tenke hakerek veíkulu nia matríkula.',
     'Drivers must give the vehicle’s plate.',
@@ -339,7 +342,7 @@ export const MENSAGENS = {
     'Iha ona konta ida ho númeru telemóvel ida-ne’e.',
     'An account with this mobile number already exists.',
   ],
-  'Erro ao criar a conta.': ['Sala bainhira kria konta.', 'Error creating the account.'],
+  'Erro ao criar a conta.': ['Erru bainhira kria konta.', 'Error creating the account.'],
   'Telemóvel e palavra-passe são obrigatórios.': [
     'Telemóvel no seña obrigatóriu.',
     'Mobile number and password are required.',
@@ -348,12 +351,12 @@ export const MENSAGENS = {
     'Telemóvel ka seña la loos.',
     'Incorrect mobile number or password.',
   ],
-  'Erro ao iniciar sessão.': ['Sala bainhira tama.', 'Error signing in.'],
-  'Erro ao guardar.': ['Sala bainhira rai.', 'Error saving.'],
+  'Erro ao iniciar sessão.': ['Erru bainhira tama.', 'Error signing in.'],
+  'Erro ao guardar.': ['Erru bainhira rai.', 'Error saving.'],
   'Nada para aceitar.': ['La iha buat ida atu aseita.', 'Nothing to accept.'],
   'Não foi possível guardar.': ['La konsege rai.', 'Could not save.'],
   'Código inválido ou expirado. Peça outro.': [
-    'Kódigu la válidu ka kaduka ona. Husu seluk.',
+    'Kódigu inválidu ka kaduka ona. Husu fali seluk.',
     'Invalid or expired code. Ask for another.',
   ],
   'Não foi possível confirmar.': ['La konsege konfirma.', 'Could not confirm.'],
@@ -361,17 +364,17 @@ export const MENSAGENS = {
   'Escreve um email válido.': ['Hakerek email ida ne’ebé válidu.', 'Enter a valid email.'],
 
   // ── Motorista
-  'Valor inválido.': ['Valor la válidu.', 'Invalid value.'],
+  'Valor inválido.': ['Valor inválidu.', 'Invalid value.'],
   'A tua conta ainda não foi aprovada.': [
     'Ita-nia konta seidauk hetan aprovasaun.',
     'Your account has not been approved yet.',
   ],
   'Os termos para motoristas mudaram. Lê-os e aceita-os para ficares disponível.': [
-    'Termu ba motorista muda ona. Lee no aseita atu bele sai disponível.',
+    'Termu ba motorista muda ona. Lee no aseita atu ita bele disponível.',
     'The driver terms have changed. Read and accept them to go available.',
   ],
   'Tira uma fotografia para começar o dia.': [
-    'Hasai fotografia ida atu hahú loron.',
+    'Hasai fotografia ida atu hahú loron ohin nian.',
     'Take a photo to start the day.',
   ],
   'A tua assinatura acabou. Carrega dias para voltar a receber viagens.': [
@@ -383,12 +386,12 @@ export const MENSAGENS = {
     'Hakerek kareta bele lori pasajeiru na’in hira.',
     'Say how many passengers the car carries.',
   ],
-  'Só para veículos Pickup.': ['De’it ba veíkulu Pickup.', 'Only for Pickup vehicles.'],
+  'Só para veículos Pickup.': ['Ba de’it veíkulu Pickup.', 'Only for Pickup vehicles.'],
   'Versão dos termos em falta.': ['Falta versaun termu nian.', 'Terms version missing.'],
 
   // ── Lugares e cotação
-  'Tipo desconhecido.': ['Tipu la koñesidu.', 'Unknown type.'],
-  'Nome inválido.': ['Naran la válidu.', 'Invalid name.'],
+  'Tipo desconhecido.': ['Tipu deskoñesidu.', 'Unknown type.'],
+  'Nome inválido.': ['Naran inválidu.', 'Invalid name.'],
   'Faltam as coordenadas.': ['Falta koordenada.', 'Coordinates missing.'],
   'Faltam as coordenadas de origem ou destino.': [
     'Falta koordenada rekolla nian ka destinu nian.',
@@ -399,7 +402,7 @@ export const MENSAGENS = {
   // ── Viagens
   'Indica o destino.': ['Hakerek destinu.', 'Give the destination.'],
   'O Pickup está temporariamente indisponível.': [
-    'Pickup la disponível ba tempu badak.',
+    'Pickup la disponível hela ba tempu badak ida ne’e.',
     'The Pickup is temporarily unavailable.',
   ],
   // Para os serviços que não têm frase própria (20/09/2026).
@@ -407,15 +410,15 @@ export const MENSAGENS = {
   // toda a gente: saíam de uma função que devolvia a frase, e o verificador
   // não vê frases que não estejam dentro de `erro(...)` ou de um `error:`.
   'Escreve o que queres que o motorista compre.': [
-    "Hakerek buat ne'ebé ita hakarak motorista sosa.",
+    "Hakerek buat ne'ebé ita hakarak atu motorista bele sosa.",
     'Write what you want the driver to buy.',
   ],
   'Uma encomenda leva até {0} artigos.': [
-    "Enkomenda ida bele iha to'o sasán {0}.",
+    "Enkomenda ida bele iha sasán to'o {0}.",
     'An order takes up to {0} items.',
   ],
   'Há um artigo sem nome na lista.': [
-    'Iha sasán ida la iha naran iha lista.',
+    'Iha sasán ida ne’ebé nia naran iha lista laiha.',
     'There is an item with no name on the list.',
   ],
   'O nome de um artigo é demasiado longo.': [
@@ -427,7 +430,7 @@ export const MENSAGENS = {
     'Each item quantity goes from 1 to 99.',
   ],
   'Escreve em que loja se compra.': [
-    "Hakerek loja ne'ebé atu sosa.",
+    "Hakerek loja ne'ebé atu ba sosa.",
     'Write which shop to buy from.',
   ],
   'O nome da loja é demasiado longo.': ['Loja nia naran naruk liu.', 'The shop name is too long.'],
@@ -447,18 +450,18 @@ export const MENSAGENS = {
     "Enkomenda ne'e presiza viajen {0} remata ona iha ita-nia konta. Ita iha ona {1}.",
     'This order needs {0} completed trips on your account. You have {1}.',
   ],
-  'Encomenda não encontrada.': ['Enkomenda la hetan.', 'Order not found.'],
+  'Encomenda não encontrada.': ['Enkomenda ne’e laiha.', 'Order not found.'],
   'Já tens uma encomenda a decorrer.': [
-    "Ita iha ona enkomenda ida la'o hela.",
+    "Ita iha ona enkomenda ida ne’ebé daudaun ne’e la'o hela.",
     'You already have an order in progress.',
   ],
   'Este serviço está temporariamente indisponível.': [
-    "Servisu ne'e la disponível ba tempu badak.",
+    "Servisu ne'e la disponível hela ba tempu badak ida ne’e.",
     'This service is temporarily unavailable.',
   ],
-  'Serviço desconhecido.': ['Servisu la rekoñese.', 'Unknown service.'],
+  'Serviço desconhecido.': ['Servisu ne’e deskoñese.', 'Unknown service.'],
   'Este serviço ainda está em construção.': [
-    "Servisu ne'e sei iha konstrusaun.",
+    "Servisu ne'e sei iha hela konstrusaun.",
     'This service is still being built.',
   ],
   'Indica o que vais transportar.': [
@@ -466,45 +469,45 @@ export const MENSAGENS = {
     'Say what you are going to carry.',
   ],
   'Confirma que os bens são legais, seguros e cabem no veículo.': [
-    'Konfirma katak sasán sira legál, seguru no tama iha veíkulu.',
+    'Konfirma katak sasán sira ne’e legál, seguru no tama iha veíkulu.',
     'Confirm that the goods are lawful, safe and fit in the vehicle.',
   ],
   'Indica o telemóvel de quem vai viajar — o motorista precisa de lhe ligar.': [
-    'Hakerek ema ne’ebé sei viaja nia telemóvel — motorista presiza telefone ba nia.',
+    'Hakerek ema ne’ebé sei halo viajen ne’e nia telemóvel — motorista presiza telefone ba nia.',
     'Give the traveller’s mobile number — the driver needs to call them.',
   ],
   'Para uma pessoa menor de idade, é preciso declarar a autorização dos pais.': [
-    'Ba ema menór idade, tenke deklara inan-aman nia autorizasaun.',
+    'Ba ema minoridade, tenke deklara inan-aman nia autorizasaun.',
     'For a minor, you must declare the parents’ authorisation.',
   ],
   'Indica o nome de quem vai viajar.': [
-    'Hakerek ema ne’ebé sei viaja nia naran.',
+    'Hakerek ema ne’ebé sei halo viajen ne’e nia naran.',
     'Give the name of the person travelling.',
   ],
   'Não há serviço nesse sítio.': [
-    'La iha servisu iha fatin ne’e.',
+    'La iha servisu iha fatin ida-ne’e.',
     'There is no service at that place.',
   ],
   'Já tens uma viagem a decorrer.': [
-    'Ita iha ona viajen ida la’o hela.',
+    'Ita iha ona viajen ida ne’ebé daudaun la’o hela.',
     'You already have a ride in progress.',
   ],
   'Faltam o tipo de veículo ou a recolha.': [
     'Falta tipu veíkulu ka fatin rekolla.',
     'Vehicle type or pick-up missing.',
   ],
-  'Etapa desconhecida.': ['Etapa la koñesidu.', 'Unknown stage.'],
+  'Etapa desconhecida.': ['Etapa deskoñesidu.', 'Unknown stage.'],
   'Esta etapa não se pode marcar agora.': [
     'Etapa ida-ne’e labele marka agora.',
     'This stage cannot be marked now.',
   ],
   'Tarifa inválida.': ['Tarifa la válidu.', 'Invalid fare.'],
   'Estás indisponível. Liga-te para aceitar pedidos.': [
-    'Ita la disponível. Liga atu aseita pedidu.',
+    'Ita la disponível hela. Liga atu aseita pedidu.',
     'You are unavailable. Go available to accept requests.',
   ],
   'Esta viagem é para {0} pessoas e o teu carro leva {1}.': [
-    'Viajen ida-ne’e ba ema na’in {0} no ita-nia kareta lori na’in {1}.',
+    'Viajen ida-ne’e ba ema na’in {0} no ita-nia kareta tula ema na’in {1}.',
     'This ride is for {0} people and your car carries {1}.',
   ],
   'Esta carga é maior do que a capacidade do teu veículo.': [
@@ -512,20 +515,20 @@ export const MENSAGENS = {
     'This load is larger than your vehicle’s capacity.',
   ],
   'Já tens uma viagem a decorrer. Termina-a antes de aceitar outra.': [
-    'Ita iha ona viajen ida la’o hela. Remata uluk antes aseita seluk.',
+    'Ita iha ona viajen ida ne’ebé daudaun ne’e la’o hela. Termina tiha lai antes aseita fali seluk.',
     'You already have a ride in progress. Finish it before accepting another.',
   ],
   'Esta viagem já não está disponível.': [
-    'Viajen ida-ne’e la disponível ona.',
+    'Viajen ida-ne’e la disponível tiha ona.',
     'This ride is no longer available.',
   ],
   'Não é possível mudar o estado desta viagem.': [
-    'Labele muda viajen ida-ne’e nia estadu.',
+    'La possível ona atu muda viajen ida-ne’e nia estadu.',
     'The status of this ride cannot be changed.',
   ],
   'O código tem quatro algarismos.': ['Kódigu iha númeru haat.', 'The code has four digits.'],
   'Esta viagem já começou ou terminou.': [
-    'Viajen ida-ne’e hahú ona ka remata ona.',
+    'Viajen ida-ne’e hahú tiha ona ka remata tiha ona.',
     'This ride has already started or ended.',
   ],
   'Código errado. Pergunta outra vez ao passageiro.': [
@@ -533,31 +536,31 @@ export const MENSAGENS = {
     'Wrong code. Ask the passenger again.',
   ],
   'O preço desta viagem foi calculado pela distância e não se altera.': [
-    'Viajen ida-ne’e nia presu kalkula tuir distánsia no la muda.',
+    'Viajen ida-ne’e nia presu kalkula tuir distánsia no labele muda.',
     'The price of this ride was calculated from the distance and does not change.',
   ],
-  'Mensagem vazia.': ['Mensajen mamuk.', 'Empty message.'],
+  'Mensagem vazia.': ['Mensajen mamuk hela.', 'Empty message.'],
   'A viagem ainda não foi aceite.': [
     'Viajen seidauk hetan aseitasaun.',
     'The ride has not been accepted yet.',
   ],
-  'Avaliação inválida.': ['Avaliasaun la válidu.', 'Invalid rating.'],
+  'Avaliação inválida.': ['Avaliasaun inválida.', 'Invalid rating.'],
   'Só podes avaliar uma viagem concluída.': [
-    'Ita bele avalia de’it viajen ne’ebé remata ona.',
+    'Ita bele avalia de’it viajen ne’ebé remata tiha ona.',
     'You can only rate a completed ride.',
   ],
   'Já avaliaste esta viagem.': [
     'Ita avalia tiha ona viajen ida-ne’e.',
     'You have already rated this ride.',
   ],
-  'Esta viagem já terminou.': ['Viajen ida-ne’e remata ona.', 'This ride has already ended.'],
-  'Sem motorista.': ['La iha motorista.', 'No driver.'],
-  'A viagem já terminou.': ['Viajen remata ona.', 'The ride has already ended.'],
+  'Esta viagem já terminou.': ['Viajen ida-ne’e remata tiha ona.', 'This ride has already ended.'],
+  'Sem motorista.': ['La iha motorista ruma.', 'No driver.'],
+  'A viagem já terminou.': ['Viajen remata tiha ona.', 'The ride has already ended.'],
 
   // ── Servidor
-  'Rota não encontrada.': ['La hetan rota.', 'Route not found.'],
+  'Rota não encontrada.': ['La hetan rota ruma.', 'Route not found.'],
   'Erro no servidor. Tenta de novo.': [
-    'Sala iha servidór. Koko fila-fali.',
+    'Erru iha servidór. Koko fila-fali.',
     'Server error. Try again.',
   ],
 };
@@ -567,19 +570,19 @@ export const MENSAGENS = {
 export const NOTIFICACOES = {
   pedidoNovoTitulo: {
     pt: 'Novo pedido de viagem',
-    tet: 'Pedidu viajen foun',
+    tet: 'Pedidu ba viajen foun',
     en: 'New ride request',
   },
   compradoTitulo: { pt: 'Compra feita', tet: 'Sosa tiha ona', en: 'Purchase made' },
   compradoTexto: {
     pt: 'O motorista gastou {valor} e vai a caminho. Paga em mão a viagem e as compras.',
-    tet: 'Motorista gasta {valor} no iha dalan. Selu ho liman viajen ho sasán sira.',
+    tet: 'Motorista gasta {valor} no iha dalan. Selu ho liman ba viajen ho sasán kompras sira.',
     en: 'The driver spent {valor} and is on the way. Pay the trip and the shopping in cash.',
   },
-  etapaCarregadaTitulo: { pt: 'Carga carregada', tet: 'Karga tula ona', en: 'Load on board' },
+  etapaCarregadaTitulo: { pt: 'Carga carregada', tet: 'Karga tula tiha ona', en: 'Load on board' },
   etapaCarregadaTexto: {
     pt: 'O motorista já carregou e vai a caminho do destino.',
-    tet: 'Motorista tula tiha ona karga no iha dalan ba destinu.',
+    tet: 'Motorista tula tiha ona no iha hela dalan ba destinu.',
     en: 'The driver has loaded up and is on the way to the destination.',
   },
   etapaDestinoTitulo: {
@@ -589,13 +592,13 @@ export const NOTIFICACOES = {
   },
   etapaDestinoTexto: {
     pt: 'O motorista chegou ao destino da entrega.',
-    tet: 'Motorista to’o ona iha entrega nia destinu.',
+    tet: 'Motorista to’o tiha ona ba destinu atu entrega karga.',
     en: 'The driver has reached the delivery destination.',
   },
-  etapaDescarregadaTitulo: { pt: 'Descarga feita', tet: 'Karga hatun ona', en: 'Unloaded' },
+  etapaDescarregadaTitulo: { pt: 'Descarga feita', tet: 'Karga hatun tiha ona', en: 'Unloaded' },
   etapaDescarregadaTexto: {
     pt: 'A carga foi descarregada. Falta concluir a entrega.',
-    tet: 'Karga hatun tiha ona. Falta atu remata entrega.',
+    tet: 'Karga hatun tiha ona. Falta hela atu entrega.',
     en: 'The load has been unloaded. The delivery still needs to be completed.',
   },
   // O PEDIDO CADUCOU (22/09/2026).
@@ -609,17 +612,17 @@ export const NOTIFICACOES = {
   // aceitou" deixa a pessoa parada, "tente outra vez" põe-na a andar.
   pedidoCaducouTitulo: {
     pt: 'Ninguém aceitou o seu pedido',
-    tet: 'La iha ema simu ita-nia pedidu',
+    tet: 'La iha ema ruma mak simu ita-nia pedidu',
     en: 'No driver took your request',
   },
   pedidoCaducouTexto: {
     pt: 'Passaram {minutos} minutos sem motorista. Pode pedir outra vez.',
-    tet: 'Liu minutu {minutos} la iha motorista. Bele husu fali.',
+    tet: 'Liu minutu {minutos} la iha motorista. Bele husu fila-fali.',
     en: 'After {minutos} minutes there was no driver. You can request again.',
   },
   motoristaDisponivelTitulo: {
     pt: 'Há um motorista disponível',
-    tet: 'Iha motorista disponível',
+    tet: 'Iha motorista ida ne’ebé disponível',
     en: 'A driver is available',
   },
   motoristaDisponivelTexto: {
@@ -637,7 +640,7 @@ export const NOTIFICACOES = {
     tet: '{nome} mai foti ita{preco}',
     en: '{nome} is coming to pick you up{preco}',
   },
-  sosTitulo: { pt: '🚨 PEDIDO DE AJUDA', tet: '🚨 PEDIDU AJUDA', en: '🚨 CALL FOR HELP' },
+  sosTitulo: { pt: '🚨 PEDIDO DE AJUDA', tet: '🚨 PEDIDU ATU HUSU AJUDA', en: '🚨 CALL FOR HELP' },
   sosTexto: {
     pt: '{nome} carregou no SOS · {onde}',
     tet: '{nome} uza SOS · {onde}',
@@ -646,7 +649,7 @@ export const NOTIFICACOES = {
   sosAlguem: { pt: 'Alguém', tet: 'Ema ida', en: 'Someone' },
   ocorrenciaTitulo: {
     pt: 'Ocorrência grave reportada',
-    tet: 'Okorrénsia grave ida relata ona',
+    tet: 'Okorrénsia grave ida relata tiha ona',
     en: 'Serious incident reported',
   },
   ocorrenciaTexto: {
@@ -664,7 +667,7 @@ export const NOTIFICACOES = {
   sosSemPosicao: { pt: 'sem posição', tet: 'la iha pozisaun', en: 'no position' },
   prontoTitulo: {
     pt: 'Motorista à espera de aprovação',
-    tet: 'Motorista hein aprovasaun',
+    tet: 'Motorista hein hela aprovasaun',
     en: 'Driver awaiting approval',
   },
   prontoTexto: {
@@ -675,7 +678,7 @@ export const NOTIFICACOES = {
   umMotorista: { pt: 'Um motorista', tet: 'Motorista ida', en: 'A driver' },
   pagamentoTitulo: {
     pt: 'Pagamento por confirmar',
-    tet: 'Pagamentu hein konfirmasaun',
+    tet: 'Pagamentu hein hela konfirmasaun',
     en: 'Payment to confirm',
   },
   pagamentoTexto: {
