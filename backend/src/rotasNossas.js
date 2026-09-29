@@ -116,10 +116,20 @@ function carregar() {
     }
   }
 
+  // Quantos troços tocam cada vértice: a navegação só anuncia viragens onde
+  // há por onde escolher (três ou mais). Numa curva da própria estrada, ou
+  // onde duas vias do mapa se juntam sem cruzamento, não há nada a dizer.
+  const grau = new Int32Array(nV);
+  for (let e = 0; e < nA; e++) {
+    grau[T.arestaDe[e]]++;
+    grau[T.arestaPara[e]]++;
+  }
+
   rede = {
     meta,
     T,
     nV,
+    grau,
     vel,
     vMax,
     conta,
@@ -283,7 +293,7 @@ class Monte {
 // A ROTA: { km, min, linha, fonte: 'nossa', encosto: {origem, destino} } ou
 // null quando um dos pontos não tem estrada a menos de 1,5 km, ou não há
 // caminho (uma ilha, Ataúro, Oecusse por terra).
-export function rotaNossa(a, b) {
+export function rotaNossa(a, b, comTrocos = false) {
   const R = carregar();
   const { T, vel, vMax, conta, arcoAresta, arcoFrente, arcoPara, arcoCusto, la, lo } = R;
   const s = encostar(R, a.lat, a.lng);
@@ -368,45 +378,183 @@ export function rotaNossa(a, b) {
   }
   if (melhor === Infinity) return null;
 
-  // O desenho do caminho, do destino para trás.
-  let linha;
+  // O CAMINHO, TROÇO A TROÇO e pela ordem em que se percorre: a aresta, o
+  // sentido e o desenho de cada um. A linha sai da junção deles; a navegação
+  // precisa de saber onde se muda de troço, que é onde se vira.
+  let trocos;
   if (direto != null && melhor === direto) {
-    linha = [
-      { lat: s.lat, lng: s.lng },
-      { lat: d.lat, lng: d.lng },
+    trocos = [
+      {
+        e: s.e,
+        frente: d.ate >= s.ate,
+        pts: [
+          { lat: s.lat, lng: s.lng },
+          { lat: d.lat, lng: d.lng },
+        ],
+      },
     ];
   } else {
-    const pedacos = [];
-    // Último troço: do vértice de chegada até ao ponto de destino.
-    const fim = pedacoDoTroco(R, d, !chegada.frente).reverse();
-    pedacos.push(fim);
+    const atras = [];
+    atras.push({
+      e: d.e,
+      frente: chegada.frente,
+      pts: pedacoDoTroco(R, d, !chegada.frente).reverse(),
+    });
     let v = chegada.vertice;
     while (veioPor[v] >= 0) {
       const i = veioPor[v];
-      pedacos.push(desenhoDoTroco(R, arcoAresta[i], arcoFrente[i] === 1));
+      const frente = arcoFrente[i] === 1;
+      atras.push({ e: arcoAresta[i], frente, pts: desenhoDoTroco(R, arcoAresta[i], frente) });
       // O vértice de onde este arco saiu.
-      v = arcoFrente[i] === 1 ? T.arestaDe[arcoAresta[i]] : T.arestaPara[arcoAresta[i]];
+      v = frente ? T.arestaDe[arcoAresta[i]] : T.arestaPara[arcoAresta[i]];
     }
-    // Primeiro troço: do ponto de partida até ao primeiro vértice.
-    pedacos.push(pedacoDoTroco(R, s, veioPor[v] === -2));
-    linha = [];
-    for (const p of pedacos.reverse()) {
-      for (const q of p) {
-        const u = linha[linha.length - 1];
-        if (!u || u.lat !== q.lat || u.lng !== q.lng) linha.push(q);
-      }
-    }
+    atras.push({ e: s.e, frente: veioPor[v] === -2, pts: pedacoDoTroco(R, s, veioPor[v] === -2) });
+    trocos = atras.reverse();
   }
-  let m = 0;
+  const linha = [];
+  for (const t of trocos) {
+    for (const q of t.pts) {
+      const u = linha[linha.length - 1];
+      if (!u || u.lat !== q.lat || u.lng !== q.lng) linha.push(q);
+    }
+    // Onde este troço acaba na linha — a junção com o seguinte.
+    t.fim = linha.length - 1;
+  }
+  const acumulado = new Float64Array(linha.length);
   for (let k = 1; k < linha.length; k++) {
-    m += distM(linha[k - 1].lat, linha[k - 1].lng, linha[k].lat, linha[k].lng);
+    acumulado[k] =
+      acumulado[k - 1] + distM(linha[k - 1].lat, linha[k - 1].lng, linha[k].lat, linha[k].lng);
   }
+  const m = acumulado[linha.length - 1];
   return {
     km: Math.round((m / 1000) * 10) / 10,
     min: Math.round(melhor / 60),
     linha,
     fonte: 'nossa',
     encosto: { origem: Math.round(s.afastamento), destino: Math.round(d.afastamento) },
+    ...(comTrocos ? { trocos, acumulado } : {}),
+  };
+}
+
+// ── A NAVEGAÇÃO: a rota com as instruções (29/09/2026) ─────────────────
+//
+// Para a página /navegar. Cada instrução diz O QUE fazer, PARA ONDE (o nome
+// da rua) e A QUANTOS METROS do início fica — a página mede o resto com o GPS.
+// O texto não vem daqui: vem um tipo («esquerda», «rotunda» com a saída), e a
+// página escreve-o e di-lo na língua de quem conduz.
+//
+// UMA VIRAGEM mede-se pelo ângulo entre o sentido em que se chega à junção e
+// o sentido em que se sai, olhando uns metros para trás e para a frente — o
+// último segmento sozinho pode ter um metro e apontar para qualquer lado.
+const OLHAR_M = 15;
+
+function rumoEntre(a, b) {
+  const r = Math.PI / 180;
+  const y = Math.sin((b.lng - a.lng) * r) * Math.cos(b.lat * r);
+  const x =
+    Math.cos(a.lat * r) * Math.sin(b.lat * r) -
+    Math.sin(a.lat * r) * Math.cos(b.lat * r) * Math.cos((b.lng - a.lng) * r);
+  return (Math.atan2(y, x) / r + 360) % 360;
+}
+
+// O sentido de viagem a chegar a `j` (passo -1) ou a sair de `j` (passo +1).
+function rumoNaJuncao(linha, acumulado, j, passo) {
+  let k = j + passo;
+  while (k > 0 && k < linha.length - 1 && Math.abs(acumulado[k] - acumulado[j]) < OLHAR_M)
+    k += passo;
+  k = Math.max(0, Math.min(linha.length - 1, k));
+  if (k === j) return null;
+  return passo < 0 ? rumoEntre(linha[k], linha[j]) : rumoEntre(linha[j], linha[k]);
+}
+
+export function rotaParaNavegar(a, b) {
+  const r = rotaNossa(a, b, true);
+  if (!r) return null;
+  const R = rede;
+  const { T } = R;
+  const nome = (e) => (T.arestaNome && T.arestaNome[e] >= 0 ? R.meta.nomes[T.arestaNome[e]] : '');
+  const rotunda = (e) => !!(T.arestaRotunda && T.arestaRotunda[e]);
+  const { linha, acumulado, trocos } = r;
+  const aqui = (j) => ({ metros: Math.round(acumulado[j]), lat: linha[j].lat, lng: linha[j].lng });
+
+  const instrucoes = [{ tipo: 'partida', rua: nome(trocos[0].e), ...aqui(0) }];
+  let naRotunda = null;
+  // A ÚLTIMA RUA COM NOME por onde se passou, e não o troço anterior: no mapa
+  // há bocados sem nome a meio de avenidas, e comparar com eles fazia dizer
+  // «em frente, Avenida Nicolau Lobato» a quem já ia nela.
+  let ruaActual = nome(trocos[0].e);
+  for (let k = 1; k < trocos.length; k++) {
+    const antes = trocos[k - 1];
+    const depois = trocos[k];
+    const j = antes.fim;
+    const v = antes.frente ? T.arestaPara[antes.e] : T.arestaDe[antes.e];
+
+    // ROTUNDAS: anuncia-se à entrada, com a saída que se toma, contada pelas
+    // saídas por onde se passa (troços que saem da rotunda e se podem tomar).
+    if (rotunda(depois.e) && !rotunda(antes.e)) {
+      naRotunda = { tipo: 'rotunda', saida: 0, rua: '', ...aqui(j) };
+      instrucoes.push(naRotunda);
+      continue;
+    }
+    if (naRotunda && rotunda(antes.e)) {
+      let haSaida = false;
+      for (let i = R.conta[v]; i < R.conta[v + 1]; i++) {
+        if (!rotunda(R.arcoAresta[i])) haSaida = true;
+      }
+      if (haSaida) naRotunda.saida++;
+      if (!rotunda(depois.e)) {
+        naRotunda.rua = nome(depois.e);
+        if (naRotunda.rua) ruaActual = naRotunda.rua;
+        naRotunda = null;
+      }
+      continue;
+    }
+
+    const entrada = rumoNaJuncao(linha, acumulado, j, -1);
+    const saida = rumoNaJuncao(linha, acumulado, j, 1);
+    if (entrada == null || saida == null) continue;
+    let ang = saida - entrada;
+    if (ang > 180) ang -= 360;
+    if (ang < -180) ang += 360;
+    const abs = Math.abs(ang);
+    const novoNome = nome(depois.e);
+    const mudaNome = !!novoNome && novoNome !== ruaActual;
+    if (novoNome) ruaActual = novoNome;
+    if (R.grau[v] < 3 && !(mudaNome && abs > 30)) continue;
+    const lado = ang > 0 ? 'direita' : 'esquerda';
+    let tipo;
+    if (abs <= 20) {
+      // Em frente só se diz quando a rua muda de nome num cruzamento: é o
+      // que ajuda a saber onde se está sem encher a viagem de avisos.
+      if (!mudaNome || R.grau[v] < 3) continue;
+      tipo = 'frente';
+    } else if (abs <= 50) tipo = `ligeiramente-${lado}`;
+    else if (abs <= 140) tipo = lado;
+    else tipo = `apertada-${lado}`;
+    instrucoes.push({ tipo, rua: nome(depois.e), ...aqui(j) });
+  }
+  instrucoes.push({ tipo: 'chegada', rua: '', ...aqui(linha.length - 1) });
+
+  // DUAS MANOBRAS IGUAIS A MENOS DE 80 m são uma só: no ensaio da Colmera à
+  // Timor Plaza, dois «ligeiramente à esquerda» a 60 m um do outro deram
+  // três frases seguidas. Fica a primeira, com a rua da segunda.
+  const juntas = [];
+  for (const i of instrucoes) {
+    const a = juntas[juntas.length - 1];
+    if (a && a.tipo === i.tipo && i.tipo !== 'chegada' && i.metros - a.metros < 80) {
+      if (i.rua) a.rua = i.rua;
+      continue;
+    }
+    juntas.push(i);
+  }
+
+  return {
+    km: r.km,
+    min: r.min,
+    fonte: 'nossa',
+    // [lng, lat] com 6 casas (~10 cm): metade dos bytes de objectos.
+    linha: linha.map((p) => [Math.round(p.lng * 1e6) / 1e6, Math.round(p.lat * 1e6) / 1e6]),
+    instrucoes: juntas,
   };
 }
 

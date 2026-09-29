@@ -204,7 +204,16 @@ for (const dados of blocosDeDados(buf)) {
     aoCaminho(id, tags, refs) {
       const classe = classeDaVia(tags);
       if (!classe || refs.length < 2) return;
-      vias.push({ classe, sentido: sentidoDaVia(tags), refs });
+      vias.push({
+        classe,
+        sentido: sentidoDaVia(tags),
+        refs,
+        // O NOME, para a navegação dizer «vire à esquerda para a Avenida
+        // Nicolau Lobato» (29/09/2026). O tétum e o português só se não
+        // houver o nome principal; a referência (A01…) nas estradas sem nome.
+        nome: tags.name || tags['name:tet'] || tags['name:pt'] || tags.ref || '',
+        rotunda: tags.junction === 'roundabout' || tags.junction === 'circular' ? 1 : 0,
+      });
       for (let i = 0; i < refs.length; i++) {
         // As pontas contam a dobrar: são sempre vértices do grafo.
         const peso = i === 0 || i === refs.length - 1 ? 2 : 1;
@@ -275,6 +284,20 @@ const arestaGeoTam = [];
 const arestaMetros = [];
 const arestaClasse = [];
 const arestaSentido = [];
+const arestaNome = [];
+const arestaRotunda = [];
+const nomes = [];
+const indiceNome = new Map();
+const nomeDe = (n) => {
+  if (!n) return -1;
+  let i = indiceNome.get(n);
+  if (i === undefined) {
+    i = nomes.length;
+    nomes.push(n);
+    indiceNome.set(n, i);
+  }
+  return i;
+};
 const geometria = [];
 let semCoordenada = 0;
 
@@ -299,6 +322,8 @@ for (const v of vias) {
       arestaMetros.push(m);
       arestaClasse.push(CLASSES.indexOf(v.classe));
       arestaSentido.push(v.sentido);
+      arestaNome.push(nomeDe(v.nome));
+      arestaRotunda.push(v.rotunda);
     }
     ini = i;
   }
@@ -318,6 +343,8 @@ const tabelas = {
   arestaMetros: Float32Array.from(arestaMetros),
   arestaClasse: Uint8Array.from(arestaClasse),
   arestaSentido: Int8Array.from(arestaSentido),
+  arestaNome: Int32Array.from(arestaNome),
+  arestaRotunda: Uint8Array.from(arestaRotunda),
   geometria: Int32Array.from(geometria),
 };
 const meta = {
@@ -326,6 +353,7 @@ const meta = {
   licenca: '© colaboradores do OpenStreetMap, ODbL',
   classes: CLASSES,
   velocidades: VELOCIDADE,
+  nomes,
   tabelas: {},
 };
 let desloc = 0;
@@ -350,7 +378,8 @@ fs.writeFileSync(SAIDA, saida);
 const km = arestaMetros.reduce((a, b) => a + b, 0) / 1000;
 console.log(
   `  ${verticePonto.length} cruzamentos, ${arestaDe.length} troços, ` +
-    `${km.toFixed(0)} km de estrada, ${pontosLat.length} pontos de desenho`
+    `${km.toFixed(0)} km de estrada, ${pontosLat.length} pontos de desenho, ` +
+    `${nomes.length} nomes de rua, ${arestaRotunda.filter(Boolean).length} troços de rotunda`
 );
 if (semCoordenada) console.log(`  (${semCoordenada} vias com nós fora do recorte, cortadas)`);
 console.log(

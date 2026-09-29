@@ -26,6 +26,7 @@ import { lugaresRouter } from './routes/lugares.js';
 import { estadoDaBusca, marcarPorPerguntar, nomesDeHoje } from './lugares.js';
 import { estadoDasRotas, usoDeHoje } from './rotas.js';
 import { estadoDasRotasNossas } from './rotasNossas.js';
+import { navegarRouter } from './routes/navegar.js';
 import { estadoDoEmail } from './email.js';
 import { mosaico } from './mosaicos.js';
 import { gzipSync } from 'node:zlib';
@@ -302,6 +303,8 @@ app.get(['/painel', '/painel/*'], (req, res) => {
 // se entra. Quem tiver o endereço guardado vai para o novo.
 app.get('/painel-antigo', (req, res) => res.redirect(301, '/painel/'));
 
+// A navegação nossa, sem Google: a página e as rotas (ver routes/navegar.js).
+app.use(navegarRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/rides', ridesRouter);
 app.use('/api/driver', driverRouter);
