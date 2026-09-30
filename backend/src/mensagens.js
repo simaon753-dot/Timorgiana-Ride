@@ -398,6 +398,13 @@ export const MENSAGENS = {
   'Tipo desconhecido.': ['Tipu deskoñesidu.', 'Unknown type.'],
   'Nome inválido.': ['Naran inválidu.', 'Invalid name.'],
   'Faltam as coordenadas.': ['Falta koordenada.', 'Coordinates missing.'],
+  // Baptizar um sítio no painel (30/09/2026). Tétum por rever pelo Simão.
+  'O nome tem de ter entre 2 e 120 letras.': [
+    'Naran tenke iha letra 2 to’o 120.',
+    'The name must be 2 to 120 characters long.',
+  ],
+  'Lugar inválido.': ['Fatin inválidu.', 'Invalid place.'],
+  'Lugar não encontrado.': ['La hetan fatin ruma.', 'Place not found.'],
   'Faltam as coordenadas de origem ou destino.': [
     'Falta koordenada rekolla nian ka destinu nian.',
     'Pick-up or destination coordinates missing.',

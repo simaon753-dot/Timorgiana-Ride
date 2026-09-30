@@ -400,6 +400,16 @@ export async function initSchema() {
   // punha a busca a depender de uma extensão que pode não existir na base
   // seguinte — e um restauro que perde a busca é um restauro incompleto.
   await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS nome_busca TEXT`);
+  // ESCREVER O NOSSO NOME NO MAPA MESMO ONDE O GOOGLE JÁ TEM UM (30/09/2026).
+  //
+  // Por omissão só se desenham os nomes que o Google não conhece
+  // (`google_conhece`), para não haver dois nomes no mesmo sítio. Mas há
+  // sítios que o Google tem com o nome errado ou só em inglês — o Centro de
+  // Formação Jurídica aparece como «Judicial Training Center». Para esses, o
+  // administrador liga isto no painel e o nosso nome desenha-se na mesma.
+  await query(
+    `ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS mostrar_sempre BOOLEAN NOT NULL DEFAULT FALSE`
+  );
   await query(
     `CREATE INDEX IF NOT EXISTS idx_propostos_busca
        ON lugares_propostos(nome_busca) WHERE estado IN ('novo','aceite')`

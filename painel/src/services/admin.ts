@@ -149,6 +149,11 @@ export const api = {
     pedir<{ ok: true }>(`/admin/lugares/${id}/estado`, { method: 'POST', corpo: { estado } }),
   // Só aceita recusados — o servidor recusa os outros.
   eliminarLugar: (id: number) => pedir<{ ok: true; nome: string }>(`/admin/lugares/${id}`, { method: 'DELETE' }),
+  // Baptizar um sítio: entra aceite (30/09/2026).
+  baptizarLugar: (corpo: { nome: string; lat: number; lng: number; mostrarSempre: boolean }) =>
+    pedir<{ lugar: { id: number; nome: string } }>('/admin/lugares', { method: 'POST', corpo }),
+  mostrarLugar: (id: number, mostrarSempre: boolean) =>
+    pedir<{ ok: true }>(`/admin/lugares/${id}/mostrar`, { method: 'POST', corpo: { mostrarSempre } }),
 
   // Serviços da plataforma
   servicos: () => pedir<{ servicos: Servico[] }>('/admin/servicos'),

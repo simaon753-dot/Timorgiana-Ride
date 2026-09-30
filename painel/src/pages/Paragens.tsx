@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Check, Copy, ExternalLink, Info, MapPin, MapPinned, MoreHorizontal, Plus, RotateCcw, Trash2, X } from 'lucide-react';
+import { Check, Copy, ExternalLink, Eye, EyeOff, Info, MapPin, MapPinned, MoreHorizontal, Plus, RotateCcw, Tag, Trash2, X } from 'lucide-react';
 import { t, tl, type Chave } from '@/i18n';
 import { api } from '@/services/admin';
 import { useDados } from '@/hooks/useDados';
@@ -16,13 +16,18 @@ import { Distintivo } from '@/components/ui/distintivo';
 import { Ajuda, Campo, CampoPesquisa, Rotulo } from '@/components/ui/campo';
 import { Segmentos } from '@/components/ui/segmentos';
 import { Tabela, TCabeca, TCorpo, TCelula, TLinha, TTitulo } from '@/components/ui/tabela';
-import { EsqueletoTabela } from '@/components/ui/esqueleto';
+import { Esqueleto, EsqueletoTabela } from '@/components/ui/esqueleto';
+import { Interruptor } from '@/components/ui/interruptor';
 import { EstadoErro, EstadoVazio, Faixa } from '@/components/ui/estados';
 import { Janela, JanelaConteudo, JanelaCabecalho, JanelaTitulo, JanelaDescricao, JanelaCorpo, JanelaRodape } from '@/components/ui/janela';
 import { Menu, MenuAbrir, MenuConteudo, MenuItem, MenuSeparador } from '@/components/ui/menu';
 import { DialogoConfirmacao } from '@/components/ui/confirmar';
 import { avisar, mensagemDe } from '@/components/ui/aviso';
 import { IlustracaoIcone } from '@/components/ilustracoes';
+
+// O MapLibre pesa mais do que o resto do painel junto: só se descarrega quando
+// se abre a janela de baptizar, como o mapa da viagem.
+const MapaEscolher = lazy(() => import('@/components/mapa/MapaEscolher'));
 
 type Vista = 'lugares' | 'paradas';
 
@@ -68,6 +73,7 @@ function Lugares({ procura, estadoInicial }: { procura: string; estadoInicial: E
   const [estado, setEstado] = useState<EstadoLugar | 'todos'>(estadoInicial ?? 'novo');
   // O recusado que se está a pedir para eliminar — ver a confirmação no fim.
   const [eliminar, setEliminar] = useState<LugarProposto | null>(null);
+  const [baptizar, setBaptizar] = useState(false);
   const { dados, erro, aCarregar, recarregar } = useDados(() => api.lugares(estado), [estado]);
   const q = procura.trim().toLowerCase();
   const lugares = useMemo(
@@ -79,6 +85,16 @@ function Lugares({ procura, estadoInicial }: { procura: string; estadoInicial: E
     try {
       await api.estadoLugar(l.id, novo);
       avisar.sucesso(t('parag.estadoMudado'), `${l.nome}: ${tl('estadoLugar', novo)}`);
+      recarregar();
+    } catch (e) {
+      avisar.erro(mensagemDe(e));
+    }
+  };
+
+  const mudarMostrar = async (l: LugarProposto, mostrarSempre: boolean) => {
+    try {
+      await api.mostrarLugar(l.id, mostrarSempre);
+      avisar.sucesso(t('parag.mostrarMudado'), l.nome);
       recarregar();
     } catch (e) {
       avisar.erro(mensagemDe(e));
@@ -104,6 +120,9 @@ function Lugares({ procura, estadoInicial }: { procura: string; estadoInicial: E
           className="rounded-2xl bg-borda/40 p-1"
           opcoes={(['novo', 'aceite', 'recusado', 'todos'] as const).map((e) => ({ valor: e, rotulo: t(`estadoLugar.${e}` as Chave) }))}
         />
+        <Botao onClick={() => setBaptizar(true)}>
+          <Tag /> {t('parag.baptizar')}
+        </Botao>
       </div>
       <Faixa cor="teal" icone={<Info />} className="mt-4">
         {t('parag.lugaresNota')}
@@ -140,6 +159,11 @@ function Lugares({ procura, estadoInicial }: { procura: string; estadoInicial: E
                   <TCelula>
                     <p className="font-semibold">{l.nome}</p>
                     <p className="text-xs text-secundario">{l.etiqueta ?? l.tipo ?? '—'}</p>
+                    {l.mostrarSempre ? (
+                      <Distintivo cor="teal" className="mt-1">
+                        {t('parag.sempreNoMapa')}
+                      </Distintivo>
+                    ) : null}
                   </TCelula>
                   <TCelula className="hidden max-w-80 md:table-cell">
                     <p className="truncate">{l.morada || '—'}</p>
@@ -188,6 +212,12 @@ function Lugares({ procura, estadoInicial }: { procura: string; estadoInicial: E
                             <RotateCcw /> {t('parag.reabrir')}
                           </MenuItem>
                         ) : null}
+                        {l.estado === 'aceite' ? (
+                          <MenuItem onSelect={() => mudarMostrar(l, !l.mostrarSempre)}>
+                            {l.mostrarSempre ? <EyeOff /> : <Eye />}{' '}
+                            {t(l.mostrarSempre ? 'parag.deixarGoogle' : 'parag.mostrarSempre')}
+                          </MenuItem>
+                        ) : null}
                         {/* SÓ OS RECUSADOS se eliminam (30/09/2026). Um aceite está no mapa
                             de toda a gente; um por rever ainda não foi decidido. */}
                         {l.estado === 'recusado' ? (
@@ -207,6 +237,16 @@ function Lugares({ procura, estadoInicial }: { procura: string; estadoInicial: E
           </Tabela>
         )}
       </Cartao>
+
+      <BaptizarLugar
+        aberta={baptizar}
+        aoMudar={setBaptizar}
+        aoGuardar={() => {
+          // O sítio baptizado entra aceite: mostra-se já onde ele está.
+          if (estado === 'aceite' || estado === 'todos') recarregar();
+          else setEstado('aceite');
+        }}
+      />
 
       <DialogoConfirmacao
         aberto={!!eliminar}
@@ -417,6 +457,111 @@ function NovaParada({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMudar: 
             </Botao>
             <Botao type="submit" aCarregar={isSubmitting}>
               {t('parag.guardar')}
+            </Botao>
+          </JanelaRodape>
+        </form>
+      </JanelaConteudo>
+    </Janela>
+  );
+}
+
+// ── BAPTIZAR UM SÍTIO (30/09/2026, pedido do Simão) ───────────────────────
+//
+// O administrador dá ele próprio o nome, e fica aceite logo. Até aqui só se
+// reviam os nomes dos passageiros — e o «Judicial Training Center» do Google,
+// que é o Centro de Formação Jurídica, não tinha como ser corrigido.
+const esquemaBaptizar = z.object({
+  nome: z.string().trim().min(2, t('parag.erroNome')).max(120, t('parag.erroNomeLongo')),
+  sitio: coordenada,
+  mostrarSempre: z.boolean(),
+});
+type FormBaptizar = z.input<typeof esquemaBaptizar>;
+
+function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMudar: (v: boolean) => void; aoGuardar: () => void }) {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<FormBaptizar>({ resolver: zodResolver(esquemaBaptizar), defaultValues: { nome: '', sitio: '', mostrarSempre: false } });
+  const [erroServidor, setErroServidor] = useState<string | null>(null);
+  // O pino segue o campo: só um ponto que se percebe e que é de Timor-Leste.
+  const lido = lerCoordenadas(watch('sitio'));
+  const ponto = lido && dentroDeTL(lido) ? lido : null;
+  const mostrarSempre = watch('mostrarSempre');
+
+  const fechar = () => {
+    reset();
+    setErroServidor(null);
+    aoMudar(false);
+  };
+
+  const guardar = handleSubmit(async (f) => {
+    setErroServidor(null);
+    const [lat, lng] = lerCoordenadas(f.sitio)!;
+    try {
+      await api.baptizarLugar({ nome: f.nome.trim(), lat, lng, mostrarSempre: f.mostrarSempre });
+      avisar.sucesso(t('parag.baptizado'), f.nome.trim());
+      fechar();
+      aoGuardar();
+    } catch (e) {
+      setErroServidor(mensagemDe(e));
+    }
+  });
+
+  return (
+    <Janela open={aberta} onOpenChange={(v) => (v ? aoMudar(true) : fechar())}>
+      <JanelaConteudo largura="lg">
+        <form onSubmit={guardar} noValidate className="flex min-h-0 flex-1 flex-col">
+          <JanelaCabecalho>
+            <JanelaTitulo>{t('parag.baptizar')}</JanelaTitulo>
+            <JanelaDescricao>{t('parag.baptizarDescricao')}</JanelaDescricao>
+          </JanelaCabecalho>
+          <JanelaCorpo className="space-y-4">
+            {erroServidor ? (
+              <p role="alert" className="rounded-lg bg-perigo-claro px-3 py-2 text-sm text-perigo">
+                {erroServidor}
+              </p>
+            ) : null}
+            <div>
+              {aberta ? (
+                <Suspense fallback={<Esqueleto className="h-72 w-full rounded-xl" />}>
+                  <MapaEscolher ponto={ponto} aoEscolher={(lat, lng) => setValue('sitio', `${lat}, ${lng}`, { shouldValidate: true })} />
+                </Suspense>
+              ) : null}
+              <Ajuda>{t('parag.baptizarAjudaMapa')}</Ajuda>
+            </div>
+            <div>
+              <Rotulo htmlFor="b-sitio">{t('parag.sitio')}</Rotulo>
+              <Campo id="b-sitio" inputMode="decimal" placeholder={t('parag.coordExemplo')} aria-invalid={!!errors.sitio} {...register('sitio')} />
+              {errors.sitio ? <Ajuda erro>{errors.sitio.message}</Ajuda> : null}
+            </div>
+            <div>
+              <Rotulo htmlFor="b-nome">{t('parag.nome')}</Rotulo>
+              <Campo id="b-nome" placeholder={t('parag.baptizarNomeExemplo')} aria-invalid={!!errors.nome} {...register('nome')} />
+              {errors.nome ? <Ajuda erro>{errors.nome.message}</Ajuda> : null}
+            </div>
+            <div className="flex items-start gap-3">
+              <Interruptor
+                id="b-mostrar"
+                checked={mostrarSempre}
+                onCheckedChange={(v) => setValue('mostrarSempre', v)}
+                className="mt-0.5"
+              />
+              <div>
+                <Rotulo htmlFor="b-mostrar">{t('parag.mostrarSempreRotulo')}</Rotulo>
+                <Ajuda>{t('parag.mostrarSempreAjuda')}</Ajuda>
+              </div>
+            </div>
+          </JanelaCorpo>
+          <JanelaRodape>
+            <Botao variante="secundario" onClick={fechar}>
+              {t('comum.cancelar')}
+            </Botao>
+            <Botao type="submit" aCarregar={isSubmitting}>
+              <Tag /> {t('parag.baptizarGuardar')}
             </Botao>
           </JanelaRodape>
         </form>

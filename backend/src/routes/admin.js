@@ -54,6 +54,8 @@ import {
 import { notificarMotoristaPagamento } from '../push.js';
 import { etiquetaOsm } from '../tiposDeLugar.js';
 import { googleConhece } from '../lugares.js';
+import { ondeFica } from '../administrativo.js';
+import { normalizar } from '../texto.js';
 import { linhasOsm } from '../etiquetasOsm.js';
 import { emitirCodigo } from '../recuperacao.js';
 import { TIPOS_VEICULO } from '../config.js';
@@ -1597,6 +1599,7 @@ adminRouter.get(
     const rows = await query(
       `SELECT p.id, p.nome, p.nome_mapa, p.lat, p.lng, p.estado, p.tipo, p.created_at,
               p.endereco, p.municipio, p.posto, p.suco, p.aldeia, p.bairro,
+              p.mostrar_sempre, p.google_conhece,
               u.name AS quem
          FROM lugares_propostos p LEFT JOIN users u ON u.id = p.user_id
          ${cond}
@@ -1614,6 +1617,10 @@ adminRouter.get(
         quando: r.created_at,
         quem: r.quem,
         tipo: r.tipo,
+        mostrarSempre: r.mostrar_sempre === true,
+        // O que se sabe do Google: `true` já o escreve, `false` não o conhece,
+        // `null` ainda não se perguntou.
+        googleConhece: r.google_conhece,
         // A morada, como quem propôs a preencheu. Vai como uma linha só
         // porque é assim que ela se lê e é assim que se escreve no editor:
         // do mais pequeno para o maior. O bairro fica ao lado da aldeia
@@ -1685,6 +1692,85 @@ adminRouter.post(
     const id = Number(req.params.id);
     if (!Number.isInteger(id)) return res.status(400).json({ error: 'Documento inválido.' });
     await query('UPDATE driver_documents SET revisto_em = NOW() WHERE id = $1', [id]);
+    res.json({ ok: true });
+  })
+);
+
+// POST /api/admin/lugares — BAPTIZAR UM SÍTIO (30/09/2026, pedido do Simão).
+//
+// Até aqui o painel só revia os nomes que os passageiros propunham. Não havia
+// maneira de o administrador dar ele próprio um nome — e é ele que sabe que o
+// «Judicial Training Center» do Google é o Centro de Formação Jurídica.
+//
+// Entra ACEITE, sem revisão: é o administrador a nomear. A partir daí vale
+// como qualquer lugar aceite — é o primeiro nome que a app dá a quem aponta
+// ali (lugares.js, «os nossos, primeiro»), e aparece na pesquisa e na lista
+// do «escolher no mapa».
+//
+// A MORADA E O GOOGLE VÊM DEPOIS, sem fazer esperar o painel. O município e o
+// posto saem das coordenadas (Nominatim), como na app; se o Google já conhece
+// o sítio decide-se como na aprovação. Se alguma das duas falhar, o lugar
+// fica na mesma — só sem a morada, ou sem se desenhar.
+adminRouter.post(
+  '/lugares',
+  wrap(async (req, res) => {
+    const nome = String(req.body?.nome || '').trim();
+    const lat = Number(req.body?.lat);
+    const lng = Number(req.body?.lng);
+    const mostrarSempre = req.body?.mostrarSempre === true;
+    if (nome.length < 2 || nome.length > 120) {
+      return res.status(400).json({ error: 'O nome tem de ter entre 2 e 120 letras.' });
+    }
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return res.status(400).json({ error: 'Faltam as coordenadas.' });
+    }
+    // A mesma caixa das paragens: um engano a colar coordenadas não pode pôr
+    // um nome no meio do oceano.
+    if (!(lat > -9.6 && lat < -8.1 && lng > 124 && lng < 127.4)) {
+      return res.status(400).json({ error: 'Essas coordenadas não são de Timor-Leste.' });
+    }
+    const novo = await one(
+      `INSERT INTO lugares_propostos (user_id, nome, lat, lng, estado, nome_busca, mostrar_sempre)
+       VALUES ($1, $2, $3, $4, 'aceite', $5, $6)
+       RETURNING id, nome`,
+      [req.user.id, nome, lat, lng, normalizar(nome), mostrarSempre]
+    );
+    registarAcesso(req.user.id, `baptizou «${nome}»`, null);
+    res.status(201).json({ lugar: novo });
+
+    ondeFica(lat, lng)
+      .then((o) =>
+        o?.municipio
+          ? query(
+              `UPDATE lugares_propostos SET municipio = $2, posto = $3
+                WHERE id = $1 AND municipio IS NULL`,
+              [novo.id, o.municipio.nome, o.posto?.nome ?? null]
+            )
+          : null
+      )
+      .catch((e) => console.error('[lugares] morada do baptismo:', e.message));
+    googleConhece(nome, lat, lng)
+      .then((sabe) =>
+        sabe === null
+          ? null
+          : query('UPDATE lugares_propostos SET google_conhece = $2 WHERE id = $1', [novo.id, sabe])
+      )
+      .catch((e) => console.error('[lugares] googleConhece:', e.message));
+  })
+);
+
+// POST /api/admin/lugares/:id/mostrar — escrever sempre no mapa, ou deixar o
+// Google decidir (ver `mostrar_sempre` em db.js).
+adminRouter.post(
+  '/lugares/:id/mostrar',
+  wrap(async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) return res.status(400).json({ error: 'Lugar inválido.' });
+    const r = await one(
+      'UPDATE lugares_propostos SET mostrar_sempre = $2 WHERE id = $1 RETURNING id',
+      [id, req.body?.mostrarSempre === true]
+    );
+    if (!r) return res.status(404).json({ error: 'Lugar não encontrado.' });
     res.json({ ok: true });
   })
 );

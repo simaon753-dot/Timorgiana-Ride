@@ -569,6 +569,10 @@ export interface LugarProposto {
   etiquetas: string;
   etiqueta: string | null;
   editar: string;
+  // Escrever o nosso nome no mapa mesmo onde o Google já tem outro (30/09/2026).
+  mostrarSempre?: boolean;
+  // `true` o Google já o escreve, `false` não o conhece, `null` por perguntar.
+  googleConhece?: boolean | null;
 }
 
 export interface Parada {

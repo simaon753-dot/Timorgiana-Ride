@@ -625,6 +625,29 @@ async function api(req, res, url) {
     paradas = paradas.filter((o) => o.id !== Number(x[1]));
     return fora ? json(res, { ok: true, nome: fora.nome }) : json(res, { error: 'Paragem não encontrada.' }, 404);
   }
+  // Baptizar um sítio (30/09/2026): entra aceite, como no servidor a sério.
+  if (p === '/admin/lugares' && req.method === 'POST') {
+    const b = await corpoDe(req);
+    const nome = String(b.nome || '').trim();
+    if (nome.length < 2 || nome.length > 120) return json(res, { error: 'O nome tem de ter entre 2 e 120 letras.' }, 400);
+    if (!(b.lat > -9.6 && b.lat < -8.1 && b.lng > 124 && b.lng < 127.4)) {
+      return json(res, { error: 'Essas coordenadas não são de Timor-Leste.' }, 400);
+    }
+    const novo = {
+      id: Math.max(0, ...lugares.map((l) => l.id)) + 1, nome, nomeMapa: null, lat: b.lat, lng: b.lng, estado: 'aceite',
+      quando: new Date().toISOString(), quem: 'Administrador (demonstração)', tipo: null, morada: 'Vera Cruz, Díli',
+      etiquetas: `name=${nome}`, etiqueta: null, mostrarSempre: b.mostrarSempre === true, googleConhece: null,
+      editar: `https://www.openstreetmap.org/edit#map=19/${Number(b.lat).toFixed(5)}/${Number(b.lng).toFixed(5)}`,
+    };
+    lugares.unshift(novo);
+    return json(res, { lugar: { id: novo.id, nome } }, 201);
+  }
+  if ((x = m(/^\/admin\/lugares\/(\d+)\/mostrar$/))) {
+    const { mostrarSempre } = await corpoDe(req);
+    if (!lugares.some((l) => l.id === Number(x[1]))) return json(res, { error: 'Lugar não encontrado.' }, 404);
+    lugares = lugares.map((l) => (l.id === Number(x[1]) ? { ...l, mostrarSempre: mostrarSempre === true } : l));
+    return json(res, { ok: true });
+  }
   if (p === '/admin/lugares') {
     const e = url.searchParams.get('estado') || 'novo';
     return json(res, { lugares: lugares.filter((l) => e === 'todos' || l.estado === e) });
@@ -697,7 +720,9 @@ http
       if (url.pathname.startsWith('/api/')) return await api(req, res, url);
       if (url.pathname === '/mapa/estilo.json') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        return res.end(fs.readFileSync(path.join(RAIZ, 'backend/publico/estilo.json')));
+        // Em backend/mapa/ desde a separação do mapa (29/09/2026); o caminho
+        // antigo deixou a demonstração sem mapa nenhum, sem erro à vista.
+        return res.end(fs.readFileSync(path.join(RAIZ, 'backend/mapa/publico/estilo.json')));
       }
       if (url.pathname === '/' ) {
         res.writeHead(302, { Location: '/painel/' });

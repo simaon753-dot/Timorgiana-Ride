@@ -33,6 +33,23 @@ export const paragens = {
   'parag.vazioLugaresTitulo.todos': 'Sem lugares propostos.',
   'parag.vazioLugaresTexto': 'Quando um passageiro der nome a um sítio que o mapa não conhece, aparece aqui.',
 
+  // Baptizar um sítio (30/09/2026).
+  'parag.baptizar': 'Baptizar um sítio',
+  'parag.baptizarDescricao': 'Dê o nome que as pessoas usam. Fica aceite logo: a app passa a dá-lo a quem apontar para ali, e aparece na pesquisa e na lista de sítios perto.',
+  'parag.baptizarMapa': 'Mapa para escolher o sítio: clique no sítio, ou arraste o pino',
+  'parag.baptizarPino': 'O sítio a baptizar',
+  'parag.baptizarAjudaMapa': 'Clique no mapa para pôr o pino, e arraste-o para afinar. Também pode colar as coordenadas copiadas do Google Maps.',
+  'parag.baptizarNomeExemplo': 'Centro de Formação Jurídica',
+  'parag.baptizarGuardar': 'Baptizar',
+  'parag.baptizado': 'Sítio baptizado.',
+  'parag.erroNomeLongo': 'O nome não pode passar de 120 letras.',
+  'parag.mostrarSempreRotulo': 'Escrever também no mapa, mesmo onde o Google já tem outro nome',
+  'parag.mostrarSempreAjuda': 'Para quando o Google tem o sítio com o nome errado ou só em inglês — por exemplo «Judicial Training Center». Desligado, o nome só se escreve no mapa onde o Google não conhece o sítio, para não haver dois nomes no mesmo lugar.',
+  'parag.sempreNoMapa': 'Sempre no mapa',
+  'parag.mostrarSempre': 'Escrever sempre no mapa',
+  'parag.deixarGoogle': 'Só onde o Google não conhece',
+  'parag.mostrarMudado': 'Atualizado.',
+
   'parag.nova': 'Nova paragem',
   'parag.novaDescricao': 'Uma paragem vale para toda a gente e para sempre, venha o sítio da nossa lista ou da pesquisa do Google.',
   'parag.nome': 'Nome do sítio',
