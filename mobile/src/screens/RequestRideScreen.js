@@ -742,7 +742,14 @@ export default function RequestRideScreen({ navigation, route }) {
         // A que já está à vista vai junto: o servidor mantém-na enquanto
         // continuar boa, em vez de a trocar por outra uns metros melhor.
         pontoNaEstrada(lat, lng, token, paragemCentro, (r) => {
-          rua = r?.fonte === 'mapa' ? r.rua || null : r?.fonte === 'nossa' ? r.nome || null : null;
+          // A rua onde o carro pára; se essa não tiver nome, a rua com nome
+          // mais perto (o servidor manda-a em `ruaPerto`).
+          rua =
+            r?.fonte === 'mapa'
+              ? r.rua || r.ruaPerto || null
+              : r?.fonte === 'nossa'
+                ? r.nome || null
+                : null;
         }).catch(() => null),
       ]);
       // Chegou tarde: entretanto o mapa já foi para outro sítio.

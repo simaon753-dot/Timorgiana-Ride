@@ -89,6 +89,11 @@ export async function estradaMaisPerto(lat, lng, raioM = RAIO_M) {
 
   let melhor = null;
   let melhorTrilho = null;
+  // A RUA COM NOME mais perto (30/09/2026). Muitas travessas de Díli não
+  // têm nome no mapa; quando o carro encosta a uma delas, é esta que diz à
+  // pessoa onde está («Rua de Caicoli»). Só para mostrar — o sítio onde o
+  // carro pára continua a ser o de cima.
+  let comNome = null;
   for (let x = a.x; x <= b.x; x++) {
     for (let y = a.y; y <= b.y; y++) {
       const bruto = await mosaico(ZOOM, x, y);
@@ -120,6 +125,9 @@ export async function estradaMaisPerto(lat, lng, raioM = RAIO_M) {
             const qx = ax + t * vx;
             const qy = ay + t * vy;
             const d = Math.hypot(qx, qy);
+            if (f.properties.name && d <= raioM && (!comNome || d < comNome.metros)) {
+              comNome = { rua: f.properties.name, metros: Math.round(d) };
+            }
             const actual = trilho ? melhorTrilho : melhor;
             if (d <= raioM && (!actual || d < actual.metros)) {
               const ponto = {
@@ -137,5 +145,6 @@ export async function estradaMaisPerto(lat, lng, raioM = RAIO_M) {
       }
     }
   }
-  return melhor || melhorTrilho;
+  const escolhido = melhor || melhorTrilho;
+  return escolhido ? { ...escolhido, ruaPerto: comNome?.rua || null } : null;
 }

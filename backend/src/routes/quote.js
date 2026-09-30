@@ -514,6 +514,9 @@ quoteRouter.post(
         lng: e.lng,
         metros: e.metros,
         rua: e.rua,
+        // A rua com nome mais perto, para quando esta não tiver nome (muitas
+        // travessas de Díli não têm, no mapa) — só para mostrar.
+        ruaPerto: e.ruaPerto || null,
         tipo: e.tipo,
       });
     }
