@@ -35,9 +35,21 @@ import { colors, spacing, radius, elevacao, registarEstilos, paletaEmUso } from 
 // assentar sobre qualquer fundo, e pesa uma fracção do PNG na actualização.
 const DILI = require('../../assets/entrada/dili.webp');
 
+// O tamanho dos nomes nos cartões dos veículos. Ver `tamanhoNome` abaixo.
+const TAMANHO_NOME = 17;
+
 export default function PassengerHomeScreen({ navigation }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { user, token, logout } = useAuth();
+
+  // OS NOMES DOS VEÍCULOS TODOS DO MESMO TAMANHO (30/09/2026, pedido do Simão).
+  // Se um nome não cabe inteiro numa linha, desce a letra de TODOS, e não só
+  // a desse. Antes, no Android, «Motorizada» ficava mais pequena do que
+  // «Carro» ao lado. Noutra língua os nomes são outros, e mede-se de novo a
+  // partir do tamanho normal.
+  const [tamanhoNome, setTamanhoNome] = useState(TAMANHO_NOME);
+  useEffect(() => setTamanhoNome(TAMANHO_NOME), [lang]);
+  const nomePartiu = (atual) => setTamanhoNome((t) => Math.min(t, Math.max(13, atual - 1)));
   // TERMOS POR ACEITAR — os desta versão, não "uns termos quaisquer".
   //
   // Compara-se a VERSÃO e não a existência: quem aceitou a de Agosto não
@@ -223,13 +235,22 @@ export default function PassengerHomeScreen({ navigation }) {
                   </View>
                   <View style={styles.veiculoTextos}>
                     <View style={styles.veiculoTopo}>
-                      <View style={[styles.veiculoIcone, { backgroundColor: colors[v.acento] }]}>
-                        <Icone nome={v.icone} tamanho={18} cor={colors.onAcento} />
-                      </View>
-                      {/* Como no iPhone: num telemóvel mais estreito a letra desce o
-                          que for preciso para «Motorizada» não sair partida a meio
-                          (30/09/2026). Ver design/TextoSemPartir.js. */}
-                      <TextoSemPartir style={styles.veiculoNome} numberOfLines={2}>
+                      {/* Um ponto pequeno da cor do veículo, sem ícone
+                          (30/09/2026, pedido do Simão). O disco de 34 com o
+                          ícone dentro ocupava o espaço que faltava ao nome. */}
+                      <View style={[styles.veiculoPonto, { backgroundColor: colors[v.acento] }]} />
+                      {/* Como no iPhone: «Motorizada» inteira numa linha. Se não
+                          couber, a letra desce, e desce nos três cartões por
+                          igual. Ver design/TextoSemPartir.js. */}
+                      <TextoSemPartir
+                        style={styles.veiculoNome}
+                        numberOfLines={2}
+                        // Com a letra do sistema no máximo, nem a 13 a palavra
+                        // cabia. Até 1,5× o nome cresce; a descrição, sem limite.
+                        maxFontSizeMultiplier={1.5}
+                        tamanho={tamanhoNome}
+                        aoPartir={nomePartiu}
+                      >
                         {t(v.chaveNome)}
                       </TextoSemPartir>
                     </View>
@@ -333,6 +354,10 @@ const criarEstilos = () =>
     // A mesma caixa de 34 do disco que substitui, para a linha do mosaico
     // não mudar de altura conforme o serviço tem ilustração ou não.
     extraImagem: { width: 34, height: 34 },
+    // O ponto de cor ao lado do nome do veículo. Era um disco de 34 com o
+    // ícone dentro; o Simão pediu-o mais pequeno e sem ícone (30/09/2026).
+    veiculoPonto: { width: 12, height: 12, borderRadius: 6 },
+    // O disco com ícone dos serviços que não têm ilustração (lá em baixo).
     veiculoIcone: {
       width: 34,
       height: 34,
@@ -369,7 +394,13 @@ const criarEstilos = () =>
     // ícone e da seta sobravam uns 100 px: "Motorizada" saía "Motor…" e
     // "Carro Pickup" saía "Carro …" — e foi assim que apareceu nas capturas
     // para a Google Play (17/09/2026). Duas linhas partem entre palavras.
-    veiculoNome: { ...tipo.titulo, fontSize: 17, lineHeight: 21, color: colors.text, flex: 1 },
+    veiculoNome: {
+      ...tipo.titulo,
+      fontSize: TAMANHO_NOME,
+      lineHeight: 21,
+      color: colors.text,
+      flex: 1,
+    },
     veiculoNota: { ...tipo.pequeno, color: colors.textMuted, marginTop: 2 },
     heroi: { minHeight: 176, justifyContent: 'flex-end', marginBottom: spacing.xs },
     // No escuro o céu claro da ilustração destacava-se como um rectângulo
