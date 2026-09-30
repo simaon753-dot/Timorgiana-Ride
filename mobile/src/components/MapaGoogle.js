@@ -663,6 +663,14 @@ export default function MapaGoogle({
   onArrastar,
   modoEscolha = null,
   onCentro,
+  // IR A UM SÍTIO SEM O ESCOLHER (30/09/2026, pedido do Simão). `{ lat, lng,
+  // chave }`: a cada chave nova, o centro do mapa (e com ele a mira) vai até
+  // lá. Escolher continua a ser o botão de confirmar de quem chama; isto só
+  // mostra onde é.
+  centrarEm = null,
+  // O TOQUE NUM NOME DO GOOGLE no modo de escolha: `{ lat, lng, nome }`. O
+  // mapa vai lá sozinho; quem chama recebe o nome para o mostrar.
+  onTocarNome,
   markers = [],
   // OS TROÇOS A PÉ, agora uma LISTA e não um só.
   //
@@ -1418,6 +1426,19 @@ export default function MapaGoogle({
     }
   }, [aLocalizar]);
 
+  // LEVAR O CENTRO A UM SÍTIO, mantendo o zoom. O sítio está à vista ou quase,
+  // e aproximar de repente fazia perder as ruas à volta, que são o que diz se
+  // é aquele. Usado pela lista de baixo (`centrarEm`) e pelos toques no mapa.
+  const irPara = useCallback((lat, lng) => {
+    mapaRef.current?.animateCamera(
+      { center: { latitude: lat, longitude: lng } },
+      { duration: 450 }
+    );
+  }, []);
+  useEffect(() => {
+    if (centrarEm) irPara(centrarEm.lat, centrarEm.lng);
+  }, [centrarEm?.chave]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // SEGUIR A BÚSSOLA: o mapa roda para o que está à frente no ecrã ser o que
   // está à frente na rua.
   //
@@ -2003,10 +2024,36 @@ export default function MapaGoogle({
         // e o de baixo nunca mais saía porque este componente não sabe
         // quando o ponto deixou de interessar.
         onPress={
-          pickable
+          pickable || modoEscolha
             ? (e) => {
                 const { latitude, longitude } = e.nativeEvent.coordinate;
+                // A ESCOLHER, UM TOQUE SÓ MOVE A MIRA (30/09/2026, pedido do
+                // Simão). O mapa centra-se no sítio tocado e escolher continua
+                // a ser o botão. Antes o toque fixava logo o destino, com a
+                // mira ainda aberta noutro sítio.
+                if (modoEscolha) return irPara(latitude, longitude);
                 if (onPick) onPick({ lat: latitude, lng: longitude });
+              }
+            : undefined
+        }
+        // O TOQUE NUM NOME DO GOOGLE (uma clínica, um restaurante) a escolher:
+        // o mesmo que o toque acima, e o nome segue para quem chama, que o
+        // põe na primeira linha. Primeiro o nome e só depois o movimento: o
+        // mapa pára já com o nome à espera. Fora do modo de escolha os nomes
+        // continuam a não fazer nada.
+        onPoiClick={
+          modoEscolha
+            ? (e) => {
+                const { coordinate, name } = e.nativeEvent || {};
+                if (!coordinate) return;
+                // O Android parte os nomes compridos em linhas, como no mapa.
+                const nome = String(name || '')
+                  .replace(/\s+/g, ' ')
+                  .trim();
+                if (onTocarNome && nome) {
+                  onTocarNome({ lat: coordinate.latitude, lng: coordinate.longitude, nome });
+                }
+                irPara(coordinate.latitude, coordinate.longitude);
               }
             : undefined
         }

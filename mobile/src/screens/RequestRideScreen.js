@@ -703,15 +703,54 @@ export default function RequestRideScreen({ navigation, route }) {
   // corrigia-se ao arrastar outra vez; um ponto de paragem errado ficava
   // desenhado no mapa, e isso é uma afirmação sobre onde o carro pára.
   const pedidoCentro = useRef(0);
+
+  // O SÍTIO TOCADO, À ESPERA DE CONFIRMAÇÃO (30/09/2026, pedido do Simão).
+  //
+  // Tocar num nome — da lista de baixo, ou do Google no próprio mapa — já não
+  // escolhe. Leva o mapa até lá e põe o nome na primeira linha; escolher é
+  // sempre o botão. Assim vê-se no mapa se é mesmo aquele sítio antes de ficar
+  // decidido. Antes, o toque na lista fixava logo o destino, sem se ver onde era.
+  //
+  // Vale enquanto a mira estiver em cima dele (`NO_ALVO_M`). Arrastar para
+  // outro lado larga-o, e volta o nome da morada, como em qualquer arrasto.
+  // O estado é para desenhar; a referência, para as funções que correm depois
+  // de o mapa parar e que veriam o estado de antes.
+  const [alvo, setAlvoEstado] = useState(null);
+  const alvoRef = useRef(null);
+  const setAlvo = (a) => {
+    alvoRef.current = a;
+    setAlvoEstado(a);
+  };
+  const NO_ALVO_M = 15;
+  const [centrarEm, setCentrarEm] = useState(null);
+  function irParaLugar(l, { mover = true } = {}) {
+    setAlvo(l);
+    // As respostas em voo do sítio anterior deixam de valer: chegavam depois
+    // e escreviam o nome da morada antiga por cima deste.
+    ++pedidoCentro.current;
+    setNomeCentro(l.label);
+    setRuaCentro(null);
+    if (mover) setCentrarEm({ lat: l.lat, lng: l.lng, chave: Date.now() });
+  }
+  // Os sítios à volta, sem o tocado: esse já é a primeira linha, e na lista
+  // seria o mesmo nome duas vezes, um por baixo do outro.
+  const pertoVisiveis = pertoDoCentro.filter(
+    (l) =>
+      !alvo || (l.id !== alvo.id && !(l.label === alvo.label && metrosEntre(l, alvo) < NO_ALVO_M))
+  );
+
   function centroMudou({ lat, lng }) {
     setCentro({ lat, lng });
+    const alvoAgora = alvoRef.current;
+    const noAlvo = !!alvoAgora && metrosEntre(alvoAgora, { lat, lng }) < NO_ALVO_M;
+    if (alvoAgora && !noAlvo) setAlvo(null);
     // O MESMO SÍTIO NÃO SE PERGUNTA DUAS VEZES. Cinco metros é menos do que
     // a largura de uma casa: abaixo disso a resposta seria a mesma, e o nome
     // que já está no ecrã é o certo.
     const antes = ultimoPerguntado.current;
     if (antes && metrosEntre(antes, { lat, lng }) < 5) return;
     ultimoPerguntado.current = { lat, lng };
-    setNomeCentro(null);
+    setNomeCentro(noAlvo ? alvoAgora.label : null);
     // O PONTO DA ESTRADA ANTERIOR FICA ATÉ CHEGAR O NOVO (27/09/2026). Era
     // apagado aqui, e a linha aos pontinhos e a etiqueta sumiam durante meio
     // segundo depois de cada paragem, voltando noutro sítio — um piscar a cada
@@ -753,9 +792,11 @@ export default function RequestRideScreen({ navigation, route }) {
       ]);
       // Chegou tarde: entretanto o mapa já foi para outro sítio.
       if (meu !== pedidoCentro.current) return;
-      setNomeCentro(nome || rotuloCoordenadas(lat, lng));
+      // Em cima do sítio tocado, o nome é o dele e não o da morada.
+      const nomeFinal = noAlvo ? alvoAgora.label : nome || rotuloCoordenadas(lat, lng);
+      setNomeCentro(nomeFinal);
       // A rua, se não for o próprio nome (às vezes o sítio SE CHAMA a rua).
-      setRuaCentro(rua && rua !== nome ? rua : null);
+      setRuaCentro(rua && rua !== nomeFinal ? rua : null);
       setPertoDoCentro(perto?.lugares || []);
       // Sem resposta fica `null` e não se diz nada. Um aviso que pisca a cada
       // arrasto por causa da rede é pior do que aviso nenhum.
@@ -770,6 +811,7 @@ export default function RequestRideScreen({ navigation, route }) {
     setNomeCentro(null);
     setPertoDoCentro([]);
     setRuaCentro(null);
+    setAlvo(null);
   }
 
   // A lista de baixo volta ao princípio quando chegam os sítios de outro
@@ -782,12 +824,28 @@ export default function RequestRideScreen({ navigation, route }) {
 
   function confirmarEscolha() {
     if (!centro) return;
-    const ponto = {
-      lat: centro.lat,
-      lng: centro.lng,
-      label: nomeCentro || rotuloCoordenadas(centro.lat, centro.lng),
-      provisorio: !nomeCentro,
-    };
+    // COM A MIRA EM CIMA DE UM SÍTIO TOCADO, fica esse sítio: o NOME e as
+    // COORDENADAS dele, e não o ponto para onde o mapa aponta. Quem tocou em
+    // "Hotel Timor" quer o Hotel Timor, e não um ponto a doze metros da porta.
+    // `desenhar` só nos nossos que o Google não escreve — ver
+    // `aoEscolherDaPesquisa`.
+    const a = alvoRef.current;
+    const ponto =
+      a && metrosEntre(a, centro) < NO_ALVO_M
+        ? {
+            lat: a.lat,
+            lng: a.lng,
+            label: a.label,
+            provisorio: false,
+            fonte: a.fonte,
+            desenhar: a.desenhar === true,
+          }
+        : {
+            lat: centro.lat,
+            lng: centro.lng,
+            label: nomeCentro || rotuloCoordenadas(centro.lat, centro.lng),
+            provisorio: !nomeCentro,
+          };
     if (aEscolherNoMapa === 'origem') {
       setOrigem(ponto);
       setPrecisao(null); // posto à mão: a incerteza do GPS deixa de valer
@@ -799,35 +857,7 @@ export default function RequestRideScreen({ navigation, route }) {
     setNomeCentro(null);
     setPertoDoCentro([]);
     setRuaCentro(null);
-  }
-
-  // Escolheu um dos sítios com nome da lista.
-  //
-  // Fica com o NOME e as COORDENADAS desse sítio, e não com o ponto para onde
-  // o mapa estava a apontar. É essa a diferença: quem toca em "Hotel Timor"
-  // quer o Hotel Timor, e não um ponto a doze metros da porta dele.
-  function escolherDaLista(l) {
-    // Esta lista vem toda da tabela `lugares_propostos` — é por definição
-    // gente nossa. Ver a nota em `aoEscolherDaPesquisa`.
-    const ponto = {
-      lat: l.lat,
-      lng: l.lng,
-      label: l.label,
-      provisorio: false,
-      fonte: 'nosso',
-      desenhar: l.desenhar === true,
-    };
-    if (aEscolherNoMapa === 'origem') {
-      setOrigem(ponto);
-      setPrecisao(null);
-    } else {
-      setDestino(ponto);
-    }
-    setAEscolherNoMapa(null);
-    setCentro(null);
-    setNomeCentro(null);
-    setPertoDoCentro([]);
-    setRuaCentro(null);
+    setAlvo(null);
   }
 
   async function escolherNoMapa({ lat, lng }) {
@@ -1432,6 +1462,22 @@ export default function RequestRideScreen({ navigation, route }) {
           arrastavel={!aEscolherNoMapa && !(origem && destino)}
           onArrastar={arrastouPino}
           modoEscolha={aEscolherNoMapa}
+          centrarEm={centrarEm}
+          // Um nome do Google tocado no mapa: o mapa vai lá sozinho, e aqui
+          // fica o nome à espera de confirmação, como os da lista.
+          onTocarNome={({ lat, lng, nome }) =>
+            irParaLugar(
+              {
+                id: `google:${lat},${lng}`,
+                label: nome,
+                lat,
+                lng,
+                fonte: 'google',
+                desenhar: false,
+              },
+              { mover: false }
+            )
+          }
           // O SATÉLITE PARA CONFIRMAR, depois de a recolha e o destino
           // estarem postos: na fotografia reconhece-se o portão ou o
           // telhado, que um nome de rua não mostra. Só aqui, e não a
@@ -1513,14 +1559,15 @@ export default function RequestRideScreen({ navigation, route }) {
                 </Text>
               </View>
             </View>
-            {pertoDoCentro.slice(0, 8).map((l) => (
+            {pertoVisiveis.slice(0, 8).map((l) => (
               <Pressable
                 key={l.id}
                 style={({ pressed }) => [
                   styles.escolhaLinha,
                   pressed && styles.escolhaLinhaPremida,
                 ]}
-                onPress={() => escolherDaLista(l)}
+                // Leva a mira lá; escolher é o botão (ver `irParaLugar`).
+                onPress={() => irParaLugar(l)}
                 accessibilityRole="button"
                 accessibilityLabel={l.label}
               >
@@ -1535,7 +1582,7 @@ export default function RequestRideScreen({ navigation, route }) {
                 </View>
               </Pressable>
             ))}
-            {nomeCentro && !pertoDoCentro.length ? (
+            {nomeCentro && !pertoVisiveis.length ? (
               <Text style={styles.escolhaVazio}>{t('semLugaresPerto')}</Text>
             ) : null}
           </ScrollView>
