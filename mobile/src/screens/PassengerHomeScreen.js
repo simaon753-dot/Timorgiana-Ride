@@ -16,6 +16,7 @@ import BarraEstado from '../design/BarraEstado.js';
 import { TIPOS_VEICULO, VEICULOS } from '../dados/tiposDeVeiculo.js';
 import { SERVICOS_EXTRA } from '../dados/servicos.js';
 import Icone from '../design/Icone.js';
+import TextoSemPartir from '../design/TextoSemPartir.js';
 import { tipo } from '../design/tipografia.js';
 import AvisoTeste from '../components/AvisoTeste.js';
 import Button from '../components/Button.js';
@@ -225,9 +226,12 @@ export default function PassengerHomeScreen({ navigation }) {
                       <View style={[styles.veiculoIcone, { backgroundColor: colors[v.acento] }]}>
                         <Icone nome={v.icone} tamanho={18} cor={colors.onAcento} />
                       </View>
-                      <Text style={styles.veiculoNome} numberOfLines={2}>
+                      {/* Como no iPhone: num telemóvel mais estreito a letra desce o
+                          que for preciso para «Motorizada» não sair partida a meio
+                          (30/09/2026). Ver design/TextoSemPartir.js. */}
+                      <TextoSemPartir style={styles.veiculoNome} numberOfLines={2}>
                         {t(v.chaveNome)}
-                      </Text>
+                      </TextoSemPartir>
                     </View>
                     <Text style={styles.veiculoNota}>
                       {servicos?.[v.id]?.ativo === false
