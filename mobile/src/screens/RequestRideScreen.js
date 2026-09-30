@@ -2138,7 +2138,9 @@ function CartaoVeiculo({ opcao, destinoFixo, ativo, onPress, t }) {
             resizeMode="contain"
           />
         </View>
-        {/* Quantos livres perto DA RECOLHA — vem da cotação (30/09/2026). */}
+        {/* Quantos livres perto DA RECOLHA — vem da cotação (30/09/2026). SÓ
+            AQUI, no «Confirme a sua viagem», e não no ecrã de início:
+            decisão do Simão, no mesmo dia. */}
         <MotoristasPerto
           n={opcao.motoristasPerto ?? null}
           tamanho={28}

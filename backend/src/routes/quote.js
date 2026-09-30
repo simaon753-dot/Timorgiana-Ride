@@ -16,7 +16,7 @@ import { limparDestinos } from '../destinosDaViagem.js';
 import { paragensQueCobrem, paradasPerto } from '../paradas.js';
 import { escolherParagem, RAIO_PARAGENS_PERTO_M } from '../escolherParagem.js';
 import { estradaMaisPerto } from '../../mapa/index.js';
-import { nearestDrivers, contarMotoristasPerto, RAIO_MOTORISTAS_PERTO_KM } from '../drivers.js';
+import { nearestDrivers, contarMotoristasPerto } from '../drivers.js';
 import { taxasPara } from '../taxasDeEntrada.js';
 import { destinoFixo } from '../destinosCarry.js';
 import { compararComGoogle } from '../comparacaoRotas.js';
@@ -363,22 +363,6 @@ quoteRouter.get(
       ),
     })
   )
-);
-
-// GET /api/quote/motoristas-perto?lat=&lng= — quantos motoristas livres há
-// perto, por tipo de veículo (30/09/2026).
-//
-// Para o ícone dos cartões do ecrã de início, antes de haver cotação. Só os
-// números, nunca as posições. Ver `contarMotoristasPerto`.
-quoteRouter.get(
-  '/motoristas-perto',
-  wrap(async (req, res) => {
-    const lat = num(req.query.lat);
-    const lng = num(req.query.lng);
-    if (lat == null || lng == null) return res.status(400).json({ error: 'Faltam coordenadas.' });
-    const contagens = await contarMotoristasPerto(lat, lng);
-    res.json({ raioKm: RAIO_MOTORISTAS_PERTO_KM, contagens });
-  })
 );
 
 // GET /api/quote/jastip — as regras da encomenda, e se esta conta já pode.

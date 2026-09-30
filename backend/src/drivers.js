@@ -89,8 +89,8 @@ export function nearestDrivers({ lat, lng, vehicleType, limit = 10, maxKm = 15 }
 // QUANTOS MOTORISTAS LIVRES HÁ PERTO, por tipo de veículo (30/09/2026).
 //
 // Pedido do Simão: a app mostra num ícone quantos motoristas activos há
-// perto — no ecrã de início e no cartão do veículo — e um «0» vermelho
-// quando não há nenhum. Conta-se no servidor e só se manda o NÚMERO: a
+// perto — no cartão do veículo do «Confirme a sua viagem» (e só aí, decisão
+// dele) — e um «0» vermelho quando não há nenhum. Conta-se no servidor e só se manda o NÚMERO: a
 // posição de cada motorista não sai daqui.
 //
 // «Activo» é o mesmo do `nearestDrivers`: aprovado, disponível e com sinal

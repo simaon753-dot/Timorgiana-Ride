@@ -282,10 +282,6 @@ export const api = {
     request('/admin/carry/ativo', { method: 'PUT', body: { ativo }, token }),
   // Que serviços estão ligados (o Carry pode ser desligado no painel).
   servicos: (token) => request('/quote/servicos', { token }),
-  // Quantos motoristas livres há perto, por tipo — só os números. Ver
-  // `contarMotoristasPerto` no servidor.
-  motoristasPerto: (token, lat, lng) =>
-    request(`/quote/motoristas-perto?lat=${lat}&lng=${lng}`, { token }),
   adminSos: (token) => request('/admin/sos', { token }),
   adminNotificacoes: (token) => request('/admin/notificacoes', { token }),
   assinatura: (token) => request('/driver/assinatura', { token }),

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import * as Location from 'expo-location';
 import { api } from '../api/client.js';
 import {
   View,
@@ -17,7 +16,6 @@ import BarraEstado from '../design/BarraEstado.js';
 import { TIPOS_VEICULO, VEICULOS } from '../dados/tiposDeVeiculo.js';
 import { SERVICOS_EXTRA } from '../dados/servicos.js';
 import Icone from '../design/Icone.js';
-import MotoristasPerto from '../design/MotoristasPerto.js';
 import { tipo } from '../design/tipografia.js';
 import AvisoTeste from '../components/AvisoTeste.js';
 import Button from '../components/Button.js';
@@ -67,48 +65,6 @@ export default function PassengerHomeScreen({ navigation }) {
         .catch(() => {});
     ler();
     return navigation.addListener('focus', ler);
-  }, [navigation, token]);
-
-  // QUANTOS MOTORISTAS LIVRES HÁ PERTO, por tipo (30/09/2026, pedido do
-  // Simão) — o ícone no canto da fotografia de cada veículo. Só com este
-  // ecrã à vista: ao entrar e de 30 em 30 segundos, e pára quando se sai
-  // dele. A posição é a que o telemóvel já tem (sem pedir autorização aqui —
-  // quem ainda não a deu não vê o ícone). Sem posição ou sem rede fica
-  // `null`, e o ícone não aparece: um «0» que não se sabe se é verdade
-  // assusta sem razão.
-  const [livresPerto, setLivresPerto] = useState(null);
-  useEffect(() => {
-    let vivo = true;
-    let relogio = null;
-    const ler = async () => {
-      try {
-        const { status } = await Location.getForegroundPermissionsAsync();
-        if (status !== 'granted') return;
-        const p =
-          (await Location.getLastKnownPositionAsync({ maxAge: 10 * 60 * 1000 })) ||
-          (await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }));
-        if (!p || !vivo) return;
-        const r = await api.motoristasPerto(token, p.coords.latitude, p.coords.longitude);
-        if (vivo) setLivresPerto(r?.contagens || {});
-      } catch {
-        // Fica o que estava: sem rede, o número de há meio minuto serve.
-      }
-    };
-    const comecar = () => {
-      ler();
-      clearInterval(relogio);
-      relogio = setInterval(ler, 30000);
-    };
-    const parar = () => clearInterval(relogio);
-    comecar();
-    const tirarFoco = navigation.addListener('focus', comecar);
-    const tirarSaida = navigation.addListener('blur', parar);
-    return () => {
-      vivo = false;
-      parar();
-      tirarFoco();
-      tirarSaida();
-    };
   }, [navigation, token]);
 
   // QUAIS DOS SERVIÇOS EXTRA SE MOSTRAM.
@@ -257,22 +213,12 @@ export default function PassengerHomeScreen({ navigation }) {
                   accessibilityRole="button"
                   accessibilityLabel={t(v.chaveNome)}
                 >
-                  {/* A caixa corta o que sai dela (`overflow`), por isso o ícone
-                      dos motoristas perto fica num invólucro à volta, no canto. */}
-                  <View>
-                    <View style={styles.veiculoFotoCaixa}>
-                      <Image
-                        source={v.imagens[paletaEmUso()] || v.imagens.claro}
-                        style={styles.veiculoFoto}
-                        resizeMode="contain"
-                      />
-                    </View>
-                    {servicos?.[v.id]?.ativo === false ? null : (
-                      <MotoristasPerto
-                        n={livresPerto ? livresPerto[v.id] || 0 : null}
-                        style={styles.veiculoPerto}
-                      />
-                    )}
+                  <View style={styles.veiculoFotoCaixa}>
+                    <Image
+                      source={v.imagens[paletaEmUso()] || v.imagens.claro}
+                      style={styles.veiculoFoto}
+                      resizeMode="contain"
+                    />
                   </View>
                   <View style={styles.veiculoTextos}>
                     <View style={styles.veiculoTopo}>
@@ -414,9 +360,6 @@ const criarEstilos = () =>
       backgroundColor: paletaEmUso() === 'escuro' ? '#000000' : '#FFFFFF',
     },
     veiculoFoto: { width: 120, height: 92 },
-    // No canto de cima à direita da fotografia, meio por fora — como o
-    // número de uma notificação.
-    veiculoPerto: { position: 'absolute', top: -8, right: -8 },
     veiculoTextos: { flex: 1 },
     // 17 px e até DUAS linhas, e não 21 numa só. Ao lado da fotografia, do
     // ícone e da seta sobravam uns 100 px: "Motorizada" saía "Motor…" e
