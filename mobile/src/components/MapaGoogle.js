@@ -1500,8 +1500,15 @@ export default function MapaGoogle({
       { duration: 450 }
     );
   }, []);
+  // SÓ UMA CHAVE NOVA MOVE O MAPA, e não a que já vinha ao montar. Um ecrã
+  // que abre e fecha (a Casa e o Trabalho) remonta o mapa com a última
+  // chave ainda guardada, e o mapa saltava sozinho para o último nome
+  // tocado da vez anterior (diagnóstico de 30/09/2026).
+  const chaveVista = useRef(centrarEm?.chave);
   useEffect(() => {
-    if (centrarEm) irPara(centrarEm.lat, centrarEm.lng);
+    if (!centrarEm || centrarEm.chave === chaveVista.current) return;
+    chaveVista.current = centrarEm.chave;
+    irPara(centrarEm.lat, centrarEm.lng);
   }, [centrarEm?.chave]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // SEGUIR A BÚSSOLA: o mapa roda para o que está à frente no ecrã ser o que

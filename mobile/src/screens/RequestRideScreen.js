@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Alert,
   AppState,
+  BackHandler,
   View,
   Text,
   Image,
@@ -12,7 +13,7 @@ import {
   LayoutAnimation,
   PanResponder,
 } from 'react-native';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 // O mapa. A SAÍDA DE EMERGÊNCIA DEIXOU DE VIVER AQUI DENTRO.
@@ -814,6 +815,40 @@ export default function RequestRideScreen({ navigation, route }) {
     setAlvo(null);
   }
 
+  // O «VOLTAR» DO ANDROID FECHA PRIMEIRO O QUE ESTÁ POR CIMA (diagnóstico de
+  // 30/09/2026). Não havia tratamento nenhum: com a pesquisa aberta, ou a
+  // escolher no mapa, o botão do sistema saía do ecrã inteiro e perdia-se a
+  // recolha, o destino e o preço. Agora fecha a escolha no mapa, a pesquisa
+  // de paragem ou a pesquisa, por esta ordem; só sem nada aberto sai do ecrã,
+  // como sempre. Só com este ecrã à frente (`useFocusEffect`).
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+        if (aEscolherNoMapa) {
+          cancelarEscolha();
+          return true;
+        }
+        if (aEscolherParagem) {
+          setAEscolherParagem(false);
+          return true;
+        }
+        if (pesquisa) {
+          setPesquisa(null);
+          return true;
+        }
+        return false;
+      });
+      return () => sub.remove();
+    }, [aEscolherNoMapa, aEscolherParagem, pesquisa]) // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
+  // O sítio tocado não sobrevive ao fim da escolha, venha ela de onde vier: da
+  // próxima vez que se abrir o modo, um alvo antigo daria o nome dele a um
+  // sítio novo que calhasse a menos de 15 m.
+  useEffect(() => {
+    if (!aEscolherNoMapa) setAlvo(null);
+  }, [aEscolherNoMapa]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // A lista de baixo volta ao princípio quando chegam os sítios de outro
   // ponto: quem tinha rolado até ao quinto via, depois de arrastar, o meio
   // de uma lista nova, sem a primeira linha, que é a da mira.
@@ -829,23 +864,26 @@ export default function RequestRideScreen({ navigation, route }) {
     // "Hotel Timor" quer o Hotel Timor, e não um ponto a doze metros da porta.
     // `desenhar` só nos nossos que o Google não escreve — ver
     // `aoEscolherDaPesquisa`.
+    // Sem medir a distância à mira: a meio do meio segundo em que o mapa
+    // desliza até ao sítio tocado, a mira ainda está no antigo, e medir
+    // gravava o ponto antigo com o nome novo (diagnóstico de 30/09/2026).
+    // Arrastar para longe já o larga (ver `centroMudou`).
     const a = alvoRef.current;
-    const ponto =
-      a && metrosEntre(a, centro) < NO_ALVO_M
-        ? {
-            lat: a.lat,
-            lng: a.lng,
-            label: a.label,
-            provisorio: false,
-            fonte: a.fonte,
-            desenhar: a.desenhar === true,
-          }
-        : {
-            lat: centro.lat,
-            lng: centro.lng,
-            label: nomeCentro || rotuloCoordenadas(centro.lat, centro.lng),
-            provisorio: !nomeCentro,
-          };
+    const ponto = a
+      ? {
+          lat: a.lat,
+          lng: a.lng,
+          label: a.label,
+          provisorio: false,
+          fonte: a.fonte,
+          desenhar: a.desenhar === true,
+        }
+      : {
+          lat: centro.lat,
+          lng: centro.lng,
+          label: nomeCentro || rotuloCoordenadas(centro.lat, centro.lng),
+          provisorio: !nomeCentro,
+        };
     if (aEscolherNoMapa === 'origem') {
       setOrigem(ponto);
       setPrecisao(null); // posto à mão: a incerteza do GPS deixa de valer

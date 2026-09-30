@@ -65,6 +65,7 @@ export default function EscolherPonto({ visivel, titulo, onEscolher, onFechar })
       setNome(null);
       setPerto([]);
       setAlvo(null);
+      setCentrarEm(null);
     }
   }, [visivel]);
 
@@ -100,11 +101,14 @@ export default function EscolherPonto({ visivel, titulo, onEscolher, onFechar })
 
   async function confirmar() {
     if (!centro) return;
-    // Com a mira em cima de um sítio tocado, fica esse sítio, com o nome e as
-    // coordenadas dele — como fazia o toque na lista antes de ter de se
-    // confirmar.
+    // Com um sítio tocado, fica esse sítio, com o nome e as coordenadas dele
+    // — como fazia o toque na lista antes de ter de se confirmar. Sem medir a
+    // distância à mira: a meio do meio segundo em que o mapa desliza até lá,
+    // a mira ainda está no sítio antigo, e medir gravava o ponto antigo com o
+    // nome novo (diagnóstico de 30/09/2026). Arrastar para longe já o larga
+    // (ver `centroMudou`), por isso, se ainda existe, é para lá que se vai.
     const a = alvoRef.current;
-    if (a && metrosEntre(a, centro) < NO_ALVO_M) {
+    if (a) {
       onEscolher({ lat: a.lat, lng: a.lng, label: a.label });
       return;
     }
