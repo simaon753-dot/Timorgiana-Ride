@@ -657,6 +657,33 @@ function qualDesenhado(qual, modoEscolha) {
   return modoEscolha === 'destino' ? 'destino' : 'origem';
 }
 
+// QUANTOS PONTOS DE ECRÃ separam dois centros, ao zoom de `regiao`. Aceita
+// `{ lat, lng }` e `{ latitude, longitude }`. Com o mapa rodado a conta dá
+// um pouco a menos (a caixa da região é maior do que o ecrã), e não faz mal:
+// serve para distinguir «mexeu» de «não mexeu».
+function pontosEntre(a, b, regiao, largura) {
+  const la = a.lat ?? a.latitude;
+  const lb = b.lat ?? b.latitude;
+  const cos = Math.cos((la * Math.PI) / 180);
+  const graus = Math.hypot(lb - la, ((b.lng ?? b.longitude) - (a.lng ?? a.longitude)) * cos);
+  const grausPorPonto = ((regiao?.longitudeDelta || 0) * cos) / (largura || 400);
+  return grausPorPonto > 0 ? graus / grausPorPonto : 0;
+}
+
+// FOI ARRASTO? Compara o PRINCÍPIO do gesto com agora, e não fotograma a
+// fotograma. Arrasto é o centro ter andado mais de dois pontos com o zoom
+// igual (1% de folga). Se o zoom mudou, foi pinça, duplo toque ou rotação, e
+// o centro não conta.
+//
+// Fotograma a fotograma falhava no simulador (30/09/2026): no fim da pinça o
+// zoom abranda em passos tão pequenos que cada um parecia «zoom igual», e o
+// pouco que o centro mexia nesses passos somava até parecer um arrasto.
+function foiArrasto(inicio, regiao, largura) {
+  if (!inicio || !regiao) return false;
+  const zoomMudou = Math.abs(Math.log(regiao.longitudeDelta / inicio.longitudeDelta)) > 0.01;
+  return !zoomMudou && pontosEntre(inicio, regiao, regiao, largura) > 2;
+}
+
 export default function MapaGoogle({
   pickable = false,
   arrastavel = false,
@@ -820,14 +847,48 @@ export default function MapaGoogle({
   const [aproximacaoBruta, setAproximacaoBruta] = useState(null);
   const [refazerAproximacao, setRefazerAproximacao] = useState(0);
   const [aMexer, setAMexer] = useState(false);
+
+  // O ZOOM NÃO É ESCOLHER (30/09/2026, pedido do Simão).
+  //
+  // A escolher no mapa, o sítio é o que está debaixo da mira. Aproximar para
+  // ver melhor a entrada de um prédio não pode mudar esse sítio. Mudava por
+  // duas razões:
+  //
+  // 1. A pinça do Google aproxima à volta do ponto entre os dedos, e não do
+  //    centro. O centro fugia, e a app lia isso como um arrasto: pedia outro
+  //    nome, outra paragem, outra rua. Resolve-o o próprio mapa, com
+  //    `scrollDuringRotateOrZoomEnabled` desligado a escolher: a pinça e a
+  //    rotação passam a ser à volta do centro, como no Grab.
+  // 2. Mesmo assim, qualquer paragem da câmara avisava quem nos chama. Agora
+  //    cada gesto é classificado (`gesto`, `foiArrasto`): só conta como
+  //    mudança de sítio se foi ARRASTO, isto é, o centro andou com o zoom
+  //    igual; ou se fomos nós a levar o mapa a outro sítio (`saltoNosso`: o
+  //    botão da minha localização, o toque num nome). Um gesto de zoom ou de
+  //    rotação não avisa ninguém, e se o centro tiver fugido na mesma (o duplo
+  //    toque do Google aproxima no sítio tocado), volta ao lugar.
+  //
+  // `centroFixo` é o último sítio avisado: o local escolhido enquanto não se
+  // arrastar outra vez. `gesto.inicio` é a região quando o gesto começou.
+  const gesto = useRef({ ativo: false, inicio: null, parouEm: 0 });
+  const centroFixo = useRef(null);
+  const saltoNosso = useRef(false);
+  const regresso = useRef(false);
+  // A MIRA SÓ SOBE COM ARRASTO. Com zoom fica pousada e quieta: é o que diz
+  // que o sítio não mudou.
+  const [miraNoAr, setMiraNoAr] = useState(false);
+  const miraNoArRef = useRef(false);
+  const levantarMira = (v) => {
+    if (miraNoArRef.current === v) return;
+    miraNoArRef.current = v;
+    setMiraNoAr(v);
+  };
   // A ALTURA DA MIRA, animada. 0 = pousada, 1 = levantada.
   //
-  // Segue o `aMexer`, que é exactamente a regra pedida: levanta-se quando a
-  // câmara COMEÇA a mexer (`onRegionChange`) e só pousa quando a câmara está
-  // PARADA de verdade (`onRegionChangeComplete`, o `cameraIdle` do Google) —
-  // depois da inércia, e não quando o dedo sai do ecrã. Um mapa lançado com
-  // força continua a deslizar sem dedo nenhum, e a mira fica no ar até ele
-  // parar.
+  // Levanta-se quando o mapa começa a ANDAR (o primeiro fotograma de arrasto,
+  // ver `gesto`) e só pousa quando a câmara está PARADA de verdade
+  // (`onRegionChangeComplete`, o `cameraIdle` do Google) — depois da inércia,
+  // e não quando o dedo sai do ecrã. Um mapa lançado com força continua a
+  // deslizar sem dedo nenhum, e a mira fica no ar até ele parar.
   //
   // UMA ANIMAÇÃO NOVA INTERROMPE A ANTERIOR NO SÍTIO ONDE ELA IA. Se o mapa
   // voltar a mexer a meio da descida, a mira sobe a partir da altura em que
@@ -837,14 +898,14 @@ export default function MapaGoogle({
   const miraLevantada = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.timing(miraLevantada, {
-      toValue: aMexer ? 1 : 0,
-      duration: aMexer ? MIRA_SOBE_MS : MIRA_DESCE_MS,
+      toValue: miraNoAr ? 1 : 0,
+      duration: miraNoAr ? MIRA_SOBE_MS : MIRA_DESCE_MS,
       // Quase a direito, como no vídeo — a 50 ms são três fotogramas, e uma
       // curva forte não teria onde se ver. Sem passar do alvo: não ressalta.
       easing: Easing.out(Easing.quad),
       useNativeDriver: true,
     }).start();
-  }, [aMexer, miraLevantada]);
+  }, [miraNoAr, miraLevantada]);
   // Quanto o corpo sobe acima de onde está pousado. A posição de repouso —
   // a ponta no centro exacto do ecrã — é da caixa de fora (`SUBIR_MIRA`).
   const miraSobe = miraLevantada.interpolate({
@@ -1409,6 +1470,8 @@ export default function MapaGoogle({
       const pos = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
       });
+      // Muda o zoom E o sítio, de propósito: conta como ir a outro sítio.
+      saltoNosso.current = true;
       mapaRef.current?.animateToRegion(
         {
           latitude: pos.coords.latitude,
@@ -1430,6 +1493,8 @@ export default function MapaGoogle({
   // e aproximar de repente fazia perder as ruas à volta, que são o que diz se
   // é aquele. Usado pela lista de baixo (`centrarEm`) e pelos toques no mapa.
   const irPara = useCallback((lat, lng) => {
+    // Ir a outro sítio de propósito: quando parar, avisa (ver `gesto`).
+    saltoNosso.current = true;
     mapaRef.current?.animateCamera(
       { center: { latitude: lat, longitude: lng } },
       { duration: 450 }
@@ -1734,18 +1799,58 @@ export default function MapaGoogle({
       // arrastar, e é o que separa o arrasto da paragem.
       clearTimeout(relogioNossos.current);
       relogioNossos.current = setTimeout(() => buscarNossos(regiao), 500);
-      if (modoEscolha && onCentro) {
-        onCentro({ type: 'centro', lat: regiao.latitude, lng: regiao.longitude });
+
+      // O GESTO ACABOU: foi para outro sítio, ou só aproximou/rodou?
+      const g = gesto.current;
+      const andou = saltoNosso.current || foiArrasto(g.inicio, regiao, largura);
+      const eraRegresso = regresso.current;
+      g.ativo = false;
+      g.inicio = null;
+      g.parouEm = Date.now();
+      saltoNosso.current = false;
+      regresso.current = false;
+      levantarMira(false);
+      if (!modoEscolha || !onCentro) return;
+      // O regresso ao sítio (ver abaixo) não é ir a lado nenhum.
+      if (eraRegresso) return;
+      const fixo = centroFixo.current;
+      if (fixo && !andou) {
+        // SÓ ZOOM OU ROTAÇÃO: o sítio escolhido não mudou, e ninguém é
+        // avisado — nem nome, nem rua, nem paragem novos. Se o centro fugiu
+        // na mesma (o duplo toque do Google aproxima no sítio tocado), o mapa
+        // volta a pô-lo debaixo da mira; dois pontos é o que separa isso do
+        // ruído dos números.
+        if (pontosEntre(fixo, regiao, regiao, largura) > 2) {
+          regresso.current = true;
+          mapaRef.current?.animateCamera(
+            { center: { latitude: fixo.lat, longitude: fixo.lng } },
+            { duration: 200 }
+          );
+        }
+        return;
       }
+      centroFixo.current = { lat: regiao.latitude, lng: regiao.longitude };
+      onCentro({ type: 'centro', lat: regiao.latitude, lng: regiao.longitude });
     },
-    [modoEscolha, onCentro, recalcularCartoes, buscarNossos, verPontos]
+    [modoEscolha, onCentro, recalcularCartoes, buscarNossos, verPontos, largura] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   // O PRIMEIRO ENVIO É IMEDIATO. Quem abre o modo de escolha já está a
   // apontar para algum sítio, e esperar pelo primeiro arrasto deixava o
   // botão de confirmar sem nome nenhum por baixo.
+  //
+  // O sítio é o que está DEBAIXO DA MIRA (`centroRef`, o centro da última
+  // paragem da câmara), e só na falta dele o `center`/primeiro pino. Era
+  // sempre o segundo: com o mapa noutro sítio, o nome por baixo não era o do
+  // sítio da mira até ao primeiro arrasto.
   useEffect(() => {
-    if (modoEscolha && onCentro) onCentro({ type: 'centro', lat: c.lat, lng: c.lng });
+    if (!modoEscolha) {
+      centroFixo.current = null;
+      return;
+    }
+    const inicio = centroRef.current || { lat: c.lat, lng: c.lng };
+    centroFixo.current = inicio;
+    if (onCentro) onCentro({ type: 'centro', lat: inicio.lat, lng: inicio.lng });
   }, [modoEscolha]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ONDE COMEÇA A COLUNA DE BOTÕES (localização, bússola, seguir, satélite),
@@ -1989,6 +2094,36 @@ export default function MapaGoogle({
           // Antes do `return`: os pontos aparecem e somem DURANTE a pinça, e
           // não só no primeiro fotograma do gesto.
           verPontos(regiao);
+          // QUE GESTO É ESTE (ver `gesto` e `foiArrasto`). Guarda-se onde a
+          // câmara estava parada quando o gesto começou; a mira sobe assim que,
+          // desde aí, o centro andou sem o zoom mudar.
+          const g = gesto.current;
+          // FOTOGRAMAS ATRASADOS. O mapa ainda manda um depois de avisar que
+          // parou: medido no simulador (30/09/2026), chega 15 ms depois do
+          // aviso e traz a posição de UM PASSO ANTES do fim — um fotograma
+          // velho, fora de ordem. Tratado como um gesto novo, levantava a mira
+          // depois de pousada, e ela ficava no ar, porque nenhuma paragem vinha
+          // a seguir. Por isso, nos 120 ms depois de uma paragem, o que chega
+          // não é o mapa a mexer, a não ser que tenhamos sido nós a mandá-lo
+          // mexer (o regresso ao sítio, ou ir a um nome tocado). O mesmo vale
+          // para o que chega ainda a este desenho, o de durante o gesto.
+          const atrasado =
+            !g.ativo &&
+            (aMexer || Date.now() - g.parouEm < 120) &&
+            !regresso.current &&
+            !saltoNosso.current;
+          if (atrasado) return;
+          if (!g.ativo) {
+            g.ativo = true;
+            g.inicio = regiaoRef.current || regiao;
+          }
+          if (
+            modoEscolha &&
+            !regresso.current &&
+            (saltoNosso.current || foiArrasto(g.inicio, regiao, largura))
+          ) {
+            levantarMira(true);
+          }
           if (aMexer) return;
           // O GESTO COMEÇOU (27/09/2026). Três coisas, por esta ordem:
           //
@@ -2014,8 +2149,15 @@ export default function MapaGoogle({
         // com o dedo está a dizer que quer decidir, e ganha.
         onPanDrag={() => {
           if (aSeguirBussola) setASeguirBussola(false);
+          // Um dedo a arrastar a meio do regresso ao sítio (ver `centroMudou`)
+          // é a pessoa a ir para outro lado: esse arrasto conta.
+          regresso.current = false;
         }}
         onRegionChangeComplete={centroMudou}
+        // A ESCOLHER, A PINÇA E A ROTAÇÃO SÃO À VOLTA DO CENTRO (30/09/2026):
+        // aproximar não pode tirar o sítio de debaixo da mira. Fora do modo de
+        // escolha fica como o Google faz, à volta dos dedos. Ver `gesto`.
+        scrollDuringRotateOrZoomEnabled={!modoEscolha}
         // O TOQUE SÓ AVISA, NÃO DESENHA.
         //
         // Quem nos chama recebe a coordenada, guarda-a como recolha ou

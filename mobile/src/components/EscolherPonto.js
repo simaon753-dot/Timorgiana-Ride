@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext.js';
 import { useI18n } from '../i18n/index.js';
 import { colors, spacing, radius, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
+import { metrosEntre } from '../lib/filtroPosicao.js';
 
 // Escolher um ponto apontando no mapa, fora do ecrã de pedir viagem.
 //
@@ -26,6 +27,8 @@ import { tipo } from '../design/tipografia.js';
 // terceiro sítio a precisar disto, é sinal de que chegou a hora de as juntar,
 // e esta é a que deve sobreviver — não sabe nada de viagens.
 const ESPERA_MS = 500;
+// Até onde a mira ainda está «em cima» do sítio tocado (ver `irParaLugar`).
+const NO_ALVO_M = 15;
 
 export default function EscolherPonto({ visivel, titulo, onEscolher, onFechar }) {
   const { t } = useI18n();
@@ -34,12 +37,34 @@ export default function EscolherPonto({ visivel, titulo, onEscolher, onFechar })
   const [nome, setNome] = useState(null);
   const [perto, setPerto] = useState([]);
   const relogio = useRef(null);
+  // Qual é a resposta a valer: uma que chegue de um sítio antigo não escreve.
+  const pedido = useRef(0);
+
+  // TOCAR NUM NOME SÓ O MOSTRA (30/09/2026, pedido do Simão), como no ecrã de
+  // pedir viagem: o mapa vai até lá, o nome fica por cima, e escolher é o
+  // botão. Antes o toque na lista escolhia logo, sem se ver onde era. Vale
+  // enquanto a mira estiver em cima dele; arrastar para longe larga-o.
+  const [alvo, setAlvoEstado] = useState(null);
+  const alvoRef = useRef(null);
+  const setAlvo = (a) => {
+    alvoRef.current = a;
+    setAlvoEstado(a);
+  };
+  const [centrarEm, setCentrarEm] = useState(null);
+  function irParaLugar(l, { mover = true } = {}) {
+    setAlvo(l);
+    ++pedido.current;
+    if (relogio.current) clearTimeout(relogio.current);
+    setNome(l.label);
+    if (mover) setCentrarEm({ lat: l.lat, lng: l.lng, chave: Date.now() });
+  }
 
   useEffect(() => {
     if (!visivel) {
       setCentro(null);
       setNome(null);
       setPerto([]);
+      setAlvo(null);
     }
   }, [visivel]);
 
@@ -51,14 +76,20 @@ export default function EscolherPonto({ visivel, titulo, onEscolher, onFechar })
   const centroMudou = useCallback(
     ({ lat, lng }) => {
       setCentro({ lat, lng });
-      setNome(null);
+      const a = alvoRef.current;
+      const noAlvo = !!a && metrosEntre(a, { lat, lng }) < NO_ALVO_M;
+      if (a && !noAlvo) setAlvo(null);
+      setNome(noAlvo ? a.label : null);
       if (relogio.current) clearTimeout(relogio.current);
+      const meu = ++pedido.current;
       relogio.current = setTimeout(async () => {
         const [n, r] = await Promise.all([
           nomeDoLugar(lat, lng, 0, token).catch(() => null),
           token ? api.lugaresPerto(token, lat, lng).catch(() => null) : null,
         ]);
-        setNome(n || null);
+        if (meu !== pedido.current) return;
+        // Em cima do sítio tocado, o nome é o dele e não o da morada.
+        setNome(noAlvo ? a.label : n || null);
         setPerto(r?.lugares || []);
       }, ESPERA_MS);
     },
@@ -69,6 +100,14 @@ export default function EscolherPonto({ visivel, titulo, onEscolher, onFechar })
 
   async function confirmar() {
     if (!centro) return;
+    // Com a mira em cima de um sítio tocado, fica esse sítio, com o nome e as
+    // coordenadas dele — como fazia o toque na lista antes de ter de se
+    // confirmar.
+    const a = alvoRef.current;
+    if (a && metrosEntre(a, centro) < NO_ALVO_M) {
+      onEscolher({ lat: a.lat, lng: a.lng, label: a.label });
+      return;
+    }
     // ENCOSTAR À ESTRADA, como na recolha. Um carro não entra num pátio, e
     // a casa de alguém é quase sempre um portão a meio de um quarteirão.
     const naEstrada = await pontoNaEstrada(centro.lat, centro.lng, token);
@@ -84,7 +123,15 @@ export default function EscolherPonto({ visivel, titulo, onEscolher, onFechar })
     <Modal visible={!!visivel} animationType="slide" onRequestClose={onFechar}>
       <MolduraModal style={styles.cheio} edges={['top', 'bottom']}>
         <View style={{ flex: 1 }}>
-          <Mapa fill modoEscolha="destino" onCentro={centroMudou} />
+          <Mapa
+            fill
+            modoEscolha="destino"
+            onCentro={centroMudou}
+            centrarEm={centrarEm}
+            onTocarNome={({ lat, lng, nome: n }) =>
+              irParaLugar({ id: `google:${lat},${lng}`, label: n, lat, lng }, { mover: false })
+            }
+          />
         </View>
 
         <View style={styles.barra}>
@@ -98,19 +145,23 @@ export default function EscolherPonto({ visivel, titulo, onEscolher, onFechar })
               de Caicoli" e o nome que a própria pessoa já lá pôs. */}
           {perto.length ? (
             <View style={styles.lista}>
-              {perto.slice(0, 3).map((l) => (
-                <Pressable
-                  key={l.id}
-                  style={styles.item}
-                  onPress={() => onEscolher({ lat: l.lat, lng: l.lng, label: l.label })}
-                >
-                  <Text style={styles.itemIcone}>📍</Text>
-                  <Text style={styles.itemNome} numberOfLines={1}>
-                    {l.label}
-                  </Text>
-                  <Text style={styles.itemMetros}>{l.metros} m</Text>
-                </Pressable>
-              ))}
+              {perto
+                .filter((l) => !alvo || l.id !== alvo.id)
+                .slice(0, 3)
+                .map((l) => (
+                  <Pressable
+                    key={l.id}
+                    style={styles.item}
+                    // Leva a mira lá; escolher é o botão (ver `irParaLugar`).
+                    onPress={() => irParaLugar(l)}
+                  >
+                    <Text style={styles.itemIcone}>📍</Text>
+                    <Text style={styles.itemNome} numberOfLines={1}>
+                      {l.label}
+                    </Text>
+                    <Text style={styles.itemMetros}>{l.metros} m</Text>
+                  </Pressable>
+                ))}
             </View>
           ) : null}
 
