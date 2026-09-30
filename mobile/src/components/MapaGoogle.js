@@ -255,6 +255,11 @@ const LINHA_CONTORNO = '#0A463F';
 // para não parecer uma estrada do mapa nem uma cor de outro sistema.
 const ALTERNATIVA = '#8A9A95';
 
+// A linha larga e quase invisível que apanha o dedo por cima de um caminho
+// alternativo — a mesma cor de sempre (23/09), agora com nome para poder
+// levar o remendo do iOS.
+const TOQUE_INVISIVEL = 'rgba(0,0,0,0.01)';
+
 // Abaixo disto duas rotas são a mesma rota com um desvio de esquina, e duas
 // etiquetas ficariam uma em cima da outra.
 const AFASTAMENTO_MINIMO_M = 120;
@@ -2126,7 +2131,13 @@ export default function MapaGoogle({
             <Polyline
               key={`alt-toque-${i}`}
               coordinates={linhasDosCaminhos[i]}
-              strokeColor="rgba(0,0,0,0.01)"
+              strokeColor={TOQUE_INVISIVEL}
+              // TAMBÉM ESTA LEVA O REMENDO DO iOS (30/09/2026). Era a única
+              // linha cheia sem ele: no iPhone a cor quase transparente não
+              // chegava ao mapa, e o Google pintava-a com o azul dele — uma
+              // faixa azul de 26 pontos à volta dos caminhos alternativos. O
+              // Simão viu-a no simulador (Motael → Becora). Ver `corDaLinha`.
+              {...corDaLinha(TOQUE_INVISIVEL)}
               strokeWidth={26}
               tappable
               onPress={() => onEscolherCaminho && onEscolherCaminho(i)}
