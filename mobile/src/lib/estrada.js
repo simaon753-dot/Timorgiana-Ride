@@ -52,7 +52,11 @@ import { api } from '../api/client.js';
 // posta; as outras aparecem no mapa para se poder tocar numa delas.
 // `atual`: a paragem que já está à vista, se houver — ver a estabilidade
 // em backend/src/escolherParagem.js.
-export async function pontoNaEstrada(lat, lng, token, atual = null) {
+//
+// `aoResponder`: quem quiser a resposta INTEIRA do servidor — o nome da rua
+// mesmo quando o ponto já está em cima dela e aqui se devolve `null`, porque
+// não há troço a desenhar (30/09/2026, o painel de escolher no mapa).
+export async function pontoNaEstrada(lat, lng, token, atual = null, aoResponder = null) {
   if (token) {
     try {
       const nossa = await api.paragemPara(token, {
@@ -60,6 +64,7 @@ export async function pontoNaEstrada(lat, lng, token, atual = null) {
         lng,
         atual: atual?.lat != null ? { lat: atual.lat, lng: atual.lng } : undefined,
       });
+      aoResponder?.(nossa);
       if (nossa?.fonte === 'nossa' && nossa.lat != null) {
         return {
           // De onde veio: só uma paragem do painel MUDA a coordenada da

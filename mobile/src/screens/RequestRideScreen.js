@@ -54,6 +54,7 @@ import { colors, spacing, fontSize, radius, registarEstilos, paletaEmUso } from 
 import { tipo } from '../design/tipografia.js';
 import Icone from '../design/Icone.js';
 import MotoristasPerto from '../design/MotoristasPerto.js';
+import Chip from '../design/Chip.js';
 import { TIPOS_VEICULO, VEICULOS, nomeDoVeiculo, veiculo } from '../dados/tiposDeVeiculo.js';
 import BarraEstado from '../design/BarraEstado.js';
 import { metrosEntre } from '../lib/filtroPosicao.js';
@@ -327,6 +328,9 @@ export default function RequestRideScreen({ navigation, route }) {
   // aponta o monumento estava a confirmar um ponto sem saber que o carro
   // pára trezentos metros abaixo, e só descobria depois.
   const [paragemCentro, setParagemCentro] = useState(null);
+  // A RUA do ponto apontado, por baixo do nome (30/09/2026). Vem da mesma
+  // resposta que encosta o ponto à estrada — não custa pedido nenhum.
+  const [ruaCentro, setRuaCentro] = useState(null);
   // O MESMO PARA O DESTINO JÁ ESCOLHIDO, e não só para a mira.
   //
   // O aviso do modo de apontar só existe enquanto se aponta. Um destino
@@ -717,7 +721,9 @@ export default function RequestRideScreen({ navigation, route }) {
     // o pedido não o usa.
 
     const meu = ++pedidoCentro.current;
+    setRuaCentro(null);
     (async () => {
+      let rua = null;
       // Precisão zero: um ponto posto à mão é exacto por definição — quem o
       // apontou está a olhar para o mapa e viu onde o pôs.
       //
@@ -735,11 +741,15 @@ export default function RequestRideScreen({ navigation, route }) {
         // saberia qual das duas estava certa.
         // A que já está à vista vai junto: o servidor mantém-na enquanto
         // continuar boa, em vez de a trocar por outra uns metros melhor.
-        pontoNaEstrada(lat, lng, token, paragemCentro).catch(() => null),
+        pontoNaEstrada(lat, lng, token, paragemCentro, (r) => {
+          rua = r?.fonte === 'mapa' ? r.rua || null : r?.fonte === 'nossa' ? r.nome || null : null;
+        }).catch(() => null),
       ]);
       // Chegou tarde: entretanto o mapa já foi para outro sítio.
       if (meu !== pedidoCentro.current) return;
       setNomeCentro(nome || rotuloCoordenadas(lat, lng));
+      // A rua, se não for o próprio nome (às vezes o sítio SE CHAMA a rua).
+      setRuaCentro(rua && rua !== nome ? rua : null);
       setPertoDoCentro(perto?.lugares || []);
       // Sem resposta fica `null` e não se diz nada. Um aviso que pisca a cada
       // arrasto por causa da rede é pior do que aviso nenhum.
@@ -766,6 +776,7 @@ export default function RequestRideScreen({ navigation, route }) {
     setCentro(null);
     setNomeCentro(null);
     setPertoDoCentro([]);
+    setRuaCentro(null);
   }
 
   // Escolheu um dos sítios com nome da lista.
@@ -794,6 +805,7 @@ export default function RequestRideScreen({ navigation, route }) {
     setCentro(null);
     setNomeCentro(null);
     setPertoDoCentro([]);
+    setRuaCentro(null);
   }
 
   async function escolherNoMapa({ lat, lng }) {
@@ -1444,8 +1456,14 @@ export default function RequestRideScreen({ navigation, route }) {
           <Text style={styles.barraRotulo}>
             {aEscolherNoMapa === 'origem' ? t('pickupPoint') : t('dropoffPoint')}
           </Text>
-          <Text style={styles.barraNome} numberOfLines={2}>
+          <Text style={styles.barraNome} numberOfLines={1}>
             {nomeCentro || (centro ? t('aVerNome') : t('gettingLocation'))}
+          </Text>
+          {/* A RUA, numa linha pequena (30/09/2026, pedido do Simão). A linha
+              existe sempre, vazia enquanto não se sabe: assim o painel não
+              muda de altura a cada arrasto. */}
+          <Text style={styles.barraRua} numberOfLines={1}>
+            {ruaCentro || ' '}
           </Text>
           {/* OS SÍTIOS COM NOME À VOLTA.
               Apontar devolve uma rua; esta lista devolve um sítio. É a
@@ -1453,25 +1471,29 @@ export default function RequestRideScreen({ navigation, route }) {
               lateral", e é o que faz o motorista parar à porta certa.
               Vem da camada que os passageiros vão baptizando: cada nome que
               alguém escreve aparece aqui à pessoa seguinte. */}
+          {/* NUMA FILA, e não numa lista (30/09/2026). A lista de quatro, com
+              duas linhas cada, levava quase metade do ecrã; a fila leva uma
+              linha e desliza para o lado — é o que deixa caber a rua sem tapar
+              mais mapa. As pastilhas são as do sistema (design/Chip.js), com
+              os metros na bolha. */}
           {pertoDoCentro.length ? (
-            <View style={styles.pertoLista}>
-              {pertoDoCentro.slice(0, 4).map((l) => (
-                <Pressable key={l.id} style={styles.pertoItem} onPress={() => escolherDaLista(l)}>
-                  <Text style={styles.pertoIcone}>📍</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.pertoNome} numberOfLines={1}>
-                      {l.label}
-                    </Text>
-                    {l.detalhe ? (
-                      <Text style={styles.pertoDetalhe} numberOfLines={1}>
-                        {l.detalhe}
-                      </Text>
-                    ) : null}
-                  </View>
-                  <Text style={styles.pertoMetros}>{l.metros} m</Text>
-                </Pressable>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              style={styles.pertoFila}
+              contentContainerStyle={styles.pertoFilaConteudo}
+            >
+              {pertoDoCentro.slice(0, 8).map((l) => (
+                <Chip
+                  key={l.id}
+                  icone="pin"
+                  texto={l.label}
+                  contagem={`${l.metros} m`}
+                  onPress={() => escolherDaLista(l)}
+                />
               ))}
-            </View>
+            </ScrollView>
           ) : null}
           {/* O AVISO APARECE ANTES DE ESCOLHER, e não depois.
               Saber que não há serviço depois de confirmar é saber tarde de
@@ -1502,6 +1524,7 @@ export default function RequestRideScreen({ navigation, route }) {
               setCentro(null);
               setNomeCentro(null);
               setPertoDoCentro([]);
+              setRuaCentro(null);
             }}
             hitSlop={8}
             style={{ alignSelf: 'center', marginTop: spacing.sm }}
@@ -2378,29 +2401,13 @@ const criarEstilos = () =>
 
     barraRotulo: { ...tipo.etiqueta, color: colors.textMuted },
 
-    barraNome: { ...tipo.subtitulo, color: colors.text, marginTop: 2, minHeight: 46 },
+    barraNome: { ...tipo.subtitulo, color: colors.text, marginTop: 2 },
+    barraRua: { ...tipo.pequeno, color: colors.textMuted },
 
     barraCancelar: { ...tipo.corpo, color: colors.textMuted },
 
-    pertoLista: { marginTop: spacing.sm, gap: 2 },
-
-    pertoItem: {
-      flexDirection: 'row',
-
-      alignItems: 'center',
-
-      paddingVertical: spacing.sm,
-
-      gap: spacing.sm,
-    },
-
-    pertoIcone: { fontSize: 15 },
-
-    pertoNome: { ...tipo.corpoForte, color: colors.text },
-
-    pertoDetalhe: { ...tipo.legenda, color: colors.textMuted },
-
-    pertoMetros: { ...tipo.legenda, color: colors.textMuted },
+    pertoFila: { marginTop: spacing.sm, marginHorizontal: -spacing.lg },
+    pertoFilaConteudo: { gap: spacing.sm, paddingHorizontal: spacing.lg },
 
     painel: {
       backgroundColor: colors.white,
