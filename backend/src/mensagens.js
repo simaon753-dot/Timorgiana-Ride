@@ -303,6 +303,11 @@ export const MENSAGENS = {
     'Those coordinates are not in Timor-Leste.',
   ],
   'Paragem não encontrada.': ['La hetan paragem ruma.', 'Stop not found.'],
+  // 30/09/2026 — rascunho meu, depois da revisão dele.
+  'Só se podem eliminar lugares recusados.': [
+    'Bele hamoos de’it fatin sira ne’ebé rekuza tiha ona.',
+    'Only rejected places can be deleted.',
+  ],
 
   // ── Registo e entrada
   'Nome é obrigatório.': ['Naran obrigatóriu.', 'Name is required.'],

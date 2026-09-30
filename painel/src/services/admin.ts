@@ -144,6 +144,8 @@ export const api = {
   lugares: (estado: EstadoLugar | 'todos') => pedir<{ lugares: LugarProposto[] }>('/admin/lugares' + q({ estado })),
   estadoLugar: (id: number, estado: EstadoLugar) =>
     pedir<{ ok: true }>(`/admin/lugares/${id}/estado`, { method: 'POST', corpo: { estado } }),
+  // Só aceita recusados — o servidor recusa os outros.
+  eliminarLugar: (id: number) => pedir<{ ok: true; nome: string }>(`/admin/lugares/${id}`, { method: 'DELETE' }),
 
   // Serviços da plataforma
   servicos: () => pedir<{ servicos: Servico[] }>('/admin/servicos'),

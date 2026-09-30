@@ -1672,6 +1672,28 @@ adminRouter.post(
   })
 );
 
+// DELETE /api/admin/lugares/:id — eliminar um lugar RECUSADO (30/09/2026).
+//
+// Pedido do Simão: os recusados acumulavam-se no filtro «Recusado» sem
+// maneira de sair. Só os recusados, e é o servidor que o garante: um lugar
+// aceite está no mapa de toda a gente, e um por rever ainda não foi decidido
+// — apagar um desses era decidir sem rever. Nada na base aponta para um lugar
+// proposto, por isso sai sem deixar nada pendurado.
+adminRouter.delete(
+  '/lugares/:id',
+  wrap(async (req, res) => {
+    const id = Number(req.params.id);
+    const fora = Number.isInteger(id)
+      ? await one(
+          "DELETE FROM lugares_propostos WHERE id = $1 AND estado = 'recusado' RETURNING id, nome",
+          [id]
+        )
+      : null;
+    if (!fora) return res.status(409).json({ error: 'Só se podem eliminar lugares recusados.' });
+    return res.json({ ok: true, nome: fora.nome });
+  })
+);
+
 adminRouter.post(
   '/lugares/:id/estado',
   wrap(async (req, res) => {

@@ -619,6 +619,12 @@ async function api(req, res, url) {
     const e = url.searchParams.get('estado') || 'novo';
     return json(res, { lugares: lugares.filter((l) => e === 'todos' || l.estado === e) });
   }
+  if ((x = m(/^\/admin\/lugares\/(\d+)$/)) && req.method === 'DELETE') {
+    const fora = lugares.find((l) => l.id === Number(x[1]) && l.estado === 'recusado');
+    if (!fora) return json(res, { error: 'Só se podem eliminar lugares recusados.' }, 409);
+    lugares = lugares.filter((l) => l.id !== fora.id);
+    return json(res, { ok: true, nome: fora.nome });
+  }
   if ((x = m(/^\/admin\/lugares\/(\d+)\/estado$/))) {
     const { estado } = await corpoDe(req);
     lugares = lugares.map((l) => (l.id === Number(x[1]) ? { ...l, estado } : l));

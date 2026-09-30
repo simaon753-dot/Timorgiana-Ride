@@ -21,8 +21,16 @@ export const paragens = {
   'parag.abrirOsm': 'Abrir no editor do OpenStreetMap',
   'parag.copiarEtiquetas': 'Copiar etiquetas',
   'parag.estadoMudado': 'Estado do lugar atualizado.',
+  'parag.eliminarLugar': 'Eliminar',
+  'parag.eliminarLugarTitulo': 'Eliminar este lugar?',
+  'parag.eliminarLugarTexto': 'O lugar recusado «{nome}» sai da lista de vez. Não se pode desfazer.',
+  'parag.lugarEliminado': 'Lugar eliminado.',
   'parag.lugaresNota': 'Um lugar aceite aparece logo a toda a gente, na pesquisa e na lista de sítios perto. Acrescentá-lo também ao OpenStreetMap é opcional: abra o editor e cole as etiquetas.',
+  // Um por filtro (30/09/2026): com «Recusado» vazio dizia «por rever».
   'parag.vazioLugaresTitulo': 'Sem lugares por rever.',
+  'parag.vazioLugaresTitulo.aceite': 'Sem lugares aceites.',
+  'parag.vazioLugaresTitulo.recusado': 'Sem lugares recusados.',
+  'parag.vazioLugaresTitulo.todos': 'Sem lugares propostos.',
   'parag.vazioLugaresTexto': 'Quando um passageiro der nome a um sítio que o mapa não conhece, aparece aqui.',
 
   'parag.nova': 'Nova paragem',

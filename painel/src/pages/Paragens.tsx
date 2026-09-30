@@ -66,6 +66,8 @@ export function Paragens() {
 
 function Lugares({ procura, estadoInicial }: { procura: string; estadoInicial: EstadoLugar | null }) {
   const [estado, setEstado] = useState<EstadoLugar | 'todos'>(estadoInicial ?? 'novo');
+  // O recusado que se está a pedir para eliminar — ver a confirmação no fim.
+  const [eliminar, setEliminar] = useState<LugarProposto | null>(null);
   const { dados, erro, aCarregar, recarregar } = useDados(() => api.lugares(estado), [estado]);
   const q = procura.trim().toLowerCase();
   const lugares = useMemo(
@@ -118,7 +120,7 @@ function Lugares({ procura, estadoInicial }: { procura: string; estadoInicial: E
                 <MapPin />
               </IlustracaoIcone>
             }
-            titulo={t('parag.vazioLugaresTitulo')}
+            titulo={t(estado === 'novo' ? 'parag.vazioLugaresTitulo' : (`parag.vazioLugaresTitulo.${estado}` as Chave))}
             texto={t('parag.vazioLugaresTexto')}
           />
         ) : (
@@ -186,6 +188,16 @@ function Lugares({ procura, estadoInicial }: { procura: string; estadoInicial: E
                             <RotateCcw /> {t('parag.reabrir')}
                           </MenuItem>
                         ) : null}
+                        {/* SÓ OS RECUSADOS se eliminam (30/09/2026). Um aceite está no mapa
+                            de toda a gente; um por rever ainda não foi decidido. */}
+                        {l.estado === 'recusado' ? (
+                          <>
+                            <MenuSeparador />
+                            <MenuItem perigo onSelect={() => setEliminar(l)}>
+                              <Trash2 /> {t('parag.eliminarLugar')}
+                            </MenuItem>
+                          </>
+                        ) : null}
                       </MenuConteudo>
                     </Menu>
                   </TCelula>
@@ -195,6 +207,21 @@ function Lugares({ procura, estadoInicial }: { procura: string; estadoInicial: E
           </Tabela>
         )}
       </Cartao>
+
+      <DialogoConfirmacao
+        aberto={!!eliminar}
+        aoMudar={(v) => !v && setEliminar(null)}
+        titulo={t('parag.eliminarLugarTitulo')}
+        texto={t('parag.eliminarLugarTexto', { nome: eliminar?.nome ?? '' })}
+        rotuloConfirmar={t('parag.eliminarLugar')}
+        perigo
+        aoConfirmar={async () => {
+          if (!eliminar) return;
+          await api.eliminarLugar(eliminar.id);
+          avisar.sucesso(t('parag.lugarEliminado'), eliminar.nome);
+          recarregar();
+        }}
+      />
     </>
   );
 }
