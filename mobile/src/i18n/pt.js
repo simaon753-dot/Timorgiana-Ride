@@ -1092,6 +1092,8 @@ export default {
   admLugarAceite: 'Acrescentado',
   admLugarRecusado: 'Recusar',
   lugarQueTipo: 'Que tipo de sítio é?',
+  lugarTipoOutro: 'Que tipo?',
+  lugarTipoOutroDica: 'Ex.: Farmácia, oficina, posto de gasolina',
   tipoCasa: 'Casa',
   tipoEdificio: 'Edifício',
   tipoLoja: 'Loja',

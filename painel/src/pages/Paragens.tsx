@@ -159,7 +159,9 @@ function Lugares({ procura, estadoInicial }: { procura: string; estadoInicial: E
                 <TLinha key={l.id}>
                   <TCelula>
                     <p className="font-semibold">{l.nome}</p>
-                    <p className="text-xs text-secundario">{l.etiqueta ?? l.tipo ?? '—'}</p>
+                    <p className="text-xs text-secundario">
+                      {l.etiqueta ?? (l.tipo === 'outro' && l.tipoOutro ? `${t('tipoLugar.outro')}: ${l.tipoOutro}` : l.tipo) ?? '—'}
+                    </p>
                     {l.mostrarSempre ? (
                       <Distintivo cor="teal" className="mt-1">
                         {t('parag.sempreNoMapa')}
@@ -484,6 +486,7 @@ const esquemaBaptizar = z.object({
   sitio: coordenada,
   mostrarSempre: z.boolean(),
   tipo: z.string(),
+  tipoOutro: z.string(),
   endereco: z.string(),
   municipio: z.string(),
   posto: z.string(),
@@ -492,7 +495,7 @@ const esquemaBaptizar = z.object({
   bairro: z.string(),
 });
 type FormBaptizar = z.input<typeof esquemaBaptizar>;
-const VAZIO: FormBaptizar = { nome: '', sitio: '', mostrarSempre: false, tipo: '', endereco: '', municipio: '', posto: '', suco: '', aldeia: '', bairro: '' };
+const VAZIO: FormBaptizar = { nome: '', sitio: '', mostrarSempre: false, tipo: '', tipoOutro: '', endereco: '', municipio: '', posto: '', suco: '', aldeia: '', bairro: '' };
 
 // A árvore não muda enquanto o painel está aberto: pede-se uma vez.
 let arvoreGuardada: MunicipioArvore[] | null = null;
@@ -598,6 +601,7 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
         lng,
         mostrarSempre: f.mostrarSempre,
         tipo: f.tipo || null,
+        tipoOutro: f.tipo === 'outro' ? texto(f.tipoOutro) : null,
         endereco: texto(f.endereco),
         municipio: municipios.find((m) => m.id === f.municipio)?.nome ?? null,
         posto: postos.find((x) => x.id === f.posto)?.nome ?? null,
@@ -674,7 +678,10 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
                         key={x}
                         type="button"
                         aria-pressed={escolhido}
-                        onClick={() => setValue('tipo', escolhido ? '' : x)}
+                        onClick={() => {
+                          setValue('tipo', escolhido ? '' : x);
+                          if (x !== 'outro' || escolhido) setValue('tipoOutro', '');
+                        }}
                         className={cn(
                           'rounded-full border px-2.5 py-0.5 text-[13px] transition-colors duration-150',
                           escolhido ? 'border-teal bg-teal-claro font-semibold text-teal-escuro' : 'border-borda bg-white text-texto hover:bg-fundo'
@@ -685,6 +692,14 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
                     );
                   })}
                 </div>
+                {/* «OUTRO» PEDE O TIPO ESCRITO (30/09/2026, pedido do Simão): sozinho
+                    não diz a quem revê que etiqueta pôr no OpenStreetMap. */}
+                {tipo === 'outro' ? (
+                  <div className="mt-2">
+                    <Rotulo htmlFor="b-tipo-outro">{t('parag.tipoOutro')}</Rotulo>
+                    <Campo id="b-tipo-outro" maxLength={60} autoFocus placeholder={t('parag.tipoOutroDica')} {...register('tipoOutro')} />
+                  </div>
+                ) : null}
               </fieldset>
 
               <div className="border-t border-borda pt-3">

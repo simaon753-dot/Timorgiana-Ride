@@ -175,6 +175,8 @@ lugaresRouter.post(
     const suco = texto(req.body?.suco, 60);
     const aldeia = texto(req.body?.aldeia, 60);
     const bairro = texto(req.body?.bairro, 60);
+    // Só vale com «Outro»: com um tipo da lista, o tipo já está dito.
+    const tipoOutro = tipo === 'outro' ? texto(req.body?.tipoOutro, 60) : null;
 
     // Se o que ele escreveu for igual ao que já lá estava, não há nada a
     // guardar — a NÃO SER que tenha preenchido a morada.
@@ -196,8 +198,8 @@ lugaresRouter.post(
     await query(
       `INSERT INTO lugares_propostos
          (user_id, nome, nome_mapa, lat, lng, tipo,
-          endereco, municipio, posto, suco, aldeia, bairro, nome_busca)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+          endereco, municipio, posto, suco, aldeia, bairro, nome_busca, tipo_outro)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
       [
         req.user.id,
         n,
@@ -212,6 +214,7 @@ lugaresRouter.post(
         aldeia,
         bairro,
         normalizar(n),
+        tipoOutro,
       ]
     );
     res.json({ guardado: true });

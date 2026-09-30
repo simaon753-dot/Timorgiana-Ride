@@ -410,6 +410,11 @@ export async function initSchema() {
   await query(
     `ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS mostrar_sempre BOOLEAN NOT NULL DEFAULT FALSE`
   );
+  // O TIPO ESCRITO, quando se escolheu «Outro» (30/09/2026, pedido do Simão).
+  // «Outro» sozinho não diz a quem revê que etiqueta pôr no OpenStreetMap;
+  // «Farmácia» diz. E o que muita gente escrever pode vir a ser um tipo da
+  // lista.
+  await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS tipo_outro TEXT`);
   await query(
     `CREATE INDEX IF NOT EXISTS idx_propostos_busca
        ON lugares_propostos(nome_busca) WHERE estado IN ('novo','aceite')`

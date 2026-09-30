@@ -61,6 +61,9 @@ export default function NomearLugar({ alvo, onFechar, onGuardar }) {
 
   const [nome, setNome] = useState('');
   const [tipoLugar, setTipoLugar] = useState(null);
+  // O tipo escrito à mão, quando nenhum da lista serve (30/09/2026, pedido do
+  // Simão): «Outro» sozinho não diz a quem revê o que é.
+  const [tipoOutro, setTipoOutro] = useState('');
   const [endereco, setEndereco] = useState('');
   const [municipio, setMunicipio] = useState(null); // { id, nome }
   const [posto, setPosto] = useState(null); // { id, nome }
@@ -78,6 +81,7 @@ export default function NomearLugar({ alvo, onFechar, onGuardar }) {
   useEffect(() => {
     setNome(alvo?.ponto?.label ?? '');
     setTipoLugar(null);
+    setTipoOutro('');
     setEndereco('');
     setMunicipio(null);
     setPosto(null);
@@ -207,6 +211,8 @@ export default function NomearLugar({ alvo, onFechar, onGuardar }) {
       suco: suco?.nome ?? null,
       aldeia: aldeia.trim() || null,
       bairro: bairro.trim() || null,
+      // Vai com a morada porque quem chama espalha este objecto no pedido.
+      tipoOutro: tipoLugar === 'outro' ? tipoOutro.trim() || null : null,
     });
   }
 
@@ -250,7 +256,10 @@ export default function NomearLugar({ alvo, onFechar, onGuardar }) {
               {LISTA_TIPOS.map((x) => (
                 <Pressable
                   key={x}
-                  onPress={() => setTipoLugar(tipoLugar === x ? null : x)}
+                  onPress={() => {
+                    setTipoLugar(tipoLugar === x ? null : x);
+                    if (x !== 'outro' || tipoLugar === x) setTipoOutro('');
+                  }}
                   style={[estilosNome.tipo, tipoLugar === x && estilosNome.tipoActivo]}
                 >
                   <Text
@@ -261,6 +270,21 @@ export default function NomearLugar({ alvo, onFechar, onGuardar }) {
                 </Pressable>
               ))}
             </View>
+            {tipoLugar === 'outro' ? (
+              <>
+                <Text style={estilosNome.rotulo}>{t('lugarTipoOutro')}</Text>
+                <TextInput
+                  style={estilosNome.campo}
+                  value={tipoOutro}
+                  onChangeText={setTipoOutro}
+                  placeholder={t('lugarTipoOutroDica')}
+                  placeholderTextColor={colors.textMuted}
+                  maxLength={60}
+                  autoFocus
+                  returnKeyType="done"
+                />
+              </>
+            ) : null}
 
             <View style={estilosNome.separador} />
 

@@ -1069,6 +1069,8 @@ export default {
   admLugarAceite: 'Added',
   admLugarRecusado: 'Reject',
   lugarQueTipo: 'What kind of place is it?',
+  lugarTipoOutro: 'What type?',
+  lugarTipoOutroDica: 'E.g. pharmacy, workshop, petrol station',
   tipoCasa: 'House',
   tipoEdificio: 'Building',
   tipoLoja: 'Shop',

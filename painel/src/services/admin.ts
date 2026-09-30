@@ -158,6 +158,7 @@ export const api = {
     lng: number;
     mostrarSempre: boolean;
     tipo?: string | null;
+    tipoOutro?: string | null;
     endereco?: string | null;
     municipio?: string | null;
     posto?: string | null;

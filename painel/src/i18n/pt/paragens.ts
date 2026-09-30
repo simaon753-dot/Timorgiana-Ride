@@ -52,6 +52,8 @@ export const paragens = {
   'parag.mostrarMudado': 'Atualizado.',
   // O resto do formulário, igual ao da app (30/09/2026).
   'parag.tipoPergunta': 'Que tipo de sítio é?',
+  'parag.tipoOutro': 'Que tipo?',
+  'parag.tipoOutroDica': 'Ex.: Farmácia, oficina, posto de gasolina',
   'tipoLugar.casa': 'Casa',
   'tipoLugar.edificio': 'Edifício',
   'tipoLugar.loja': 'Loja',

@@ -1601,7 +1601,7 @@ adminRouter.get(
     const rows = await query(
       `SELECT p.id, p.nome, p.nome_mapa, p.lat, p.lng, p.estado, p.tipo, p.created_at,
               p.endereco, p.municipio, p.posto, p.suco, p.aldeia, p.bairro,
-              p.mostrar_sempre, p.google_conhece,
+              p.mostrar_sempre, p.google_conhece, p.tipo_outro,
               u.name AS quem
          FROM lugares_propostos p LEFT JOIN users u ON u.id = p.user_id
          ${cond}
@@ -1620,6 +1620,8 @@ adminRouter.get(
         quem: r.quem,
         tipo: r.tipo,
         mostrarSempre: r.mostrar_sempre === true,
+        // O que se escreveu ao escolher «Outro».
+        tipoOutro: r.tipo_outro,
         // O que se sabe do Google: `true` já o escreve, `false` não o conhece,
         // `null` ainda não se perguntou.
         googleConhece: r.google_conhece,
@@ -1733,6 +1735,7 @@ adminRouter.post(
     const suco = txt(req.body?.suco, 60);
     const aldeia = txt(req.body?.aldeia, 60);
     const bairro = txt(req.body?.bairro, 60);
+    const tipoOutro = tipo === 'outro' ? txt(req.body?.tipoOutro, 60) : null;
     if (!tipoValido(tipo)) return res.status(400).json({ error: 'Tipo desconhecido.' });
     if (nome.length < 2 || nome.length > 120) {
       return res.status(400).json({ error: 'O nome tem de ter entre 2 e 120 letras.' });
@@ -1748,8 +1751,8 @@ adminRouter.post(
     const novo = await one(
       `INSERT INTO lugares_propostos
          (user_id, nome, lat, lng, estado, nome_busca, mostrar_sempre,
-          tipo, endereco, municipio, posto, suco, aldeia, bairro)
-       VALUES ($1, $2, $3, $4, 'aceite', $5, $6, $7, $8, $9, $10, $11, $12, $13)
+          tipo, endereco, municipio, posto, suco, aldeia, bairro, tipo_outro)
+       VALUES ($1, $2, $3, $4, 'aceite', $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
        RETURNING id, nome`,
       [
         req.user.id,
@@ -1765,6 +1768,7 @@ adminRouter.post(
         suco,
         aldeia,
         bairro,
+        tipoOutro,
       ]
     );
     registarAcesso(req.user.id, `baptizou «${nome}»`, null);
