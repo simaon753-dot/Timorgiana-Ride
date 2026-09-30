@@ -719,6 +719,8 @@ export default {
   pickupPoint: 'Pickup',
   dropoffPoint: 'Destination',
   noDriverNearby: 'No drivers nearby',
+  motoristasPertoN: '{n} free drivers nearby',
+  motoristasPertoNenhum: 'No free drivers nearby',
   payCash: 'Cash',
   confirmRide: 'Book for',
   chooseVehicle: 'Choose a vehicle',

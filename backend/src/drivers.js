@@ -86,6 +86,53 @@ export function nearestDrivers({ lat, lng, vehicleType, limit = 10, maxKm = 15 }
   ).then((rows) => rows.filter((r) => r.km == null || r.km <= maxKm));
 }
 
+// QUANTOS MOTORISTAS LIVRES HÁ PERTO, por tipo de veículo (30/09/2026).
+//
+// Pedido do Simão: a app mostra num ícone quantos motoristas activos há
+// perto — no ecrã de início e no cartão do veículo — e um «0» vermelho
+// quando não há nenhum. Conta-se no servidor e só se manda o NÚMERO: a
+// posição de cada motorista não sai daqui.
+//
+// «Activo» é o mesmo do `nearestDrivers`: aprovado, disponível e com sinal
+// fresco. E LIVRE: quem está numa viagem (os estados de `ACTIVE_DRIVER` em
+// rides.js, escritos aqui por extenso porque rides.js importa este ficheiro)
+// não conta — não pode aceitar outra.
+//
+// O raio: 5 km, que em Díli é uns dez minutos de mota. A contagem pára nos
+// 10; a app mostra «9+» daí para cima. Com a caixa em graus antes da conta
+// da distância, e tipos explícitos: `$1 - $3` entre parâmetros sem tipo é
+// recusado pelo Postgres (lição de 29/09, escolherParagem).
+export const RAIO_MOTORISTAS_PERTO_KM = 5;
+export const CONTAGEM_MAX = 10;
+export async function contarMotoristasPerto(lat, lng, raioKm = RAIO_MOTORISTAS_PERTO_KM) {
+  const dLat = raioKm / 110.574;
+  const dLng = raioKm / (111.32 * Math.cos((lat * Math.PI) / 180));
+  const rows = await query(
+    `SELECT vehicle_type AS tipo, LEAST(COUNT(*), ${CONTAGEM_MAX})::int AS n
+       FROM users u
+      WHERE role = 'driver'
+        AND driver_status = 'approved'
+        AND is_online = TRUE
+        AND last_seen_at > NOW() - INTERVAL '${SINAL_FRESCO}'
+        AND last_lat BETWEEN $1::float8 - $3::float8 AND $1::float8 + $3::float8
+        AND last_lng BETWEEN $2::float8 - $4::float8 AND $2::float8 + $4::float8
+        AND 6371 * 2 * asin(sqrt(
+              power(sin(radians($1::float8 - last_lat) / 2), 2) +
+              cos(radians(last_lat)) * cos(radians($1::float8)) *
+              power(sin(radians($2::float8 - last_lng) / 2), 2)
+            )) <= $5::float8
+        AND NOT EXISTS (
+              SELECT 1 FROM rides r
+               WHERE r.driver_id = u.id AND r.status IN ('accepted', 'arriving', 'in_progress')
+            )
+      GROUP BY vehicle_type`,
+    [lat, lng, dLat, dLng, raioKm]
+  );
+  const contagens = {};
+  for (const r of rows) if (r.tipo) contagens[r.tipo] = Number(r.n) || 0;
+  return contagens;
+}
+
 // Motoristas online agora (para o painel e para saber a quem enviar push)
 //
 // A condição do sinal fresco faltava aqui e existia no `nearestDrivers` —

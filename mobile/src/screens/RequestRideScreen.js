@@ -53,6 +53,7 @@ import { api } from '../api/client.js';
 import { colors, spacing, fontSize, radius, registarEstilos, paletaEmUso } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 import Icone from '../design/Icone.js';
+import MotoristasPerto from '../design/MotoristasPerto.js';
 import { TIPOS_VEICULO, VEICULOS, nomeDoVeiculo, veiculo } from '../dados/tiposDeVeiculo.js';
 import BarraEstado from '../design/BarraEstado.js';
 import { metrosEntre } from '../lib/filtroPosicao.js';
@@ -2129,11 +2130,19 @@ function CartaoVeiculo({ opcao, destinoFixo, ativo, onPress, t }) {
       {/* A ilustração do tipo, num quadrado da cor do fundo DELA — ver
           SISTEMA.md. É a mesma do ecrã inicial: a pessoa reconhece o que
           escolheu há dois ecrãs. */}
-      <View style={styles.veiculoFotoCaixa}>
-        <Image
-          source={v.imagens[paletaEmUso()] || v.imagens.claro}
-          style={styles.veiculoFoto}
-          resizeMode="contain"
+      <View>
+        <View style={styles.veiculoFotoCaixa}>
+          <Image
+            source={v.imagens[paletaEmUso()] || v.imagens.claro}
+            style={styles.veiculoFoto}
+            resizeMode="contain"
+          />
+        </View>
+        {/* Quantos livres perto DA RECOLHA — vem da cotação (30/09/2026). */}
+        <MotoristasPerto
+          n={opcao.motoristasPerto ?? null}
+          tamanho={28}
+          style={styles.veiculoPerto}
         />
       </View>
       <View style={{ flex: 1 }}>
@@ -2495,6 +2504,7 @@ const criarEstilos = () =>
       backgroundColor: paletaEmUso() === 'escuro' ? '#000000' : '#FFFFFF',
     },
     veiculoFoto: { width: 84, height: 60 },
+    veiculoPerto: { position: 'absolute', top: -7, right: -7 },
     veiculoNome: { ...tipo.subtitulo, color: colors.text },
     veiculoEta: { ...tipo.pequeno, color: colors.teal, marginTop: 1 },
     veiculoEtaSem: { color: colors.coralDark },

@@ -16,7 +16,7 @@ import { limparDestinos } from '../destinosDaViagem.js';
 import { paragensQueCobrem, paradasPerto } from '../paradas.js';
 import { escolherParagem, RAIO_PARAGENS_PERTO_M } from '../escolherParagem.js';
 import { estradaMaisPerto } from '../../mapa/index.js';
-import { nearestDrivers } from '../drivers.js';
+import { nearestDrivers, contarMotoristasPerto, RAIO_MOTORISTAS_PERTO_KM } from '../drivers.js';
 import { taxasPara } from '../taxasDeEntrada.js';
 import { destinoFixo } from '../destinosCarry.js';
 import { compararComGoogle } from '../comparacaoRotas.js';
@@ -163,6 +163,11 @@ quoteRouter.post(
     // mais barato, é esse que se cobra (ver `taxaCobrada` em jastip.js).
     const encomenda = req.body?.servico === 'jastip' && servicoEstaAtivo('jastip', req.user);
     const taxaEncomenda = encomenda ? taxaDe(req.body?.jastipTeto) : 0;
+    // QUANTOS MOTORISTAS LIVRES HÁ PERTO DA RECOLHA, por tipo — o ícone do
+    // cartão do veículo (30/09/2026). Uma consulta só para os três. Sem
+    // resposta, `null`: a app esconde o ícone em vez de mostrar um «0» que
+    // não sabe se é verdade.
+    const contagens = await contarMotoristasPerto(oLat, oLng).catch(() => null);
     const opcoes = await Promise.all(
       tiposPossiveis.map(async (tipo) => {
         const perto = await nearestDrivers({
@@ -195,6 +200,7 @@ quoteRouter.post(
             ) / 100,
           etaMin: maisPerto ? etaMinutos(maisPerto.km) : null,
           available: !!maisPerto,
+          motoristasPerto: contagens ? contagens[tipo] || 0 : null,
           // O NOME do destino de preço fixo, para a app poder dizer «preço da
           // tabela: Baucau» em vez de deixar a pessoa a perguntar-se porque é
           // que 120 km custam o mesmo que 110.
@@ -357,6 +363,22 @@ quoteRouter.get(
       ),
     })
   )
+);
+
+// GET /api/quote/motoristas-perto?lat=&lng= — quantos motoristas livres há
+// perto, por tipo de veículo (30/09/2026).
+//
+// Para o ícone dos cartões do ecrã de início, antes de haver cotação. Só os
+// números, nunca as posições. Ver `contarMotoristasPerto`.
+quoteRouter.get(
+  '/motoristas-perto',
+  wrap(async (req, res) => {
+    const lat = num(req.query.lat);
+    const lng = num(req.query.lng);
+    if (lat == null || lng == null) return res.status(400).json({ error: 'Faltam coordenadas.' });
+    const contagens = await contarMotoristasPerto(lat, lng);
+    res.json({ raioKm: RAIO_MOTORISTAS_PERTO_KM, contagens });
+  })
 );
 
 // GET /api/quote/jastip — as regras da encomenda, e se esta conta já pode.

@@ -724,6 +724,8 @@ export default {
   pickupPoint: 'Foti',
   dropoffPoint: 'Destinu',
   noDriverNearby: 'La iha motorista ne’ebé besik',
+  motoristasPertoN: 'Motorista {n} livre besik',
+  motoristasPertoNenhum: 'La iha motorista livre ida besik',
   payCash: 'Osan',
   confirmRide: 'Husu ho',
   chooseVehicle: 'Hili veíkulu',

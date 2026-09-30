@@ -729,6 +729,9 @@ export default {
   pickupPoint: 'Recolha',
   dropoffPoint: 'Destino',
   noDriverNearby: 'Sem motoristas por perto',
+  // O ícone dos motoristas livres perto (30/09/2026), para o leitor de ecrã.
+  motoristasPertoN: '{n} motoristas livres perto',
+  motoristasPertoNenhum: 'Nenhum motorista livre perto',
   payCash: 'Dinheiro',
   confirmRide: 'Pedir por',
   chooseVehicle: 'Escolha o veículo',
