@@ -191,3 +191,24 @@ function perto(a, b) {
   const dLng = (a.lng - b.lng) * 111.32 * Math.cos((a.lat * Math.PI) / 180);
   return Math.hypot(dLat, dLng) < 0.1;
 }
+
+// AS ALDEIAS QUE ALGUÉM JÁ ESCREVEU nestes sucos, das mais escritas para as
+// menos. Serve o formulário de dar nome, na app e no painel.
+//
+// BASTA UMA VEZ para uma aldeia passar a ser sugerida. A tentação era exigir
+// duas ou três, para filtrar erros de escrita — mas com dezenas de
+// utilizadores nunca nada chegaria a duas, e o campo ficaria vazio para
+// sempre. Vale mais sugerir cedo e corrigir no painel do que ter um campo que
+// só aprende quando já não faz falta. Se houver "Fomento" e "Fomentu", a que
+// mais gente usa aparece primeiro.
+export async function aldeiasDosSucos(nomesDosSucos) {
+  if (!nomesDosSucos?.length) return [];
+  return query(
+    `SELECT suco, aldeia, COUNT(*)::int AS vezes
+       FROM lugares_propostos
+      WHERE aldeia IS NOT NULL AND aldeia <> '' AND suco = ANY($1::text[])
+      GROUP BY suco, aldeia
+      ORDER BY vezes DESC, aldeia`,
+    [nomesDosSucos]
+  );
+}

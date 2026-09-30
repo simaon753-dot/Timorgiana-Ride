@@ -224,6 +224,17 @@ let lugares = [
   editar: `https://www.openstreetmap.org/edit#map=19/${(-8.55 - i * 0.004).toFixed(5)}/${(125.57 + i * 0.01).toFixed(5)}`,
 }));
 
+// Um bocado da árvore administrativa, para o formulário de baptizar.
+const ARVORE_DEMO = [
+  {
+    id: 'TL07', nome: 'Díli', postos: [
+      { id: 'TL0701', nome: 'Vera Cruz', sucos: [{ id: 'TL070101', nome: 'Caicoli' }, { id: 'TL070102', nome: 'Colmera' }, { id: 'TL070103', nome: 'Motael' }] },
+      { id: 'TL0702', nome: 'Dom Aleixo', sucos: [{ id: 'TL070201', nome: 'Comoro' }, { id: 'TL070202', nome: 'Bairro Pite' }] },
+    ],
+  },
+  { id: 'TL02', nome: 'Aileu', postos: [{ id: 'TL0201', nome: 'Aileu Vila', sucos: [{ id: 'TL020101', nome: 'Aisirimou' }] }] },
+];
+
 // Na demonstração há um serviço por acabar, para se ver que não se liga.
 const servicos = [
   { id: 'motorbike', familia: 'viagem', emConstrucao: false, ativo: true, atualizado: null },
@@ -625,6 +636,20 @@ async function api(req, res, url) {
     paradas = paradas.filter((o) => o.id !== Number(x[1]));
     return fora ? json(res, { ok: true, nome: fora.nome }) : json(res, { error: 'Paragem não encontrada.' }, 404);
   }
+  // A árvore e o «onde fica», em pequeno: só Díli, e fictício na ordem dos
+  // sucos. O servidor a sério lê a árvore da ONU e pergunta ao Nominatim.
+  if (p === '/admin/lugares/municipios') return json(res, { municipios: ARVORE_DEMO });
+  if (p === '/admin/lugares/administrativo') {
+    const d = ARVORE_DEMO[0];
+    const vc = d.postos[0];
+    return json(res, {
+      municipio: { id: d.id, nome: d.nome },
+      posto: { id: vc.id, nome: vc.nome },
+      sucos: vc.sucos,
+      sugestaoAldeia: 'Koreo',
+      aldeias: [{ suco: 'Caicoli', aldeia: 'Koreo', vezes: 2 }, { suco: 'Caicoli', aldeia: 'Rai Nain', vezes: 1 }],
+    });
+  }
   // Baptizar um sítio (30/09/2026): entra aceite, como no servidor a sério.
   if (p === '/admin/lugares' && req.method === 'POST') {
     const b = await corpoDe(req);
@@ -635,7 +660,8 @@ async function api(req, res, url) {
     }
     const novo = {
       id: Math.max(0, ...lugares.map((l) => l.id)) + 1, nome, nomeMapa: null, lat: b.lat, lng: b.lng, estado: 'aceite',
-      quando: new Date().toISOString(), quem: 'Administrador (demonstração)', tipo: null, morada: 'Vera Cruz, Díli',
+      quando: new Date().toISOString(), quem: 'Administrador (demonstração)', tipo: b.tipo || null,
+      morada: [b.endereco, b.aldeia, b.bairro, b.suco, b.posto, b.municipio].filter(Boolean).join(', ') || null,
       etiquetas: `name=${nome}`, etiqueta: null, mostrarSempre: b.mostrarSempre === true, googleConhece: null,
       editar: `https://www.openstreetmap.org/edit#map=19/${Number(b.lat).toFixed(5)}/${Number(b.lng).toFixed(5)}`,
     };

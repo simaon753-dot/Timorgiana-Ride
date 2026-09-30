@@ -5,7 +5,7 @@ import { query } from '../db.js';
 import { tipoValido } from '../tiposDeLugar.js';
 import { normalizar } from '../texto.js';
 import { MUNICIPIOS, ondeFica } from '../administrativo.js';
-import { lugaresPerto } from '../lugaresNossos.js';
+import { lugaresPerto, aldeiasDosSucos } from '../lugaresNossos.js';
 import { podeIr } from '../cobertura.js';
 
 export const lugaresRouter = Router();
@@ -112,29 +112,14 @@ lugaresRouter.get(
       Number.isFinite(lng) ? lng : null
     );
 
-    // As aldeias que alguém já escreveu nos sucos deste posto.
+    // As aldeias que alguém já escreveu nos sucos deste posto (ver
+    // `aldeiasDosSucos`).
     //
-    // BASTA UMA VEZ para uma aldeia passar a ser sugerida. A tentação era
-    // exigir duas ou três, para filtrar erros de escrita — mas com dezenas
-    // de utilizadores nunca nada chegaria a duas, e o campo ficaria vazio
-    // para sempre. Vale mais sugerir cedo e corrigir no painel do que ter
-    // um campo que só aprende quando já não faz falta.
-    //
-    // Ordenadas pelas mais escritas: se houver "Fomento" e "Fomentu", a que
-    // mais gente usa aparece primeiro.
-    let aldeias = [];
-    const nomesDosSucos = (onde.sucos || []).map((s) => s.nome);
-    if (nomesDosSucos.length) {
-      const r = await query(
-        `SELECT suco, aldeia, COUNT(*)::int AS vezes
-           FROM lugares_propostos
-          WHERE aldeia IS NOT NULL AND aldeia <> '' AND suco = ANY($1::text[])
-          GROUP BY suco, aldeia
-          ORDER BY vezes DESC, aldeia`,
-        [nomesDosSucos]
-      );
-      aldeias = r.rows;
-    }
+    // ESTAVA SEMPRE VAZIO até 30/09/2026: lia `r.rows`, mas o nosso `query`
+    // já devolve as linhas, e `rows` de uma lista é `undefined`. A app nunca
+    // mostrou uma sugestão de aldeia. Encontrado a fazer o formulário do
+    // painel igual ao da app.
+    const aldeias = await aldeiasDosSucos((onde.sucos || []).map((s) => s.nome));
 
     res.json({
       municipio: onde.municipio ?? null,

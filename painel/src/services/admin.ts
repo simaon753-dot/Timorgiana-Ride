@@ -1,5 +1,7 @@
 import { pedir } from './cliente';
 import type {
+  MoradaDoPonto,
+  MunicipioArvore,
   AcessoRegistado,
   Devolucao,
   EstadoCarry,
@@ -150,8 +152,22 @@ export const api = {
   // Só aceita recusados — o servidor recusa os outros.
   eliminarLugar: (id: number) => pedir<{ ok: true; nome: string }>(`/admin/lugares/${id}`, { method: 'DELETE' }),
   // Baptizar um sítio: entra aceite (30/09/2026).
-  baptizarLugar: (corpo: { nome: string; lat: number; lng: number; mostrarSempre: boolean }) =>
+  baptizarLugar: (corpo: {
+    nome: string;
+    lat: number;
+    lng: number;
+    mostrarSempre: boolean;
+    tipo?: string | null;
+    endereco?: string | null;
+    municipio?: string | null;
+    posto?: string | null;
+    suco?: string | null;
+    aldeia?: string | null;
+    bairro?: string | null;
+  }) =>
     pedir<{ lugar: { id: number; nome: string } }>('/admin/lugares', { method: 'POST', corpo }),
+  arvoreLugares: () => pedir<{ municipios: MunicipioArvore[] }>('/admin/lugares/municipios'),
+  moradaDoPonto: (lat: number, lng: number) => pedir<MoradaDoPonto>('/admin/lugares/administrativo' + q({ lat, lng })),
   mostrarLugar: (id: number, mostrarSempre: boolean) =>
     pedir<{ ok: true }>(`/admin/lugares/${id}/mostrar`, { method: 'POST', corpo: { mostrarSempre } }),
 

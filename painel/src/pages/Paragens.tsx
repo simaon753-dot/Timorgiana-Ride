@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,12 +8,13 @@ import { t, tl, type Chave } from '@/i18n';
 import { api } from '@/services/admin';
 import { useDados } from '@/hooks/useDados';
 import { data, haQuanto } from '@/lib/formato';
-import type { EstadoLugar, LugarProposto, Parada } from '@/types/api';
+import { cn } from '@/lib/utils';
+import type { EstadoLugar, LugarProposto, MoradaDoPonto, MunicipioArvore, Parada } from '@/types/api';
 import { CabecalhoPagina } from '@/components/ui/cabecalho-pagina';
 import { Cartao } from '@/components/ui/cartao';
 import { Botao } from '@/components/ui/botao';
 import { Distintivo } from '@/components/ui/distintivo';
-import { Ajuda, Campo, CampoPesquisa, Rotulo } from '@/components/ui/campo';
+import { Ajuda, Campo, CampoPesquisa, Rotulo, Selecao } from '@/components/ui/campo';
 import { Segmentos } from '@/components/ui/segmentos';
 import { Tabela, TCabeca, TCorpo, TCelula, TLinha, TTitulo } from '@/components/ui/tabela';
 import { Esqueleto, EsqueletoTabela } from '@/components/ui/esqueleto';
@@ -470,12 +471,31 @@ function NovaParada({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMudar: 
 // O administrador dá ele próprio o nome, e fica aceite logo. Até aqui só se
 // reviam os nomes dos passageiros — e o «Judicial Training Center» do Google,
 // que é o Centro de Formação Jurídica, não tinha como ser corrigido.
+//
+// O FORMULÁRIO É O DA APP (NomearLugar.js), campo a campo, a pedido dele: o
+// nome, o tipo, e onde fica — endereço, município, posto, suco, aldeia e
+// bairro. O município e o posto preenchem-se pelas coordenadas, os sucos vêm
+// do posto, e as aldeias que alguém já escreveu no suco aparecem para tocar.
+// É a morada que o OpenStreetMap pede para aceitar um sítio.
+const TIPOS_LUGAR = ['casa', 'edificio', 'loja', 'restaurante', 'escola', 'hotel', 'igreja', 'mercado', 'escritorio', 'bairro', 'poi', 'outro'] as const;
+
 const esquemaBaptizar = z.object({
   nome: z.string().trim().min(2, t('parag.erroNome')).max(120, t('parag.erroNomeLongo')),
   sitio: coordenada,
   mostrarSempre: z.boolean(),
+  tipo: z.string(),
+  endereco: z.string(),
+  municipio: z.string(),
+  posto: z.string(),
+  suco: z.string(),
+  aldeia: z.string(),
+  bairro: z.string(),
 });
 type FormBaptizar = z.input<typeof esquemaBaptizar>;
+const VAZIO: FormBaptizar = { nome: '', sitio: '', mostrarSempre: false, tipo: '', endereco: '', municipio: '', posto: '', suco: '', aldeia: '', bairro: '' };
+
+// A árvore não muda enquanto o painel está aberto: pede-se uma vez.
+let arvoreGuardada: MunicipioArvore[] | null = null;
 
 function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMudar: (v: boolean) => void; aoGuardar: () => void }) {
   const {
@@ -485,15 +505,73 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
     setValue,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<FormBaptizar>({ resolver: zodResolver(esquemaBaptizar), defaultValues: { nome: '', sitio: '', mostrarSempre: false } });
+  } = useForm<FormBaptizar>({ resolver: zodResolver(esquemaBaptizar), defaultValues: VAZIO });
   const [erroServidor, setErroServidor] = useState<string | null>(null);
+  const [arvore, setArvore] = useState<MunicipioArvore[] | null>(arvoreGuardada);
+  const [morada, setMorada] = useState<MoradaDoPonto | null>(null);
+  const [aDescobrir, setADescobrir] = useState(false);
+
   // O pino segue o campo: só um ponto que se percebe e que é de Timor-Leste.
   const lido = lerCoordenadas(watch('sitio'));
   const ponto = lido && dentroDeTL(lido) ? lido : null;
-  const mostrarSempre = watch('mostrarSempre');
+  const [mostrarSempre, tipo, municipioId, postoId, sucoId, aldeia] = watch(['mostrarSempre', 'tipo', 'municipio', 'posto', 'suco', 'aldeia']);
+
+  // A árvore, ao abrir.
+  useEffect(() => {
+    if (!aberta || arvore) return;
+    api
+      .arvoreLugares()
+      .then((r) => {
+        arvoreGuardada = r.municipios;
+        setArvore(r.municipios);
+      })
+      .catch(() => {});
+  }, [aberta, arvore]);
+
+  // ONDE FICA, perguntado quando o pino pára meio segundo. Cada ponto novo
+  // volta a preencher o município e o posto; a aldeia só se estiver vazia —
+  // o que se escreveu à mão não se apaga.
+  useEffect(() => {
+    if (!aberta || !ponto) return;
+    let vivo = true;
+    const relogio = setTimeout(() => {
+      setADescobrir(true);
+      api
+        .moradaDoPonto(ponto[0], ponto[1])
+        .then((r) => {
+          if (!vivo) return;
+          setMorada(r);
+          setValue('municipio', r.municipio?.id ?? '');
+          setValue('posto', r.posto?.id ?? '');
+          if (!r.sucos.some((x) => x.id === sucoId)) setValue('suco', '');
+          if (!aldeia.trim() && r.sugestaoAldeia) setValue('aldeia', r.sugestaoAldeia);
+        })
+        .catch(() => {})
+        .finally(() => vivo && setADescobrir(false));
+    }, 500);
+    return () => {
+      vivo = false;
+      clearTimeout(relogio);
+    };
+  }, [aberta, ponto?.[0], ponto?.[1]]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // As opções de cada lista, sempre a partir do que está escolhido acima. Sem
+  // a árvore (ainda a chegar), o que as coordenadas disseram basta.
+  const municipios = arvore ?? (morada?.municipio ? [{ ...morada.municipio, postos: [] }] : []);
+  const postos =
+    arvore?.find((m) => m.id === municipioId)?.postos ??
+    (morada?.posto && morada.municipio?.id === municipioId ? [{ ...morada.posto, sucos: morada.sucos }] : []);
+  const sucos = postos.find((x) => x.id === postoId)?.sucos ?? [];
+  const nomeSuco = sucos.find((x) => x.id === sucoId)?.nome;
+  const aldeiasSugeridas = (morada?.aldeias ?? [])
+    .filter((a) => (nomeSuco ? a.suco === nomeSuco : true) && a.aldeia !== aldeia)
+    .map((a) => a.aldeia)
+    .filter((a, i, todas) => todas.indexOf(a) === i)
+    .slice(0, 6);
 
   const fechar = () => {
-    reset();
+    reset(VAZIO);
+    setMorada(null);
     setErroServidor(null);
     aoMudar(false);
   };
@@ -501,8 +579,21 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
   const guardar = handleSubmit(async (f) => {
     setErroServidor(null);
     const [lat, lng] = lerCoordenadas(f.sitio)!;
+    const texto = (v: string) => v.trim() || null;
     try {
-      await api.baptizarLugar({ nome: f.nome.trim(), lat, lng, mostrarSempre: f.mostrarSempre });
+      await api.baptizarLugar({
+        nome: f.nome.trim(),
+        lat,
+        lng,
+        mostrarSempre: f.mostrarSempre,
+        tipo: f.tipo || null,
+        endereco: texto(f.endereco),
+        municipio: municipios.find((m) => m.id === f.municipio)?.nome ?? null,
+        posto: postos.find((x) => x.id === f.posto)?.nome ?? null,
+        suco: sucos.find((x) => x.id === f.suco)?.nome ?? null,
+        aldeia: texto(f.aldeia),
+        bairro: texto(f.bairro),
+      });
       avisar.sucesso(t('parag.baptizado'), f.nome.trim());
       fechar();
       aoGuardar();
@@ -511,48 +602,169 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
     }
   });
 
+  const opcional = <span className="font-normal text-secundario"> · {t('parag.opcional')}</span>;
+
   return (
     <Janela open={aberta} onOpenChange={(v) => (v ? aoMudar(true) : fechar())}>
-      <JanelaConteudo largura="lg">
+      <JanelaConteudo largura="xl">
         <form onSubmit={guardar} noValidate className="flex min-h-0 flex-1 flex-col">
           <JanelaCabecalho>
             <JanelaTitulo>{t('parag.baptizar')}</JanelaTitulo>
             <JanelaDescricao>{t('parag.baptizarDescricao')}</JanelaDescricao>
           </JanelaCabecalho>
-          <JanelaCorpo className="space-y-4">
+          <JanelaCorpo className="grid gap-6 md:grid-cols-2">
             {erroServidor ? (
-              <p role="alert" className="rounded-lg bg-perigo-claro px-3 py-2 text-sm text-perigo">
+              <p role="alert" className="rounded-lg bg-perigo-claro px-3 py-2 text-sm text-perigo md:col-span-2">
                 {erroServidor}
               </p>
             ) : null}
-            <div>
-              {aberta ? (
-                <Suspense fallback={<Esqueleto className="h-72 w-full rounded-xl" />}>
-                  <MapaEscolher ponto={ponto} aoEscolher={(lat, lng) => setValue('sitio', `${lat}, ${lng}`, { shouldValidate: true })} />
-                </Suspense>
-              ) : null}
-              <Ajuda>{t('parag.baptizarAjudaMapa')}</Ajuda>
-            </div>
-            <div>
-              <Rotulo htmlFor="b-sitio">{t('parag.sitio')}</Rotulo>
-              <Campo id="b-sitio" inputMode="decimal" placeholder={t('parag.coordExemplo')} aria-invalid={!!errors.sitio} {...register('sitio')} />
-              {errors.sitio ? <Ajuda erro>{errors.sitio.message}</Ajuda> : null}
-            </div>
-            <div>
-              <Rotulo htmlFor="b-nome">{t('parag.nome')}</Rotulo>
-              <Campo id="b-nome" placeholder={t('parag.baptizarNomeExemplo')} aria-invalid={!!errors.nome} {...register('nome')} />
-              {errors.nome ? <Ajuda erro>{errors.nome.message}</Ajuda> : null}
-            </div>
-            <div className="flex items-start gap-3">
-              <Interruptor
-                id="b-mostrar"
-                checked={mostrarSempre}
-                onCheckedChange={(v) => setValue('mostrarSempre', v)}
-                className="mt-0.5"
-              />
+
+            {/* À esquerda: onde é. */}
+            <div className="space-y-4">
               <div>
-                <Rotulo htmlFor="b-mostrar">{t('parag.mostrarSempreRotulo')}</Rotulo>
-                <Ajuda>{t('parag.mostrarSempreAjuda')}</Ajuda>
+                {aberta ? (
+                  <Suspense fallback={<Esqueleto className="h-72 w-full rounded-xl" />}>
+                    <MapaEscolher ponto={ponto} aoEscolher={(lat, lng) => setValue('sitio', `${lat}, ${lng}`, { shouldValidate: true })} />
+                  </Suspense>
+                ) : null}
+                <Ajuda>{t('parag.baptizarAjudaMapa')}</Ajuda>
+              </div>
+              <div>
+                <Rotulo htmlFor="b-sitio">{t('parag.sitio')}</Rotulo>
+                <Campo id="b-sitio" inputMode="decimal" placeholder={t('parag.coordExemplo')} aria-invalid={!!errors.sitio} {...register('sitio')} />
+                {errors.sitio ? <Ajuda erro>{errors.sitio.message}</Ajuda> : null}
+              </div>
+              <div className="flex items-start gap-3">
+                <Interruptor id="b-mostrar" checked={mostrarSempre} onCheckedChange={(v) => setValue('mostrarSempre', v)} className="mt-0.5" />
+                <div>
+                  <Rotulo htmlFor="b-mostrar">{t('parag.mostrarSempreRotulo')}</Rotulo>
+                  <Ajuda>{t('parag.mostrarSempreAjuda')}</Ajuda>
+                </div>
+              </div>
+            </div>
+
+            {/* À direita: o que é, como na app. */}
+            <div className="space-y-4">
+              <div>
+                <Rotulo htmlFor="b-nome">{t('parag.nome')}</Rotulo>
+                <Campo id="b-nome" placeholder={t('parag.baptizarNomeExemplo')} aria-invalid={!!errors.nome} {...register('nome')} />
+                {errors.nome ? <Ajuda erro>{errors.nome.message}</Ajuda> : null}
+              </div>
+
+              <fieldset>
+                <legend className="mb-1.5 text-[13px] font-semibold text-texto">{t('parag.tipoPergunta')}</legend>
+                <div className="flex flex-wrap gap-2">
+                  {TIPOS_LUGAR.map((x) => {
+                    const escolhido = tipo === x;
+                    return (
+                      <button
+                        key={x}
+                        type="button"
+                        aria-pressed={escolhido}
+                        onClick={() => setValue('tipo', escolhido ? '' : x)}
+                        className={cn(
+                          'rounded-full border px-3 py-1 text-sm transition-colors duration-150',
+                          escolhido ? 'border-teal bg-teal-claro font-semibold text-teal-escuro' : 'border-borda bg-white text-texto hover:bg-fundo'
+                        )}
+                      >
+                        {t(`tipoLugar.${x}` as Chave)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+
+              <div className="border-t border-borda pt-4">
+                <h3 className="text-base font-bold text-texto">{t('parag.ondeFica')}</h3>
+                <p className="mt-1 text-sm text-secundario">{aDescobrir ? t('parag.aDescobrir') : t('parag.ondeFicaExplica')}</p>
+              </div>
+              <div>
+                <Rotulo htmlFor="b-endereco">
+                  {t('parag.endereco')}
+                  {opcional}
+                </Rotulo>
+                <Campo id="b-endereco" placeholder={t('parag.enderecoDica')} {...register('endereco')} />
+              </div>
+              <div>
+                <Rotulo htmlFor="b-municipio">{t('parag.municipio')}</Rotulo>
+                <Selecao
+                  id="b-municipio"
+                  value={municipioId}
+                  onChange={(e) => {
+                    // Trocar de município invalida o que está por baixo: o
+                    // posto de Díli debaixo de Baucau seria uma morada que não
+                    // existe.
+                    setValue('municipio', e.target.value);
+                    setValue('posto', '');
+                    setValue('suco', '');
+                  }}
+                >
+                  <option value="">{t('parag.escolher')}</option>
+                  {municipios.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.nome}
+                    </option>
+                  ))}
+                </Selecao>
+              </div>
+              <div>
+                <Rotulo htmlFor="b-posto">{t('parag.posto')}</Rotulo>
+                <Selecao
+                  id="b-posto"
+                  value={postoId}
+                  disabled={!municipioId}
+                  onChange={(e) => {
+                    setValue('posto', e.target.value);
+                    setValue('suco', '');
+                  }}
+                >
+                  <option value="">{municipioId ? t('parag.escolher') : t('parag.escolhaMunicipioPrimeiro')}</option>
+                  {postos.map((x) => (
+                    <option key={x.id} value={x.id}>
+                      {x.nome}
+                    </option>
+                  ))}
+                </Selecao>
+              </div>
+              <div>
+                <Rotulo htmlFor="b-suco">{t('parag.suco')}</Rotulo>
+                <Selecao id="b-suco" value={sucoId} disabled={!postoId} onChange={(e) => setValue('suco', e.target.value)}>
+                  <option value="">{postoId ? t('parag.escolher') : t('parag.escolhaPostoPrimeiro')}</option>
+                  {sucos.map((x) => (
+                    <option key={x.id} value={x.id}>
+                      {x.nome}
+                    </option>
+                  ))}
+                </Selecao>
+              </div>
+              <div>
+                <Rotulo htmlFor="b-aldeia">
+                  {t('parag.aldeia')}
+                  {opcional}
+                </Rotulo>
+                <Campo id="b-aldeia" placeholder={t('parag.aldeiaDica')} {...register('aldeia')} />
+                {aldeiasSugeridas.length ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-secundario">{t('parag.aldeiasConhecidas')}</span>
+                    {aldeiasSugeridas.map((a) => (
+                      <button
+                        key={a}
+                        type="button"
+                        onClick={() => setValue('aldeia', a)}
+                        className="rounded-full border border-borda bg-white px-2.5 py-0.5 text-xs text-texto hover:bg-fundo"
+                      >
+                        {a}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+              <div>
+                <Rotulo htmlFor="b-bairro">
+                  {t('parag.bairro')}
+                  {opcional}
+                </Rotulo>
+                <Campo id="b-bairro" placeholder={t('parag.bairroDica')} {...register('bairro')} />
               </div>
             </div>
           </JanelaCorpo>

@@ -575,6 +575,30 @@ export interface LugarProposto {
   googleConhece?: boolean | null;
 }
 
+// A árvore administrativa (dados da ONU), e o que as coordenadas dizem dela —
+// as mesmas duas respostas que o formulário da app usa (30/09/2026).
+export interface SucoArvore {
+  id: string;
+  nome: string;
+}
+export interface PostoArvore {
+  id: string;
+  nome: string;
+  sucos: SucoArvore[];
+}
+export interface MunicipioArvore {
+  id: string;
+  nome: string;
+  postos: PostoArvore[];
+}
+export interface MoradaDoPonto {
+  municipio: { id: string; nome: string } | null;
+  posto: { id: string; nome: string } | null;
+  sucos: SucoArvore[];
+  sugestaoAldeia: string | null;
+  aldeias: { suco: string; aldeia: string; vezes: number }[];
+}
+
 export interface Parada {
   id: number;
   nome: string;

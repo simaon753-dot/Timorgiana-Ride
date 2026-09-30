@@ -54,7 +54,9 @@ import {
 import { notificarMotoristaPagamento } from '../push.js';
 import { etiquetaOsm } from '../tiposDeLugar.js';
 import { googleConhece } from '../lugares.js';
-import { ondeFica } from '../administrativo.js';
+import { MUNICIPIOS, ondeFica } from '../administrativo.js';
+import { aldeiasDosSucos } from '../lugaresNossos.js';
+import { tipoValido } from '../tiposDeLugar.js';
 import { normalizar } from '../texto.js';
 import { linhasOsm } from '../etiquetasOsm.js';
 import { emitirCodigo } from '../recuperacao.js';
@@ -1718,6 +1720,20 @@ adminRouter.post(
     const lat = Number(req.body?.lat);
     const lng = Number(req.body?.lng);
     const mostrarSempre = req.body?.mostrarSempre === true;
+    // O RESTO DO FORMULÁRIO, igual ao da app (30/09/2026, pedido do Simão):
+    // o tipo e a morada. Tudo opcional, validado só no tamanho, como na app.
+    const tipo = req.body?.tipo || null;
+    const txt = (v, max) => {
+      const s = String(v ?? '').trim();
+      return s ? s.slice(0, max) : null;
+    };
+    const endereco = txt(req.body?.endereco, 200);
+    const municipio = txt(req.body?.municipio, 60);
+    const posto = txt(req.body?.posto, 60);
+    const suco = txt(req.body?.suco, 60);
+    const aldeia = txt(req.body?.aldeia, 60);
+    const bairro = txt(req.body?.bairro, 60);
+    if (!tipoValido(tipo)) return res.status(400).json({ error: 'Tipo desconhecido.' });
     if (nome.length < 2 || nome.length > 120) {
       return res.status(400).json({ error: 'O nome tem de ter entre 2 e 120 letras.' });
     }
@@ -1730,10 +1746,26 @@ adminRouter.post(
       return res.status(400).json({ error: 'Essas coordenadas não são de Timor-Leste.' });
     }
     const novo = await one(
-      `INSERT INTO lugares_propostos (user_id, nome, lat, lng, estado, nome_busca, mostrar_sempre)
-       VALUES ($1, $2, $3, $4, 'aceite', $5, $6)
+      `INSERT INTO lugares_propostos
+         (user_id, nome, lat, lng, estado, nome_busca, mostrar_sempre,
+          tipo, endereco, municipio, posto, suco, aldeia, bairro)
+       VALUES ($1, $2, $3, $4, 'aceite', $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING id, nome`,
-      [req.user.id, nome, lat, lng, normalizar(nome), mostrarSempre]
+      [
+        req.user.id,
+        nome,
+        lat,
+        lng,
+        normalizar(nome),
+        mostrarSempre,
+        tipo,
+        endereco,
+        municipio,
+        posto,
+        suco,
+        aldeia,
+        bairro,
+      ]
     );
     registarAcesso(req.user.id, `baptizou «${nome}»`, null);
     res.status(201).json({ lugar: novo });
@@ -1756,6 +1788,41 @@ adminRouter.post(
           : query('UPDATE lugares_propostos SET google_conhece = $2 WHERE id = $1', [novo.id, sabe])
       )
       .catch((e) => console.error('[lugares] googleConhece:', e.message));
+  })
+);
+
+// GET /api/admin/lugares/municipios — a árvore administrativa inteira
+// GET /api/admin/lugares/administrativo?lat=&lng= — onde fica este ponto
+//
+// As mesmas duas perguntas que o formulário da app faz (routes/lugares.js),
+// para o do painel ser igual: o município e o posto preenchem-se pelas
+// coordenadas, os sucos vêm do posto, e as aldeias que alguém já escreveu
+// aparecem como sugestão.
+adminRouter.get(
+  '/lugares/municipios',
+  wrap(async (req, res) => {
+    res.set('Cache-Control', 'private, max-age=86400');
+    res.json({ municipios: MUNICIPIOS });
+  })
+);
+
+adminRouter.get(
+  '/lugares/administrativo',
+  wrap(async (req, res) => {
+    const lat = Number(req.query.lat);
+    const lng = Number(req.query.lng);
+    const onde = await ondeFica(
+      Number.isFinite(lat) ? lat : null,
+      Number.isFinite(lng) ? lng : null
+    );
+    const aldeias = await aldeiasDosSucos((onde.sucos || []).map((s) => s.nome));
+    res.json({
+      municipio: onde.municipio ?? null,
+      posto: onde.posto ?? null,
+      sucos: onde.sucos ?? [],
+      sugestaoAldeia: onde.sugestaoAldeia ?? null,
+      aldeias,
+    });
   })
 );
 
