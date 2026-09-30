@@ -94,6 +94,9 @@ export const api = {
   viagens: (horas: number, veiculo: TipoVeiculo | 'todos') =>
     pedir<{ viagens: ViagemLinha[] }>('/admin/viagens' + q({ horas, veiculo })),
   viagem: (id: number) => pedir<RespostaViagemDetalhe>(`/admin/viagens/${id}`),
+  // O número de uma viagem pelo código que alguém ditou (TR-XXXXXX).
+  viagemPorCodigo: (codigo: string) =>
+    pedir<{ id: number; referencia: string }>(`/admin/viagens/codigo/${encodeURIComponent(codigo)}`),
 
   // Contas
   utilizadores: (params: { q?: string; papel?: string; pagina?: number }) =>

@@ -207,6 +207,8 @@ export interface Jastip {
 
 export interface ViagemLinha {
   id: number;
+  // O código que o passageiro ou o motorista dita («Booking ID», 30/09/2026).
+  referencia: string | null;
   estado: EstadoViagem;
   origem: string | null;
   destino: string | null;
@@ -246,6 +248,7 @@ export interface EventoViagem {
 
 export interface ViagemDetalhe {
   id: number;
+  referencia: string | null;
   estado: EstadoViagem;
   origem: Ponto;
   destino: Ponto;

@@ -60,6 +60,7 @@ import { TIPOS_VEICULO } from '../config.js';
 import { fotoDaCarga } from '../fotosDaCarga.js';
 import { destinosDaViagem } from '../destinosDaViagem.js';
 import { percursoDe } from '../percursos.js';
+import { normalizarReferencia } from '../referenciaViagem.js';
 
 export const adminRouter = Router();
 adminRouter.use(requireAuth);
@@ -678,7 +679,7 @@ adminRouter.get(
     // misturados com as centenas de viagens de pessoas e não se contam.
     const veiculo = TIPOS_VEICULO.includes(req.query.veiculo) ? req.query.veiculo : 'todos';
     const rows = await query(
-      `SELECT r.id, r.status, r.dest_label, r.origin_label, r.fare_usd,
+      `SELECT r.id, r.referencia, r.status, r.dest_label, r.origin_label, r.fare_usd,
               r.distance_km, r.duration_min, r.passengers, r.cancel_reason,
               r.created_at, r.started_at, r.vehicle_type,
               r.carga_tipo, r.carga_volume, r.carga_ajuda, r.carga_notas, r.carga_outro, r.carga_extra,
@@ -703,6 +704,7 @@ adminRouter.get(
     res.json({
       viagens: rows.map((r) => ({
         id: r.id,
+        referencia: r.referencia || null,
         estado: r.status,
         origem: r.origin_label,
         destino: r.dest_label,
@@ -991,6 +993,20 @@ adminRouter.get(
   })
 );
 
+// GET /api/admin/viagens/codigo/:codigo — o número de uma viagem pelo código
+// que o passageiro ou o motorista ditou (30/09/2026). Para a pesquisa do
+// painel. Aceita o código como se escreve ou dita — ver
+// `normalizarReferencia`. Tem de vir ANTES de `/viagens/:id`.
+adminRouter.get(
+  '/viagens/codigo/:codigo',
+  wrap(async (req, res) => {
+    const ref = normalizarReferencia(req.params.codigo);
+    const r = ref ? await one('SELECT id FROM rides WHERE referencia = $1', [ref]) : null;
+    if (!r) return res.status(404).json({ error: 'Viagem não encontrada.' });
+    return res.json({ id: r.id, referencia: ref });
+  })
+);
+
 // GET /api/admin/viagens/:id — tudo sobre uma viagem
 adminRouter.get(
   '/viagens/:id',
@@ -1052,6 +1068,7 @@ adminRouter.get(
       percurso,
       viagem: {
         id: r.id,
+        referencia: r.referencia || null,
         estado: r.status,
         origem: { nome: r.origin_label, lat: r.origin_lat, lng: r.origin_lng },
         destino: { nome: r.dest_label, lat: r.dest_lat, lng: r.dest_lng },

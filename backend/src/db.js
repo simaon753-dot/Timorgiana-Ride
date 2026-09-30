@@ -1,6 +1,7 @@
 import pg from 'pg';
 import { config } from './config.js';
 import { normalizar } from './texto.js';
+import { novaReferencia } from './referenciaViagem.js';
 
 const { Pool } = pg;
 
@@ -448,6 +449,24 @@ export async function initSchema() {
   // que quem entrou no carro é quem pediu, e impede o motorista de marcar
   // viagens que não fez.
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS pickup_code TEXT`);
+  // O CÓDIGO DA VIAGEM («Booking ID», 30/09/2026) — ver referenciaViagem.js.
+  // Único na base. As viagens antigas recebem o seu aqui, uma só vez: sem
+  // ele, a de ontem não se encontrava pela pesquisa do painel.
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS referencia TEXT`);
+  await query('CREATE UNIQUE INDEX IF NOT EXISTS idx_rides_referencia ON rides(referencia)');
+  for (const r of await query('SELECT id FROM rides WHERE referencia IS NULL')) {
+    for (let tentativa = 0; tentativa < 5; tentativa++) {
+      try {
+        await query('UPDATE rides SET referencia = $2 WHERE id = $1 AND referencia IS NULL', [
+          r.id,
+          novaReferencia(),
+        ]);
+        break;
+      } catch (e) {
+        if (e?.code !== '23505') throw e; // um código repetido: tenta-se outro
+      }
+    }
+  }
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ`);
   // A hora em que um motorista aceitou (14/09/26). A app mostra-a no indicador
   // de etapas do passageiro ("Motorista iha dalan 21:55"); as viagens antigas

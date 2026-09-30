@@ -63,6 +63,7 @@ export function DetalheViagem({ id, aoFechar }: { id: number | null; aoFechar: (
               <IconeVeiculo tipo={v.veiculo} /> {tl('veiculo', v.veiculo)}
             </span>
             <span>· {dataHora(v.pedida)}</span>
+            {v.referencia ? <span className="numeros font-semibold text-texto">· {v.referencia}</span> : null}
           </span>
         ) : undefined
       }

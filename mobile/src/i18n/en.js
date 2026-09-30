@@ -719,6 +719,7 @@ export default {
   pickupPoint: 'Pickup',
   dropoffPoint: 'Destination',
   noDriverNearby: 'No drivers nearby',
+  codigoViagem: 'Trip ID',
   motoristasPertoN: '{n} free drivers nearby',
   motoristasPertoNenhum: 'No free drivers nearby',
   payCash: 'Cash',

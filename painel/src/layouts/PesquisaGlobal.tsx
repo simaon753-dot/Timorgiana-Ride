@@ -5,6 +5,7 @@ import { Car, LoaderCircle, MapPin, Route, Search, ShieldCheck, User } from 'luc
 import { useNavigate } from 'react-router';
 import { t, tl } from '@/i18n';
 import { api } from '@/services/admin';
+import { avisar } from '@/components/ui/aviso';
 import type { LugarProposto, Parada, UtilizadorLinha } from '@/types/api';
 import { GRUPOS } from './navegacao';
 
@@ -58,6 +59,19 @@ export function PesquisaGlobal({ aberta, aoMudar }: { aberta: boolean; aoMudar: 
 
   const q = texto.trim().toLowerCase();
   const numeroViagem = /^#?\d{1,9}$/.test(texto.trim()) ? Number(texto.trim().replace('#', '')) : null;
+  // O CÓDIGO DA VIAGEM que alguém ditou (30/09/2026): «TR-7K3Q9M», «tr 7k3q9m»
+  // ou só «7K3Q9M». O mesmo alfabeto do servidor (backend/src/referenciaViagem.js):
+  // sem 0/O nem 1/I/L, que se confundem ao ditar.
+  const codigoLimpo = texto.toUpperCase().replace(/[\s-]/g, '').replace(/^TR/, '');
+  const codigoViagem = /^[2-9A-HJ-KM-NP-Z]{6}$/.test(codigoLimpo) ? `TR-${codigoLimpo}` : null;
+  const abrirPorCodigo = async (codigo: string) => {
+    try {
+      const r = await api.viagemPorCodigo(codigo);
+      ir(`/viagens?viagem=${r.id}`);
+    } catch {
+      avisar.erro(t('pesquisa.codigoNaoEncontrado', { codigo }));
+    }
+  };
 
   const paginas = useMemo(
     () => GRUPOS.flatMap((g) => g.itens).filter((i) => !q || t(i.rotulo).toLowerCase().includes(q)),
@@ -104,6 +118,14 @@ export function PesquisaGlobal({ aberta, aoMudar }: { aberta: boolean; aoMudar: 
               <Command.Empty className="px-3 py-8 text-center text-sm text-secundario">
                 {q.length < 2 ? t('pesquisa.dica') : t('pesquisa.vazio')}
               </Command.Empty>
+
+              {codigoViagem ? (
+                <Command.Group heading={t('pesquisa.viagens')} className={classeGrupo}>
+                  <Command.Item value={`codigo-${codigoViagem}`} onSelect={() => abrirPorCodigo(codigoViagem)} className={classeItem}>
+                    <Route /> {t('pesquisa.abrirViagemCodigo', { codigo: codigoViagem })}
+                  </Command.Item>
+                </Command.Group>
+              ) : null}
 
               {numeroViagem ? (
                 <Command.Group heading={t('pesquisa.viagens')} className={classeGrupo}>

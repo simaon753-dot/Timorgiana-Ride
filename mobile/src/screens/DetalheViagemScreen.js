@@ -106,6 +106,14 @@ export default function DetalheViagemScreen({ navigation, route }) {
             <Text style={styles.preco}>{r.fareUsd != null ? `$${r.fareUsd}` : '—'}</Text>
           </View>
           <Text style={styles.data}>{dataHora(r.createdAt)}</Text>
+          {/* O CÓDIGO DA VIAGEM (30/09/2026, pedido do Simão) — o que se dita
+              a quem apoia, e que o painel encontra numa pesquisa. Selecionável:
+              um toque longo dá «Copiar», sem biblioteca nova (que pedia APK). */}
+          {r.referencia ? (
+            <Text style={styles.codigo} selectable>
+              {t('codigoViagem')}: <Text style={styles.codigoValor}>{r.referencia}</Text>
+            </Text>
+          ) : null}
 
           {/* O percurso: dois pontos e um traço, a mesma leitura do cartão da
               viagem em curso — recolha em cima, destino em baixo. */}
@@ -196,6 +204,7 @@ export default function DetalheViagemScreen({ navigation, route }) {
             onPress={() =>
               navigation.navigate('Reportar', {
                 rideId: r.id,
+                referencia: r.referencia || null,
                 papel: dados.papel,
               })
             }
@@ -275,6 +284,8 @@ const criarEstilos = () =>
     },
     preco: { ...tipo.titulo, ...tipo.numero, color: colors.teal },
     data: { ...tipo.legenda, color: colors.textMuted, marginTop: spacing.xs },
+    codigo: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
+    codigoValor: { ...tipo.numero, color: colors.text, letterSpacing: 0.6 },
     percurso: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.md },
     trilho: { alignItems: 'center', paddingTop: 5, paddingBottom: 5 },
     ponto: { width: 10, height: 10, borderRadius: 5 },

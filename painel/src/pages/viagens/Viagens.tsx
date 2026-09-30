@@ -62,7 +62,7 @@ export function Viagens() {
     return (lista.dados?.viagens ?? []).filter((v) => {
       if (!bateEstado(v, estado)) return false;
       if (!q) return true;
-      return [String(v.id), v.passageiro, v.motorista, v.origem, v.destino, ...v.paragens]
+      return [String(v.id), v.referencia, v.passageiro, v.motorista, v.origem, v.destino, ...v.paragens]
         .filter(Boolean)
         .some((x) => String(x).toLowerCase().includes(q));
     });
@@ -224,6 +224,7 @@ export function Viagens() {
                         <span className="numeros inline-flex items-center gap-2 font-semibold text-texto">
                           <IconeVeiculo tipo={v.veiculo} className="text-secundario" />#{v.id}
                         </span>
+                        {v.referencia ? <span className="numeros ml-2 text-xs text-secundario">{v.referencia}</span> : null}
                       </TCelula>
                       <TCelula className="max-w-44 truncate">{v.passageiro}</TCelula>
                       <TCelula className="max-w-44 truncate">
@@ -262,7 +263,10 @@ export function Viagens() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <p className="numeros font-semibold">#{v.id}</p>
+                        <p className="numeros font-semibold">
+                          #{v.id}
+                          {v.referencia ? <span className="ml-2 text-xs font-normal text-secundario">{v.referencia}</span> : null}
+                        </p>
                         <EstadoDaViagem estado={v.estado} semMotorista={semMotorista(v)} />
                       </div>
                       <p className="mt-1 truncate text-sm">

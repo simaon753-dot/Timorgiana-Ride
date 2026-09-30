@@ -10,6 +10,7 @@ import {
 } from './config.js';
 import { municipioDe } from './municipios.js';
 import { guardarDestinos } from './destinosDaViagem.js';
+import { novaReferencia } from './referenciaViagem.js';
 
 // Estados que ainda contam como "viagem a decorrer"
 // Estados em que a viagem AINDA ESTÁ A ACONTECER e tem de aparecer ao
@@ -124,6 +125,8 @@ export function toPublicRide(row, opcoes = {}) {
       ? { pickupKm: row.pickup_km != null ? Math.round(row.pickup_km * 10) / 10 : null }
       : {}),
     id: row.id,
+    // O código para dizer a quem apoia — ver referenciaViagem.js.
+    referencia: row.referencia || null,
     status: row.status,
     destLabel: row.dest_label,
     destLat: row.dest_lat ?? null,
@@ -385,8 +388,9 @@ export async function createRide({
   const tetoJastip = listaJastip ? num(jastipTeto) : null;
   const taxaJastip = tetoJastip != null ? num(jastipTaxa) : null;
 
-  const inserted = await one(
-    `INSERT INTO rides
+  const inserir = (referencia) =>
+    one(
+      `INSERT INTO rides
        (passenger_id, dest_label, dest_lat, dest_lng, origin_label, origin_lat, origin_lng,
         origin_escolhido_lat, origin_escolhido_lng, dest_escolhido_lat, dest_escolhido_lng,
         vehicle_type, fare_usd, distance_km, duration_min, passengers,
@@ -394,66 +398,83 @@ export async function createRide({
         viajante_nome, viajante_telefone, viajante_menor, consentimento_em,
         carga_tipo, carga_volume, carga_ajuda, carga_notas, carga_declarado_em, carga_outro,
         carga_extra, servico, jastip_lista, jastip_itens, jastip_loja, jastip_teto, jastip_taxa,
-        status)
+        referencia, status)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,
              $19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32::jsonb,$33,$34,$35,
-             'requested')
+             $36, 'requested')
      RETURNING id`,
-    [
-      passengerId,
-      destLabel.trim(),
-      num(destLat),
-      num(destLng),
-      originLabel?.trim() || null,
-      num(originLat),
-      num(originLng),
-      num(originEscolhido?.lat),
-      num(originEscolhido?.lng),
-      num(destEscolhido?.lat),
-      num(destEscolhido?.lng),
-      TIPOS_VEICULO.includes(vehicleType) ? vehicleType : null,
-      num(fareUsd),
-      num(distanceKm),
-      durationMin != null ? Math.round(Number(durationMin)) : null,
-      // O 8 é do carro. Num Carry com pessoas o limite é outro, e cortar um
-      // grupo de 15 em 8 era mandar metade da família a pé sem ninguém saber.
-      passengers != null
-        ? Math.max(1, Math.min(vehicleType === 'carry' ? MAX_PESSOAS_CARRY : 8, Number(passengers)))
-        : null,
-      codigo,
-      // O município é o da RECOLHA, não o do destino. É de onde o passageiro
-      // está à espera que interessa a quem o vai buscar: uma viagem de Díli
-      // para Baucau é um pedido de Díli, e é em Díli que tem de aparecer.
-      municipioDe(num(originLat), num(originLng)),
-      nomeViajante,
-      telefoneViajante,
-      ehMenor,
-      // O CONSENTIMENTO SÓ EXISTE SE HOUVER MENOR.
-      //
-      // Guardar a hora numa viagem de adulto seria guardar a declaração de
-      // uma coisa que ninguém declarou. Um registo que diz mais do que
-      // aconteceu não vale mais: vale menos, porque deixa de se poder
-      // confiar nele.
-      ehMenor ? new Date() : null,
-      tipoCarga,
-      volumeCarga,
-      ajudaCarga,
-      notasCarga,
-      // A DECLARAÇÃO SÓ EXISTE SE HOUVER CARGA, pela mesma razão do
-      // consentimento acima: guardar a hora de uma declaração numa viagem de
-      // pessoas seria guardar a declaração de uma coisa que ninguém declarou.
-      // Um registo que diz mais do que aconteceu vale menos, não mais.
-      tipoCarga && cargaDeclarada ? new Date() : null,
-      outroCarga,
-      extrasCarga.length ? extrasCarga.join(',') : null,
-      listaJastip ? servico : null,
-      listaJastip,
-      itensJastip ? JSON.stringify(itensJastip) : null,
-      lojaJastip,
-      tetoJastip,
-      taxaJastip,
-    ]
-  );
+      [
+        passengerId,
+        destLabel.trim(),
+        num(destLat),
+        num(destLng),
+        originLabel?.trim() || null,
+        num(originLat),
+        num(originLng),
+        num(originEscolhido?.lat),
+        num(originEscolhido?.lng),
+        num(destEscolhido?.lat),
+        num(destEscolhido?.lng),
+        TIPOS_VEICULO.includes(vehicleType) ? vehicleType : null,
+        num(fareUsd),
+        num(distanceKm),
+        durationMin != null ? Math.round(Number(durationMin)) : null,
+        // O 8 é do carro. Num Carry com pessoas o limite é outro, e cortar um
+        // grupo de 15 em 8 era mandar metade da família a pé sem ninguém saber.
+        passengers != null
+          ? Math.max(
+              1,
+              Math.min(vehicleType === 'carry' ? MAX_PESSOAS_CARRY : 8, Number(passengers))
+            )
+          : null,
+        codigo,
+        // O município é o da RECOLHA, não o do destino. É de onde o passageiro
+        // está à espera que interessa a quem o vai buscar: uma viagem de Díli
+        // para Baucau é um pedido de Díli, e é em Díli que tem de aparecer.
+        municipioDe(num(originLat), num(originLng)),
+        nomeViajante,
+        telefoneViajante,
+        ehMenor,
+        // O CONSENTIMENTO SÓ EXISTE SE HOUVER MENOR.
+        //
+        // Guardar a hora numa viagem de adulto seria guardar a declaração de
+        // uma coisa que ninguém declarou. Um registo que diz mais do que
+        // aconteceu não vale mais: vale menos, porque deixa de se poder
+        // confiar nele.
+        ehMenor ? new Date() : null,
+        tipoCarga,
+        volumeCarga,
+        ajudaCarga,
+        notasCarga,
+        // A DECLARAÇÃO SÓ EXISTE SE HOUVER CARGA, pela mesma razão do
+        // consentimento acima: guardar a hora de uma declaração numa viagem de
+        // pessoas seria guardar a declaração de uma coisa que ninguém declarou.
+        // Um registo que diz mais do que aconteceu vale menos, não mais.
+        tipoCarga && cargaDeclarada ? new Date() : null,
+        outroCarga,
+        extrasCarga.length ? extrasCarga.join(',') : null,
+        listaJastip ? servico : null,
+        listaJastip,
+        itensJastip ? JSON.stringify(itensJastip) : null,
+        lojaJastip,
+        tetoJastip,
+        taxaJastip,
+        referencia,
+      ]
+    );
+  // O CÓDIGO DA VIAGEM é sorteado (referenciaViagem.js) e o índice único da
+  // base é quem garante que não se repete. Se se repetir — uma vez em
+  // centenas de milhões —, sorteia-se outro; qualquer outro erro sobe.
+  let inserted;
+  for (let tentativa = 0; ; tentativa++) {
+    try {
+      inserted = await inserir(novaReferencia());
+      break;
+    } catch (e) {
+      const repetido = e?.code === '23505' && String(e?.constraint || '').includes('referencia');
+      if (!repetido || tentativa >= 4) throw e;
+    }
+  }
   // AS PARAGENS, agora que a viagem tem id: a chave estrangeira aponta para
   // `rides(id)` e esse número só existe depois do INSERT. Mesma ordem das
   // fotografias da carga, pela mesma razão.

@@ -724,6 +724,7 @@ export default {
   pickupPoint: 'Foti',
   dropoffPoint: 'Destinu',
   noDriverNearby: 'La iha motorista ne’ebé besik',
+  codigoViagem: 'Kódigu viajen',
   motoristasPertoN: 'Motorista {n} livre besik',
   motoristasPertoNenhum: 'La iha motorista livre ida besik',
   payCash: 'Osan',

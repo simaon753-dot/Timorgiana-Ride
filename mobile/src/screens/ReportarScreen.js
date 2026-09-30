@@ -53,7 +53,7 @@ const DESCRICAO_MIN_OUTRO = 10;
 export default function ReportarScreen({ navigation, route }) {
   const { t } = useI18n();
   const { token } = useAuth();
-  const { rideId, papel } = route.params || {};
+  const { rideId, papel, referencia } = route.params || {};
   const lista = papel === 'driver' ? CATEGORIAS_DO_MOTORISTA : CATEGORIAS_DO_PASSAGEIRO;
   const [categoria, setCategoria] = useState(null);
   const [descricao, setDescricao] = useState('');
@@ -90,6 +90,12 @@ export default function ReportarScreen({ navigation, route }) {
         </View>
         <ScrollView contentContainerStyle={styles.conteudo} keyboardShouldPersistTaps="handled">
           <Text style={styles.titulo}>{t('reportarTitulo')}</Text>
+          {/* De que viagem se está a falar — o mesmo código do detalhe. */}
+          {referencia ? (
+            <Text style={styles.codigo} selectable>
+              {t('codigoViagem')}: <Text style={styles.codigoValor}>{referencia}</Text>
+            </Text>
+          ) : null}
           <Text style={styles.texto}>{t('reportarTexto')}</Text>
 
           {/* EM PERIGO AGORA, isto não serve: uma ocorrência é lida por uma
@@ -154,6 +160,8 @@ const criarEstilos = () =>
     cabeca: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
     conteudo: { padding: spacing.lg, paddingTop: spacing.sm, gap: spacing.md },
     titulo: { ...tipo.titulo, color: colors.text },
+    codigo: { ...tipo.legenda, color: colors.textMuted, marginBottom: spacing.xs },
+    codigoValor: { ...tipo.numero, color: colors.text, letterSpacing: 0.6 },
     texto: { ...tipo.corpo, color: colors.textMuted },
     aviso: {
       backgroundColor: colors.tintaPerigo,

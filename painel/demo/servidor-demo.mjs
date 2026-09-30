@@ -114,6 +114,7 @@ const viagens = Array.from({ length: 28 }).map((_, i) => {
   const km = Math.round((2 + acaso() * 12) * 10) / 10;
   return {
     id: 1060 - i,
+    referencia: `TR-${'7K3Q9M4HV2JRXCPW'.slice(i % 10, (i % 10) + 6)}`,
     estado,
     origem: LUGARES_DILI[i % LUGARES_DILI.length],
     destino: LUGARES_DILI[(i + 5) % LUGARES_DILI.length],
@@ -268,9 +269,12 @@ const json = (res, corpo, estado = 200) => {
   res.writeHead(estado, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
   res.end(JSON.stringify(corpo));
 };
+// O ficheiro lê-se ANTES de começar a resposta: se falhar a meio, o erro
+// ainda pode ir como resposta, em vez de derrubar o servidor (30/09/2026).
 const imagem = (res, n) => {
+  const dados = fs.readFileSync(IMAGENS[Math.abs(n) % IMAGENS.length]);
   res.writeHead(200, { 'Content-Type': 'image/png' });
-  res.end(fs.readFileSync(IMAGENS[Math.abs(n) % IMAGENS.length]));
+  res.end(dados);
 };
 const corpoDe = (req) =>
   new Promise((ok) => {
@@ -406,6 +410,12 @@ async function api(req, res, url) {
       viagens: viagens.filter((v) => Date.parse(v.quando) > agora - horas * 3600_000 && (veiculo === 'todos' || v.veiculo === veiculo)),
     });
   }
+  if ((x = m(/^\/admin\/viagens\/codigo\/([^/]+)$/))) {
+    const cod = decodeURIComponent(x[1]).toUpperCase().replace(/[\s-]/g, '').replace(/^TR/, '');
+    const v = viagens.find((o) => o.referencia === `TR-${cod}`);
+    if (!v) return json(res, { error: 'Viagem não encontrada.' }, 404);
+    return json(res, { id: v.id, referencia: v.referencia });
+  }
   if ((x = m(/^\/admin\/viagens\/(\d+)$/))) {
     const v = viagens.find((o) => o.id === Number(x[1]));
     if (!v) return json(res, { error: 'Viagem não encontrada.' }, 404);
@@ -433,7 +443,7 @@ async function api(req, res, url) {
       percurso,
       eventos: eventos.map((e) => ({ quemId: null, de: null, para: null, onde: null, preco: null, detalhe: null, ...e })),
       viagem: {
-        id: v.id, estado: v.estado,
+        id: v.id, referencia: v.referencia, estado: v.estado,
         origem: { nome: v.origem, lat: -8.5536, lng: 125.5783 }, destino: { nome: v.destino, lat: -8.5196, lng: 125.6076 },
         preco: v.preco, km: v.km, min: v.min, veiculo: v.veiculo, pessoas: 1,
         paragens: v.paragens.map((n) => ({ nome: n, lat: -8.5580, lng: 125.5790 })),
@@ -711,7 +721,10 @@ http
       res.writeHead(404);
       res.end();
     } catch (e) {
-      json(res, { error: String(e?.message || e) }, 500);
+      // Uma resposta já começada não se recomeça — tentar era o que derrubava
+      // o servidor inteiro (ERR_HTTP_HEADERS_SENT).
+      if (res.headersSent) res.end();
+      else json(res, { error: String(e?.message || e) }, 500);
     }
   })
   .listen(PORTA, () => console.log(`Painel de demonstração (dados fictícios) em http://localhost:${PORTA}/painel`));

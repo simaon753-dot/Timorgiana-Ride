@@ -17,7 +17,7 @@ export const viagens = {
   'viag.estadoConcluidas': 'Concluídas',
   'viag.estadoCanceladas': 'Canceladas',
   'viag.estadoSemMotorista': 'Sem motorista',
-  'viag.procurar': 'Procurar por nº, pessoa ou lugar',
+  'viag.procurar': 'Procurar por nº, código, pessoa ou lugar',
   'viag.colId': 'ID',
   'viag.colPassageiro': 'Passageiro',
   'viag.colMotorista': 'Motorista',

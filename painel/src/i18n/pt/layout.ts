@@ -50,6 +50,8 @@ export const layout = {
   'pesquisa.lugares': 'Lugares',
   'pesquisa.administradores': 'Administradores',
   'pesquisa.abrirViagem': 'Abrir a viagem #{n}',
+  'pesquisa.abrirViagemCodigo': 'Abrir a viagem {codigo}',
+  'pesquisa.codigoNaoEncontrado': 'Nenhuma viagem com o código {codigo}.',
   'pesquisa.aProcurar': 'A procurar…',
 
   'rodape.direitos': '© {ano} TimorgianaRide. Todos os direitos reservados.',

@@ -729,6 +729,8 @@ export default {
   pickupPoint: 'Recolha',
   dropoffPoint: 'Destino',
   noDriverNearby: 'Sem motoristas por perto',
+  // O «Booking ID» (30/09/2026): o código que se dita a quem apoia.
+  codigoViagem: 'Código da viagem',
   // O ícone dos motoristas livres perto (30/09/2026), para o leitor de ecrã.
   motoristasPertoN: '{n} motoristas livres perto',
   motoristasPertoNenhum: 'Nenhum motorista livre perto',
