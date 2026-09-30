@@ -398,7 +398,7 @@ export const MENSAGENS = {
   'Tipo desconhecido.': ['Tipu deskoñesidu.', 'Unknown type.'],
   'Nome inválido.': ['Naran inválidu.', 'Invalid name.'],
   'Faltam as coordenadas.': ['Falta koordenada.', 'Coordinates missing.'],
-  // Baptizar um sítio no painel (30/09/2026). Tétum por rever pelo Simão.
+  // Baptizar um sítio no painel (30/09/2026). Tétum revisto pelo Simão no mesmo dia.
   'O nome tem de ter entre 2 e 120 letras.': [
     'Naran tenke iha letra 2 to’o 120.',
     'The name must be 2 to 120 characters long.',
