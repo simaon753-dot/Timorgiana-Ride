@@ -1084,7 +1084,7 @@ export default {
   admLugarRecusado: 'La simu',
   lugarQueTipo: 'Fatin ne’e nia tipu saida?',
   lugarTipoOutro: 'Tipu saida?',
-  lugarTipoOutroDica: 'Ez.: Farmásia, ofisina, bomba gazolina',
+  lugarTipoOutroDica: 'Ez.: Farmásia, ofisina, postu gasolina',
   tipoCasa: 'Uma',
   tipoEdificio: 'Edifísiu',
   tipoLoja: 'Loja',
