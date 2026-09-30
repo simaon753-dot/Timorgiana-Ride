@@ -4,6 +4,7 @@ import type { Map as MapaLibre, Marker } from 'maplibre-gl';
 // O mesmo trabalhador do mapa da viagem — ver a nota em MapaViagem.tsx.
 import urlTrabalhador from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { t } from '@/i18n';
+import { cn } from '@/lib/utils';
 
 type Ponto = [number, number]; // [lat, lng], como as coordenadas se colam
 const DILI: [number, number] = [125.5736, -8.5569]; // [lng, lat], como o MapLibre as quer
@@ -18,7 +19,9 @@ const DILI: [number, number] = [125.5736, -8.5569]; // [lng, lat], como o MapLib
 //
 // Clicar põe o pino; arrastá-lo afina. `ponto` é quem manda: o que vier do
 // campo de texto move o pino, e o que o pino fizer volta por `aoEscolher`.
-export default function MapaEscolher({ ponto, aoEscolher }: { ponto: Ponto | null; aoEscolher: (lat: number, lng: number) => void }) {
+// `className` é a altura: por omissão fixa; com `flex-1` estica até ao fundo da
+// caixa de fora (a janela de baptizar no ecrã inteiro).
+export default function MapaEscolher({ ponto, aoEscolher, className }: { ponto: Ponto | null; aoEscolher: (lat: number, lng: number) => void; className?: string }) {
   const caixa = useRef<HTMLDivElement>(null);
   const mapa = useRef<MapaLibre | null>(null);
   const marca = useRef<Marker | null>(null);
@@ -102,8 +105,8 @@ export default function MapaEscolher({ ponto, aoEscolher }: { ponto: Ponto | nul
   useEffect(porMarca, [ponto?.[0], ponto?.[1]]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-borda bg-teal-suave">
-      <div ref={caixa} className="h-72 w-full" role="application" aria-label={t('parag.baptizarMapa')} />
+    <div className={cn('relative overflow-hidden rounded-xl border border-borda bg-teal-suave', className ?? 'h-72')}>
+      <div ref={caixa} className="h-full w-full" role="application" aria-label={t('parag.baptizarMapa')} />
       {falhou ? (
         <p className="absolute inset-x-3 bottom-3 rounded-lg bg-white/95 px-3 py-2 text-xs text-secundario shadow-subtil">
           {t('det.mapaIndisponivel')}

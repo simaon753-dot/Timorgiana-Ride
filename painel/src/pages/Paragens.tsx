@@ -510,6 +510,11 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
   const [arvore, setArvore] = useState<MunicipioArvore[] | null>(arvoreGuardada);
   const [morada, setMorada] = useState<MoradaDoPonto | null>(null);
   const [aDescobrir, setADescobrir] = useState(false);
+  // Os baptizados desde que a janela abriu. A janela FICA ABERTA depois de
+  // baptizar (30/09/2026, pedido do Simão): quem está a dar nome a uma rua
+  // inteira de sítios não quer reabri-la a cada um. Esta lista é o que lhe
+  // diz que o anterior ficou guardado.
+  const [baptizados, setBaptizados] = useState<string[]>([]);
 
   // O pino segue o campo: só um ponto que se percebe e que é de Timor-Leste.
   const lido = lerCoordenadas(watch('sitio'));
@@ -569,10 +574,16 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
     .filter((a, i, todas) => todas.indexOf(a) === i)
     .slice(0, 6);
 
-  const fechar = () => {
+  // Limpar os campos para o sítio seguinte. O mapa fica onde está — o próximo
+  // sítio costuma ser ali ao lado —, só o pino sai.
+  const limpar = () => {
     reset(VAZIO);
     setMorada(null);
     setErroServidor(null);
+  };
+  const fechar = () => {
+    limpar();
+    setBaptizados([]);
     aoMudar(false);
   };
 
@@ -594,8 +605,11 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
         aldeia: texto(f.aldeia),
         bairro: texto(f.bairro),
       });
-      avisar.sucesso(t('parag.baptizado'), f.nome.trim());
-      fechar();
+      // Sem aviso a flutuar: ficava por cima do botão «Baptizar» durante uns
+      // segundos, a apanhar o clique do sítio seguinte. A confirmação é a
+      // linha do rodapé, que o leitor de ecrã também anuncia.
+      setBaptizados((b) => [f.nome.trim(), ...b]);
+      limpar();
       aoGuardar();
     } catch (e) {
       setErroServidor(mensagemDe(e));
@@ -606,25 +620,31 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
 
   return (
     <Janela open={aberta} onOpenChange={(v) => (v ? aoMudar(true) : fechar())}>
-      <JanelaConteudo largura="xl">
+      <JanelaConteudo largura="tela">
         <form onSubmit={guardar} noValidate className="flex min-h-0 flex-1 flex-col">
           <JanelaCabecalho>
             <JanelaTitulo>{t('parag.baptizar')}</JanelaTitulo>
             <JanelaDescricao>{t('parag.baptizarDescricao')}</JanelaDescricao>
           </JanelaCabecalho>
-          <JanelaCorpo className="grid gap-6 md:grid-cols-2">
+          {/* NO ECRÃ INTEIRO (30/09/2026): em ecrã largo, cada coluna ocupa a
+              altura toda e rola sozinha se não couber — o mapa estica até ao
+              fundo, e os campos ficam compactos para caberem sem rolar. No
+              telemóvel, uma coluna só, a rolar como antes. */}
+          <JanelaCorpo className="grid gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:grid-rows-[minmax(0,1fr)] md:overflow-hidden">
             {erroServidor ? (
               <p role="alert" className="rounded-lg bg-perigo-claro px-3 py-2 text-sm text-perigo md:col-span-2">
                 {erroServidor}
               </p>
             ) : null}
 
-            {/* À esquerda: onde é. */}
-            <div className="space-y-4">
-              <div>
+            {/* À esquerda: onde é. O MAPA É O MAIOR da janela (30/09/2026,
+                pedido do Simão): três quintos da largura e a altura toda; por
+                baixo dele só as coordenadas. */}
+            <div className="flex min-h-0 flex-col gap-3">
+              <div className="flex min-h-0 flex-1 flex-col">
                 {aberta ? (
-                  <Suspense fallback={<Esqueleto className="h-72 w-full rounded-xl" />}>
-                    <MapaEscolher ponto={ponto} aoEscolher={(lat, lng) => setValue('sitio', `${lat}, ${lng}`, { shouldValidate: true })} />
+                  <Suspense fallback={<Esqueleto className="min-h-80 w-full flex-1 rounded-xl" />}>
+                    <MapaEscolher className="min-h-80 flex-1" ponto={ponto} aoEscolher={(lat, lng) => setValue('sitio', `${lat}, ${lng}`, { shouldValidate: true })} />
                   </Suspense>
                 ) : null}
                 <Ajuda>{t('parag.baptizarAjudaMapa')}</Ajuda>
@@ -634,17 +654,10 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
                 <Campo id="b-sitio" inputMode="decimal" placeholder={t('parag.coordExemplo')} aria-invalid={!!errors.sitio} {...register('sitio')} />
                 {errors.sitio ? <Ajuda erro>{errors.sitio.message}</Ajuda> : null}
               </div>
-              <div className="flex items-start gap-3">
-                <Interruptor id="b-mostrar" checked={mostrarSempre} onCheckedChange={(v) => setValue('mostrarSempre', v)} className="mt-0.5" />
-                <div>
-                  <Rotulo htmlFor="b-mostrar">{t('parag.mostrarSempreRotulo')}</Rotulo>
-                  <Ajuda>{t('parag.mostrarSempreAjuda')}</Ajuda>
-                </div>
-              </div>
             </div>
 
             {/* À direita: o que é, como na app. */}
-            <div className="space-y-4">
+            <div className="min-h-0 space-y-3 md:overflow-y-auto md:pr-1">
               <div>
                 <Rotulo htmlFor="b-nome">{t('parag.nome')}</Rotulo>
                 <Campo id="b-nome" placeholder={t('parag.baptizarNomeExemplo')} aria-invalid={!!errors.nome} {...register('nome')} />
@@ -653,7 +666,7 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
 
               <fieldset>
                 <legend className="mb-1.5 text-[13px] font-semibold text-texto">{t('parag.tipoPergunta')}</legend>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {TIPOS_LUGAR.map((x) => {
                     const escolhido = tipo === x;
                     return (
@@ -663,7 +676,7 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
                         aria-pressed={escolhido}
                         onClick={() => setValue('tipo', escolhido ? '' : x)}
                         className={cn(
-                          'rounded-full border px-3 py-1 text-sm transition-colors duration-150',
+                          'rounded-full border px-2.5 py-0.5 text-[13px] transition-colors duration-150',
                           escolhido ? 'border-teal bg-teal-claro font-semibold text-teal-escuro' : 'border-borda bg-white text-texto hover:bg-fundo'
                         )}
                       >
@@ -674,7 +687,7 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
                 </div>
               </fieldset>
 
-              <div className="border-t border-borda pt-4">
+              <div className="border-t border-borda pt-3">
                 <h3 className="text-base font-bold text-texto">{t('parag.ondeFica')}</h3>
                 <p className="mt-1 text-sm text-secundario">{aDescobrir ? t('parag.aDescobrir') : t('parag.ondeFicaExplica')}</p>
               </div>
@@ -685,92 +698,109 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
                 </Rotulo>
                 <Campo id="b-endereco" placeholder={t('parag.enderecoDica')} {...register('endereco')} />
               </div>
-              <div>
-                <Rotulo htmlFor="b-municipio">{t('parag.municipio')}</Rotulo>
-                <Selecao
-                  id="b-municipio"
-                  value={municipioId}
-                  onChange={(e) => {
-                    // Trocar de município invalida o que está por baixo: o
-                    // posto de Díli debaixo de Baucau seria uma morada que não
-                    // existe.
-                    setValue('municipio', e.target.value);
-                    setValue('posto', '');
-                    setValue('suco', '');
-                  }}
-                >
-                  <option value="">{t('parag.escolher')}</option>
-                  {municipios.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.nome}
-                    </option>
-                  ))}
-                </Selecao>
-              </div>
-              <div>
-                <Rotulo htmlFor="b-posto">{t('parag.posto')}</Rotulo>
-                <Selecao
-                  id="b-posto"
-                  value={postoId}
-                  disabled={!municipioId}
-                  onChange={(e) => {
-                    setValue('posto', e.target.value);
-                    setValue('suco', '');
-                  }}
-                >
-                  <option value="">{municipioId ? t('parag.escolher') : t('parag.escolhaMunicipioPrimeiro')}</option>
-                  {postos.map((x) => (
-                    <option key={x.id} value={x.id}>
-                      {x.nome}
-                    </option>
-                  ))}
-                </Selecao>
-              </div>
-              <div>
-                <Rotulo htmlFor="b-suco">{t('parag.suco')}</Rotulo>
-                <Selecao id="b-suco" value={sucoId} disabled={!postoId} onChange={(e) => setValue('suco', e.target.value)}>
-                  <option value="">{postoId ? t('parag.escolher') : t('parag.escolhaPostoPrimeiro')}</option>
-                  {sucos.map((x) => (
-                    <option key={x.id} value={x.id}>
-                      {x.nome}
-                    </option>
-                  ))}
-                </Selecao>
-              </div>
-              <div>
-                <Rotulo htmlFor="b-aldeia">
-                  {t('parag.aldeia')}
-                  {opcional}
-                </Rotulo>
-                <Campo id="b-aldeia" placeholder={t('parag.aldeiaDica')} {...register('aldeia')} />
-                {aldeiasSugeridas.length ? (
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <span className="text-xs text-secundario">{t('parag.aldeiasConhecidas')}</span>
-                    {aldeiasSugeridas.map((a) => (
-                      <button
-                        key={a}
-                        type="button"
-                        onClick={() => setValue('aldeia', a)}
-                        className="rounded-full border border-borda bg-white px-2.5 py-0.5 text-xs text-texto hover:bg-fundo"
-                      >
-                        {a}
-                      </button>
+              <div className="grid items-end gap-3 sm:grid-cols-3">
+                <div>
+                  <Rotulo htmlFor="b-municipio">{t('parag.municipio')}</Rotulo>
+                  <Selecao
+                    id="b-municipio"
+                    value={municipioId}
+                    onChange={(e) => {
+                      // Trocar de município invalida o que está por baixo: o
+                      // posto de Díli debaixo de Baucau seria uma morada que não
+                      // existe.
+                      setValue('municipio', e.target.value);
+                      setValue('posto', '');
+                      setValue('suco', '');
+                    }}
+                  >
+                    <option value="">{t('parag.escolher')}</option>
+                    {municipios.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.nome}
+                      </option>
                     ))}
-                  </div>
-                ) : null}
+                  </Selecao>
+                </div>
+                <div>
+                  <Rotulo htmlFor="b-posto">{t('parag.posto')}</Rotulo>
+                  <Selecao
+                    id="b-posto"
+                    value={postoId}
+                    disabled={!municipioId}
+                    onChange={(e) => {
+                      setValue('posto', e.target.value);
+                      setValue('suco', '');
+                    }}
+                  >
+                    <option value="">{t('parag.escolher')}</option>
+                    {postos.map((x) => (
+                      <option key={x.id} value={x.id}>
+                        {x.nome}
+                      </option>
+                    ))}
+                  </Selecao>
+                </div>
+                <div>
+                  <Rotulo htmlFor="b-suco">{t('parag.suco')}</Rotulo>
+                  <Selecao id="b-suco" value={sucoId} disabled={!postoId} onChange={(e) => setValue('suco', e.target.value)}>
+                    <option value="">{t('parag.escolher')}</option>
+                    {sucos.map((x) => (
+                      <option key={x.id} value={x.id}>
+                        {x.nome}
+                      </option>
+                    ))}
+                  </Selecao>
+                </div>
               </div>
-              <div>
-                <Rotulo htmlFor="b-bairro">
-                  {t('parag.bairro')}
-                  {opcional}
-                </Rotulo>
-                <Campo id="b-bairro" placeholder={t('parag.bairroDica')} {...register('bairro')} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Rotulo htmlFor="b-aldeia">
+                    {t('parag.aldeia')}
+                    {opcional}
+                  </Rotulo>
+                  <Campo id="b-aldeia" placeholder={t('parag.aldeiaDica')} {...register('aldeia')} />
+                  {aldeiasSugeridas.length ? (
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span className="text-xs text-secundario">{t('parag.aldeiasConhecidas')}</span>
+                      {aldeiasSugeridas.map((a) => (
+                        <button
+                          key={a}
+                          type="button"
+                          onClick={() => setValue('aldeia', a)}
+                          className="rounded-full border border-borda bg-white px-2.5 py-0.5 text-xs text-texto hover:bg-fundo"
+                        >
+                          {a}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+                <div>
+                  <Rotulo htmlFor="b-bairro">
+                    {t('parag.bairro')}
+                    {opcional}
+                  </Rotulo>
+                  <Campo id="b-bairro" placeholder={t('parag.bairroDica')} {...register('bairro')} />
+                </div>
+              </div>
+              <div className="flex items-start gap-3 border-t border-borda pt-3">
+                <Interruptor id="b-mostrar" checked={mostrarSempre} onCheckedChange={(v) => setValue('mostrarSempre', v)} className="mt-0.5" />
+                <div>
+                  <Rotulo htmlFor="b-mostrar">{t('parag.mostrarSempreRotulo')}</Rotulo>
+                  <Ajuda>{t('parag.mostrarSempreAjuda')}</Ajuda>
+                </div>
               </div>
             </div>
           </JanelaCorpo>
           <JanelaRodape>
+            {baptizados.length ? (
+              <p className="mr-auto min-w-0 truncate text-sm text-secundario" aria-live="polite">
+                <Check className="mr-1 inline size-4 text-sucesso" aria-hidden />
+                {t('parag.baptizadosAgora', { n: baptizados.length })} {baptizados.join(' · ')}
+              </p>
+            ) : null}
             <Botao variante="secundario" onClick={fechar}>
-              {t('comum.cancelar')}
+              {baptizados.length ? t('comum.fechar') : t('comum.cancelar')}
             </Botao>
             <Botao type="submit" aCarregar={isSubmitting}>
               <Tag /> {t('parag.baptizarGuardar')}

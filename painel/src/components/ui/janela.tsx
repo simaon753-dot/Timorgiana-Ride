@@ -10,7 +10,9 @@ export const Janela = D.Root;
 export const JanelaAbrir = D.Trigger;
 export const JanelaFecharPrimitivo = D.Close;
 
-const larguras = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl' };
+// `tela`: o ecrã todo, menos a margem (30/09/2026). Para janelas de trabalho
+// com um mapa, em que ter de rolar esconde metade do que se está a fazer.
+const larguras = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl', tela: 'max-w-[1400px] md:h-[calc(100dvh-2rem)]' };
 
 export function JanelaConteudo({
   className,
