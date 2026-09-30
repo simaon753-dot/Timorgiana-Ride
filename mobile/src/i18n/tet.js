@@ -536,6 +536,7 @@ export default {
   escolherEsteSitio: 'Hili fatin ida ne’e',
   escolherNoMapa: 'Hili iha mapa',
   aVerNome: 'Buka hela fatin ne’e nia naran…',
+  semLugaresPerto: 'La iha fatin seluk ho naran besik iha ne’e',
   aObterNome: 'Foti hela fatin nia naran…',
   arrastarPino: 'La’ós iha ne’e? Dada pinu iha mapa',
   pontosFixados: 'Fatin rekolla no destinu fiksu ona. Toka iha kualkér ida atu troka.',

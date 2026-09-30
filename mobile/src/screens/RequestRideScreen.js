@@ -54,7 +54,6 @@ import { colors, spacing, fontSize, radius, registarEstilos, paletaEmUso } from 
 import { tipo } from '../design/tipografia.js';
 import Icone from '../design/Icone.js';
 import MotoristasPerto from '../design/MotoristasPerto.js';
-import Chip from '../design/Chip.js';
 import { TIPOS_VEICULO, VEICULOS, nomeDoVeiculo, veiculo } from '../dados/tiposDeVeiculo.js';
 import BarraEstado from '../design/BarraEstado.js';
 import { metrosEntre } from '../lib/filtroPosicao.js';
@@ -765,6 +764,22 @@ export default function RequestRideScreen({ navigation, route }) {
     })();
   }
 
+  function cancelarEscolha() {
+    setAEscolherNoMapa(null);
+    setCentro(null);
+    setNomeCentro(null);
+    setPertoDoCentro([]);
+    setRuaCentro(null);
+  }
+
+  // A lista de baixo volta ao princípio quando chegam os sítios de outro
+  // ponto: quem tinha rolado até ao quinto via, depois de arrastar, o meio
+  // de uma lista nova, sem a primeira linha, que é a da mira.
+  const listaEscolhaRef = useRef(null);
+  useEffect(() => {
+    listaEscolhaRef.current?.scrollTo({ y: 0, animated: false });
+  }, [pertoDoCentro]);
+
   function confirmarEscolha() {
     if (!centro) return;
     const ponto = {
@@ -1426,13 +1441,16 @@ export default function RequestRideScreen({ navigation, route }) {
           }
           onCentro={centroMudou}
         />
-        {!pesquisa && !aEscolherNoMapa ? (
+        {!pesquisa ? (
           <Pressable
             style={styles.voltar}
-            onPress={() => navigation.goBack()}
+            // A APONTAR, a seta sai do modo de apontar e não do ecrã: é o
+            // «Cancelar» que estava por baixo do botão, posto onde o Grab o
+            // põe, para a lista de baixo ficar com esse espaço (30/09/2026).
+            onPress={aEscolherNoMapa ? cancelarEscolha : () => navigation.goBack()}
             hitSlop={10}
             accessibilityRole="button"
-            accessibilityLabel={t('back')}
+            accessibilityLabel={aEscolherNoMapa ? t('cancel') : t('back')}
           >
             <Icone nome="voltar" tamanho={22} cor={colors.teal} traco={2.4} />
           </Pressable>
@@ -1460,48 +1478,67 @@ export default function RequestRideScreen({ navigation, route }) {
           convidava a tocar noutra coisa a meio do gesto. */}
       {aEscolherNoMapa ? (
         <View style={styles.barraEscolha}>
-          <Text style={styles.barraRotulo}>
-            {aEscolherNoMapa === 'origem' ? t('pickupPoint') : t('dropoffPoint')}
-          </Text>
-          <Text style={styles.barraNome} numberOfLines={1}>
-            {nomeCentro || (centro ? t('aVerNome') : t('gettingLocation'))}
-          </Text>
-          {/* A RUA, numa linha pequena (30/09/2026, pedido do Simão). A linha
-              existe sempre, vazia enquanto não se sabe: assim o painel não
-              muda de altura a cada arrasto. */}
-          <Text style={styles.barraRua} numberOfLines={1}>
-            {ruaCentro || ' '}
-          </Text>
-          {/* OS SÍTIOS COM NOME À VOLTA.
-              Apontar devolve uma rua; esta lista devolve um sítio. É a
-              diferença entre "Rua de Caicoli" e "Hotel Timor — entrada
-              lateral", e é o que faz o motorista parar à porta certa.
-              Vem da camada que os passageiros vão baptizando: cada nome que
-              alguém escreve aparece aqui à pessoa seguinte. */}
-          {/* NUMA FILA, e não numa lista (30/09/2026). A lista de quatro, com
-              duas linhas cada, levava quase metade do ecrã; a fila leva uma
-              linha e desliza para o lado — é o que deixa caber a rua sem tapar
-              mais mapa. As pastilhas são as do sistema (design/Chip.js), com
-              os metros na bolha. */}
-          {pertoDoCentro.length ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              style={styles.pertoFila}
-              contentContainerStyle={styles.pertoFilaConteudo}
-            >
-              {pertoDoCentro.slice(0, 8).map((l) => (
-                <Chip
-                  key={l.id}
-                  icone="pin"
-                  texto={l.label}
-                  contagem={`${l.metros} m`}
-                  onPress={() => escolherDaLista(l)}
-                />
-              ))}
-            </ScrollView>
-          ) : null}
+          {/* UMA LISTA DE ALTURA FIXA, COMO NO GRAB (30/09/2026, vídeo do Simão).
+              Primeiro o sítio da mira, destacado: é esse que o botão escolhe.
+              Por baixo, os sítios com nome à volta, a deslizar para cima
+              DENTRO da caixa. Rolar a lista não tapa mapa nenhum.
+              A ALTURA NÃO MUDA, haja zero sítios à volta ou seis. Antes, a
+              fila de pastilhas aparecia e sumia a cada arrasto, e o mapa
+              encolhia e crescia por cima dela. Com o pino fixo no meio do
+              mapa, isso mudava o ponto para onde se estava a apontar.
+              Os sítios vêm da camada que os passageiros vão baptizando: cada
+              nome que alguém escreve aparece aqui à pessoa seguinte. Apontar
+              devolve uma rua; esta lista devolve um sítio, e é o que faz o
+              motorista parar à porta certa. */}
+          <ScrollView
+            ref={listaEscolhaRef}
+            style={styles.escolhaLista}
+            keyboardShouldPersistTaps="handled"
+            nestedScrollEnabled
+          >
+            <View style={[styles.escolhaLinha, styles.escolhaLinhaAtual]}>
+              <Icone
+                nome="pin"
+                tamanho={22}
+                cor={aEscolherNoMapa === 'origem' ? colors.teal : colors.coral}
+              />
+              <View style={styles.escolhaTextos}>
+                <Text style={styles.escolhaNome} numberOfLines={1}>
+                  {nomeCentro || (centro ? t('aVerNome') : t('gettingLocation'))}
+                </Text>
+                {/* A RUA (30/09/2026). A linha existe sempre, vazia enquanto
+                    não se sabe, para a linha não mudar de altura. */}
+                <Text style={styles.escolhaDetalhe} numberOfLines={1}>
+                  {ruaCentro || ' '}
+                </Text>
+              </View>
+            </View>
+            {pertoDoCentro.slice(0, 8).map((l) => (
+              <Pressable
+                key={l.id}
+                style={({ pressed }) => [
+                  styles.escolhaLinha,
+                  pressed && styles.escolhaLinhaPremida,
+                ]}
+                onPress={() => escolherDaLista(l)}
+                accessibilityRole="button"
+                accessibilityLabel={l.label}
+              >
+                <Icone nome="pin" tamanho={22} cor={colors.teal} />
+                <View style={styles.escolhaTextos}>
+                  <Text style={styles.escolhaNome} numberOfLines={1}>
+                    {l.label}
+                  </Text>
+                  <Text style={styles.escolhaDetalhe} numberOfLines={1}>
+                    {[`${l.metros} m`, l.detalhe].filter(Boolean).join(' · ')}
+                  </Text>
+                </View>
+              </Pressable>
+            ))}
+            {nomeCentro && !pertoDoCentro.length ? (
+              <Text style={styles.escolhaVazio}>{t('semLugaresPerto')}</Text>
+            ) : null}
+          </ScrollView>
           {/* O AVISO APARECE ANTES DE ESCOLHER, e não depois.
               Saber que não há serviço depois de confirmar é saber tarde de
               mais: a pessoa já decidiu, já contou com a viagem, e a recusa
@@ -1524,19 +1561,6 @@ export default function RequestRideScreen({ navigation, route }) {
             <Text style={styles.botaoTexto}>
               {aEscolherNoMapa === 'origem' ? t('escolherEstaRecolha') : t('escolherEsteDestino')}
             </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              setAEscolherNoMapa(null);
-              setCentro(null);
-              setNomeCentro(null);
-              setPertoDoCentro([]);
-              setRuaCentro(null);
-            }}
-            hitSlop={8}
-            style={{ alignSelf: 'center', marginTop: spacing.sm }}
-          >
-            <Text style={styles.barraCancelar}>{t('cancel')}</Text>
           </Pressable>
         </View>
       ) : aEscolherParagem ? (
@@ -2406,15 +2430,31 @@ const criarEstilos = () =>
       paddingBottom: spacing.lg,
     },
 
-    barraRotulo: { ...tipo.etiqueta, color: colors.textMuted },
-
-    barraNome: { ...tipo.subtitulo, color: colors.text, marginTop: 2 },
-    barraRua: { ...tipo.pequeno, color: colors.textMuted },
-
-    barraCancelar: { ...tipo.corpo, color: colors.textMuted },
-
-    pertoFila: { marginTop: spacing.sm, marginHorizontal: -spacing.lg },
-    pertoFilaConteudo: { gap: spacing.sm, paddingHorizontal: spacing.lg },
+    // Duas linhas e o princípio da terceira: o bocado cortado é o que diz
+    // que a lista desliza. Uma altura em números, e não «o que couber», para
+    // o mapa por cima nunca mudar de tamanho (ver a barra).
+    escolhaLista: { height: 150, marginHorizontal: -spacing.sm },
+    escolhaLinha: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      minHeight: 60,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: radius.lg,
+    },
+    // A linha da mira, destacada: é a que o botão escolhe.
+    escolhaLinhaAtual: { backgroundColor: colors.white },
+    escolhaLinhaPremida: { backgroundColor: colors.tintaTeal },
+    escolhaTextos: { flex: 1 },
+    escolhaNome: { ...tipo.corpoForte, color: colors.text },
+    escolhaDetalhe: { ...tipo.pequeno, color: colors.textMuted, marginTop: 1 },
+    escolhaVazio: {
+      ...tipo.pequeno,
+      color: colors.textMuted,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+    },
 
     painel: {
       backgroundColor: colors.white,

@@ -540,6 +540,7 @@ export default {
   escolherEsteSitio: 'Escolher este sítio',
   escolherNoMapa: 'Escolher no mapa',
   aVerNome: 'A ver que sítio é…',
+  semLugaresPerto: 'Sem outros sítios com nome aqui perto',
   aObterNome: 'A obter o nome do sítio…',
   arrastarPino: 'Não é aqui? Arraste o pino no mapa',
   pontosFixados: 'Recolha e destino fixados. Toque num deles para mudar.',

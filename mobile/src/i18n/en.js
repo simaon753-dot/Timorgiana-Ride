@@ -535,6 +535,7 @@ export default {
   escolherEsteSitio: 'Choose this place',
   escolherNoMapa: 'Choose on the map',
   aVerNome: 'Finding out what this place is…',
+  semLugaresPerto: 'No other named places nearby',
   aObterNome: 'Getting the place name…',
   arrastarPino: 'Not here? Drag the pin on the map',
   pontosFixados: 'Pickup and destination are set. Tap either one to change it.',
