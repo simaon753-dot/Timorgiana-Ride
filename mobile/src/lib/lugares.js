@@ -66,6 +66,57 @@ export async function guardarFixo(id, lugar) {
   return todos;
 }
 
+// OUTROS FAVORITOS, COM NOME PRÓPRIO (04/10/2026, recomendação aceite pelo
+// Simão). Casa e trabalho não chegam: há o mercado, a escola dos filhos, a
+// casa da mãe. Ficam no TELEMÓVEL pela mesma razão da casa e do trabalho —
+// uma lista de sítios com o nome que a pessoa lhes dá diz muito sobre ela.
+//
+// Até dez. Mais do que isso deixa de ser «os meus sítios» e passa a ser uma
+// lista para percorrer, que é o que os recentes e a pesquisa já fazem.
+const CHAVE_FAVORITOS = 'tgr.favoritos';
+export const MAX_FAVORITOS = 10;
+export const MAX_NOME_FAVORITO = 40;
+
+export async function lerFavoritos() {
+  try {
+    const bruto = await AsyncStorage.getItem(CHAVE_FAVORITOS);
+    const lista = bruto ? JSON.parse(bruto) : [];
+    return Array.isArray(lista) ? lista : [];
+  } catch {
+    return [];
+  }
+}
+
+// Novo (sem `id`) ou alterado (com `id`). Devolve a lista como ficou.
+export async function guardarFavorito(fav) {
+  const lista = await lerFavoritos();
+  const nome = String(fav.nome || '')
+    .trim()
+    .slice(0, MAX_NOME_FAVORITO);
+  if (!nome || fav.lat == null || fav.lng == null) return lista;
+  const limpo = { nome, lat: fav.lat, lng: fav.lng, label: fav.label || nome };
+  const i = fav.id ? lista.findIndex((f) => f.id === fav.id) : -1;
+  if (i >= 0) lista[i] = { ...lista[i], ...limpo };
+  else if (lista.length < MAX_FAVORITOS) lista.push({ id: Date.now().toString(36), ...limpo });
+  await AsyncStorage.setItem(CHAVE_FAVORITOS, JSON.stringify(lista));
+  return lista;
+}
+
+export async function apagarFavorito(id) {
+  const lista = (await lerFavoritos()).filter((f) => f.id !== id);
+  await AsyncStorage.setItem(CHAVE_FAVORITOS, JSON.stringify(lista));
+  return lista;
+}
+
+// O nome que se propõe para um sítio acabado de escolher: a primeira parte
+// da morada («Mercado de Taibesi, Taibesi, Díli» → «Mercado de Taibesi»).
+export function nomeCurto(label) {
+  return String(label || '')
+    .split(',')[0]
+    .trim()
+    .slice(0, MAX_NOME_FAVORITO);
+}
+
 // Destinos recentes, tirados das viagens já feitas.
 //
 // Sem coordenadas não serve: um nome sozinho obrigaria a pesquisar outra

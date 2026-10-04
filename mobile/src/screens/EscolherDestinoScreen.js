@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, Pressable } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import BarraEstado from '../design/BarraEstado.js';
 import Icone from '../design/Icone.js';
@@ -14,7 +24,15 @@ import {
   destinosRecentes,
   esconderRecente,
   esconderTodosRecentes,
+  lerFavoritos,
+  guardarFavorito,
+  apagarFavorito,
+  nomeCurto,
+  MAX_FAVORITOS,
+  MAX_NOME_FAVORITO,
 } from '../lib/lugares.js';
+import TextField from '../components/TextField.js';
+import Button from '../components/Button.js';
 import RodapeMarca from '../design/RodapeMarca.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
@@ -55,12 +73,18 @@ export default function EscolherDestinoScreen({ navigation, route }) {
   const [recentes, setRecentes] = useState([]);
   const [aDefinir, setADefinir] = useState(null);
   const [aApontar, setAApontar] = useState(null);
+  // Os outros favoritos, com nome próprio (04/10/2026), e o que está aberto
+  // na folha de dar nome / editar. `aDefinir` e `aApontar` aceitam também
+  // 'novo' (um favorito por criar) e 'fav:<id>' (mudar o sítio de um).
+  const [favoritos, setFavoritos] = useState([]);
+  const [favEditar, setFavEditar] = useState(null);
 
   // Recarrega ao voltar a este ecrã: um destino acabado de usar tem de
   // aparecer nos recentes sem obrigar a reabrir a aplicação.
   useEffect(() => {
     const actualizar = () => {
       lerFixos().then(setFixos);
+      lerFavoritos().then(setFavoritos);
       destinosRecentes(token).then(setRecentes);
     };
     actualizar();
@@ -80,7 +104,42 @@ export default function EscolherDestinoScreen({ navigation, route }) {
 
   async function guardarLugarEm(id, lugar) {
     if (!id) return;
+    // Um favorito não se guarda logo: primeiro dá-se-lhe o nome, que vem
+    // proposto a partir da morada.
+    if (id === 'novo') {
+      setFavEditar({
+        nome: nomeCurto(lugar.label),
+        lat: lugar.lat,
+        lng: lugar.lng,
+        label: lugar.label,
+      });
+      return;
+    }
+    if (id.startsWith('fav:')) {
+      const atual = favoritos.find((f) => f.id === id.slice(4));
+      if (atual) setFavEditar({ ...atual, lat: lugar.lat, lng: lugar.lng, label: lugar.label });
+      return;
+    }
     setFixos(await guardarFixo(id, lugar));
+  }
+
+  // O título da pesquisa e do mapa: o nome do sítio que se está a definir.
+  function tituloDe(id) {
+    if (id === 'novo') return t('favoritoNovo');
+    if (id?.startsWith('fav:')) return favoritos.find((f) => f.id === id.slice(4))?.nome || '';
+    return t(FIXOS.find((f) => f.id === id)?.chave || 'lugarDefinir');
+  }
+
+  async function guardarFavoritoAberto() {
+    if (!favEditar?.nome?.trim()) return;
+    setFavoritos(await guardarFavorito(favEditar));
+    setFavEditar(null);
+  }
+
+  async function apagarFavoritoAberto() {
+    if (!favEditar?.id) return;
+    setFavoritos(await apagarFavorito(favEditar.id));
+    setFavEditar(null);
   }
 
   // Esconde a sugestão e tira-a já do ecrã, sem esperar pela releitura do
@@ -201,6 +260,56 @@ export default function EscolherDestinoScreen({ navigation, route }) {
           );
         })}
 
+        {/* OS OUTROS FAVORITOS, com o nome que a pessoa lhes deu. */}
+        {favoritos.map((f) => (
+          <Pressable
+            key={f.id}
+            style={({ pressed }) => [styles.cartao, pressed && styles.premido]}
+            onPress={() => irPara({ lat: f.lat, lng: f.lng, label: f.label })}
+            accessibilityRole="button"
+          >
+            <View style={styles.lugarIcone}>
+              <Icone nome="estrela" tamanho={28} cor={colors.teal} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.lugarNome} numberOfLines={1}>
+                {f.nome}
+              </Text>
+              <Text style={styles.lugarMorada} numberOfLines={1}>
+                {f.label}
+              </Text>
+            </View>
+            <Pressable
+              onPress={(e) => {
+                e.stopPropagation();
+                setFavEditar({ ...f });
+              }}
+              hitSlop={8}
+              style={styles.lapis}
+              accessibilityRole="button"
+              accessibilityLabel={t('favoritoEditar')}
+            >
+              <Icone nome="lapis" tamanho={20} cor={colors.text} />
+            </Pressable>
+          </Pressable>
+        ))}
+        {favoritos.length < MAX_FAVORITOS ? (
+          <Pressable
+            style={({ pressed }) => [
+              styles.cartao,
+              styles.cartaoAdicionar,
+              pressed && styles.premido,
+            ]}
+            onPress={() => setADefinir('novo')}
+            accessibilityRole="button"
+          >
+            <View style={styles.lugarIcone}>
+              <Icone nome="mais" tamanho={24} cor={colors.teal} />
+            </View>
+            <Text style={styles.adicionarTexto}>{t('favoritoAdicionar')}</Text>
+          </Pressable>
+        ) : null}
+
         {recentes.length > 0 ? (
           <>
             <View style={styles.recentesTopo}>
@@ -252,7 +361,7 @@ export default function EscolherDestinoScreen({ navigation, route }) {
 
       <EscolherPonto
         visivel={!!aApontar}
-        titulo={t(FIXOS.find((f) => f.id === aApontar)?.chave || 'lugarDefinir')}
+        titulo={tituloDe(aApontar)}
         onFechar={() => setAApontar(null)}
         onEscolher={(lugar) => {
           const qual = aApontar;
@@ -265,7 +374,7 @@ export default function EscolherDestinoScreen({ navigation, route }) {
         <View style={styles.pesquisaSobreposta}>
           <PlaceSearch
             margemTopo={margensEcra.top}
-            placeholder={t(FIXOS.find((f) => f.id === aDefinir)?.chave)}
+            placeholder={tituloDe(aDefinir)}
             onEscolher={guardarLugar}
             onFechar={() => setADefinir(null)}
             rotuloMapa={t('escolherNoMapa')}
@@ -279,6 +388,61 @@ export default function EscolherDestinoScreen({ navigation, route }) {
           />
         </View>
       ) : null}
+
+      {/* DAR NOME / EDITAR UM FAVORITO. */}
+      <Modal
+        visible={!!favEditar}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setFavEditar(null)}
+      >
+        <KeyboardAvoidingView
+          style={styles.folhaFundo}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <Pressable style={{ flex: 1 }} onPress={() => setFavEditar(null)} />
+          <View style={[styles.folha, { paddingBottom: spacing.lg + margensEcra.bottom }]}>
+            <Text style={styles.folhaTitulo}>
+              {favEditar?.id ? t('favoritoEditar') : t('favoritoNovo')}
+            </Text>
+            <Text style={styles.lugarMorada} numberOfLines={2}>
+              {favEditar?.label}
+            </Text>
+            <TextField
+              label={t('favoritoNome')}
+              value={favEditar?.nome || ''}
+              onChangeText={(v) =>
+                setFavEditar((x) => ({ ...x, nome: v.slice(0, MAX_NOME_FAVORITO) }))
+              }
+              placeholder={t('favoritoNomeDica')}
+            />
+            <Button
+              title={t('favoritoGuardar')}
+              variant="secondary"
+              disabled={!favEditar?.nome?.trim()}
+              onPress={guardarFavoritoAberto}
+            />
+            {favEditar?.id ? (
+              <>
+                <Button
+                  title={t('favoritoMudarSitio')}
+                  variant="outline"
+                  onPress={() => {
+                    const id = favEditar.id;
+                    setFavEditar(null);
+                    setADefinir(`fav:${id}`);
+                  }}
+                />
+                <Button
+                  title={t('favoritoApagar')}
+                  variant="perigoSuave"
+                  onPress={apagarFavoritoAberto}
+                />
+              </>
+            ) : null}
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -349,7 +513,18 @@ const criarEstilos = () =>
     procuraSub: { ...tipo.pequeno, color: colors.textMuted, marginTop: 1 },
     premido: { opacity: 0.7 },
     // Era texto (um emoji a 26); passou a imagem, na mesma caixa de 32.
-    lugarIcone: { width: 32, height: 32 },
+    lugarIcone: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+    cartaoAdicionar: { borderStyle: 'dashed', borderWidth: 1.5, borderColor: colors.teal },
+    adicionarTexto: { ...tipo.corpoForte, color: colors.teal, flex: 1 },
+    folhaFundo: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
+    folha: {
+      backgroundColor: colors.paper,
+      borderTopLeftRadius: radius.xl,
+      borderTopRightRadius: radius.xl,
+      padding: spacing.lg,
+      gap: spacing.sm,
+    },
+    folhaTitulo: { ...tipo.subtitulo, color: colors.text },
     lugarNome: { ...tipo.corpoForte, color: colors.text },
     lugarMorada: { ...tipo.pequeno, color: colors.textMuted, marginTop: 1 },
     // O lápis e o ✕ num círculo: são botões, e o círculo é o alvo do dedo.
