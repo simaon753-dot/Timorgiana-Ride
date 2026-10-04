@@ -286,3 +286,12 @@ export async function notificarMotoristaPagamento(quem, { confirmado, dias, moti
     },
   ]);
 }
+
+// UMA NOTIFICAÇÃO A UMA CONTA, com o texto já escrito na língua dela
+// (04/10/2026). Para os avisos do registo do motorista, que escolhem o texto
+// em avisosRegisto.js — o mesmo texto vai também por email.
+export async function notificarConta(quem, { titulo, texto, data }) {
+  const d = destino(quem);
+  if (!d) return { enviadas: 0 };
+  return enviar([{ to: d.to, sound: 'default', title: titulo, body: texto, data: data || {} }]);
+}

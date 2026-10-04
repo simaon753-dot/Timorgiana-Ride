@@ -81,6 +81,10 @@ export const api = {
     }),
   documentoRevisto: (id: number) =>
     pedir<{ ok: true }>(`/admin/documents/${id}/revisto`, { method: 'POST' }),
+  pedirCorrecao: (id: number, motivo: string) =>
+    pedir<{ ok: true }>(`/admin/documents/${id}/correcao`, { method: 'POST', corpo: { motivo } }),
+  retirarCorrecao: (id: number) =>
+    pedir<{ ok: true }>(`/admin/documents/${id}/correcao`, { method: 'DELETE' }),
 
   // Serviço
   resumo: () => pedir<{ resumo: Resumo }>('/admin/resumo'),

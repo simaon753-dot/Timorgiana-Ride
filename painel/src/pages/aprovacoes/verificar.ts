@@ -73,6 +73,14 @@ export function verificar(d: Motorista): LinhaVerificacao[] {
     }
   }
 
+  // A CORREÇÃO PEDIDA IMPEDE, como um documento em falta (04/10/2026): quem
+  // pediu disse que aquele papel não serve. Aprovar sem ele obriga ao «mesmo
+  // assim», com a lista à frente.
+  for (const k of TIPOS_DOCUMENTO) {
+    const doc = docs[k];
+    if (doc?.correcao) linhas.push({ nivel: 'no', texto: `${tl('documento', k)}: correção pedida — ${doc.correcao}` });
+  }
+
   for (const k of TIPOS_DOCUMENTO) {
     const doc = docs[k];
     if (doc?.porRever) {

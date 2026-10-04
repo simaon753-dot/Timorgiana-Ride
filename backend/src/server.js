@@ -20,6 +20,7 @@ import { adminRouter } from './routes/admin.js';
 import { quoteRouter } from './routes/quote.js';
 import { verifyToken } from './auth.js';
 import { setOnline, marcarAusentesOffline } from './drivers.js';
+import { varrerValidades } from './avisosRegisto.js';
 import { guardarPosicao } from './posicaoMotorista.js';
 import { one } from './db.js';
 import { lugaresRouter } from './routes/lugares.js';
@@ -462,6 +463,17 @@ async function start() {
     setInterval(varrerAbandonados, 30 * 60 * 1000).unref?.();
     // O caminho das viagens em curso vai para a base de minuto a minuto.
     setInterval(() => gravarPercursos().catch(() => {}), GRAVAR_A_CADA_MS).unref?.();
+    // OS AVISOS DE VALIDADE DOS DOCUMENTOS (04/10/2026), de hora a hora. O
+    // servidor adormece no plano gratuito; cada aviso vai uma vez só (ver
+    // `avisos_validade`), por isso acordar tarde atrasa-o mas não o repete.
+    // O primeiro varrimento espera dois minutos: a arrancar, o servidor tem
+    // coisas mais urgentes do que papelada.
+    const validades = () =>
+      varrerValidades()
+        .then((r) => r.enviados && console.log(`[validades] ${r.enviados} aviso(s) enviado(s)`))
+        .catch((e) => console.error('[validades]', e.message));
+    setTimeout(validades, 2 * 60 * 1000).unref?.();
+    setInterval(validades, 60 * 60 * 1000).unref?.();
   } catch (e) {
     console.error('[arranque] não foi possível preparar a base de dados:', e.message);
     process.exit(1);

@@ -65,6 +65,9 @@ export async function saveDocument({ userId, kind, mime, base64, expiresOn, moti
      DO UPDATE SET mime = EXCLUDED.mime, bytes = EXCLUDED.bytes,
                    size_bytes = EXCLUDED.size_bytes, expires_on = EXCLUDED.expires_on,
                    motivo_atualizacao = EXCLUDED.motivo_atualizacao,
+                   -- O documento novo responde ao pedido de correcção: a
+                   -- marca sai, e quem aprova volta a vê-lo como novo.
+                   correcao_motivo = NULL, correcao_em = NULL, correcao_por = NULL,
                    created_at = NOW()
      RETURNING id, kind, mime, size_bytes, expires_on, created_at`,
     [userId, kind, mime, bytes, bytes.length, validade, motivo || null]
@@ -83,7 +86,8 @@ export function listDocuments(userId) {
             motivo_atualizacao,
             -- Por rever quando foi substituído depois da última revisão.
             (motivo_atualizacao IS NOT NULL
-               AND (revisto_em IS NULL OR revisto_em < created_at)) AS por_rever
+               AND (revisto_em IS NULL OR revisto_em < created_at)) AS por_rever,
+            correcao_motivo, correcao_em
      FROM driver_documents WHERE user_id = $1 ORDER BY kind`,
     [userId]
   );
@@ -166,6 +170,21 @@ export async function podeTrabalhar(userId) {
     if (!porTipo[k]) return { pode: false, motivo: 'documento_em_falta', qual: k };
   }
 
+  // UM DOCUMENTO COM CORRECÇÃO PEDIDA NÃO SERVE (04/10/2026). Quem aprova
+  // disse que aquela fotografia não se lê, ou que é o papel errado: contá-la
+  // como entregue seria deixar trabalhar com um documento que ninguém
+  // conseguiu verificar. Volta sozinho quando o motorista enviar o novo.
+  for (const k of OBRIGATORIOS) {
+    if (porTipo[k].correcao_motivo) {
+      return {
+        pode: false,
+        motivo: 'documento_a_corrigir',
+        qual: k,
+        porque: porTipo[k].correcao_motivo,
+      };
+    }
+  }
+
   // UM DOCUMENTO SEM DATA CONTA COMO FORA DE ORDEM, e esta linha é a que faz
   // a regra existir mesmo.
   //
@@ -194,4 +213,37 @@ export async function podeTrabalhar(userId) {
     .sort((a, b) => a.dias - b.dias);
 
   return { pode: true, aCaducar };
+}
+
+// ── PEDIR A CORRECÇÃO DE UM DOCUMENTO (04/10/2026) ──────────────────────
+//
+// Os motivos que o painel propõe. Não é lista fechada como a das
+// substituições: aqui quem escreve é o administrador, e o que o motorista
+// precisa é de ler a frase certa para aquele papel — «a data não se lê» não
+// cabe numa caixa de escolha. As sugestões só poupam escrever o costume.
+export const MAX_MOTIVO_CORRECAO = 200;
+
+export async function pedirCorrecao(documentoId, motivo, adminId) {
+  const m = String(motivo || '')
+    .trim()
+    .slice(0, MAX_MOTIVO_CORRECAO);
+  if (!m) throw new Error('Indique o motivo: o motorista precisa de saber o que corrigir.');
+  return one(
+    `UPDATE driver_documents
+        SET correcao_motivo = $2, correcao_em = NOW(), correcao_por = $3
+      WHERE id = $1
+      RETURNING id, user_id, kind, correcao_motivo`,
+    [documentoId, m, adminId]
+  );
+}
+
+// Retirar o pedido: o administrador enganou-se, ou resolveu-se por telefone.
+export function retirarCorrecao(documentoId) {
+  return one(
+    `UPDATE driver_documents
+        SET correcao_motivo = NULL, correcao_em = NULL, correcao_por = NULL
+      WHERE id = $1
+      RETURNING id, user_id, kind`,
+    [documentoId]
+  );
 }

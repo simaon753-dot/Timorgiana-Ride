@@ -48,6 +48,8 @@ export function Candidatura({
   const [lupa, setLupa] = useState<{ url: string; titulo: string } | null>(null);
   const [conta, setConta] = useState<RespostaContaDetalhe | null>(null);
   const [revistos, setRevistos] = useState<number[]>([]);
+  // O documento a que se está a pedir correção (04/10/2026).
+  const [corrigir, setCorrigir] = useState<{ id: number; nome: string } | null>(null);
 
   // A declaração de cidadania e os termos vêm da ficha completa da conta.
   // Pede-se ao abrir: quem aprova tem de ler "declarou ser cidadão" com a
@@ -61,7 +63,9 @@ export function Candidatura({
     return () => {
       vivo = false;
     };
-  }, [motorista]);
+    // Pelo número e não pelo objeto: a lista recarrega depois de cada
+    // correção, e o objeto novo da MESMA pessoa não pede a ficha outra vez.
+  }, [motorista?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!motorista) return null;
   const d = motorista;
@@ -98,6 +102,26 @@ export function Candidatura({
       await api.documentoRevisto(id);
       setRevistos((r) => [...r, id]);
       avisar.sucesso(t('cand.documentoConfirmado'));
+      aoMudarDocumento();
+    } catch (e) {
+      avisar.erro(mensagemDe(e));
+    }
+  };
+
+  const pedirCorrecao = async (motivo: string) => {
+    if (!corrigir) return;
+    await api.pedirCorrecao(corrigir.id, motivo);
+    avisar.sucesso(
+      t('cand.correcaoEnviada'),
+      t(d.email && d.emailConfirmado ? 'cand.correcaoEnviadaDesc' : 'cand.correcaoEnviadaSemEmail', { nome })
+    );
+    aoMudarDocumento();
+  };
+
+  const retirarCorrecao = async (id: number) => {
+    try {
+      await api.retirarCorrecao(id);
+      avisar.sucesso(t('cand.correcaoRetirada'));
       aoMudarDocumento();
     } catch (e) {
       avisar.erro(mensagemDe(e));
@@ -244,12 +268,13 @@ export function Candidatura({
                   }
                   const suspeito = documentoSuspeito(doc);
                   const porRever = doc.porRever && !revistos.includes(doc.id);
+                  const aCorrigir = !!doc.correcao;
                   return (
                     <li key={k}>
                       <ImagemProtegida
                         caminho={caminhos.documento(doc.id)}
                         alt={nomeDoc}
-                        className={cn('aspect-[4/3]', suspeito && 'ring-2 ring-perigo/50', porRever && 'ring-2 ring-aviso/60')}
+                        className={cn('aspect-[4/3]', suspeito && 'ring-2 ring-perigo/50', (porRever || aCorrigir) && 'ring-2 ring-aviso/60')}
                         aoAbrir={(url) => setLupa({ url, titulo: `${nomeDoc} · ${nome}` })}
                       />
                       <p className="mt-2 text-[13px] font-semibold leading-tight">{nomeDoc}</p>
@@ -264,6 +289,21 @@ export function Candidatura({
                           </Botao>
                         </div>
                       ) : null}
+                      {/* A correção pedida fica à vista com o motivo, e desfaz-se
+                          aqui; ou pede-se, documento a documento. */}
+                      {aCorrigir ? (
+                        <div className="mt-1.5">
+                          <Distintivo cor="aviso">{t('cand.correcaoPedida')}</Distintivo>
+                          <p className="mt-1 text-xs leading-snug text-texto">{doc.correcao}</p>
+                          <Botao variante="fantasma" tamanho="sm" className="mt-1 w-full" onClick={() => retirarCorrecao(doc.id)}>
+                            {t('cand.retirarCorrecao')}
+                          </Botao>
+                        </div>
+                      ) : (
+                        <Botao variante="secundario" tamanho="sm" className="mt-1.5 w-full" onClick={() => setCorrigir({ id: doc.id, nome: nomeDoc })}>
+                          {t('cand.pedirCorrecao')}
+                        </Botao>
+                      )}
                     </li>
                   );
                 })}
@@ -350,6 +390,18 @@ export function Candidatura({
             rotuloMotivo={t('cand.motivoRecusa')}
             sugestoes={sugestoes}
             aoConfirmar={(motivo) => decidir('rejected', motivo)}
+          />
+
+          <DialogoConfirmacao
+            aberto={!!corrigir}
+            aoMudar={(v) => !v && setCorrigir(null)}
+            titulo={t('cand.correcaoTitulo', { documento: corrigir?.nome ?? '' })}
+            texto={t('cand.correcaoTexto')}
+            rotuloConfirmar={t('cand.pedirCorrecao')}
+            pedirMotivo
+            rotuloMotivo={t('cand.motivoCorrecao')}
+            sugestoes={[t('cand.sugIlegivel'), t('cand.sugCortada'), t('cand.sugErrado'), t('cand.sugDataErrada'), t('cand.sugCaducado')]}
+            aoConfirmar={pedirCorrecao}
           />
 
           <DialogoConfirmacao

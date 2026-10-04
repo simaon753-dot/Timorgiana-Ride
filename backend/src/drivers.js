@@ -30,23 +30,62 @@ export const SINAL_FRESCO = '10 minutes';
 // Não se limpa toda a gente ao arrancar, que seria o atalho: isso desligava
 // quem estava mesmo a trabalhar e ainda não teve tempo de voltar a ligar-se.
 // Limpa-se só quem não dá sinal.
+//
+// A SESSÃO ONLINE FECHA-SE NA HORA DO ÚLTIMO SINAL, e não agora (04/10/2026):
+// quem desapareceu às 14:00 e foi varrido às 14:10 não esteve dez minutos
+// disponível a mais — as horas online dos Ganhos não podem contar o tempo em
+// que ninguém sabia dele.
 export function marcarAusentesOffline() {
   return query(
-    `UPDATE users SET is_online = FALSE
-      WHERE role = 'driver' AND is_online = TRUE
-        AND (last_seen_at IS NULL OR last_seen_at < NOW() - INTERVAL '${SINAL_FRESCO}')
-      RETURNING id, name`
+    `WITH idos AS (
+       UPDATE users SET is_online = FALSE
+        WHERE role = 'driver' AND is_online = TRUE
+          AND (last_seen_at IS NULL OR last_seen_at < NOW() - INTERVAL '${SINAL_FRESCO}')
+        RETURNING id, name, last_seen_at
+     ), fechadas AS (
+       UPDATE sessoes_online s
+          SET fim = GREATEST(s.inicio, COALESCE(idos.last_seen_at, s.inicio))
+         FROM idos
+        WHERE s.user_id = idos.id AND s.fim IS NULL
+     )
+     SELECT id, name FROM idos`
   );
 }
 
 // Marca o motorista como disponível ou indisponível para receber pedidos.
+//
+// E ABRE OU FECHA A SESSÃO ONLINE NA MESMA INSTRUÇÃO (04/10/2026), que é de
+// onde saem as «horas online» dos Ganhos. Numa só, para o estado e o registo
+// nunca discordarem: se a sessão fosse uma segunda escrita, uma falha entre
+// as duas deixava um motorista disponível sem sessão — e o dia dele com
+// zero horas. Ficar disponível estando já disponível (o socket que volta a
+// ligar-se) não abre outra: o índice único só deixa uma aberta.
 export function setOnline(userId, online) {
   return one(
-    `UPDATE users SET is_online = $1, last_seen_at = NOW()
-     WHERE id = $2 AND role = 'driver'
-     RETURNING id, is_online`,
+    `WITH u AS (
+       UPDATE users SET is_online = $1, last_seen_at = NOW()
+        WHERE id = $2 AND role = 'driver'
+        RETURNING id, is_online
+     ), abre AS (
+       INSERT INTO sessoes_online (user_id)
+       SELECT id FROM u WHERE is_online
+       ON CONFLICT (user_id) WHERE fim IS NULL DO NOTHING
+     ), fecha AS (
+       UPDATE sessoes_online s SET fim = NOW()
+         FROM u
+        WHERE s.user_id = u.id AND NOT u.is_online AND s.fim IS NULL
+     )
+     SELECT id, is_online FROM u`,
     [!!online, userId]
   );
+}
+
+// Fecha a sessão de quem foi tirado de serviço por outra porta — a
+// suspensão no painel põe `is_online` a falso sem passar por `setOnline`.
+export function fecharSessaoOnline(userId) {
+  return query(`UPDATE sessoes_online SET fim = NOW() WHERE user_id = $1 AND fim IS NULL`, [
+    userId,
+  ]);
 }
 
 // Guarda a última posição conhecida. Chamado com frequência, por isso é

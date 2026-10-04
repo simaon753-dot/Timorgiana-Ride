@@ -111,6 +111,11 @@ export function Aprovacoes() {
     setPeriodo({ tipo: 'todo' });
   };
 
+  // A candidatura aberta na versão MAIS RECENTE da lista: depois de pedir uma
+  // correção ou confirmar um documento, a lista recarrega e a janela tem de
+  // mostrar o que mudou — o objeto guardado ao abrir já não o sabe.
+  const abertoAgora = aberto ? (dados?.drivers.find((x) => x.id === aberto.id) ?? aberto) : null;
+
   const depoisDeDecidir = () => {
     setAberto(null);
     recarregar();
@@ -322,7 +327,7 @@ export function Aprovacoes() {
         )}
       </Cartao>
 
-      <Candidatura motorista={aberto} aoFechar={() => setAberto(null)} aoDecidir={depoisDeDecidir} aoMudarDocumento={recarregar} />
+      <Candidatura motorista={abertoAgora} aoFechar={() => setAberto(null)} aoDecidir={depoisDeDecidir} aoMudarDocumento={recarregar} />
     </>
   );
 }

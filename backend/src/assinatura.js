@@ -322,6 +322,53 @@ export async function resumoDe(userId) {
   return { dias: u?.dias_saldo ?? 0, gratuito, gratuitoAte: ultimoDiaGratuito(inicio) };
 }
 
+// O PLANO DE ATIVIDADE, para o ecrã dos Ganhos (04/10/2026).
+//
+// O Simão pediu um contador «23 / 30» com barra. O saldo é o numerador; o
+// DENOMINADOR é o lote em curso — os dias que havia depois do último
+// carregamento: o saldo de agora mais os dias pagos gastos desde então. Quem
+// carregou 30 e trabalhou 7 vê 23 / 30; quem tinha 5 e carregou 30 vê 35 / 35.
+// Nunca uma data de fim: os dias gastam-se ao ritmo do trabalho, e
+// «válido até» seria transformar o plano em dias de calendário.
+//
+// `pacote` é o de 30 dias do tipo de veículo da conta — é o preço que o botão
+// «Renovar» mostra. Vem da tabela PACOTES, a mesma da compra: o ecrã nunca
+// mostra um preço que a compra não cobre.
+export async function planoDe(userId) {
+  const [u, gratuito, inicio, entrada] = await Promise.all([
+    one(`SELECT dias_saldo, vehicle_type, is_admin FROM users WHERE id = $1`, [userId]),
+    emPeriodoGratuito(),
+    inicioDaCobranca(),
+    podeEntrarAoServico(userId),
+  ]);
+  const ultimo = await one(
+    `SELECT created_at FROM carregamentos WHERE user_id = $1 ORDER BY id DESC LIMIT 1`,
+    [userId]
+  );
+  const usados = ultimo
+    ? (
+        await one(
+          `SELECT COUNT(*)::int AS n FROM dias_contados
+            WHERE user_id = $1 AND NOT gratuito AND created_at >= $2`,
+          [userId, ultimo.created_at]
+        )
+      ).n
+    : 0;
+  const saldo = u?.dias_saldo ?? 0;
+  const pacotes = PACOTES[u?.vehicle_type] || PACOTES.car;
+  return {
+    dias: saldo,
+    total: saldo + usados,
+    gratuito,
+    gratuitoAte: ultimoDiaGratuito(inicio),
+    comprasAbertas: await comprasAbertas(u),
+    // Já trabalhou hoje com o último dia: pode continuar até à meia-noite.
+    hojePago: entrada.motivo === 'dia_ja_pago',
+    podeTrabalhar: entrada.pode,
+    pacote: pacotes.find((p) => p.dias === 30) || pacotes[pacotes.length - 1],
+  };
+}
+
 // ═══ PEDIDOS DE CARREGAMENTO, PAGAMENTOS E DEVOLUÇÕES (14/09/26) ════════
 //
 // A política, decidida pelo Simão a 14/09/2026 e escrita nos termos do

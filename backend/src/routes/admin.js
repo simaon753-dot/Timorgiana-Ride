@@ -19,7 +19,9 @@ import { listarParadas, criarParada, apagarParada } from '../paradas.js';
 import { requireAuth } from '../auth.js';
 import { query, one, tx } from '../db.js';
 import { estadoDaRetencao } from '../retencao.js';
-import { getDocument } from '../documents.js';
+import { getDocument, pedirCorrecao, retirarCorrecao } from '../documents.js';
+import { avisarDecisao, avisarCorrecao } from '../avisosRegisto.js';
+import { fecharSessaoOnline } from '../drivers.js';
 import { toPublicUser } from '../users.js';
 import { alertasAbertos, resolverAlerta } from '../sos.js';
 import {
@@ -104,7 +106,9 @@ adminRouter.get(
            'expirado', (d.expires_on IS NOT NULL AND d.expires_on < CURRENT_DATE),
            'motivo', d.motivo_atualizacao,
            'porRever', (d.motivo_atualizacao IS NOT NULL
-                          AND (d.revisto_em IS NULL OR d.revisto_em < d.created_at))))
+                          AND (d.revisto_em IS NULL OR d.revisto_em < d.created_at)),
+           'correcao', d.correcao_motivo,
+           'correcaoEm', d.correcao_em))
          FROM driver_documents d WHERE d.user_id = u.id
        ) AS docs
        FROM users u
@@ -173,6 +177,12 @@ adminRouter.post(
       return res.status(400).json({ error: 'Indica o motivo da decisão.' });
     }
 
+    // O estado de onde se vem: aprovar quem estava suspenso é reactivá-lo,
+    // e o aviso ao motorista diz isso mesmo.
+    const antes = (
+      await one('SELECT driver_status FROM users WHERE id = $1', [Number(req.params.id)])
+    )?.driver_status;
+
     const row = await one(
       `UPDATE users
        SET driver_status = $1,
@@ -202,7 +212,14 @@ adminRouter.post(
       await io
         .in(`user:${row.id}`)
         .socketsLeave(['drivers', `drivers:${row.vehicle_type || 'car'}`]);
+      // As horas online acabam aqui: a suspensão desligou-o sem passar pelo
+      // interruptor, que é quem fecha a sessão no caso normal.
+      await fecharSessaoOnline(row.id);
     }
+
+    // E com a app fechada: notificação e email (04/10/2026). Uma decisão
+    // repetida (aprovar quem já está aprovado) não avisa de novo.
+    if (antes !== decision) avisarDecisao(row.id, decision, row.driver_status_motivo, antes);
 
     res.json({ driver: toPublicUser(row) });
   })
@@ -1696,6 +1713,44 @@ adminRouter.post(
     const id = Number(req.params.id);
     if (!Number.isInteger(id)) return res.status(400).json({ error: 'Documento inválido.' });
     await query('UPDATE driver_documents SET revisto_em = NOW() WHERE id = $1', [id]);
+    res.json({ ok: true });
+  })
+);
+
+// POST /api/admin/documents/:id/correcao — pedir a correcção de UM documento
+//
+// (04/10/2026) A alternativa a recusar a conta inteira por uma fotografia
+// tremida. O motorista vê o motivo ao lado desse documento, na app, e recebe-o
+// por notificação e email; enquanto não enviar outro, o documento não conta
+// (`podeTrabalhar`) — a um motorista já aprovado, isso quer dizer não ficar
+// disponível, como com um documento caducado.
+adminRouter.post(
+  '/documents/:id/correcao',
+  wrap(async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) return res.status(400).json({ error: 'Documento inválido.' });
+    let doc;
+    try {
+      doc = await pedirCorrecao(id, req.body?.motivo, req.user.id);
+    } catch (e) {
+      return res.status(400).json({ error: e.message });
+    }
+    if (!doc) return res.status(404).json({ error: 'Documento não encontrado.' });
+    req.app.get('io').to(`user:${doc.user_id}`).emit('driver:documentos', { kind: doc.kind });
+    avisarCorrecao(doc.user_id, doc.kind, doc.correcao_motivo);
+    res.json({ ok: true });
+  })
+);
+
+// DELETE /api/admin/documents/:id/correcao — retirar o pedido
+adminRouter.delete(
+  '/documents/:id/correcao',
+  wrap(async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) return res.status(400).json({ error: 'Documento inválido.' });
+    const doc = await retirarCorrecao(id);
+    if (!doc) return res.status(404).json({ error: 'Documento não encontrado.' });
+    req.app.get('io').to(`user:${doc.user_id}`).emit('driver:documentos', { kind: doc.kind });
     res.json({ ok: true });
   })
 );

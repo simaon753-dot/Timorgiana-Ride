@@ -47,7 +47,7 @@ const MODELOS = { motorbike: 'Honda Vario 125', car: 'Toyota Avanza', carry: 'Su
 let idDoc = 100;
 const doc = (kind, dias, extra = {}) => ({
   id: idDoc++, kind, mime: 'image/png', expiresOn: dias == null ? null : dia(dias),
-  expirado: dias != null && dias < 0, motivo: null, porRever: false, ...extra,
+  expirado: dias != null && dias < 0, motivo: null, porRever: false, correcao: null, correcaoEm: null, ...extra,
 });
 const seis = (validades = {}) => [
   doc('photo'), doc('identity'), doc('licence', validades.licence ?? 900), doc('cartaverso'),
@@ -57,7 +57,7 @@ const seis = (validades = {}) => [
 const motoristas = [
   { estado: 'pending', tipo: 'motorbike', docs: seis({ inspection: 18 }), cor: 'Preta', h: 3, online: true },
   { estado: 'pending', tipo: 'car', docs: seis().filter((d) => d.kind !== 'inspection'), cor: '', h: 26 },
-  { estado: 'pending', tipo: 'carry', docs: seis({ inspection: 1100 }), cor: 'Branca', h: 50 },
+  { estado: 'pending', tipo: 'carry', docs: seis({ inspection: 1100 }).map((d) => (d.kind === 'licence' ? { ...d, correcao: 'A fotografia não se lê — tire outra com mais luz e sem tremer.', correcaoEm: ha(5) } : d)), cor: 'Branca', h: 50 },
   { estado: 'approved', tipo: 'car', docs: seis(), cor: 'Prateada', h: 400, online: true, viagens: 42 },
   { estado: 'approved', tipo: 'motorbike', docs: seis({ licence: -10 }), cor: 'Vermelha', h: 900, viagens: 118 },
   { estado: 'approved', tipo: 'carry', docs: seis().map((d) => (d.kind === 'inspection' ? { ...d, porRever: true, motivo: 'caducado' } : d)), cor: 'Azul', h: 700, viagens: 23 },
@@ -373,6 +373,17 @@ async function api(req, res, url) {
     if (motivo) d.driverStatusMotivo = motivo;
     else delete d.driverStatusMotivo;
     return json(res, { driver: d });
+  }
+  if ((x = m(/^\/admin\/documents\/(\d+)\/correcao$/))) {
+    const { motivo } = req.method === 'POST' ? await corpoDe(req) : {};
+    if (req.method === 'POST' && String(motivo || '').trim().length < 3) {
+      return json(res, { error: 'Indique o motivo: o motorista precisa de saber o que corrigir.' }, 400);
+    }
+    for (const d of motoristas) for (const o of d.documents) if (o.id === Number(x[1])) {
+      o.correcao = req.method === 'POST' ? String(motivo).trim() : null;
+      o.correcaoEm = req.method === 'POST' ? new Date().toISOString() : null;
+    }
+    return json(res, { ok: true });
   }
   if ((x = m(/^\/admin\/documents\/(\d+)\/revisto$/))) {
     for (const d of motoristas) for (const o of d.documents) if (o.id === Number(x[1])) o.porRever = false;

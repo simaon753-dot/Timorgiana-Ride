@@ -50,6 +50,9 @@ export interface DocumentoResumo {
   expirado: boolean;
   motivo: string | null;
   porRever: boolean;
+  // Correção pedida pelo painel, com o motivo (04/10/2026). Nula quando não há.
+  correcao?: string | null;
+  correcaoEm?: string | null;
 }
 
 export interface Motorista extends UtilizadorPublico {

@@ -697,7 +697,10 @@ export async function setRideStatus(rideId, status, porQuem = null) {
     `UPDATE rides SET status = $1, updated_at = NOW(),
             cancelled_by = COALESCE($3, cancelled_by),
             -- A hora em que o motorista disse que chegou (linha do tempo).
-            a_chegar_em = CASE WHEN $1 = 'arriving' THEN NOW() ELSE a_chegar_em END
+            a_chegar_em = CASE WHEN $1 = 'arriving' THEN NOW() ELSE a_chegar_em END,
+            -- A hora em que acabou: é ela que diz em que dia a viagem rendeu
+            -- (os Ganhos), como já dizia em que dia contou (a assinatura).
+            concluida_em = CASE WHEN $1 = 'completed' THEN NOW() ELSE concluida_em END
      WHERE id = $2`,
     [status, rideId, porQuem]
   );

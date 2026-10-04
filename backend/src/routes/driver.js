@@ -2,7 +2,7 @@ import { Router } from 'express';
 // Faltava: a lista era usada sem ser importada (ver scripts/verificar-nomes.mjs).
 import { dadosDeCarga } from '../capacidade.js';
 import { TIPOS_VEICULO } from '../config.js';
-import { one, query } from '../db.js';
+import { one } from '../db.js';
 import { requireAuth } from '../auth.js';
 import {
   saveDocument,
@@ -19,6 +19,7 @@ import { guardarPosicao } from '../posicaoMotorista.js';
 import { toPublicUser } from '../users.js';
 import { notificarAdminsMotoristaPronto, notificarAdminsPagamento } from '../push.js';
 import { VERSAO_TERMOS_MOTORISTA } from '../termosVersao.js';
+import { avisarRegistoRecebido } from '../avisosRegisto.js';
 import {
   podeEntrarAoServico,
   estadoDe,
@@ -26,7 +27,9 @@ import {
   criarPedido,
   cancelarPedido,
   qrDoPagamento,
+  planoDe,
 } from '../assinatura.js';
+import { resumoGanhos, viagensDoDia } from '../ganhos.js';
 
 export const driverRouter = Router();
 // Sem guarda de papel: é por aqui que uma conta de passageiro se torna
@@ -67,6 +70,10 @@ driverRouter.get(
         // mas ainda não passou por ninguém.
         motivo: d.motivo_atualizacao || null,
         porRever: !!d.por_rever,
+        // A correcção pedida pelo painel, com o motivo escrito por quem
+        // aprova (04/10/2026). Nula quando não há nada a corrigir.
+        correcao: d.correcao_motivo || null,
+        correcaoEm: d.correcao_em || null,
       })),
       apto,
       fotoDeHoje: fotoHoje,
@@ -161,10 +168,13 @@ driverRouter.post(
               ? `O teu documento (${apto.qual}) caducou em ${apto.ate}.`
               : apto.motivo === 'documento_sem_validade'
                 ? `Falta a data de validade do teu documento (${apto.qual}).`
-                : 'Faltam documentos na tua conta.',
+                : apto.motivo === 'documento_a_corrigir'
+                  ? `Corrige o teu documento (${apto.qual}): ${apto.porque}`
+                  : 'Faltam documentos na tua conta.',
           motivo: apto.motivo,
           qual: apto.qual,
           ate: apto.ate ?? null,
+          porque: apto.porque ?? null,
         });
       }
       if (!(await temFotoDeHoje(req.user.id))) {
@@ -202,63 +212,34 @@ driverRouter.post(
   })
 );
 
-// GET /api/driver/ganhos — quanto o motorista fez
+// GET /api/driver/ganhos?de=AAAA-MM-DD&ate=AAAA-MM-DD — quanto o motorista fez
 //
 // O dinheiro nunca passa por nós: é entregue em mão. Isto não é uma conta
 // bancária, é a soma das viagens que ele concluiu — serve para ele saber
 // se valeu a pena o dia, que é a pergunta que um motorista faz ao jantar.
 //
-// Os intervalos usam a hora de Díli (UTC+9). Sem isso, "hoje" acabava às
-// 15h da tarde, porque o servidor pensa em UTC.
+// Desde 04/10/2026 (o ecrã novo dos Ganhos) leva também o período escolhido
+// dia a dia — com os dias a zero —, as horas online, os dias de atividade e o
+// plano. A conta está toda em ganhos.js; os campos antigos continuam lá para
+// as versões da app que ainda os lêem.
 driverRouter.get(
   '/ganhos',
   wrap(async (req, res) => {
-    const [n] = await query(
-      `WITH minhas AS (
-         SELECT fare_usd, (created_at AT TIME ZONE 'Asia/Dili') AS quando
-         FROM rides WHERE driver_id = $1 AND status = 'completed'
-       )
-       SELECT
-         COALESCE(SUM(fare_usd) FILTER (WHERE quando::date = (NOW() AT TIME ZONE 'Asia/Dili')::date), 0)::float AS hoje,
-         COUNT(*) FILTER (WHERE quando::date = (NOW() AT TIME ZONE 'Asia/Dili')::date)::int AS viagensHoje,
-         COALESCE(SUM(fare_usd) FILTER (WHERE quando > (NOW() AT TIME ZONE 'Asia/Dili') - INTERVAL '7 days'), 0)::float AS semana,
-         COUNT(*) FILTER (WHERE quando > (NOW() AT TIME ZONE 'Asia/Dili') - INTERVAL '7 days')::int AS viagensSemana,
-         COALESCE(SUM(fare_usd), 0)::float AS total,
-         COUNT(*)::int AS viagensTotal
-       FROM minhas`,
-      [req.user.id]
-    );
+    const [ganhos, plano] = await Promise.all([
+      resumoGanhos(req.user.id, { de: req.query.de, ate: req.query.ate }),
+      planoDe(req.user.id),
+    ]);
+    res.json({ ganhos, plano });
+  })
+);
 
-    // Últimos 7 dias, para o motorista ver que dias rendem mais
-    const dias = await query(
-      // Texto e não data: um 'date' viaja como instante e a app volta a
-      // interpretá-lo no fuso dela, trocando o dia. 'YYYY-MM-DD' não tem
-      // fuso nenhum para interpretar mal.
-      `SELECT TO_CHAR((created_at AT TIME ZONE 'Asia/Dili')::date, 'YYYY-MM-DD') AS dia,
-              COALESCE(SUM(fare_usd),0)::float AS valor,
-              COUNT(*)::int AS viagens
-       FROM rides
-       WHERE driver_id = $1 AND status = 'completed'
-         AND created_at > NOW() - INTERVAL '7 days'
-       GROUP BY 1 ORDER BY 1 DESC`,
-      [req.user.id]
-    );
-
-    res.json({
-      ganhos: {
-        hoje: Math.round(n.hoje * 100) / 100,
-        viagensHoje: n.viagenshoje,
-        semana: Math.round(n.semana * 100) / 100,
-        viagensSemana: n.viagenssemana,
-        total: Math.round(n.total * 100) / 100,
-        viagensTotal: n.viagenstotal,
-        dias: dias.map((d) => ({
-          dia: d.dia,
-          valor: Math.round(d.valor * 100) / 100,
-          viagens: d.viagens,
-        })),
-      },
-    });
+// GET /api/driver/ganhos/dia/AAAA-MM-DD — as viagens de um dia, para o detalhe
+driverRouter.get(
+  '/ganhos/dia/:dia',
+  wrap(async (req, res) => {
+    const r = await viagensDoDia(req.user.id, req.params.dia);
+    if (!r) return res.status(400).json({ error: 'Data inválida.' });
+    res.json(r);
   })
 );
 
@@ -476,6 +457,8 @@ driverRouter.post(
         notificarAdminsMotoristaPronto({ nome: req.user.name, telefone: req.user.phone }).catch(
           () => {}
         );
+        // E ao próprio motorista, uma vez só: «recebemos, vamos ver».
+        avisarRegistoRecebido(req.user.id);
       }
 
       return res.status(201).json({
@@ -484,6 +467,46 @@ driverRouter.post(
     } catch (e) {
       return res.status(400).json({ error: e.message });
     }
+  })
+);
+
+// POST /api/driver/registo/reenviar — pedir nova análise depois de uma recusa
+//
+// (04/10/2026) Corrigir os documentos de uma conta recusada não chegava a
+// ninguém: ela continuava «recusada», na lista dos recusados, e o painel não
+// sabia que havia papéis novos. Agora o motorista diz «já corrigi» e a conta
+// volta a «à espera», com o aviso aos administradores de sempre. Só com tudo
+// entregue e os termos aceites — reenviar a meio seria voltar a ser recusado.
+// O motivo da recusa fica: quem volta a analisar vê o que estava mal.
+driverRouter.post(
+  '/registo/reenviar',
+  wrap(async (req, res) => {
+    if (req.user.driver_status !== 'rejected') {
+      return res.status(409).json({ error: 'O teu registo não está recusado.' });
+    }
+    const tipos = new Set((await listDocuments(req.user.id)).map((d) => d.kind));
+    if (!OBRIGATORIOS.every((k) => tipos.has(k))) {
+      return res.status(400).json({ error: 'Faltam documentos na tua conta.' });
+    }
+    if (req.user.driver_terms_version !== VERSAO_TERMOS_MOTORISTA) {
+      return res.status(400).json({
+        error: 'Os termos para motoristas mudaram. Lê-os e aceita-os para ficares disponível.',
+      });
+    }
+    const row = await one(
+      `UPDATE users
+          SET driver_status = 'pending', driver_status_em = NOW(), registo_recebido_em = NULL
+        WHERE id = $1 AND driver_status = 'rejected'
+        RETURNING *`,
+      [req.user.id]
+    );
+    if (!row) return res.status(409).json({ error: 'O teu registo não está recusado.' });
+    req.app.get('io').to('admins').emit('driver:pronto', { id: req.user.id });
+    notificarAdminsMotoristaPronto({ nome: req.user.name, telefone: req.user.phone }).catch(
+      () => {}
+    );
+    avisarRegistoRecebido(req.user.id);
+    res.json({ user: toPublicUser(row) });
   })
 );
 

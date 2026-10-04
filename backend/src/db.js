@@ -1092,6 +1092,86 @@ export async function initSchema() {
     )
   `);
 
+  // ── REGISTO DO MOTORISTA: CORRECÇÕES E AVISOS (04/10/2026) ───────────
+  //
+  // PEDIR A CORRECÇÃO DE UM DOCUMENTO, e não recusar a conta inteira. Até
+  // aqui, uma fotografia tremida da carta só tinha uma resposta no painel:
+  // recusar — e o motorista lia «recusado» sem saber qual dos sete papéis
+  // estava mal. Agora o administrador marca ESSE documento, com o motivo; o
+  // motorista vê-o na app e recebe-o por notificação e email. Enviar o
+  // documento outra vez limpa a marca (ver `saveDocument`).
+  await query(`ALTER TABLE driver_documents ADD COLUMN IF NOT EXISTS correcao_motivo TEXT`);
+  await query(`ALTER TABLE driver_documents ADD COLUMN IF NOT EXISTS correcao_em TIMESTAMPTZ`);
+  await query(
+    `ALTER TABLE driver_documents ADD COLUMN IF NOT EXISTS correcao_por INTEGER REFERENCES users(id)`
+  );
+
+  // OS AVISOS DE VALIDADE JÁ MANDADOS. Um por documento, por data de validade
+  // e por marco (30, 15, 7, 1 e 0 dias): a chave é o que impede o varrimento
+  // de hora a hora de mandar o mesmo aviso vinte e quatro vezes. A validade
+  // entra na chave porque o documento renovado tem outra data — e merece os
+  // seus próprios avisos daqui a um ano.
+  await query(`
+    CREATE TABLE IF NOT EXISTS avisos_validade (
+      documento_id INTEGER NOT NULL REFERENCES driver_documents(id) ON DELETE CASCADE,
+      validade     DATE NOT NULL,
+      marco        INTEGER NOT NULL,
+      enviado_em   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (documento_id, validade, marco)
+    )
+  `);
+
+  // Quando se avisou o motorista de que o registo chegou completo. Uma vez
+  // só: substituir um documento depois não volta a mandar o «recebemos».
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS registo_recebido_em TIMESTAMPTZ`);
+
+  // ── GANHOS DO MOTORISTA (04/10/2026) ─────────────────────────────────
+  //
+  // A HORA EM QUE A VIAGEM ACABOU. Os ganhos contavam-se pela hora do PEDIDO
+  // (`created_at`), e o dia de actividade pela hora da CONCLUSÃO — uma
+  // viagem pedida às 23:50 e acabada às 00:10 caía em dias diferentes nos
+  // dois sítios, e o «Por dia» mostraria um dia que conta sem viagens.
+  // Agora os dois usam a conclusão. As antigas vão buscá-la ao registo de
+  // eventos e, se ele já foi limpo, à última mudança da viagem.
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS concluida_em TIMESTAMPTZ`);
+  await query(`
+    UPDATE rides r
+       SET concluida_em = COALESCE(
+             (SELECT MIN(e.created_at) FROM ride_events e
+               WHERE e.ride_id = r.id AND e.que = 'terminou'),
+             r.updated_at)
+     WHERE r.status = 'completed' AND r.concluida_em IS NULL
+  `);
+  await query(
+    `CREATE INDEX IF NOT EXISTS idx_rides_driver_concluida ON rides(driver_id, concluida_em DESC)
+      WHERE status = 'completed'`
+  );
+
+  // AS HORAS ONLINE. Uma linha por cada vez que o motorista fica disponível,
+  // fechada quando deixa de estar (`drivers.js`). O índice único parcial
+  // garante uma sessão aberta por pessoa: o socket que volta a ligar-se e
+  // repete «estou disponível» não abre outra.
+  await query(`
+    CREATE TABLE IF NOT EXISTS sessoes_online (
+      id      BIGSERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      inicio  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      fim     TIMESTAMPTZ
+    )
+  `);
+  await query(
+    'CREATE UNIQUE INDEX IF NOT EXISTS idx_sessao_aberta ON sessoes_online(user_id) WHERE fim IS NULL'
+  );
+  await query(
+    'CREATE INDEX IF NOT EXISTS idx_sessoes_user ON sessoes_online(user_id, inicio DESC)'
+  );
+  // Quem já estava disponível quando isto entrou começa a contar agora.
+  await query(`
+    INSERT INTO sessoes_online (user_id)
+    SELECT id FROM users WHERE role = 'driver' AND is_online = TRUE
+    ON CONFLICT (user_id) WHERE fim IS NULL DO NOTHING
+  `);
+
   const [{ now }] = await query('SELECT NOW() AS now');
   console.log('[db] PostgreSQL pronto —', now.toISOString());
 }

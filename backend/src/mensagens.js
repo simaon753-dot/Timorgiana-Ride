@@ -74,6 +74,14 @@ export const MENSAGENS = {
     'Pedidu ida-ne’e desidi tiha ona.',
     'This request has already been decided.',
   ],
+  'O teu registo não está recusado.': [
+    'Ita-nia rejistu la rejeita.',
+    'Your registration has not been rejected.',
+  ],
+  'Corrige o teu documento ({0}): {1}': [
+    'Hadi’a ita-nia dokumentu ({0}): {1}',
+    'Correct your document ({0}): {1}',
+  ],
   'Indique o motivo: o motorista precisa de saber o que corrigir.': [
     'Hakerek motivu: motorista presiza hatene saida mak atu hadi’a.',
     'Give the reason: the driver needs to know what to correct.',
@@ -717,6 +725,130 @@ export const NOTIFICACOES = {
     pt: 'Motivo: {motivo}',
     tet: 'Motivu: {motivo}',
     en: 'Reason: {motivo}',
+  },
+
+  // ── O REGISTO DO MOTORISTA, passo a passo (04/10/2026) ──────────────
+  // Cada decisão chega ao motorista por notificação e, se o email estiver
+  // confirmado, por email (ver avisosRegisto.js). O texto diz o que fazer a
+  // seguir, não só o que aconteceu.
+  registoRecebidoTitulo: {
+    pt: 'Registo recebido',
+    tet: 'Ami simu ona ita-nia rejistu',
+    en: 'Registration received',
+  },
+  registoRecebidoTexto: {
+    pt: 'Recebemos os seus documentos. Vamos verificá-los e avisamos quando houver decisão.',
+    tet: 'Ami simu ona ita-nia dokumentu sira. Ami sei verifika no fó hatene bainhira iha desizaun.',
+    en: 'We have received your documents. We will check them and let you know when there is a decision.',
+  },
+  registoAprovadoTitulo: {
+    pt: 'Conta de motorista aprovada',
+    tet: 'Konta motorista aprova ona',
+    en: 'Driver account approved',
+  },
+  registoAprovadoTexto: {
+    pt: 'Já pode ficar disponível e receber viagens.',
+    tet: 'Ita bele ona sai disponível no simu viajen.',
+    en: 'You can now go online and receive trips.',
+  },
+  registoReativadoTitulo: {
+    pt: 'Conta reativada',
+    tet: 'Konta ativa fali ona',
+    en: 'Account reactivated',
+  },
+  registoReativadoTexto: {
+    pt: 'A sua conta de motorista voltou a estar ativa.',
+    tet: 'Ita-nia konta motorista ativa fali ona.',
+    en: 'Your driver account is active again.',
+  },
+  registoRecusadoTitulo: {
+    pt: 'Registo não aprovado',
+    tet: 'Rejistu la aprova',
+    en: 'Registration not approved',
+  },
+  registoRecusadoTexto: {
+    pt: 'Motivo: {motivo}. Pode corrigir os documentos na app e voltar a enviar.',
+    tet: 'Motivu: {motivo}. Ita bele hadi’a dokumentu sira iha app no haruka fali.',
+    en: 'Reason: {motivo}. You can fix the documents in the app and send them again.',
+  },
+  registoSuspensoTitulo: { pt: 'Conta suspensa', tet: 'Konta suspende', en: 'Account suspended' },
+  registoSuspensoTexto: {
+    pt: 'Motivo: {motivo}',
+    tet: 'Motivu: {motivo}',
+    en: 'Reason: {motivo}',
+  },
+  correcaoTitulo: {
+    pt: 'Corrija um documento',
+    tet: 'Hadi’a dokumentu ida',
+    en: 'Correct a document',
+  },
+  correcaoTexto: {
+    pt: '{documento}: {motivo}. Envie-o outra vez na app.',
+    tet: '{documento}: {motivo}. Haruka fali iha app.',
+    en: '{documento}: {motivo}. Send it again in the app.',
+  },
+  validadeTitulo: {
+    pt: 'Documento a caducar',
+    tet: 'Dokumentu besik remata',
+    en: 'Document expiring',
+  },
+  validadeFaltamTexto: {
+    pt: '{documento}: caduca a {data} — faltam {dias} dias. Envie o renovado na app para não parar.',
+    tet: '{documento}: remata iha {data} — falta loron {dias}. Haruka ida foun iha app atu la para.',
+    en: '{documento}: expires on {data} — {dias} days left. Send the renewed one in the app so you don’t have to stop.',
+  },
+  validadeAmanhaTexto: {
+    pt: '{documento}: caduca amanhã ({data}). Envie o renovado na app.',
+    tet: '{documento}: remata aban ({data}). Haruka ida foun iha app.',
+    en: '{documento}: expires tomorrow ({data}). Send the renewed one in the app.',
+  },
+  validadeHojeTexto: {
+    pt: '{documento}: caduca hoje ({data}). Amanhã já não pode ficar disponível sem o renovado.',
+    tet: '{documento}: remata ohin ({data}). Aban ita la bele ona sai disponível se la iha ida foun.',
+    en: '{documento}: expires today ({data}). From tomorrow you cannot go online without the renewed one.',
+  },
+  validadeCaducouTitulo: {
+    pt: 'Documento caducado',
+    tet: 'Dokumentu remata ona',
+    en: 'Document expired',
+  },
+  validadeCaducouTexto: {
+    pt: '{documento}: caducou a {data}. Não pode ficar disponível até enviar o renovado.',
+    tet: '{documento}: remata ona iha {data}. Ita la bele sai disponível to’o haruka ida foun.',
+    en: '{documento}: expired on {data}. You cannot go online until you send the renewed one.',
+  },
+  doc_photo: { pt: 'Fotografia sua', tet: 'Ita-nia fotografia', en: 'Photo of you' },
+  doc_identity: {
+    pt: 'Documento de identificação',
+    tet: 'Dokumentu identifikasaun',
+    en: 'Identity document',
+  },
+  doc_licence: {
+    pt: 'Carta de condução (frente)',
+    tet: 'Karta kondusaun (oin)',
+    en: 'Driving licence (front)',
+  },
+  doc_cartaverso: {
+    pt: 'Carta de condução (verso)',
+    tet: 'Karta kondusaun (kotuk)',
+    en: 'Driving licence (back)',
+  },
+  doc_vehicle: {
+    pt: 'Cartão de registo do veículo',
+    tet: 'Kartaun Rejistu Veíkulu',
+    en: 'Vehicle registration card',
+  },
+  doc_inspection: { pt: 'Cartão de inspeção', tet: 'Kartaun Inspesaun', en: 'Inspection card' },
+  doc_fotoveiculo: {
+    pt: 'Fotografia do veículo',
+    tet: 'Fotografia veíkulu nian',
+    en: 'Vehicle photo',
+  },
+  emailOla: { pt: 'Olá {nome},', tet: 'Olá {nome},', en: 'Hello {nome},' },
+  emailRodape: {
+    pt: 'Veja os detalhes na app TimorgianaRide, no seu registo de motorista.',
+    tet: 'Haree detallu iha app TimorgianaRide, iha ita-nia rejistu motorista.',
+    en: 'See the details in the TimorgianaRide app, in your driver registration.',
   },
 };
 

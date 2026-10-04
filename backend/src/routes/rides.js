@@ -55,7 +55,7 @@ import {
 } from '../ocorrencias.js';
 import { podeIr } from '../cobertura.js';
 import { config } from '../config.js';
-import { registarDia } from '../assinatura.js';
+import { registarDia, podeEntrarAoServico } from '../assinatura.js';
 
 // Motivos possíveis para cancelar. Os primeiros quatro são do passageiro,
 // os quatro seguintes do motorista; a app mostra os que interessam a cada
@@ -842,6 +842,17 @@ ridesRouter.post(
       return res.status(403).json({
         error: 'Estás indisponível. Liga-te para aceitar pedidos.',
         motivo: 'indisponivel',
+      });
+    }
+    // SEM DIAS NÃO HÁ VIAGEM NOVA (04/10/2026, pedido do Simão). Ficar
+    // disponível já o verificava, mas quem ficava ligado de um dia para o
+    // outro passava a meia-noite disponível e aceitava de graça — o dia de
+    // ontem estava pago, o de hoje não. É a mesma regra da entrada: com o dia
+    // de hoje já contado, continua a trabalhar até à meia-noite.
+    if (!(await podeEntrarAoServico(req.user.id)).pode) {
+      return res.status(402).json({
+        error: 'A tua assinatura acabou. Carrega dias para voltar a receber viagens.',
+        motivo: 'sem_saldo',
       });
     }
 
