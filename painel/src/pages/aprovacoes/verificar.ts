@@ -9,6 +9,11 @@ import type { DocumentoResumo, Motorista, TipoDocumento } from '@/types/api';
 
 export const TIPOS_DOCUMENTO: TipoDocumento[] = ['photo', 'identity', 'licence', 'cartaverso', 'vehicle', 'inspection'];
 
+// As quatro fotografias do veículo (04/10/2026). Impedem a aprovação de um
+// registo NOVO, como um documento em falta; a quem já está aprovado só se
+// apontam, porque não existiam quando se registou.
+export const FOTOS_VEICULO: TipoDocumento[] = ['veiculofrente', 'veiculotras', 'veiculoesquerda', 'veiculodireita'];
+
 // Quanto tempo é PLAUSÍVEL faltar para cada documento caducar. As datas são
 // escritas pelo próprio motorista a olhar para o cartão, e nada o impede de
 // escrever 2035 — mas um Kartaun Inspesaun vale um ano: uma validade a três
@@ -48,6 +53,16 @@ export function verificar(d: Motorista): LinhaVerificacao[] {
       : { nivel: 'ok', texto: 'Os seis documentos estão presentes' }
   );
 
+  const semFotos = FOTOS_VEICULO.filter((k) => !docs[k]).map((k) => tl('documento', k).toLowerCase());
+  if (semFotos.length) {
+    linhas.push({
+      nivel: d.driverStatus === 'approved' ? 'duvida' : 'no',
+      texto: `Faltam fotografias do veículo: ${semFotos.join(', ')}`,
+    });
+  } else {
+    linhas.push({ nivel: 'ok', texto: 'As quatro fotografias do veículo estão presentes' });
+  }
+
   const semData = (['licence', 'vehicle', 'inspection'] as TipoDocumento[]).filter((k) => docs[k] && !docs[k]!.expiresOn);
   if (semData.length) linhas.push({ nivel: 'no', texto: `Sem data de validade: ${semData.map((k) => tl('documento', k)).join(', ')}` });
 
@@ -76,7 +91,7 @@ export function verificar(d: Motorista): LinhaVerificacao[] {
   // A CORREÇÃO PEDIDA IMPEDE, como um documento em falta (04/10/2026): quem
   // pediu disse que aquele papel não serve. Aprovar sem ele obriga ao «mesmo
   // assim», com a lista à frente.
-  for (const k of TIPOS_DOCUMENTO) {
+  for (const k of [...TIPOS_DOCUMENTO, ...FOTOS_VEICULO]) {
     const doc = docs[k];
     if (doc?.correcao) linhas.push({ nivel: 'no', texto: `${tl('documento', k)}: correção pedida — ${doc.correcao}` });
   }

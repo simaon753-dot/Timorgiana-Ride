@@ -5,7 +5,7 @@ import { t, tl } from '@/i18n';
 import { api, caminhos } from '@/services/admin';
 import { data, haQuanto } from '@/lib/formato';
 import { cn } from '@/lib/utils';
-import type { Motorista, RespostaContaDetalhe } from '@/types/api';
+import type { Motorista, RespostaContaDetalhe, TipoDocumento } from '@/types/api';
 import { Janela, JanelaConteudo, JanelaCabecalho, JanelaTitulo, JanelaDescricao, JanelaCorpo, JanelaRodape } from '@/components/ui/janela';
 import { Botao } from '@/components/ui/botao';
 import { Distintivo } from '@/components/ui/distintivo';
@@ -15,7 +15,7 @@ import { DialogoConfirmacao } from '@/components/ui/confirmar';
 import { ImagemProtegida, Lupa } from '@/components/ui/imagem-protegida';
 import { avisar, mensagemDe } from '@/components/ui/aviso';
 import { Dado, EstadoDoMotorista, IconeVeiculo, Telefone } from '@/components/comuns';
-import { TIPOS_DOCUMENTO, documentoSuspeito, porTipo, resumoVerificacao, type NivelVerificacao } from './verificar';
+import { FOTOS_VEICULO, TIPOS_DOCUMENTO, documentoSuspeito, porTipo, resumoVerificacao, type NivelVerificacao } from './verificar';
 
 type Acao = null | 'aprovarMesmoAssim' | 'recusar' | 'suspender';
 
@@ -126,6 +126,64 @@ export function Candidatura({
     } catch (e) {
       avisar.erro(mensagemDe(e));
     }
+  };
+
+  // Um documento na grelha: a fotografia (ou «em falta»), a validade e as
+  // ações. O mesmo para os documentos e para as fotografias do veículo.
+  const cartaoDocumento = (k: TipoDocumento) => {
+    const doc = docs[k];
+    const nomeDoc = tl('documento', k);
+    if (!doc) {
+      return (
+        <li key={k}>
+          <div className="flex aspect-[4/3] flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-perigo/40 bg-perigo-claro text-xs font-semibold text-perigo">
+            <FileWarning className="size-5" aria-hidden />
+            {t('cand.emFalta')}
+          </div>
+          <p className="mt-2 text-[13px] font-semibold">{nomeDoc}</p>
+        </li>
+      );
+    }
+    const suspeito = documentoSuspeito(doc);
+    const porRever = doc.porRever && !revistos.includes(doc.id);
+    const aCorrigir = !!doc.correcao;
+    return (
+      <li key={k}>
+        <ImagemProtegida
+          caminho={caminhos.documento(doc.id)}
+          alt={nomeDoc}
+          className={cn('aspect-[4/3]', suspeito && 'ring-2 ring-perigo/50', (porRever || aCorrigir) && 'ring-2 ring-aviso/60')}
+          aoAbrir={(url) => setLupa({ url, titulo: `${nomeDoc} · ${nome}` })}
+        />
+        <p className="mt-2 text-[13px] font-semibold leading-tight">{nomeDoc}</p>
+        <p className={cn('numeros mt-0.5 text-xs', suspeito ? 'font-semibold text-perigo' : 'text-secundario')}>
+          {doc.expiresOn ? t('cand.validade', { data: data(doc.expiresOn) }) : ['licence', 'vehicle', 'inspection'].includes(k) ? t('cand.semValidade') : ' '}
+        </p>
+        {porRever ? (
+          <div className="mt-1.5">
+            <Distintivo cor="aviso">{t('cand.porRever')}</Distintivo>
+            <Botao variante="suave" tamanho="sm" className="mt-1.5 w-full" onClick={() => confirmarDocumento(doc.id)}>
+              {t('cand.confirmarDocumento')}
+            </Botao>
+          </div>
+        ) : null}
+        {/* A correção pedida fica à vista com o motivo, e desfaz-se
+            aqui; ou pede-se, documento a documento. */}
+        {aCorrigir ? (
+          <div className="mt-1.5">
+            <Distintivo cor="aviso">{t('cand.correcaoPedida')}</Distintivo>
+            <p className="mt-1 text-xs leading-snug text-texto">{doc.correcao}</p>
+            <Botao variante="fantasma" tamanho="sm" className="mt-1 w-full" onClick={() => retirarCorrecao(doc.id)}>
+              {t('cand.retirarCorrecao')}
+            </Botao>
+          </div>
+        ) : (
+          <Botao variante="secundario" tamanho="sm" className="mt-1.5 w-full" onClick={() => setCorrigir({ id: doc.id, nome: nomeDoc })}>
+            {t('cand.pedirCorrecao')}
+          </Botao>
+        )}
+      </li>
+    );
   };
 
   const veiculo = d.vehicle;
@@ -252,62 +310,12 @@ export function Candidatura({
 
             <Seccao titulo={t('cand.documentos')}>
               <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                {TIPOS_DOCUMENTO.map((k) => {
-                  const doc = docs[k];
-                  const nomeDoc = tl('documento', k);
-                  if (!doc) {
-                    return (
-                      <li key={k}>
-                        <div className="flex aspect-[4/3] flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-perigo/40 bg-perigo-claro text-xs font-semibold text-perigo">
-                          <FileWarning className="size-5" aria-hidden />
-                          {t('cand.emFalta')}
-                        </div>
-                        <p className="mt-2 text-[13px] font-semibold">{nomeDoc}</p>
-                      </li>
-                    );
-                  }
-                  const suspeito = documentoSuspeito(doc);
-                  const porRever = doc.porRever && !revistos.includes(doc.id);
-                  const aCorrigir = !!doc.correcao;
-                  return (
-                    <li key={k}>
-                      <ImagemProtegida
-                        caminho={caminhos.documento(doc.id)}
-                        alt={nomeDoc}
-                        className={cn('aspect-[4/3]', suspeito && 'ring-2 ring-perigo/50', (porRever || aCorrigir) && 'ring-2 ring-aviso/60')}
-                        aoAbrir={(url) => setLupa({ url, titulo: `${nomeDoc} · ${nome}` })}
-                      />
-                      <p className="mt-2 text-[13px] font-semibold leading-tight">{nomeDoc}</p>
-                      <p className={cn('numeros mt-0.5 text-xs', suspeito ? 'font-semibold text-perigo' : 'text-secundario')}>
-                        {doc.expiresOn ? t('cand.validade', { data: data(doc.expiresOn) }) : ['licence', 'vehicle', 'inspection'].includes(k) ? t('cand.semValidade') : ' '}
-                      </p>
-                      {porRever ? (
-                        <div className="mt-1.5">
-                          <Distintivo cor="aviso">{t('cand.porRever')}</Distintivo>
-                          <Botao variante="suave" tamanho="sm" className="mt-1.5 w-full" onClick={() => confirmarDocumento(doc.id)}>
-                            {t('cand.confirmarDocumento')}
-                          </Botao>
-                        </div>
-                      ) : null}
-                      {/* A correção pedida fica à vista com o motivo, e desfaz-se
-                          aqui; ou pede-se, documento a documento. */}
-                      {aCorrigir ? (
-                        <div className="mt-1.5">
-                          <Distintivo cor="aviso">{t('cand.correcaoPedida')}</Distintivo>
-                          <p className="mt-1 text-xs leading-snug text-texto">{doc.correcao}</p>
-                          <Botao variante="fantasma" tamanho="sm" className="mt-1 w-full" onClick={() => retirarCorrecao(doc.id)}>
-                            {t('cand.retirarCorrecao')}
-                          </Botao>
-                        </div>
-                      ) : (
-                        <Botao variante="secundario" tamanho="sm" className="mt-1.5 w-full" onClick={() => setCorrigir({ id: doc.id, nome: nomeDoc })}>
-                          {t('cand.pedirCorrecao')}
-                        </Botao>
-                      )}
-                    </li>
-                  );
-                })}
+                {TIPOS_DOCUMENTO.map(cartaoDocumento)}
               </ul>
+            </Seccao>
+
+            <Seccao titulo={t('cand.fotosVeiculo')} nota={t('cand.fotosVeiculoNota')}>
+              <ul className="grid grid-cols-2 gap-4 sm:grid-cols-4">{FOTOS_VEICULO.map(cartaoDocumento)}</ul>
             </Seccao>
 
             <Seccao titulo={t('cand.verificacao')} nota={t('cand.verificacaoNota')}>

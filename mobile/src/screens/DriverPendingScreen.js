@@ -71,6 +71,13 @@ const TIPOS = [
   // validade, e só para quem conduz um Carry: é ela que mostra ao
   // administrador o tamanho real da caixa que o motorista declarou.
   { kind: 'fotoveiculo', label: 'docFotoveiculo', soCarry: true },
+  // AS QUATRO FOTOGRAFIAS DO VEÍCULO (04/10/2026), sempre pela CÂMARA — uma
+  // da galeria pode ser de outro carro, de outro dia. Contam para o registo
+  // novo estar completo; a quem já está aprovado ficam pedidas, sem o parar.
+  { kind: 'veiculofrente', label: 'docVeiculofrente', nota: 'docVeiculoMatricula', camera: true },
+  { kind: 'veiculotras', label: 'docVeiculotras', nota: 'docVeiculoMatricula', camera: true },
+  { kind: 'veiculoesquerda', label: 'docVeiculoesquerda', camera: true },
+  { kind: 'veiculodireita', label: 'docVeiculodireita', camera: true },
 ];
 
 // Ecrã que o motorista vê enquanto a conta não está aprovada. Sem isto,
@@ -182,7 +189,11 @@ export default function DriverPendingScreen({ navigation }) {
   // uma data que não existe.
   function precisaValidade(kind) {
     return (
-      kind !== 'photo' && kind !== 'identity' && kind !== 'fotoveiculo' && kind !== 'cartaverso'
+      kind !== 'photo' &&
+      kind !== 'identity' &&
+      kind !== 'fotoveiculo' &&
+      kind !== 'cartaverso' &&
+      !TIPOS.find((tp) => tp.kind === kind)?.camera
     );
   }
 
@@ -212,14 +223,22 @@ export default function DriverPendingScreen({ navigation }) {
     // Inspesaun — e convertida aqui. Ver src/lib/datas.js.
     const validade = precisaValidade(kind) ? paraISO(validades[kind]) : null;
     if (precisaValidade(kind) && !validade) return setError(t('docExpiryRequired'));
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) return setError(t('errPermissionPhotos'));
+    // As fotografias do veículo só pela câmara de trás; o resto, da galeria.
+    const pelaCamera = !!TIPOS.find((tp) => tp.kind === kind)?.camera;
+    const perm = pelaCamera
+      ? await ImagePicker.requestCameraPermissionsAsync()
+      : await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted)
+      return setError(t(pelaCamera ? 'errCameraPermission' : 'errPermissionPhotos'));
 
-    const res = await ImagePicker.launchImageLibraryAsync({
+    const opcoes = {
       mediaTypes: ['images'],
       quality: 0.6, // comprime: os documentos não precisam de qualidade máxima
       base64: true,
-    });
+    };
+    const res = pelaCamera
+      ? await ImagePicker.launchCameraAsync({ ...opcoes, cameraType: ImagePicker.CameraType.back })
+      : await ImagePicker.launchImageLibraryAsync(opcoes);
     if (res.canceled || !res.assets?.[0]?.base64) return;
 
     // MOSTRA ANTES DE ENVIAR, e não envia já.
@@ -273,7 +292,11 @@ export default function DriverPendingScreen({ navigation }) {
   // Os OBRIGATÓRIOS: a fotografia do Carry é opcional e só para o Carry.
   // Com ela na conta, ninguém ficava «completo» — e a frase de baixo dizia
   // «Faltam documentos» a motoristas aprovados com tudo entregue.
-  const completo = TIPOS.filter((tp) => !tp.soCarry).every((tp) => enviados.includes(tp.kind));
+  // As fotografias do veículo contam para quem ainda se está a registar; a
+  // quem já foi aprovado não se exige o que não existia quando se registou.
+  const completo = TIPOS.filter((tp) => !tp.soCarry && (!aprovado || !tp.camera)).every((tp) =>
+    enviados.includes(tp.kind)
+  );
   const termosOk = user?.driverTermsVersion === VERSAO_TERMOS_MOTORISTA;
   const aCorrigir = docs.filter((d) => d.correcao);
 
@@ -397,7 +420,11 @@ export default function DriverPendingScreen({ navigation }) {
                 <ActivityIndicator color={colors.teal} style={{ marginTop: spacing.lg }} />
               ) : (
                 TIPOS.filter(
-                  (tp) => !tp.soCarry || VEICULOS[user?.vehicle?.type]?.perguntaCarga
+                  // A fotografia única do Carry (14/09) deu lugar às quatro:
+                  // só aparece a quem já a tinha enviado.
+                  (tp) =>
+                    !tp.soCarry ||
+                    (VEICULOS[user?.vehicle?.type]?.perguntaCarga && enviados.includes(tp.kind))
                 ).map((tp) => {
                   const enviado = enviados.includes(tp.kind);
                   const doc = docs.find((d) => d.kind === tp.kind);

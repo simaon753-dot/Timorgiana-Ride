@@ -11,7 +11,7 @@ import {
   getOwnDocument,
   definirValidade,
   motivoValido,
-  OBRIGATORIOS,
+  OBRIGATORIOS_REGISTO,
 } from '../documents.js';
 import { temFotoDeHoje, guardarFotoDeTurno, ultimaFotoDeTurno } from '../turnos.js';
 import { setOnline, savePushToken } from '../drivers.js';
@@ -448,7 +448,9 @@ driverRouter.post(
       // A lista real e não três tipos escritos à mão. Estava desactualizada
       // desde que entraram a inspeção e a identificação: um motorista ficava
       // "completo" com três documentos e ninguém era avisado dos outros dois.
-      const completo = OBRIGATORIOS.every((k) => tipos.has(k));
+      // Com as quatro fotografias do veículo (04/10/2026): é quando o registo
+      // NOVO está mesmo pronto para ser visto.
+      const completo = OBRIGATORIOS_REGISTO.every((k) => tipos.has(k));
       // Só avisa quem pediu MESMO para conduzir. Com o registo aberto a
       // qualquer conta, `null || 'pending'` faria soar o alarme por
       // alguém que enviou documentos sem sequer declarar um veículo.
@@ -485,7 +487,7 @@ driverRouter.post(
       return res.status(409).json({ error: 'O teu registo não está recusado.' });
     }
     const tipos = new Set((await listDocuments(req.user.id)).map((d) => d.kind));
-    if (!OBRIGATORIOS.every((k) => tipos.has(k))) {
+    if (!OBRIGATORIOS_REGISTO.every((k) => tipos.has(k))) {
       return res.status(400).json({ error: 'Faltam documentos na tua conta.' });
     }
     if (req.user.driver_terms_version !== VERSAO_TERMOS_MOTORISTA) {

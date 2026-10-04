@@ -78,6 +78,10 @@ export const MENSAGENS = {
     'Ita-nia rejistu la rejeita.',
     'Your registration has not been rejected.',
   ],
+  'Formato não aceite. Envie uma fotografia do veículo.': [
+    'Formatu la aseita. Haruka fotografia veíkulu nian.',
+    'Format not accepted. Send a photo of the vehicle.',
+  ],
   'Corrige o teu documento ({0}): {1}': [
     'Hadi’a ita-nia dokumentu ({0}): {1}',
     'Correct your document ({0}): {1}',
@@ -839,6 +843,22 @@ export const NOTIFICACOES = {
     en: 'Vehicle registration card',
   },
   doc_inspection: { pt: 'Cartão de inspeção', tet: 'Kartaun Inspesaun', en: 'Inspection card' },
+  doc_veiculofrente: {
+    pt: 'Veículo, frente',
+    tet: 'Veíkulu, oin',
+    en: 'Vehicle, front',
+  },
+  doc_veiculotras: { pt: 'Veículo, traseira', tet: 'Veíkulu, kotuk', en: 'Vehicle, rear' },
+  doc_veiculoesquerda: {
+    pt: 'Veículo, lado esquerdo',
+    tet: 'Veíkulu, sorin karuk',
+    en: 'Vehicle, left side',
+  },
+  doc_veiculodireita: {
+    pt: 'Veículo, lado direito',
+    tet: 'Veíkulu, sorin loos',
+    en: 'Vehicle, right side',
+  },
   doc_fotoveiculo: {
     pt: 'Fotografia do veículo',
     tet: 'Fotografia veíkulu nian',

@@ -13,6 +13,10 @@ export const ORDEM_DOCUMENTOS = [
   'vehicle',
   'inspection',
   'fotoveiculo',
+  'veiculofrente',
+  'veiculotras',
+  'veiculoesquerda',
+  'veiculodireita',
 ];
 
 // Ordena uma lista de documentos pelo campo que traz o tipo ('kind' ou 'tipo').

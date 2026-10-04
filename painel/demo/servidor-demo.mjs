@@ -54,11 +54,14 @@ const seis = (validades = {}) => [
   doc('vehicle', validades.vehicle ?? 600), doc('inspection', validades.inspection ?? 200),
 ];
 
+// As quatro fotografias do veículo (04/10/2026).
+const quatroFotos = () => ['veiculofrente', 'veiculotras', 'veiculoesquerda', 'veiculodireita'].map((k) => doc(k));
+
 const motoristas = [
-  { estado: 'pending', tipo: 'motorbike', docs: seis({ inspection: 18 }), cor: 'Preta', h: 3, online: true },
+  { estado: 'pending', tipo: 'motorbike', docs: [...seis({ inspection: 18 }), ...quatroFotos()], cor: 'Preta', h: 3, online: true },
   { estado: 'pending', tipo: 'car', docs: seis().filter((d) => d.kind !== 'inspection'), cor: '', h: 26 },
   { estado: 'pending', tipo: 'carry', docs: seis({ inspection: 1100 }).map((d) => (d.kind === 'licence' ? { ...d, correcao: 'A fotografia não se lê — tire outra com mais luz e sem tremer.', correcaoEm: ha(5) } : d)), cor: 'Branca', h: 50 },
-  { estado: 'approved', tipo: 'car', docs: seis(), cor: 'Prateada', h: 400, online: true, viagens: 42 },
+  { estado: 'approved', tipo: 'car', docs: [...seis(), ...quatroFotos()], cor: 'Prateada', h: 400, online: true, viagens: 42 },
   { estado: 'approved', tipo: 'motorbike', docs: seis({ licence: -10 }), cor: 'Vermelha', h: 900, viagens: 118 },
   { estado: 'approved', tipo: 'carry', docs: seis().map((d) => (d.kind === 'inspection' ? { ...d, porRever: true, motivo: 'caducado' } : d)), cor: 'Azul', h: 700, viagens: 23 },
   { estado: 'rejected', tipo: 'car', docs: seis(), cor: 'Branca', h: 240, motivo: 'Os documentos não se leem — envie fotografias mais nítidas.' },

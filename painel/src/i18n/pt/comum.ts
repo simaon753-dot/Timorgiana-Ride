@@ -59,6 +59,10 @@ export const comum = {
   'documento.cartaverso': 'Carta de condução (verso)',
   'documento.vehicle': 'Documento do veículo',
   'documento.inspection': 'Inspeção',
+  'documento.veiculofrente': 'Frente',
+  'documento.veiculotras': 'Traseira',
+  'documento.veiculoesquerda': 'Lado esquerdo',
+  'documento.veiculodireita': 'Lado direito',
 
   'motivoDocumento.caducado': 'Caducou e foi renovado',
   'motivoDocumento.perdido': 'Perdeu o documento e tirou outro',

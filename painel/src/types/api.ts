@@ -12,7 +12,11 @@ export type TipoDocumento =
   | 'licence'
   | 'cartaverso'
   | 'vehicle'
-  | 'inspection';
+  | 'inspection'
+  | 'veiculofrente'
+  | 'veiculotras'
+  | 'veiculoesquerda'
+  | 'veiculodireita';
 
 export interface Veiculo {
   type: TipoVeiculo;

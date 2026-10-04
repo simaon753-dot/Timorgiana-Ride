@@ -52,6 +52,10 @@ const NOME_DO_DOC = {
   identity: 'docIdentity',
   photo: 'docPhoto',
   fotoveiculo: 'docFotoveiculo',
+  veiculofrente: 'docVeiculofrente',
+  veiculotras: 'docVeiculotras',
+  veiculoesquerda: 'docVeiculoesquerda',
+  veiculodireita: 'docVeiculodireita',
 };
 
 export default function AdminDetalheScreen({ navigation, route }) {

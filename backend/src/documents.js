@@ -14,6 +14,10 @@ const TIPOS = [
   'inspection',
   'identity',
   'fotoveiculo',
+  'veiculofrente',
+  'veiculotras',
+  'veiculoesquerda',
+  'veiculodireita',
 ];
 
 // O dia em Díli, e não o dia do servidor.
@@ -56,6 +60,10 @@ export async function saveDocument({ userId, kind, mime, base64, expiresOn, moti
   // verificada.
   const validade =
     expiresOn && /^\d{4}-\d{2}-\d{2}$/.test(String(expiresOn)) ? String(expiresOn) : null;
+  // As fotografias do veículo são imagens: um PDF ali não mostra carro nenhum.
+  if (FOTOS_VEICULO.includes(kind) && mime === 'application/pdf') {
+    throw new Error('Formato não aceite. Envie uma fotografia do veículo.');
+  }
 
   return one(
     `INSERT INTO driver_documents
@@ -143,6 +151,19 @@ export const COM_VALIDADE = ['licence', 'vehicle', 'inspection'];
 // as categorias, e aprovava-se um motorista sem saber se pode conduzir aquele
 // veículo.
 export const OBRIGATORIOS = ['photo', 'identity', 'licence', 'cartaverso', 'vehicle', 'inspection'];
+
+// AS FOTOGRAFIAS DO VEÍCULO, DOS QUATRO LADOS (04/10/2026, recomendação
+// aceite pelo Simão). Tiradas pela câmara na app — não da galeria —, com a
+// matrícula à vista à frente e atrás. Servem para quem aprova ver o carro
+// que o passageiro vai ver: a cor, o estado, se a matrícula bate com a do
+// cartão de registo.
+//
+// Contam para um REGISTO NOVO estar completo (ver `OBRIGATORIOS_REGISTO`),
+// mas NÃO entram em `podeTrabalhar`: quem já está aprovado não fica parado
+// por um pedido que não existia quando se registou. Pode juntá-las quando
+// quiser, e o painel mostra quem ainda não as tem.
+export const FOTOS_VEICULO = ['veiculofrente', 'veiculotras', 'veiculoesquerda', 'veiculodireita'];
+export const OBRIGATORIOS_REGISTO = [...OBRIGATORIOS, ...FOTOS_VEICULO];
 
 // Avisar quinze dias antes. Chega para tratar de um papel em Díli sem
 // perder um dia de trabalho, e não é tão cedo que se esqueça.

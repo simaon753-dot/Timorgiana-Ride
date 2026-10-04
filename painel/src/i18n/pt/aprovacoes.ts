@@ -87,6 +87,8 @@ export const aprovacoes = {
   'cand.confirmarDocumento': 'Confirmar documento',
   'cand.documentoConfirmado': 'Documento confirmado.',
   'cand.suspeito': 'Verificar validade',
+  'cand.fotosVeiculo': 'Fotografias do veículo',
+  'cand.fotosVeiculoNota': 'Tiradas pela câmara da app. Compare a matrícula e a cor com o cartão de registo.',
   'cand.pedirCorrecao': 'Pedir correção',
   'cand.correcaoPedida': 'Correção pedida',
   'cand.retirarCorrecao': 'Retirar pedido',
