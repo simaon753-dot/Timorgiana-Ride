@@ -14,7 +14,9 @@ import PlanoAtividade from '../components/PlanoAtividade.js';
 import GraficoGanhos from '../components/GraficoGanhos.js';
 import DetalheDoDia from '../components/DetalheDoDia.js';
 import EscolherPeriodo from '../components/EscolherPeriodo.js';
-import Chip, { FilaChips } from '../design/Chip.js';
+import Chip from '../design/Chip.js';
+import Icone from '../design/Icone.js';
+import { VEICULOS } from '../dados/tiposDeVeiculo.js';
 import { colors, spacing, radius, registarEstilos } from '../theme.js';
 import { tipo, FAMILIAS } from '../design/tipografia.js';
 import BarraEstado from '../design/BarraEstado.js';
@@ -42,12 +44,17 @@ import {
 // à escolha), com o gráfico e a lista dia a dia — que abre o detalhe de cada
 // dia. Tudo vem do servidor: os dias de atividade de `dias_contados`, as
 // horas de `sessoes_online`. O telemóvel não conta nada.
+//
+// COMPACTO COMO NA IMAGEM DO SIMÃO (05/10/2026): hoje numa linha com três
+// números ao lado, o plano em tinta teal, as pastilhas numa linha, quatro
+// números dois a dois, o gráfico com o valor por cima das barras, o melhor
+// dia e a lista em tabela. Letra nunca abaixo de 10–11 pt: o resto desliza.
 const FILTROS = ['hoje', '7', '30', 'mes', 'personalizado'];
 const DIAS_VISIVEIS = 7;
 
 export default function GanhosScreen({ navigation }) {
   const { t } = useI18n();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [g, setG] = useState(null);
   const [plano, setPlano] = useState(null);
   const [aCarregar, setACarregar] = useState(true);
@@ -109,6 +116,12 @@ export default function GanhosScreen({ navigation }) {
           ? t('ganhosUltimos30')
           : t(`ganhosFiltro_${filtro}`);
 
+  // O MELHOR DIA do período (05/10/2026, da imagem do Simão). Só com ganhos:
+  // num período a zero não há melhor dia, e «$0.00» como recorde seria triste.
+  const melhor = dias.reduce((m, d) => (d.valor > (m?.valor ?? 0) ? d : m), null);
+  const maxDia = Math.max(1, ...visiveis.map((d) => d.valor));
+  const iconeVeiculo = VEICULOS[user?.vehicle?.type]?.icone || 'carro';
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <BarraEstado />
@@ -125,118 +138,219 @@ export default function GanhosScreen({ navigation }) {
         >
           {erro && !g ? <Text style={styles.erro}>{erro}</Text> : null}
 
-          {/* ── 1. HOJE ─────────────────────────────────────────────── */}
+          {/* ── 1. HOJE: o dinheiro à esquerda, três números ao lado ── */}
           <View style={styles.hoje}>
-            <Text style={styles.hojeRotulo}>{t('earningsToday')}</Text>
-            <Text style={styles.hojeValor}>${(g?.hoje ?? 0).toFixed(2)}</Text>
-            <Text style={styles.hojeViagens}>
-              {contagem(t, g?.viagensHoje ?? 0, 'ganhosUmaViagem', 'earningsTrips')}
-            </Text>
-            <View style={styles.hojeNumeros}>
-              <NumeroHoje rotulo={t('ganhosViagensHoje')} valor={String(g?.viagensHoje ?? 0)} />
-              <NumeroHoje
-                rotulo={t('ganhosHorasOnline')}
-                valor={semHoras(hoje) ? '—' : horasMinutos(g?.minutosOnlineHoje ?? 0)}
-              />
-              <NumeroHoje
-                rotulo={t('ganhosMediaViagem')}
-                valor={media(g?.hoje ?? 0, g?.viagensHoje ?? 0)}
-              />
+            <View style={styles.hojeEsquerda}>
+              <Text
+                style={styles.hojeRotulo}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+                maxFontSizeMultiplier={1.2}
+              >
+                {t('earningsToday')}
+              </Text>
+              <Text
+                style={styles.hojeValor}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                maxFontSizeMultiplier={1.2}
+              >
+                ${(g?.hoje ?? 0).toFixed(2)}
+              </Text>
+              <Text style={styles.hojeViagens} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                {contagem(t, g?.viagensHoje ?? 0, 'ganhosUmaViagem', 'earningsTrips')}
+              </Text>
             </View>
+            <ColunaHoje
+              icone={iconeVeiculo}
+              rotulo={t('ganhosViagensHoje')}
+              valor={String(g?.viagensHoje ?? 0)}
+            />
+            <ColunaHoje
+              icone="relogio"
+              rotulo={t('ganhosHorasOnline')}
+              valor={semHoras(hoje) ? '—' : horasMinutos(g?.minutosOnlineHoje ?? 0)}
+            />
+            <ColunaHoje
+              icone="grafico"
+              rotulo={t('ganhosMediaViagem')}
+              valor={media(g?.hoje ?? 0, g?.viagensHoje ?? 0)}
+            />
           </View>
 
           {/* ── 2. PLANO DE ATIVIDADE ───────────────────────────────── */}
           <PlanoAtividade plano={plano} diasContados={g?.diasTotal} navigation={navigation} />
 
-          {/* ── 3. O PERÍODO ────────────────────────────────────────── */}
-          <Text style={styles.seccao}>{t('ganhosPeriodo')}</Text>
-          <FilaChips>
+          {/* ── 3. O PERÍODO: as pastilhas numa linha só, que desliza ── */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filtros}
+            contentContainerStyle={styles.filtrosDentro}
+          >
             {FILTROS.map((f) => (
               <Chip
                 key={f}
-                texto={t(`ganhosFiltro_${f}`)}
+                icone={f === 'personalizado' ? 'calendario' : undefined}
+                texto={
+                  f === 'personalizado' && filtro === 'personalizado' && personalizado
+                    ? rotuloPeriodo
+                    : t(`ganhosFiltro_${f}`)
+                }
                 activo={filtro === f}
                 onPress={() => escolherFiltro(f)}
               />
             ))}
-          </FilaChips>
+          </ScrollView>
 
-          <View style={[styles.cartao, aMudar && styles.aMudar]}>
-            <View style={styles.periodoTopo}>
-              <Text style={styles.periodoNome} numberOfLines={2}>
-                {rotuloPeriodo}
-              </Text>
-              {aMudar ? <ActivityIndicator color={colors.teal} size="small" /> : null}
-            </View>
-            <Text style={styles.periodoValor}>${(p?.valor ?? 0).toFixed(2)}</Text>
-            <View style={styles.grelha}>
-              <Numero rotulo={t('ganhosViagens')} valor={String(p?.viagens ?? 0)} />
-              <Numero rotulo={t('ganhosDiasDeAtividade')} valor={String(p?.dias ?? 0)} />
-              <Numero
-                rotulo={t('ganhosMediaViagem')}
-                valor={media(p?.valor ?? 0, p?.viagens ?? 0)}
-              />
-              <Numero rotulo={t('ganhosMediaDia')} valor={media(p?.valor ?? 0, p?.dias ?? 0)} />
-            </View>
-          </View>
-
-          {/* ── 4. OS CARTÕES FIXOS ─────────────────────────────────── */}
-          <View style={styles.par}>
-            <Cartao
-              rotulo={t('earningsWeek')}
-              valor={g?.semana}
-              viagens={g?.viagensSemana}
-              dias={g?.diasSemana}
-              t={t}
+          {/* ── 4. QUATRO NÚMEROS, dois a dois ──────────────────────── */}
+          <View style={[styles.grelha, aMudar && styles.aMudar]}>
+            <CartaoNumero
+              icone="moedas"
+              valor={`$${(p?.valor ?? 0).toFixed(2)}`}
+              rotulo={rotuloPeriodo}
+              notas={[
+                contagem(t, p?.viagens ?? 0, 'ganhosUmaViagem', 'earningsTrips'),
+                contagem(t, p?.dias ?? 0, 'ganhosUmDiaAtividade', 'ganhosDiasAtividade'),
+              ]}
             />
-            <Cartao
+            <CartaoNumero
+              icone="calendario"
+              valor={`$${(g?.total ?? 0).toFixed(2)}`}
               rotulo={t('earningsTotal')}
-              valor={g?.total}
-              viagens={g?.viagensTotal}
-              dias={g?.diasTotal}
-              t={t}
+              notas={[
+                contagem(t, g?.viagensTotal ?? 0, 'ganhosUmaViagem', 'earningsTrips'),
+                contagem(t, g?.diasTotal ?? 0, 'ganhosUmDiaAtividade', 'ganhosDiasAtividade'),
+              ]}
+            />
+            <CartaoNumero
+              icone="grafico"
+              valor={media(p?.valor ?? 0, p?.dias ?? 0)}
+              rotulo={t('ganhosMediaDia')}
+              notas={[rotuloPeriodo]}
+            />
+            <CartaoNumero
+              icone="rota"
+              valor={media(p?.valor ?? 0, p?.viagens ?? 0)}
+              rotulo={t('ganhosMediaViagem')}
+              notas={[rotuloPeriodo]}
             />
           </View>
+          {aMudar ? (
+            <ActivityIndicator color={colors.teal} size="small" style={styles.aMudarRoda} />
+          ) : null}
 
-          {/* ── 5. O GRÁFICO ────────────────────────────────────────── */}
-          <Text style={styles.seccao}>{t('ganhosGrafico')}</Text>
+          {/* ── 5. O GRÁFICO, com o valor por cima de cada barra ────── */}
+          <View style={styles.espaco} />
           <GraficoGanhos porDia={dias} />
 
-          {/* ── 6. POR DIA ──────────────────────────────────────────── */}
-          <Text style={styles.seccao}>{t('earningsLastDays')}</Text>
+          {/* ── 6. O MELHOR DIA ─────────────────────────────────────── */}
+          {melhor ? (
+            <Pressable
+              onPress={() => setDiaAberto(melhor.dia)}
+              style={({ pressed }) => [styles.melhor, pressed && styles.premido]}
+              accessibilityRole="button"
+            >
+              <Icone nome="coroa" tamanho={26} cor={colors.coralDark} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.melhorRotulo} maxFontSizeMultiplier={1.2}>
+                  {t('ganhosMelhorDia')}
+                </Text>
+                <Text style={styles.melhorDia} maxFontSizeMultiplier={1.2}>
+                  {nomesDia[diaDaSemana(melhor.dia)]}, {diaMes(melhor.dia)} ·{' '}
+                  {contagem(t, melhor.viagens, 'ganhosUmaViagem', 'earningsTrips')}
+                </Text>
+              </View>
+              <Text style={styles.melhorValor} maxFontSizeMultiplier={1.2}>
+                ${melhor.valor.toFixed(2)}
+              </Text>
+            </Pressable>
+          ) : null}
+
+          {/* ── 7. POR DIA, em tabela ───────────────────────────────── */}
+          <View style={styles.seccaoTopo}>
+            <Text style={styles.seccao}>{t('earningsLastDays')}</Text>
+            {dias.length > DIAS_VISIVEIS ? (
+              <Pressable
+                onPress={() => setTodos((x) => !x)}
+                hitSlop={10}
+                accessibilityRole="button"
+              >
+                <Text style={styles.verTodos}>
+                  {todos ? t('ganhosVerMenos') : t('ganhosVerTodos', { n: dias.length })} ›
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
           {dias.length ? (
-            <View style={styles.lista}>
+            <View style={styles.tabela}>
+              <View style={styles.cabecalho}>
+                <Text style={[styles.cab, styles.colData]} maxFontSizeMultiplier={1.2}>
+                  {t('ganhosColData')}
+                </Text>
+                <Text style={[styles.cab, styles.colGanhos]} maxFontSizeMultiplier={1.2}>
+                  {t('tabEarnings')}
+                </Text>
+                <Text
+                  style={[styles.cab, styles.colViagens]}
+                  numberOfLines={1}
+                  maxFontSizeMultiplier={1.2}
+                >
+                  {t('ganhosColViagens')}
+                </Text>
+                <Text
+                  style={[styles.cab, styles.colDia]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.8}
+                  maxFontSizeMultiplier={1.2}
+                >
+                  {t('ganhosDiaAtividade')}
+                </Text>
+              </View>
               {visiveis.map((d, i) => (
                 <Pressable
                   key={d.dia}
                   onPress={() => setDiaAberto(d.dia)}
                   style={({ pressed }) => [
-                    styles.dia,
-                    i === visiveis.length - 1 && styles.diaUltimo,
+                    styles.linha,
+                    i === visiveis.length - 1 && styles.linhaUltima,
                     pressed && styles.premido,
                   ]}
                   accessibilityRole="button"
                   accessibilityLabel={`${paraMostrar(d.dia)}: $${d.valor.toFixed(2)}`}
                 >
-                  <View style={[styles.marca, d.conta && styles.marcaConta]} />
-                  <View style={styles.diaData}>
-                    <Text style={styles.diaDataTexto} numberOfLines={1} maxFontSizeMultiplier={1.3}>
+                  <View style={[styles.colData, styles.data]}>
+                    <Text style={styles.dataTexto} numberOfLines={1} maxFontSizeMultiplier={1.2}>
                       {diaMes(d.dia)}
                     </Text>
-                    <Text style={styles.diaSemana}>{nomesDia[diaDaSemana(d.dia)]}</Text>
+                    <Text style={styles.semana} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                      {nomesDia[diaDaSemana(d.dia)]}
+                    </Text>
                   </View>
-                  <View style={styles.diaMeio}>
-                    <Text style={[styles.diaValor, !d.valor && styles.diaValorZero]}>
+                  <View style={styles.colGanhos}>
+                    <Text
+                      style={[styles.valor, !d.valor && styles.valorZero]}
+                      numberOfLines={1}
+                      maxFontSizeMultiplier={1.2}
+                    >
                       ${d.valor.toFixed(2)}
                     </Text>
-                    <Text style={styles.diaViagens}>
-                      {contagem(t, d.viagens, 'ganhosUmaViagem', 'earningsTrips')}
-                    </Text>
+                    {/* A barra pequena compara o dia com os outros da lista. */}
+                    <View style={styles.miniFundo}>
+                      <View style={[styles.mini, { width: `${(d.valor / maxDia) * 100}%` }]} />
+                    </View>
                   </View>
-                  <View style={[styles.pastilha, d.conta && styles.pastilhaConta]}>
+                  <Text style={[styles.colViagens, styles.viagens]} maxFontSizeMultiplier={1.2}>
+                    {d.viagens}
+                  </Text>
+                  <View style={[styles.colDia, styles.estado]}>
+                    <View style={[styles.ponto, d.conta && styles.pontoConta]} />
                     <Text
-                      style={[styles.pastilhaTexto, d.conta && styles.pastilhaTextoConta]}
+                      style={[styles.estadoTexto, d.conta && styles.estadoTextoConta]}
                       numberOfLines={1}
+                      maxFontSizeMultiplier={1.2}
                     >
                       {!d.conta
                         ? t('ganhosNaoConta')
@@ -248,23 +362,16 @@ export default function GanhosScreen({ navigation }) {
                   <Text style={styles.seta}>›</Text>
                 </Pressable>
               ))}
-              {dias.length > DIAS_VISIVEIS ? (
-                <Pressable
-                  onPress={() => setTodos((x) => !x)}
-                  style={styles.verTodos}
-                  accessibilityRole="button"
-                >
-                  <Text style={styles.verTodosTexto}>
-                    {todos ? t('ganhosVerMenos') : t('ganhosVerTodos', { n: dias.length })}
-                  </Text>
-                </Pressable>
-              ) : null}
             </View>
           ) : (
             <Text style={styles.vazio}>{t('earningsEmpty')}</Text>
           )}
 
-          <Text style={styles.nota}>{t('earningsNote')}</Text>
+          {/* ── 8. QUEM RECEBE O DINHEIRO ───────────────────────────── */}
+          <View style={styles.nota}>
+            <Icone nome="info" tamanho={20} cor={colors.teal} />
+            <Text style={styles.notaTexto}>{t('earningsNote')}</Text>
+          </View>
         </ScrollView>
       )}
 
@@ -288,47 +395,50 @@ export default function GanhosScreen({ navigation }) {
   );
 }
 
-function NumeroHoje({ rotulo, valor }) {
+// Uma coluna do cartão de hoje: ícone, rótulo curto, número.
+function ColunaHoje({ icone, rotulo, valor }) {
   return (
-    <View style={styles.hojeNumero}>
-      <Text style={styles.hojeNumeroValor} numberOfLines={1} adjustsFontSizeToFit>
-        {valor}
-      </Text>
-      <Text style={styles.hojeNumeroRotulo} numberOfLines={2}>
+    <View style={styles.coluna}>
+      <Icone nome={icone} tamanho={22} cor={colors.onTeal} />
+      <Text style={styles.colunaRotulo} numberOfLines={2} maxFontSizeMultiplier={1.15}>
         {rotulo}
+      </Text>
+      <Text
+        style={styles.colunaValor}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        maxFontSizeMultiplier={1.15}
+      >
+        {valor}
       </Text>
     </View>
   );
 }
 
-function Numero({ rotulo, valor }) {
+// Um dos quatro números: ícone sozinho (sem disco por trás, como o Simão
+// pediu para os ícones), o valor, o que é, e o contexto.
+function CartaoNumero({ icone, valor, rotulo, notas = [] }) {
   return (
     <View style={styles.numero}>
-      <Text style={styles.numeroValor} numberOfLines={1}>
-        {valor}
-      </Text>
-      <Text style={styles.numeroRotulo} numberOfLines={2}>
-        {rotulo}
-      </Text>
-    </View>
-  );
-}
-
-function Cartao({ rotulo, valor, viagens, dias, t }) {
-  return (
-    <View style={styles.cartaoPequeno}>
-      <Text style={styles.cartaoRotulo} numberOfLines={1}>
-        {rotulo}
-      </Text>
-      <Text style={styles.cartaoValor} numberOfLines={1} adjustsFontSizeToFit>
-        ${(valor ?? 0).toFixed(2)}
-      </Text>
-      <Text style={styles.cartaoViagens}>
-        {contagem(t, viagens ?? 0, 'ganhosUmaViagem', 'earningsTrips')}
-      </Text>
-      <Text style={styles.cartaoViagens}>
-        {contagem(t, dias ?? 0, 'ganhosUmDiaAtividade', 'ganhosDiasAtividade')}
-      </Text>
+      <Icone nome={icone} tamanho={22} cor={colors.teal} />
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text
+          style={styles.numeroValor}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          maxFontSizeMultiplier={1.2}
+        >
+          {valor}
+        </Text>
+        <Text style={styles.numeroRotulo} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+          {rotulo}
+        </Text>
+        {notas.map((n) => (
+          <Text key={n} style={styles.numeroNota} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+            {n}
+          </Text>
+        ))}
+      </View>
     </View>
   );
 }
@@ -336,135 +446,189 @@ function Cartao({ rotulo, valor, viagens, dias, t }) {
 const criarEstilos = () =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.paper },
-    conteudo: { padding: spacing.lg, paddingBottom: spacing.xxl },
+    // Margem de 16 e não de 24 (a do sistema): neste ecrã cada ponto de
+    // largura é uma coluna da tabela, e a imagem do Simão é assim.
+    conteudo: { paddingHorizontal: spacing.md, paddingBottom: spacing.xl },
     erro: { ...tipo.pequeno, color: colors.danger, textAlign: 'center', marginBottom: spacing.md },
+
     hoje: {
+      flexDirection: 'row',
+      alignItems: 'center',
       backgroundColor: colors.teal,
       borderRadius: radius.xl,
-      padding: spacing.lg,
-      alignItems: 'center',
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.sm,
     },
-    hojeRotulo: { ...tipo.corpoForte, color: colors.onTeal, opacity: 0.85 },
+    hojeEsquerda: { flex: 1.45, alignItems: 'center', paddingHorizontal: spacing.xs },
+    hojeRotulo: { ...tipo.corpoForte, fontSize: 14, color: colors.onTeal },
     hojeValor: {
-      color: colors.onTeal,
       fontFamily: FAMILIAS.forte,
-      fontSize: 46,
-      marginVertical: 2,
-      fontVariant: ['tabular-nums'],
-    },
-    hojeViagens: { ...tipo.pequeno, color: colors.onTeal, opacity: 0.85 },
-    hojeNumeros: {
-      flexDirection: 'row',
-      alignSelf: 'stretch',
-      marginTop: spacing.md,
-      paddingTop: spacing.md,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.onTeal,
-      gap: spacing.xs,
-    },
-    hojeNumero: { flex: 1, alignItems: 'center' },
-    hojeNumeroValor: {
-      ...tipo.subtitulo,
+      fontSize: 34,
       color: colors.onTeal,
       fontVariant: ['tabular-nums'],
     },
-    hojeNumeroRotulo: {
-      ...tipo.legenda,
-      color: colors.onTeal,
-      opacity: 0.85,
-      textAlign: 'center',
-      marginTop: 1,
-    },
-    seccao: {
-      ...tipo.etiqueta,
-      color: colors.textMuted,
-      marginTop: spacing.xl,
-      marginBottom: spacing.sm,
-    },
-    cartao: { backgroundColor: colors.white, borderRadius: radius.xl, padding: spacing.md },
-    aMudar: { opacity: 0.6 },
-    periodoTopo: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-    periodoNome: { ...tipo.corpoForte, color: colors.textMuted, flex: 1 },
-    periodoValor: {
-      ...tipo.displayPequeno,
-      color: colors.text,
-      marginTop: 2,
-      fontVariant: ['tabular-nums'],
-    },
-    grelha: { flexDirection: 'row', flexWrap: 'wrap', marginTop: spacing.sm, rowGap: spacing.sm },
-    numero: { width: '50%', paddingRight: spacing.sm },
-    numeroValor: { ...tipo.subtitulo, color: colors.text, fontVariant: ['tabular-nums'] },
-    numeroRotulo: { ...tipo.legenda, color: colors.textMuted },
-    par: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
-    cartaoPequeno: {
+    hojeViagens: { ...tipo.legenda, color: colors.onTeal, opacity: 0.9 },
+    coluna: {
       flex: 1,
+      alignItems: 'center',
+      gap: 2,
+      paddingHorizontal: 3,
+      borderLeftWidth: StyleSheet.hairlineWidth,
+      borderLeftColor: colors.onTeal,
+    },
+    colunaRotulo: {
+      ...tipo.legenda,
+      fontSize: 11,
+      lineHeight: 14,
+      color: colors.onTeal,
+      opacity: 0.9,
+      textAlign: 'center',
+    },
+    colunaValor: {
+      fontFamily: FAMILIAS.forte,
+      fontSize: 17,
+      color: colors.onTeal,
+      fontVariant: ['tabular-nums'],
+    },
+
+    filtros: { marginTop: spacing.sm, marginHorizontal: -spacing.md },
+    filtrosDentro: { gap: spacing.xs, paddingHorizontal: spacing.md },
+
+    grelha: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.sm,
+      marginTop: spacing.sm,
+    },
+    aMudar: { opacity: 0.55 },
+    aMudarRoda: { marginTop: -spacing.xl },
+    numero: {
+      flexGrow: 1,
+      flexBasis: '45%',
+      flexDirection: 'row',
+      gap: spacing.sm,
       backgroundColor: colors.white,
       borderRadius: radius.lg,
-      padding: spacing.md,
-      alignItems: 'center',
+      padding: spacing.sm + 2,
     },
-    cartaoRotulo: { ...tipo.legenda, color: colors.textMuted },
-    cartaoValor: {
-      ...tipo.titulo,
+    numeroValor: {
+      fontFamily: FAMILIAS.forte,
+      fontSize: 18,
       color: colors.text,
-      marginTop: 2,
       fontVariant: ['tabular-nums'],
     },
-    cartaoViagens: { ...tipo.legenda, fontSize: 11, color: colors.textMuted, textAlign: 'center' },
-    lista: { backgroundColor: colors.white, borderRadius: radius.xl, overflow: 'hidden' },
-    dia: {
+    numeroRotulo: { ...tipo.legenda, color: colors.text },
+    numeroNota: { ...tipo.legenda, fontSize: 11, lineHeight: 15, color: colors.textMuted },
+
+    espaco: { height: spacing.sm },
+
+    melhor: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.sm,
-      minHeight: 60,
+      backgroundColor: colors.white,
+      borderRadius: radius.lg,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      marginTop: spacing.sm,
+      minHeight: 52,
+    },
+    melhorRotulo: { ...tipo.legenda, color: colors.textMuted },
+    melhorDia: { ...tipo.corpoForte, fontSize: 14, color: colors.text },
+    melhorValor: {
+      fontFamily: FAMILIAS.forte,
+      fontSize: 18,
+      color: colors.teal,
+      fontVariant: ['tabular-nums'],
+    },
+
+    seccaoTopo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: spacing.lg,
+      marginBottom: spacing.xs,
+    },
+    seccao: { ...tipo.subtitulo, color: colors.text },
+    verTodos: { ...tipo.corpoForte, fontSize: 14, color: colors.teal },
+
+    tabela: { backgroundColor: colors.white, borderRadius: radius.xl, overflow: 'hidden' },
+    cabecalho: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      backgroundColor: colors.paper,
+      paddingVertical: 6,
+      // Alinhado com as linhas: 4 de margem + 12 = os 16 delas; à direita, o
+      // lugar da seta.
+      paddingLeft: spacing.md - spacing.xs,
+      paddingRight: spacing.sm + 14 - spacing.xs,
+      marginHorizontal: spacing.xs,
+      marginTop: spacing.xs,
+      borderRadius: radius.sm,
+    },
+    cab: { ...tipo.legenda, fontSize: 11, color: colors.textMuted },
+    colData: { width: 52 },
+    colGanhos: { flex: 1, minWidth: 0 },
+    colViagens: { width: 36, textAlign: 'center' },
+    colDia: { width: 114 },
+    linha: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      minHeight: 50,
+      paddingVertical: 4,
+      paddingLeft: spacing.md,
       paddingRight: spacing.sm,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
     },
-    diaUltimo: { borderBottomWidth: 0 },
+    linhaUltima: { borderBottomWidth: 0 },
     premido: { backgroundColor: colors.paper },
-    marca: { width: 4, alignSelf: 'stretch', backgroundColor: colors.border },
-    marcaConta: { backgroundColor: colors.teal },
-    // Largura para «04/10» na letra do sistema maior (1,3×) sem partir.
-    diaData: { minWidth: 58, paddingLeft: spacing.xs },
-    diaDataTexto: { ...tipo.corpoForte, color: colors.text, fontVariant: ['tabular-nums'] },
-    diaSemana: { ...tipo.legenda, color: colors.textMuted },
-    diaMeio: { flex: 1, minWidth: 0 },
-    diaValor: { ...tipo.corpoForte, color: colors.text, fontVariant: ['tabular-nums'] },
-    diaValorZero: { color: colors.textMuted },
-    diaViagens: { ...tipo.legenda, color: colors.textMuted },
-    pastilha: {
+    // O dia da semana por baixo da data: lado a lado, com a letra do sistema
+    // maior, encostava ao valor (visto no simulador a 05/10/2026).
+    data: { justifyContent: 'center' },
+    dataTexto: {
+      ...tipo.corpoForte,
+      fontSize: 14,
+      color: colors.text,
+      fontVariant: ['tabular-nums'],
+    },
+    semana: { ...tipo.legenda, color: colors.textMuted },
+    valor: { ...tipo.corpoForte, fontSize: 14, color: colors.text, fontVariant: ['tabular-nums'] },
+    valorZero: { color: colors.textMuted },
+    miniFundo: {
+      height: 5,
+      borderRadius: 3,
       backgroundColor: colors.paper,
-      borderRadius: radius.pill,
-      paddingHorizontal: spacing.sm,
-      paddingVertical: 4,
-      maxWidth: 130,
+      marginTop: 3,
+      marginRight: spacing.xs,
+      overflow: 'hidden',
     },
-    pastilhaConta: { backgroundColor: colors.tintaTeal },
-    pastilhaTexto: { ...tipo.legenda, color: colors.textMuted },
-    pastilhaTextoConta: { color: colors.teal },
+    mini: { height: 5, borderRadius: 3, backgroundColor: colors.coral },
+    viagens: { ...tipo.pequeno, color: colors.text },
+    estado: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+    ponto: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.border },
+    pontoConta: { backgroundColor: colors.teal },
+    estadoTexto: { ...tipo.legenda, fontSize: 11, color: colors.textMuted, flexShrink: 1 },
+    estadoTextoConta: { color: colors.teal },
     seta: { ...tipo.subtitulo, color: colors.textMuted },
-    verTodos: {
-      minHeight: 48,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
-    },
-    verTodosTexto: { ...tipo.corpoForte, color: colors.teal },
     vazio: {
       ...tipo.pequeno,
       color: colors.textMuted,
       textAlign: 'center',
       paddingVertical: spacing.lg,
     },
+
     nota: {
-      ...tipo.legenda,
-      color: colors.textMuted,
-      marginTop: spacing.lg,
-      lineHeight: 17,
-      textAlign: 'center',
+      flexDirection: 'row',
+      gap: spacing.sm,
+      backgroundColor: colors.tintaTeal,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      marginTop: spacing.md,
     },
+    notaTexto: { ...tipo.legenda, color: colors.text, lineHeight: 17, flex: 1 },
   });
 
 let styles = criarEstilos();

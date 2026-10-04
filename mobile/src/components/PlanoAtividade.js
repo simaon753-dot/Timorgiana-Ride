@@ -1,27 +1,28 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import Button from './Button.js';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Icone from '../design/Icone.js';
 import { useI18n } from '../i18n/index.js';
-import { colors, spacing, radius, elevacao, registarEstilos } from '../theme.js';
-import { tipo } from '../design/tipografia.js';
+import { colors, spacing, radius, registarEstilos } from '../theme.js';
+import { tipo, FAMILIAS } from '../design/tipografia.js';
 import { paraMostrar } from '../lib/datas.js';
 
-// O PLANO DE ATIVIDADE, no ecrã dos Ganhos (04/10/2026, pedido do Simão).
+// O PLANO DE ATIVIDADE, no ecrã dos Ganhos (04/10/2026, pedido do Simão;
+// compacto como na imagem dele a 05/10/2026).
 //
 // É a assinatura de sempre, contada como o Simão a desenhou: um dia só se
 // gasta quando há pelo menos uma viagem CONCLUÍDA, e dez viagens no mesmo dia
 // gastam um dia. A conta é toda do servidor (`dias_contados`, uma linha por
 // dia) — este cartão só a mostra; reinstalar a app não devolve dia nenhum.
 //
-// «23 / 30»: o saldo sobre o lote em curso (ver `planoDe`). Nunca uma data de
-// fim — os dias gastam-se ao ritmo do trabalho, não do calendário.
+// «23 / 30»: o saldo sobre o lote em curso (ver `planoDe`). «Ativado em» é o
+// dia do último carregamento — uma data de INÍCIO. Nunca uma data de fim: os
+// dias gastam-se ao ritmo do trabalho, não do calendário.
 //
 // Em período gratuito não há saldo a mostrar: diz-se que os dias já se
-// contam, quantos foram, e quanto custará o pacote quando a cobrança
-// começar — o preço dito antes de ser cobrado.
+// contam, quantos foram, e quanto custará o pacote quando a cobrança começar.
 //
-// Fica abaixo do «Ganhaste hoje» e em cartão branco: importa, mas não pode
-// disputar o olhar com o dinheiro do dia.
+// Fundo de tinta teal e não teal cheio: importa, mas não pode disputar o
+// olhar com o dinheiro do dia, que fica no cartão de cima.
 export default function PlanoAtividade({ plano, diasContados, navigation }) {
   const { t } = useI18n();
   if (!plano) return null;
@@ -34,9 +35,19 @@ export default function PlanoAtividade({ plano, diasContados, navigation }) {
     return (
       <View style={styles.cartao}>
         <View style={styles.topo}>
-          <Text style={styles.titulo}>{t('planoTitulo')}</Text>
+          <Icone nome="calendario" tamanho={26} cor={colors.teal} />
+          <View style={styles.titulos}>
+            <Text style={styles.titulo} numberOfLines={1}>
+              {t('planoTitulo')}
+            </Text>
+            <Text style={styles.subtitulo} numberOfLines={1}>
+              {t('ganhosDiasAtividade', { n: diasPacote })}
+            </Text>
+          </View>
           <View style={styles.pastilhaGratis}>
-            <Text style={styles.pastilhaGratisTexto}>{t('planoGratuito')}</Text>
+            <Text style={styles.pastilhaGratisTexto} numberOfLines={1}>
+              {t('planoGratuito')}
+            </Text>
           </View>
         </View>
         <Text style={styles.texto}>
@@ -44,14 +55,15 @@ export default function PlanoAtividade({ plano, diasContados, navigation }) {
             ? t('planoGratuitoAte', { data: paraMostrar(plano.gratuitoAte) })
             : t('planoGratuitoSemData')}
         </Text>
-        <View style={styles.linhaNumero}>
-          <Text style={styles.numero}>{diasContados ?? 0}</Text>
-          <Text style={styles.numeroLegenda}>{t('planoDiasRegistados')}</Text>
-        </View>
+        <Text style={styles.forte}>
+          {diasContados ?? 0} {t('planoDiasRegistados')}
+        </Text>
         <Text style={styles.regra}>{t('planoRegra')}</Text>
-        <Text style={styles.regra}>{t('planoPrecoDepois', { preco, dias: diasPacote })}</Text>
-        <View style={styles.botao}>
-          <Button title={t('planoVer')} variant="outline" onPress={verPlano} />
+        <View style={styles.rodape}>
+          <Text style={[styles.regra, { flex: 1 }]}>
+            {t('planoPrecoDepois', { preco, dias: diasPacote })}
+          </Text>
+          <BotaoPequeno texto={t('planoVer')} contorno onPress={verPlano} />
         </View>
       </View>
     );
@@ -77,45 +89,58 @@ export default function PlanoAtividade({ plano, diasContados, navigation }) {
   return (
     <View style={[styles.cartao, acabou && styles.cartaoAcabou]}>
       <View style={styles.topo}>
-        <Text style={styles.titulo}>{t('planoTitulo')}</Text>
-        <Text style={styles.preco}>
-          {preco} · {t('planoDiasPacote', { n: diasPacote })}
+        <Icone nome="calendario" tamanho={26} cor={acabou ? colors.danger : colors.teal} />
+        <View style={styles.titulos}>
+          <Text style={styles.titulo} numberOfLines={1}>
+            {t('planoTitulo')}
+          </Text>
+          <Text style={styles.subtitulo} numberOfLines={1}>
+            {t('ganhosDiasAtividade', { n: diasPacote })}
+          </Text>
+        </View>
+        <Text style={styles.preco} numberOfLines={1}>
+          {preco}
         </Text>
       </View>
-
-      <View style={styles.linhaNumero}>
-        <Text style={[styles.numero, acabou && styles.numeroMau]}>
-          {dias}
-          <Text style={styles.numeroTotal}> / {total}</Text>
-        </Text>
-      </View>
-      <Text style={styles.texto}>{t('planoRestantes', { n: dias })}</Text>
 
       {/* A barra é o que FALTA: cheia no dia em que se carrega, e vai
           esvaziando com o trabalho. */}
-      <View
-        style={styles.barraFundo}
-        accessibilityRole="progressbar"
-        accessibilityValue={{ min: 0, max: total, now: dias }}
-      >
+      <View style={styles.linhaBarra}>
         <View
-          style={[
-            styles.barra,
-            pouco && styles.barraPouco,
-            { width: `${Math.round(fracao * 100)}%` },
-          ]}
-        />
+          style={styles.barraFundo}
+          accessibilityRole="progressbar"
+          accessibilityValue={{ min: 0, max: total, now: dias }}
+        >
+          <View
+            style={[
+              styles.barra,
+              pouco && styles.barraPouco,
+              { width: `${Math.round(fracao * 100)}%` },
+            ]}
+          />
+        </View>
+        <Text style={[styles.contador, acabou && styles.contadorMau]}>
+          {dias} / {total}
+        </Text>
       </View>
 
+      <Text style={styles.forte}>{t('planoRestantes', { n: dias })}</Text>
       {aviso ? <Text style={[styles.aviso, acabou && styles.avisoMau]}>{aviso}</Text> : null}
       {/* Gastou o último dia HOJE: o dia está pago até à meia-noite. */}
       {acabou && plano.hojePago ? <Text style={styles.regra}>{t('planoHojePago')}</Text> : null}
       <Text style={styles.regra}>{t('planoRegra')}</Text>
 
-      <View style={styles.botao}>
-        <Button
-          title={acabou ? t('planoRenovarPor', { preco }) : t('planoRenovar')}
-          variant={acabou ? 'primary' : 'outline'}
+      <View style={styles.rodape}>
+        <View style={{ flex: 1 }}>
+          {plano.ativadoEm ? (
+            <Text style={styles.regra}>
+              {t('planoAtivadoEm', { data: paraMostrar(plano.ativadoEm) })}
+            </Text>
+          ) : null}
+          <Text style={styles.regra}>{t('planoTerminaApos', { n: total })}</Text>
+        </View>
+        <BotaoPequeno
+          texto={acabou ? t('planoRenovarPor', { preco }) : t('planoRenovar')}
           onPress={verPlano}
         />
       </View>
@@ -123,58 +148,108 @@ export default function PlanoAtividade({ plano, diasContados, navigation }) {
   );
 }
 
+// O «Renovar plano» da imagem: pequeno, coral, ao canto. 40 px de altura e
+// folga à volta, para o dedo o acertar sem olhar duas vezes.
+function BotaoPequeno({ texto, onPress, contorno = false }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      hitSlop={6}
+      style={({ pressed }) => [
+        styles.botao,
+        contorno && styles.botaoContorno,
+        pressed && { opacity: 0.8 },
+      ]}
+      accessibilityRole="button"
+    >
+      <Text
+        style={[styles.botaoTexto, contorno && styles.botaoTextoContorno]}
+        numberOfLines={1}
+        maxFontSizeMultiplier={1.2}
+      >
+        {texto}
+      </Text>
+    </Pressable>
+  );
+}
+
 const criarEstilos = () =>
   StyleSheet.create({
     cartao: {
-      backgroundColor: colors.white,
-      borderRadius: radius.xl,
-      borderWidth: 1.5,
-      borderColor: colors.teal,
-      padding: spacing.md,
-      marginTop: spacing.md,
-      ...elevacao.plana,
-    },
-    cartaoAcabou: { borderColor: colors.danger },
-    topo: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      flexWrap: 'wrap',
-      gap: spacing.xs,
-    },
-    titulo: { ...tipo.subtitulo, color: colors.text },
-    preco: { ...tipo.corpoForte, color: colors.teal, fontVariant: ['tabular-nums'] },
-    pastilhaGratis: {
       backgroundColor: colors.tintaTeal,
+      borderRadius: radius.xl,
+      padding: spacing.md,
+      marginTop: spacing.sm,
+      gap: 4,
+    },
+    cartaoAcabou: { backgroundColor: colors.tintaPerigo },
+    topo: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    titulos: { flex: 1, minWidth: 0 },
+    titulo: { ...tipo.corpoForte, fontSize: 16, color: colors.text },
+    subtitulo: { ...tipo.legenda, color: colors.textMuted },
+    preco: {
+      fontFamily: FAMILIAS.forte,
+      fontSize: 20,
+      color: colors.text,
+      fontVariant: ['tabular-nums'],
+    },
+    pastilhaGratis: {
+      backgroundColor: colors.white,
       borderRadius: radius.pill,
       paddingHorizontal: spacing.sm,
       paddingVertical: 3,
     },
     pastilhaGratisTexto: { ...tipo.legenda, color: colors.teal },
-    linhaNumero: {
+    linhaBarra: {
       flexDirection: 'row',
-      alignItems: 'baseline',
+      alignItems: 'center',
       gap: spacing.sm,
-      marginTop: spacing.sm,
+      marginTop: spacing.xs,
     },
-    numero: { ...tipo.display, color: colors.text, fontVariant: ['tabular-nums'] },
-    numeroMau: { color: colors.danger },
-    numeroTotal: { ...tipo.titulo, color: colors.textMuted },
-    numeroLegenda: { ...tipo.pequeno, color: colors.textMuted, flexShrink: 1 },
-    texto: { ...tipo.pequeno, color: colors.text, marginTop: 2 },
     barraFundo: {
+      flex: 1,
       height: 10,
       borderRadius: 5,
-      backgroundColor: colors.paper,
-      marginTop: spacing.sm,
+      backgroundColor: colors.white,
       overflow: 'hidden',
     },
     barra: { height: 10, borderRadius: 5, backgroundColor: colors.teal },
     barraPouco: { backgroundColor: colors.coral },
-    aviso: { ...tipo.corpoForte, color: colors.coralDark, marginTop: spacing.sm },
+    contador: {
+      fontFamily: FAMILIAS.forte,
+      fontSize: 17,
+      color: colors.text,
+      fontVariant: ['tabular-nums'],
+    },
+    contadorMau: { color: colors.danger },
+    texto: { ...tipo.pequeno, color: colors.text },
+    forte: { ...tipo.corpoForte, fontSize: 14, color: colors.text },
+    aviso: { ...tipo.corpoForte, fontSize: 14, color: colors.coralDark },
     avisoMau: { color: colors.danger },
-    regra: { ...tipo.legenda, color: colors.textMuted, marginTop: spacing.xs, lineHeight: 17 },
-    botao: { marginTop: spacing.md },
+    regra: { ...tipo.legenda, color: colors.textMuted, lineHeight: 16 },
+    rodape: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      gap: spacing.sm,
+      marginTop: spacing.xs,
+    },
+    botao: {
+      backgroundColor: colors.coral,
+      borderRadius: radius.pill,
+      minHeight: 40,
+      paddingHorizontal: spacing.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      maxWidth: '55%',
+    },
+    botaoContorno: {
+      backgroundColor: 'transparent',
+      borderWidth: 1.5,
+      borderColor: colors.teal,
+    },
+    // Texto escuro sobre o coral: branco fica abaixo do contraste mínimo.
+    botaoTexto: { ...tipo.corpoForte, fontSize: 14, color: '#22100A' },
+    botaoTextoContorno: { color: colors.teal },
   });
 
 let styles = criarEstilos();

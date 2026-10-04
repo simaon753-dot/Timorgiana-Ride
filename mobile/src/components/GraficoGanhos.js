@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import SeletorSegmentado from '../design/SeletorSegmentado.js';
 import { useI18n } from '../i18n/index.js';
 import { colors, spacing, radius, registarEstilos } from '../theme.js';
-import { tipo } from '../design/tipografia.js';
+import { tipo, FAMILIAS } from '../design/tipografia.js';
 import { agrupar, contagem, diaMes, diaDaSemana } from '../lib/periodos.js';
 
 // O GRÁFICO DOS GANHOS: diário, semanal ou mensal, do período escolhido
@@ -13,12 +13,15 @@ import { agrupar, contagem, diaMes, diaDaSemana } from '../lib/periodos.js';
 // parado também é informação, e o Simão pediu-o. Um dia a zero tem uma
 // barra rasa, não um buraco: assim vê-se que existiu.
 //
+// O VALOR POR CIMA DE CADA BARRA (05/10/2026, da imagem do Simão): lê-se o
+// gráfico sem tocar em nada. Tocar numa barra continua a dizer as viagens e
+// os dias de atividade dela, numa linha por baixo.
+//
 // Barras de <View> e não uma biblioteca de gráficos: uma biblioteca nova é
 // uma peça a mais no APK, e isto são rectângulos. Com muitos dias o gráfico
 // desliza para o lado, e abre no fim — o mais recente é o que se quer ver.
-// Tocar numa barra mostra os números dela por cima.
-const ALTURA = 120;
-const LARGURA = { dia: 38, semana: 50, mes: 54 };
+const ALTURA = 96;
+const LARGURA = { dia: 42, semana: 54, mes: 56 };
 
 export default function GraficoGanhos({ porDia }) {
   const { t } = useI18n();
@@ -44,29 +47,28 @@ export default function GraficoGanhos({ porDia }) {
       : modo === 'semana'
         ? `${diaMes(x.de)} – ${diaMes(x.ate)}`
         : `${nomesMes[Number(x.chave.slice(5, 7)) - 1]} ${x.chave.slice(0, 4)}`;
+  // Sem cêntimos acima de $100, para o número caber por cima da barra.
+  const curto = (v) => (v >= 100 ? `$${Math.round(v)}` : `$${v.toFixed(2)}`);
 
   return (
     <View style={styles.cartao}>
-      <SeletorSegmentado
-        opcoes={[
-          { id: 'dia', rotulo: t('ganhosDiario') },
-          { id: 'semana', rotulo: t('ganhosSemanal') },
-          { id: 'mes', rotulo: t('ganhosMensal') },
-        ]}
-        valor={modo}
-        onMudar={setModo}
-      />
-
-      {g ? (
-        <View style={styles.info}>
-          <Text style={styles.infoTitulo}>{titulo(g)}</Text>
-          <Text style={styles.infoValor}>${g.valor.toFixed(2)}</Text>
-          <Text style={styles.infoNota}>
-            {contagem(t, g.viagens, 'ganhosUmaViagem', 'earningsTrips')} ·{' '}
-            {contagem(t, g.dias, 'ganhosUmDiaAtividade', 'ganhosDiasAtividade')}
-          </Text>
+      <View style={styles.topo}>
+        <Text style={styles.titulo} numberOfLines={1}>
+          {t('tabEarnings')}
+        </Text>
+        <View style={styles.seletor}>
+          <SeletorSegmentado
+            compacto
+            opcoes={[
+              { id: 'dia', rotulo: t('ganhosDiario') },
+              { id: 'semana', rotulo: t('ganhosSemanal') },
+              { id: 'mes', rotulo: t('ganhosMensal') },
+            ]}
+            valor={modo}
+            onMudar={setModo}
+          />
         </View>
-      ) : null}
+      </View>
 
       <ScrollView
         horizontal
@@ -88,6 +90,13 @@ export default function GraficoGanhos({ porDia }) {
               accessibilityLabel={`${titulo(x)}: $${x.valor.toFixed(2)}`}
             >
               <View style={styles.zonaBarra}>
+                <Text
+                  style={[styles.valor, activa && styles.valorActivo]}
+                  numberOfLines={1}
+                  maxFontSizeMultiplier={1.15}
+                >
+                  {curto(x.valor)}
+                </Text>
                 <View
                   style={[
                     styles.barra,
@@ -97,13 +106,24 @@ export default function GraficoGanhos({ porDia }) {
                   ]}
                 />
               </View>
-              <Text style={[styles.rotulo, activa && styles.rotuloActivo]} numberOfLines={1}>
+              <Text
+                style={[styles.rotulo, activa && styles.rotuloActivo]}
+                numberOfLines={1}
+                maxFontSizeMultiplier={1.15}
+              >
                 {rotulo(x)}
               </Text>
             </Pressable>
           );
         })}
       </ScrollView>
+
+      {g ? (
+        <Text style={styles.info} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+          {titulo(g)} · {contagem(t, g.viagens, 'ganhosUmaViagem', 'earningsTrips')} ·{' '}
+          {contagem(t, g.dias, 'ganhosUmDiaAtividade', 'ganhosDiasAtividade')}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -115,19 +135,27 @@ const criarEstilos = () =>
       borderRadius: radius.xl,
       padding: spacing.md,
     },
-    info: { marginTop: spacing.md, alignItems: 'center' },
-    infoTitulo: { ...tipo.legenda, color: colors.textMuted },
-    infoValor: { ...tipo.titulo, color: colors.text, fontVariant: ['tabular-nums'] },
-    infoNota: { ...tipo.legenda, color: colors.textMuted, textAlign: 'center' },
+    topo: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    titulo: { ...tipo.subtitulo, color: colors.text, flex: 1 },
+    // 240: «Semanal» inteiro a 13 pt, com folga para a letra maior do Android.
+    seletor: { width: 240, maxWidth: '72%' },
     barras: {
       alignItems: 'flex-end',
-      paddingTop: spacing.md,
+      paddingTop: spacing.sm,
       flexGrow: 1,
       justifyContent: 'center',
     },
     coluna: { alignItems: 'center' },
-    zonaBarra: { height: ALTURA, justifyContent: 'flex-end' },
-    barra: { width: 16, borderTopLeftRadius: 4, borderTopRightRadius: 4 },
+    zonaBarra: { height: ALTURA + 18, justifyContent: 'flex-end', alignItems: 'center' },
+    valor: {
+      fontFamily: FAMILIAS.forte,
+      fontSize: 10,
+      color: colors.text,
+      marginBottom: 2,
+      fontVariant: ['tabular-nums'],
+    },
+    valorActivo: { color: colors.coralDark },
+    barra: { width: 22, borderTopLeftRadius: 4, borderTopRightRadius: 4 },
     barraCheia: { backgroundColor: colors.teal },
     barraZero: { backgroundColor: colors.border },
     barraActiva: { backgroundColor: colors.coral },
@@ -139,6 +167,12 @@ const criarEstilos = () =>
       fontVariant: ['tabular-nums'],
     },
     rotuloActivo: { color: colors.text },
+    info: {
+      ...tipo.legenda,
+      color: colors.textMuted,
+      textAlign: 'center',
+      marginTop: spacing.xs,
+    },
   });
 
 let styles = criarEstilos();

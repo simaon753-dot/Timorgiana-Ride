@@ -858,6 +858,11 @@ export default {
   earningsNote:
     'The amounts shown are the trips completed and recorded in the app. The passenger pays for the trip directly to the driver. TimorgianaRide does not receive or hold the trip money.',
   // Ganhos e plano de atividade (04/10/2026)
+  ganhosMelhorDia: 'Best day',
+  ganhosColData: 'Date',
+  ganhosColViagens: 'Trips',
+  planoAtivadoEm: 'Activated on {data}',
+  planoTerminaApos: 'Ends after {n} activity days are used',
   ganhosViagensHoje: 'Trips today',
   ganhosHorasOnline: 'Hours online',
   ganhosMediaViagem: 'Average per trip',
@@ -879,8 +884,8 @@ export default {
   ganhosSemanal: 'Weekly',
   ganhosMensal: 'Monthly',
   ganhosNaoConta: 'Doesn’t count',
-  ganhosConta: 'Counts · 1 day',
-  ganhosContaGratis: 'Counts · free',
+  ganhosConta: 'Counts (1 day)',
+  ganhosContaGratis: 'Counts (free)',
   ganhosVerTodos: 'See all days ({n})',
   ganhosVerMenos: 'See less',
   ganhosDetalheDia: 'Day details',

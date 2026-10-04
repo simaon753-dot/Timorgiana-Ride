@@ -877,6 +877,11 @@ export default {
   earningsNote:
     'Os valores apresentados correspondem às viagens concluídas e registadas na aplicação. O pagamento da viagem é efetuado diretamente pelo passageiro ao motorista. A TimorgianaRide não recebe nem guarda o valor da viagem.',
   // Ganhos e plano de atividade (04/10/2026)
+  ganhosMelhorDia: 'Melhor dia',
+  ganhosColData: 'Data',
+  ganhosColViagens: 'Viag.',
+  planoAtivadoEm: 'Ativado em {data}',
+  planoTerminaApos: 'Termina após {n} dias de atividade usados',
   ganhosViagensHoje: 'Viagens hoje',
   ganhosHorasOnline: 'Horas online',
   ganhosMediaViagem: 'Média por viagem',
@@ -898,8 +903,8 @@ export default {
   ganhosSemanal: 'Semanal',
   ganhosMensal: 'Mensal',
   ganhosNaoConta: 'Não conta',
-  ganhosConta: 'Conta · 1 dia',
-  ganhosContaGratis: 'Conta · grátis',
+  ganhosConta: 'Conta (1 dia)',
+  ganhosContaGratis: 'Conta (grátis)',
   ganhosVerTodos: 'Ver todos os dias ({n})',
   ganhosVerMenos: 'Ver menos',
   ganhosDetalheDia: 'Detalhe do dia',

@@ -869,6 +869,11 @@ export default {
   earningsNote:
     'Valór sira ne’e mak viajen ne’ebé remata ona no rejista iha aplikasaun. Pasajeiru mak selu viajen direta ba motorista. TimorgianaRide la simu no la rai osan viajen nian.',
   // Ganhos e plano de atividade (04/10/2026)
+  ganhosMelhorDia: 'Loron di’ak liu',
+  ganhosColData: 'Data',
+  ganhosColViagens: 'Viaj.',
+  planoAtivadoEm: 'Ativa iha {data}',
+  planoTerminaApos: 'Remata depois uza loron atividade {n}',
   ganhosViagensHoje: 'Viajen ohin',
   ganhosHorasOnline: 'Oras online',
   ganhosMediaViagem: 'Média kada viajen',
@@ -890,8 +895,8 @@ export default {
   ganhosSemanal: 'Kada semana',
   ganhosMensal: 'Kada fulan',
   ganhosNaoConta: 'La konta',
-  ganhosConta: 'Konta · loron 1',
-  ganhosContaGratis: 'Konta · gratuitu',
+  ganhosConta: 'Konta (loron 1)',
+  ganhosContaGratis: 'Konta (gratuitu)',
   ganhosVerTodos: 'Haree loron hotu ({n})',
   ganhosVerMenos: 'Haree menus',
   ganhosDetalheDia: 'Detallu loron nian',

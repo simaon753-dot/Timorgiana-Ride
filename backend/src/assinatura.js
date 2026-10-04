@@ -345,7 +345,9 @@ export async function planoDe(userId) {
     podeEntrarAoServico(userId),
   ]);
   const ultimo = await one(
-    `SELECT created_at FROM carregamentos WHERE user_id = $1 ORDER BY id DESC LIMIT 1`,
+    `SELECT created_at,
+            TO_CHAR((created_at AT TIME ZONE 'Asia/Dili')::date, 'YYYY-MM-DD') AS dia
+       FROM carregamentos WHERE user_id = $1 ORDER BY id DESC LIMIT 1`,
     [userId]
   );
   const usados = ultimo
@@ -362,6 +364,9 @@ export async function planoDe(userId) {
   return {
     dias: saldo,
     total: saldo + usados,
+    // O dia do último carregamento — o «Ativado em» do cartão (05/10/2026).
+    // Uma data de INÍCIO e nunca de fim: o fim é gastar os dias.
+    ativadoEm: ultimo?.dia || null,
     gratuito,
     gratuitoAte: ultimoDiaGratuito(inicio),
     comprasAbertas: await comprasAbertas(u),
