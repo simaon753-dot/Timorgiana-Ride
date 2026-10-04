@@ -25,8 +25,9 @@ import { useAuth } from '../context/AuthContext.js';
 import { api } from '../api/client.js';
 import { paraISO, paraMostrar } from '../lib/datas.js';
 import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
-import { tipo } from '../design/tipografia.js';
+import { tipo, FAMILIAS } from '../design/tipografia.js';
 import BarraEstado from '../design/BarraEstado.js';
+import Etapas from '../design/Etapas.js';
 
 // OS TRÊS DOCUMENTOS OBRIGATÓRIOS, e os três valem para carro E motorizada.
 // Nenhum deles depende do tipo de veículo: quem conduz uma motorizada precisa
@@ -126,9 +127,14 @@ export default function DriverPendingScreen({ navigation }) {
   //    ou estragar-se em qualquer altura, e não só quando está a caducar.
   //    Continua a não ser um gesto livre — obriga a dizer porquê, e o motivo
   //    fica guardado e aparece no painel marcado por rever.
+  //
+  // 4. O painel pediu a correção DESTE documento (04/10/2026). Quem aprova já
+  //    disse o que está mal; obrigar a escolher um motivo por cima seria
+  //    perguntar o que já se sabe.
   function podeMexer(doc, kind) {
     if (!aprovado) return true;
     if (!doc) return true;
+    if (doc.correcao) return true;
     if (motivos[kind]) return true;
     return !!doc.expirado || !!doc.aExpirar;
   }
@@ -148,13 +154,29 @@ export default function DriverPendingScreen({ navigation }) {
     carregar();
   }, [carregar]);
 
-  // Enquanto espera, verifica de tempos a tempos se já foi decidido.
-  // Não usamos socket aqui: o motorista por aprovar nem entra nas salas.
+  // Enquanto espera, verifica de tempos a tempos se já foi decidido — e se
+  // alguém pediu a correção de um documento (04/10/2026), que só se vê na
+  // lista. Não usamos socket aqui: o motorista por aprovar nem entra nas
+  // salas. Quem já está aprovado e só veio ver os papéis não precisa disto.
   useEffect(() => {
-    if (rejected) return;
-    const id = setInterval(refreshUser, 20000);
+    if (aprovado) return;
+    const id = setInterval(() => {
+      refreshUser();
+      carregar();
+    }, 20000);
     return () => clearInterval(id);
-  }, [refreshUser, rejected]);
+  }, [refreshUser, carregar, aprovado]);
+
+  // Ao voltar a este ecrã (de uma notificação, dos termos), a lista fresca.
+  // A conta também: a decisão pode ter mudado desde a última vez.
+  useEffect(
+    () =>
+      navigation.addListener('focus', () => {
+        carregar();
+        refreshUser();
+      }),
+    [navigation, carregar, refreshUser]
+  );
 
   // A fotografia do motorista não caduca; tudo o resto sim. Não se pergunta
   // uma data que não existe.
@@ -248,7 +270,58 @@ export default function DriverPendingScreen({ navigation }) {
   }
 
   const enviados = docs.map((d) => d.kind);
-  const completo = TIPOS.every((tp) => enviados.includes(tp.kind));
+  // Os OBRIGATÓRIOS: a fotografia do Carry é opcional e só para o Carry.
+  // Com ela na conta, ninguém ficava «completo» — e a frase de baixo dizia
+  // «Faltam documentos» a motoristas aprovados com tudo entregue.
+  const completo = TIPOS.filter((tp) => !tp.soCarry).every((tp) => enviados.includes(tp.kind));
+  const termosOk = user?.driverTermsVersion === VERSAO_TERMOS_MOTORISTA;
+  const aCorrigir = docs.filter((d) => d.correcao);
+
+  // O ESTADO DO REGISTO, em palavras de quem o vive (04/10/2026). Antes eram
+  // três: recusado, aprovado, e «em análise» para tudo o resto — incluindo
+  // quem estava SUSPENSO, que lia «conta em análise» sem perceber porquê, e
+  // quem ainda não tinha enviado nada, a quem ninguém estava a analisar.
+  const suspenso = user?.driverStatus === 'suspended';
+  const estado = suspenso
+    ? 'suspenso'
+    : rejected
+      ? 'recusado'
+      : aCorrigir.length
+        ? 'correcao'
+        : aprovado
+          ? 'aprovado'
+          : !completo || !termosOk
+            ? 'incompleto'
+            : 'analise';
+  const ESTADOS = {
+    incompleto: { icone: '📝', titulo: 'regIncompletoTitulo', texto: 'regIncompletoTexto' },
+    analise: { icone: '⏳', titulo: 'pendingTitle', texto: 'regAnaliseTexto' },
+    correcao: { icone: '✏️', titulo: 'regCorrecaoTitulo', texto: 'regCorrecaoTexto' },
+    aprovado: { icone: '✓', titulo: 'approvedTitle', texto: 'approvedExplain' },
+    recusado: { icone: '⛔', titulo: 'rejectedTitle', texto: 'regRecusadoTexto' },
+    suspenso: { icone: '⏸', titulo: 'regSuspensoTitulo', texto: 'regSuspensoTexto' },
+  };
+  const e = ESTADOS[estado];
+  // Em que passo vai, para quem ainda não foi aprovado: veículo (já feito,
+  // senão estaria no formulário), documentos, termos, análise.
+  const passo = !completo ? 1 : !termosOk ? 2 : 3;
+
+  // VOLTAR A PEDIR A ANÁLISE depois de uma recusa. Corrigir os documentos não
+  // bastava: a conta ficava «recusada», na lista dos recusados, e ninguém no
+  // painel sabia que havia papéis novos para ver.
+  const [aReenviar, setAReenviar] = useState(false);
+  async function reenviar() {
+    setError(null);
+    setAReenviar(true);
+    try {
+      await api.reenviarRegisto(token);
+      await refreshUser();
+    } catch (err) {
+      setError(err?.message === 'NETWORK' ? t('errNetwork') : err?.message || t('errGeneric'));
+    } finally {
+      setAReenviar(false);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -273,32 +346,52 @@ export default function DriverPendingScreen({ navigation }) {
           <FormularioVeiculo onPronto={carregar} />
         ) : (
           <>
+            <Text style={styles.cabecalho}>{t('regEstadoTitulo')}</Text>
             <View
               style={[
                 styles.card,
-                rejected && styles.cardRejected,
-                aprovado && styles.cardAprovado,
+                (estado === 'recusado' || estado === 'suspenso') && styles.cardRejected,
+                estado === 'aprovado' && styles.cardAprovado,
               ]}
             >
-              <Text style={styles.icon}>{rejected ? '⛔' : aprovado ? '✓' : '⏳'}</Text>
-              <Text style={styles.title}>
-                {rejected ? t('rejectedTitle') : aprovado ? t('approvedTitle') : t('pendingTitle')}
-              </Text>
+              <Text style={styles.icon}>{e.icone}</Text>
+              <Text style={styles.title}>{t(e.titulo)}</Text>
               <Text style={styles.explain}>
-                {rejected
-                  ? t('rejectedExplain')
-                  : aprovado
-                    ? t('approvedExplain')
-                    : t('pendingExplain')}
+                {estado === 'correcao' ? t(e.texto, { n: aCorrigir.length }) : t(e.texto)}
               </Text>
+              {/* O MOTIVO, que existia no servidor e nunca chegava aqui:
+                  quem era recusado lia «não aprovada» e tinha de telefonar
+                  para saber porquê. */}
+              {(estado === 'recusado' || estado === 'suspenso') && user?.driverStatusMotivo ? (
+                <View style={styles.motivoCaixa}>
+                  <Text style={styles.motivoRotulo}>{t('regMotivo')}</Text>
+                  <Text style={styles.motivoTexto}>{user.driverStatusMotivo}</Text>
+                </View>
+              ) : null}
             </View>
+
+            {estado === 'incompleto' || estado === 'analise' || estado === 'correcao' ? (
+              <View style={styles.etapas}>
+                <Etapas
+                  etapas={[
+                    t('regEtapaVeiculo'),
+                    t('regEtapaDocumentos'),
+                    t('regEtapaTermos'),
+                    t('regEtapaAnalise'),
+                  ]}
+                  actual={estado === 'correcao' ? 1 : passo}
+                />
+              </View>
+            ) : null}
 
             {/* A LISTA APARECE SEMPRE, incluindo a quem foi recusado.
                 Antes, um motorista recusado lia que não foi aprovado e não
                 via documento nenhum — sem nada que pudesse corrigir. Era um
                 beco sem saída que só se resolvia por telefone. */}
             <>
-              <Text style={styles.hint}>{aprovado ? t('docHintAprovado') : t('docHint')}</Text>
+              <Text style={styles.hint}>
+                {aprovado && !aCorrigir.length ? t('docHintAprovado') : t('docHint')}
+              </Text>
 
               {loading ? (
                 <ActivityIndicator color={colors.teal} style={{ marginTop: spacing.lg }} />
@@ -317,6 +410,15 @@ export default function DriverPendingScreen({ navigation }) {
                           <Text style={[styles.docState, enviado && styles.docStateOk]}>
                             {enviado ? `✓ ${t('docSent')}` : t('docMissing')}
                           </Text>
+                          {/* A correção pedida pelo painel, com o motivo
+                          escrito por quem aprova. É a frase que diz o que
+                          fazer — sem ela, o documento parecia aceite. */}
+                          {doc?.correcao ? (
+                            <View style={styles.docCorrecao}>
+                              <Text style={styles.docCorrecaoRotulo}>{t('docCorrigir')}</Text>
+                              <Text style={styles.docCorrecaoTexto}>{doc.correcao}</Text>
+                            </View>
+                          ) : null}
                           {/* Substituído e ainda por confirmar. Dizê-lo
                           evita o telefonema de quem enviou o documento novo
                           e não sabe se chegou. */}
@@ -365,9 +467,11 @@ export default function DriverPendingScreen({ navigation }) {
                                 ? t('docSending')
                                 : !enviado
                                   ? t('docSend')
-                                  : aprovado
-                                    ? t('docRenovar')
-                                    : t('docReplace')}
+                                  : doc?.correcao
+                                    ? t('docEnviarDeNovo')
+                                    : aprovado
+                                      ? t('docRenovar')
+                                      : t('docReplace')}
                             </Text>
                           </Pressable>
                         ) : (
@@ -420,9 +524,28 @@ export default function DriverPendingScreen({ navigation }) {
 
               {error ? <Text style={styles.error}>{error}</Text> : null}
 
-              <Text style={[styles.status, completo && styles.statusOk]}>
-                {completo ? t('docsComplete') : t('docsIncomplete')}
-              </Text>
+              {/* «Aguarda a nossa análise» só a quem está mesmo à espera: a um
+                  motorista aprovado, recusado ou com correções seria falso. */}
+              {!completo || estado === 'analise' ? (
+                <Text style={[styles.status, completo && styles.statusOk]}>
+                  {completo ? t('docsComplete') : t('docsIncomplete')}
+                </Text>
+              ) : null}
+
+              {/* Recusado, com tudo entregue e os termos aceites: o pedido de
+                  nova análise. Antes disso o botão não aparece — reenviar com
+                  um papel em falta era voltar a ser recusado. */}
+              {estado === 'recusado' && completo && termosOk ? (
+                <View style={styles.reenviarCaixa}>
+                  <Text style={styles.reenviarTexto}>{t('regReenviarExplica')}</Text>
+                  <Button
+                    title={t('regReenviar')}
+                    onPress={reenviar}
+                    loading={aReenviar}
+                    disabled={aReenviar}
+                  />
+                </View>
+              ) : null}
             </>
 
             <View style={{ flex: 1, minHeight: spacing.xl }} />
@@ -571,6 +694,37 @@ const criarEstilos = () =>
       alignItems: 'center',
     },
     cardRejected: { backgroundColor: colors.tintaPerigo, borderColor: colors.contornoPerigo },
+    cabecalho: { ...tipo.etiqueta, color: colors.textMuted, marginBottom: spacing.sm },
+    motivoCaixa: {
+      alignSelf: 'stretch',
+      backgroundColor: colors.white,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginTop: spacing.md,
+    },
+    motivoRotulo: { ...tipo.legenda, color: colors.textMuted },
+    motivoTexto: { ...tipo.corpoForte, color: colors.text, marginTop: 2 },
+    etapas: { marginTop: spacing.lg },
+    docCorrecao: {
+      backgroundColor: colors.tintaPerigo,
+      borderRadius: radius.sm,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+      marginTop: spacing.xs,
+      marginRight: spacing.sm,
+    },
+    docCorrecaoRotulo: { ...tipo.legenda, fontFamily: FAMILIAS.forte, color: colors.danger },
+    docCorrecaoTexto: { ...tipo.legenda, color: colors.text, marginTop: 1 },
+    reenviarCaixa: {
+      backgroundColor: colors.white,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      marginTop: spacing.lg,
+      gap: spacing.sm,
+    },
+    reenviarTexto: { ...tipo.pequeno, color: colors.text },
     cardAprovado: { borderColor: colors.teal },
     icon: { fontSize: 38, marginBottom: spacing.sm },
     title: { ...tipo.titulo, color: colors.text, textAlign: 'center' },

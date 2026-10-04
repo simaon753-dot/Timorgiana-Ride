@@ -264,7 +264,14 @@ export const api = {
   sos: (token, rideId, body) =>
     request(`/rides/${rideId || 0}/sos`, { method: 'POST', body, token }),
 
-  ganhos: (token) => request('/driver/ganhos', { token }),
+  // O período em 'AAAA-MM-DD' (04/10/2026); sem ele, os últimos 7 dias.
+  ganhos: (token, periodo = {}) => {
+    const q = periodo.de && periodo.ate ? `?de=${periodo.de}&ate=${periodo.ate}` : '';
+    return request(`/driver/ganhos${q}`, { token });
+  },
+  ganhosDoDia: (token, dia) => request(`/driver/ganhos/dia/${dia}`, { token }),
+  // Depois de uma recusa, com os documentos corrigidos: pedir nova análise.
+  reenviarRegisto: (token) => request('/driver/registo/reenviar', { method: 'POST', token }),
 
   // Termos de passageiro e privacidade. Separado do de motorista porque são
   // consentimentos diferentes, guardados em colunas diferentes.

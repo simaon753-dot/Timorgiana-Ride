@@ -207,21 +207,35 @@ export default function DriverHomeScreen({ navigation }) {
 
         {!activeRide && avisoDocs ? (
           <Pressable style={styles.avisoDocs} onPress={() => navigation.navigate('DriverPending')}>
-            <Text style={styles.avisoDocsTitulo}>{t('docSuspensoTitulo')}</Text>
+            <Text style={styles.avisoDocsTitulo}>
+              {avisoDocs.motivo === 'documento_a_corrigir'
+                ? t('regCorrecaoTitulo')
+                : t('docSuspensoTitulo')}
+            </Text>
             <Text style={styles.avisoDocsTexto}>
               {avisoDocs.motivo === 'documento_caducado'
                 ? t('cannotGoOnlineExpired')
                 : avisoDocs.motivo === 'documento_sem_validade'
                   ? t('cannotGoOnlineNoDate')
-                  : t('docsIncomplete')}
+                  : avisoDocs.motivo === 'documento_a_corrigir'
+                    ? t('cannotGoOnlineCorrecao')
+                    : t('docsIncomplete')}
               {avisoDocs.qual && NOME_DO_DOC[avisoDocs.qual]
                 ? `  ·  ${t(NOME_DO_DOC[avisoDocs.qual])}`
                 : ''}
             </Text>
-            {avisoDocs.qual === 'inspection' ? (
+            {/* O que o painel escreveu: é a frase que diz o que corrigir. */}
+            {avisoDocs.motivo === 'documento_a_corrigir' && avisoDocs.porque ? (
+              <Text style={styles.avisoDocsTexto}>«{avisoDocs.porque}»</Text>
+            ) : null}
+            {avisoDocs.qual === 'inspection' && avisoDocs.motivo !== 'documento_a_corrigir' ? (
               <Text style={styles.avisoDocsTexto}>{t('docMultaAviso')}</Text>
             ) : null}
-            <Text style={styles.avisoDocsTexto}>{t('docSuspensoExplica')}</Text>
+            <Text style={styles.avisoDocsTexto}>
+              {avisoDocs.motivo === 'documento_a_corrigir'
+                ? t('docCorrecaoExplica')
+                : t('docSuspensoExplica')}
+            </Text>
           </Pressable>
         ) : null}
 
