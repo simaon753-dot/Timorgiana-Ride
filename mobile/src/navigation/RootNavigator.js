@@ -54,7 +54,7 @@ const criarNavTheme = () => ({
 });
 
 export default function RootNavigator() {
-  const { user, restoring } = useAuth();
+  const { user, restoring, semLigacao } = useAuth();
   // `geracao` sobe a cada troca de paleta. Serve de chave à árvore toda:
   // as folhas de estilo já foram reconstruídas, falta obrigar os ecrãs a
   // voltar a desenhar com elas.
@@ -86,6 +86,9 @@ export default function RootNavigator() {
   }, [user]);
 
   if (restoring) return <LoadingScreen />;
+  // A sessão guardada não se confirmou por falta de rede: fica guardada, e o
+  // ecrã de espera pede para tentar outra vez (ver AuthContext).
+  if (semLigacao) return <LoadingScreen semLigacao />;
 
   return (
     <NavigationContainer

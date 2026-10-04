@@ -675,6 +675,10 @@ export default {
   versaoAtualizada: 'actualização recebida',
   serverFirstSlow: 'Na primeira ligação do dia pode demorar até 1 minuto.',
   waking: 'A acordar o servidor… pode demorar 1 minuto',
+  semLigacaoTitulo: 'Sem ligação ao servidor',
+  semLigacaoTexto: 'A sua sessão continua guardada. Verifique a rede e tente outra vez.',
+  semLigacaoTentar: 'Tentar outra vez',
+  semLigacaoOutraConta: 'Entrar com outra conta',
 
   // Aprovação de motoristas
   pendingTitle: 'Conta em análise',

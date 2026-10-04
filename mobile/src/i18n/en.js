@@ -665,6 +665,10 @@ export default {
   versaoAtualizada: 'update received',
   serverFirstSlow: 'The first connection of the day can take up to a minute.',
   waking: 'Waking the server… this can take a minute',
+  semLigacaoTitulo: 'No connection to the server',
+  semLigacaoTexto: 'Your session is still saved. Check your connection and try again.',
+  semLigacaoTentar: 'Try again',
+  semLigacaoOutraConta: 'Sign in with another account',
 
   pendingTitle: 'Account under review',
   pendingExplain:

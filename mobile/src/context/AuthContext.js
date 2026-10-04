@@ -22,29 +22,46 @@ export function AuthProvider({ children }) {
   // avisa; a app mostra a faixa até isso acontecer. Sem estado nenhum aqui,
   // o aviso morria com o ecrã em que aparecesse.
   const [avisoSessao, setAvisoSessao] = useState(false);
+  // SEM LIGAÇÃO AO ABRIR A APP (04/10/2026): a sessão guardada não se pôde
+  // confirmar, mas também não foi recusada. Ver `restaurar`.
+  const [semLigacao, setSemLigacao] = useState(false);
 
-  // Ao abrir a app: tenta recuperar a sessão guardada e validá-la
+  // Ao abrir a app: tenta recuperar a sessão guardada e validá-la.
+  //
+  // SÓ SE APAGA A SESSÃO QUE O SERVIDOR RECUSOU (04/10/2026). Antes, qualquer
+  // falha a apagava — e a falha mais comum não é uma sessão inválida: é abrir
+  // a app sem rede, ou no minuto em que o servidor reinicia depois de uma
+  // publicação. O motorista via o ecrã de entrada e tinha de voltar a
+  // escrever a palavra-passe por causa da rede de Díli. Agora um 401 apaga
+  // (o próprio cliente da API já o trata); o resto mostra «Tentar outra vez»
+  // com a sessão guardada.
+  const restaurar = useCallback(async () => {
+    setSemLigacao(false);
+    setRestoring(true);
+    try {
+      const saved = await lerToken();
+      if (saved) {
+        const { user } = await api.me(saved);
+        setToken(saved);
+        setUser(user);
+      }
+    } catch (e) {
+      if (e?.status === 401) await apagarToken();
+      else setSemLigacao(true);
+    } finally {
+      setRestoring(false);
+    }
+  }, []);
+
   useEffect(() => {
     (async () => {
       // O endereço do servidor tem de ser carregado ANTES de qualquer
       // pedido — caso contrário validaríamos a sessão contra o servidor
       // errado (o de compilação em vez do que o utilizador configurou).
       await loadSavedServer();
-      try {
-        const saved = await lerToken();
-        if (saved) {
-          const { user } = await api.me(saved);
-          setToken(saved);
-          setUser(user);
-        }
-      } catch {
-        // Token inválido/expirado ou sem rede — começa sem sessão
-        await apagarToken();
-      } finally {
-        setRestoring(false);
-      }
+      await restaurar();
     })();
-  }, []);
+  }, [restaurar]);
 
   const persist = useCallback(async ({ user, token }) => {
     setUser(user);
@@ -119,6 +136,7 @@ export function AuthProvider({ children }) {
     setToken(null);
     setMotivoSaida(null);
     setAvisoSessao(false);
+    setSemLigacao(false);
     await apagarToken();
   }, []);
 
@@ -128,6 +146,8 @@ export function AuthProvider({ children }) {
         user,
         token,
         restoring,
+        semLigacao,
+        restaurar,
         login,
         register,
         logout,

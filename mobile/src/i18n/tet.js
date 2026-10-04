@@ -670,6 +670,10 @@ export default {
   versaoAtualizada: 'atualizasaun simu tiha ona',
   serverFirstSlow: 'Ligasaun loron dahuluk nian bele demora to’o minutu ida.',
   waking: 'Fanun servidór… bele demora minutu ida',
+  semLigacaoTitulo: 'La iha ligasaun ho servidór',
+  semLigacaoTexto: 'Ita-nia sesaun sei rai hela. Haree rede no koko fila-fali.',
+  semLigacaoTentar: 'Koko fila-fali',
+  semLigacaoOutraConta: 'Tama ho konta seluk',
 
   // Aprovasaun motorista
   pendingTitle: 'Konta iha hela análiza nia laran',
