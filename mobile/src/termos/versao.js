@@ -42,7 +42,10 @@ export const VERSAO_TERMOS = '2026-09-14';
 // passageiros menores, na revisão conjunta dos três documentos.
 // Alterada em 28/09/2026: o período gratuito deixa de acabar a 30/04/2027 e
 // passa a durar até novo aviso oficial, anunciado com 30 dias.
-export const VERSAO_TERMOS_MOTORISTA = '2026-09-28';
+// Alterada em 05/10/2026: os 30 dias do Carro e do Carro Pickup passam de
+// $30 para $25 (decisão do Simão). Muda o preço, portanto muda o sentido, e
+// os motoristas voltam a aceitar — durante o período gratuito, sem custo.
+export const VERSAO_TERMOS_MOTORISTA = '2026-10-05';
 
 // A privacidade tem versão PRÓPRIA, e não a dos termos.
 //

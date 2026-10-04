@@ -11,7 +11,10 @@ import { one } from './db.js';
 // ecrã. Sem aceitação a cláusula da assinatura não obriga ninguém, e a
 // cobrança começa quando for anunciada. Ficar disponível passa a exigi-la.
 // 28/09/2026: sem taxa de acesso até novo aviso oficial (ver assinatura.js).
-export const VERSAO_TERMOS_MOTORISTA = '2026-09-28';
+// Alterada em 05/10/2026: os 30 dias do Carro e do Carro Pickup passam de
+// $30 para $25 (decisão do Simão). Muda o preço, portanto muda o sentido, e
+// os motoristas voltam a aceitar — durante o período gratuito, sem custo.
+export const VERSAO_TERMOS_MOTORISTA = '2026-10-05';
 
 // Lida da base e não da sessão: quem aceita os termos a meio tem de poder
 // ficar disponível logo a seguir, sem sair da app e voltar a entrar.

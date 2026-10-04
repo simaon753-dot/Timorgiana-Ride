@@ -94,6 +94,9 @@ export async function anunciarCobranca(inicio, adminId) {
 }
 
 // Preços em dólares. O pacote pequeno existe para ser comprado sem medo:
+//
+// 05/10/2026, decisão do Simão: os 30 dias do Carro e do Carro Pickup baixam
+// de $30 para $25; a Motorizada mantém $15. Os pacotes de 3 e 10 dias ficam.
 // $4 é dinheiro que um motorista pode arriscar numa app que ainda não sabe
 // se lhe serve. O de 30 dias sai mais barato por dia, e é para onde ele vai
 // depois de o pacote pequeno lhe ter provado alguma coisa.
@@ -101,7 +104,7 @@ export const PACOTES = {
   car: [
     { dias: 3, usd: 4 },
     { dias: 10, usd: 12 },
-    { dias: 30, usd: 30 },
+    { dias: 30, usd: 25 },
   ],
   motorbike: [
     { dias: 3, usd: 2 },
@@ -114,7 +117,7 @@ export const PACOTES = {
   carry: [
     { dias: 3, usd: 4 },
     { dias: 10, usd: 12 },
-    { dias: 30, usd: 30 },
+    { dias: 30, usd: 25 },
   ],
 };
 
