@@ -923,6 +923,17 @@ export default {
   mesesNomes:
     'Janeiru,Fevereiru,Marsu,Abríl,Maiu,Juñu,Jullu,Agostu,Setembru,Outubru,Novembru,Dezembru',
   mesesCurtos: 'Jan,Fev,Mar,Abr,Mai,Jun,Jul,Ago,Set,Out,Nov,Dez',
+  descontoTitulo: 'Diskontu ba sira ne’ebé hetan rendimentu ki’ik',
+  descontoPerdido: 'Lakon diskontu iha siklu ida-ne’e',
+  descontoConta:
+    'Pakote loron 30 ikus ({de} to’o {ate}): rendimentu rejistadu ${rendimento}; kansela viajen {canceladas} depois simu tiha.',
+  descontoPreco: 'Pakote loron 30 tuir mai kusta ${preco} (15% husi rendimentu), duké ${normal}.',
+  descontoRegraCancelar:
+    'Lakon se kansela liu dala 3 depois simu tiha, ka liu 20% husi viajen ne’ebé simu.',
+  admDescontoDe: 'ho diskontu (normál ${normal})',
+  admRetirarDesconto: 'Hasai diskontu',
+  admRetirarDescontoConfirmar:
+    'De’it bainhira prova ona katak motorista koordena viajen iha aplikasaun nia li’ur. Sei rejistu.',
   planoTitulo: 'Planu atividade',
   planoGratuito: 'Períodu gratuitu',
   planoGratuitoAte:

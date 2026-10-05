@@ -911,6 +911,17 @@ export default {
   mesesNomes:
     'January,February,March,April,May,June,July,August,September,October,November,December',
   mesesCurtos: 'Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec',
+  descontoTitulo: 'Discount for low earners',
+  descontoPerdido: 'Discount lost this cycle',
+  descontoConta:
+    'Last 30-day package ({de} to {ate}): recorded earnings ${rendimento}; cancelled {canceladas} rides after accepting.',
+  descontoPreco: 'The next 30-day package costs ${preco} (15% of earnings) instead of ${normal}.',
+  descontoRegraCancelar:
+    'It is lost with more than 3 cancellations after accepting, or more than 20% of accepted rides.',
+  admDescontoDe: 'discounted (normal ${normal})',
+  admRetirarDesconto: 'Withdraw the discount',
+  admRetirarDescontoConfirmar:
+    'Only when it has been proven that the driver arranged rides outside the app. It is recorded.',
   planoTitulo: 'Activity plan',
   planoGratuito: 'Free period',
   planoGratuitoAte:

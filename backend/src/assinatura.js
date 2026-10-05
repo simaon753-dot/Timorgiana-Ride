@@ -251,7 +251,7 @@ export async function estadoDe(userId) {
     gratuito,
     // Nulo até haver anúncio: «sem taxa de acesso até novo aviso oficial».
     gratuitoAte: ultimoDiaGratuito(inicio),
-    pacotes: PACOTES[u?.vehicle_type] || PACOTES.car,
+    ...(await pacotesDe(userId, u?.vehicle_type)),
     // Fica para as versões da app anteriores aos pedidos (14/09/26).
     formasPagamento: FORMAS_PAGAMENTO,
     diasContados: dias,
@@ -325,6 +325,128 @@ export async function resumoDe(userId) {
   return { dias: u?.dias_saldo ?? 0, gratuito, gratuitoAte: ultimoDiaGratuito(inicio) };
 }
 
+// ═══ DESCONTO PARA QUEM GANHA POUCO (05/10/2026) ═══════════════════════
+//
+// A cláusula dos termos do motorista, decidida pelo Simão:
+//
+//   · um CICLO é um pacote de 30 dias: começa no carregamento de 30 dias e
+//     acaba quando se conta o 30.º dia PAGO depois dele;
+//   · no fim, calcula-se 15% do rendimento registado nesses 30 dias (as
+//     viagens concluídas, pelo preço registado em cada uma);
+//   · se for menos do que o preço do pacote, a COMPRA SEGUINTE do pacote de
+//     30 dias custa só esses 15%. Uma vez: a primeira compra de 30 dias
+//     depois do fim do ciclo gasta-o;
+//   · perde-se com mais de 3 cancelamentos depois de aceitar, ou mais de 20%
+//     das viagens aceites, nesse ciclo — ou quando o administrador o retira
+//     (acordo com um passageiro para viajar por fora, provado).
+//
+// Paga-se sempre ADIANTADO: o desconto é um preço mais baixo, nunca uma
+// dívida a cobrar nem dinheiro devolvido. E não é comissão: a plataforma não
+// toca no valor das viagens.
+export const DESCONTO = { percentagem: 0.15, maxCanceladas: 3, maxTaxaCanceladas: 0.2 };
+
+export async function descontoDe(userId, vehicleType) {
+  const pacote30 = (PACOTES[vehicleType] || PACOTES.car).find((p) => p.dias === 30);
+  const sem = (motivo, ciclo = null) => ({
+    aplica: false,
+    motivo,
+    ciclo,
+    precoNormal: pacote30.usd,
+  });
+
+  // Os pacotes de 30 dias, do mais recente para trás.
+  const pacotes = await query(
+    `SELECT id, created_at, desconto_retirado_em FROM carregamentos
+      WHERE user_id = $1 AND dias = 30 ORDER BY created_at DESC LIMIT 6`,
+    [userId]
+  );
+  if (!pacotes.length) return sem('sem_ciclo');
+
+  // O ciclo acabado mais recente: o primeiro (do mais novo para trás) que já
+  // tem 30 dias pagos contados depois dele.
+  let ciclo = null;
+  for (const c of pacotes) {
+    const dias = await query(
+      `SELECT TO_CHAR(dia, 'YYYY-MM-DD') AS dia, created_at FROM dias_contados
+        WHERE user_id = $1 AND NOT gratuito AND created_at >= $2
+        ORDER BY dia ASC LIMIT 30`,
+      [userId, c.created_at]
+    );
+    if (dias.length === 30) {
+      ciclo = { pacote: c, dias: dias.map((d) => d.dia), fim: dias[29].created_at };
+      break;
+    }
+  }
+  if (!ciclo) return sem('ciclo_por_acabar');
+
+  // Já gasto: houve uma compra de 30 dias depois de o ciclo acabar.
+  if (pacotes.some((c) => new Date(c.created_at) > new Date(ciclo.fim))) {
+    return sem('ja_usado');
+  }
+
+  const de = ciclo.dias[0];
+  const ate = ciclo.dias[29];
+  const r = await one(
+    `SELECT
+       COALESCE(SUM(fare_usd) FILTER (
+         WHERE status = 'completed'
+           AND TO_CHAR((concluida_em AT TIME ZONE 'Asia/Dili')::date, 'YYYY-MM-DD') = ANY($2::text[])
+       ), 0)::float8 AS rendimento,
+       COUNT(*) FILTER (WHERE status IN ('completed', 'cancelled'))::int AS aceites,
+       COUNT(*) FILTER (WHERE status = 'cancelled' AND cancelled_by = $1)::int AS canceladas
+     FROM rides
+     WHERE driver_id = $1
+       AND COALESCE(concluida_em, updated_at) >= ($3::date::timestamp AT TIME ZONE 'Asia/Dili')
+       AND COALESCE(concluida_em, updated_at) < (($4::date + 1)::timestamp AT TIME ZONE 'Asia/Dili')`,
+    [userId, ciclo.dias, de, ate]
+  );
+  const rendimento = Math.round(Number(r.rendimento) * 100) / 100;
+  const preco = Math.round(rendimento * DESCONTO.percentagem * 100) / 100;
+  const info = {
+    de,
+    ate,
+    rendimento,
+    aceites: r.aceites,
+    canceladas: r.canceladas,
+    carregamentoId: ciclo.pacote.id,
+  };
+
+  if (ciclo.pacote.desconto_retirado_em) return sem('retirado', info);
+  if (
+    r.canceladas > DESCONTO.maxCanceladas ||
+    (r.aceites > 0 && r.canceladas / r.aceites > DESCONTO.maxTaxaCanceladas)
+  ) {
+    return sem('cancelamentos', info);
+  }
+  if (preco >= pacote30.usd) return sem('ganhou_bem', info);
+  return { aplica: true, preco, precoNormal: pacote30.usd, ciclo: info };
+}
+
+// Os pacotes da conta COM o desconto já aplicado ao de 30 dias. É daqui que
+// saem todos os preços — o que a app mostra, o que o pedido cobra e o que o
+// administrador regista no escritório —, para nunca haver dois preços.
+export async function pacotesDe(userId, vehicleType) {
+  const base = PACOTES[vehicleType] || PACOTES.car;
+  const d = await descontoDe(userId, vehicleType);
+  const pacotes = base.map((p) =>
+    p.dias === 30 && d.aplica ? { ...p, usd: d.preco, precoNormal: p.usd } : { ...p }
+  );
+  return { pacotes, desconto: d };
+}
+
+// O administrador retira o desconto do último ciclo (acordo por fora provado).
+export async function retirarDesconto(userId, adminId) {
+  const u = await one(`SELECT vehicle_type FROM users WHERE id = $1`, [userId]);
+  const d = await descontoDe(userId, u?.vehicle_type);
+  if (!d.ciclo?.carregamentoId || d.motivo === 'ja_usado') {
+    throw erro('Esta conta não tem desconto por usar.');
+  }
+  await query(
+    `UPDATE carregamentos SET desconto_retirado_em = NOW(), desconto_retirado_por = $2 WHERE id = $1`,
+    [d.ciclo.carregamentoId, adminId]
+  );
+}
+
 // O PLANO DE ATIVIDADE, para o ecrã dos Ganhos (04/10/2026).
 //
 // O Simão pediu um contador «23 / 30» com barra. O saldo é o numerador; o
@@ -360,8 +482,10 @@ export async function planoDe(userId) {
       ).n
     : 0;
   const saldo = u?.dias_saldo ?? 0;
-  const pacotes = PACOTES[u?.vehicle_type] || PACOTES.car;
+  // Com o desconto, se houver: o «Renovar por US$…» diz o preço que se paga.
+  const { pacotes, desconto } = await pacotesDe(userId, u?.vehicle_type);
   return {
+    desconto,
     dias: saldo,
     total: saldo + usados,
     // O dia do último carregamento — o «Ativado em» do cartão (05/10/2026).
@@ -484,7 +608,10 @@ export async function criarPedido({ userId, dias, metodo, mime, base64 }) {
   if (!(await comprasAbertas(u))) {
     throw erro('Os carregamentos abrem quando for anunciado o fim do período gratuito.', 403);
   }
-  const pacote = (PACOTES[u.vehicle_type] || PACOTES.car).find((p) => p.dias === Number(dias));
+  // Com o desconto de quem ganhou pouco, se o houver (05/10/2026).
+  const pacote = (await pacotesDe(userId, u.vehicle_type)).pacotes.find(
+    (p) => p.dias === Number(dias)
+  );
   if (!pacote) throw erro('Pacote inválido.');
   if (!FORMAS_COM_PEDIDO.includes(metodo)) throw erro('Forma de pagamento inválida.');
   const forma = (await formasConfiguradas()).find((f) => f.id === metodo);

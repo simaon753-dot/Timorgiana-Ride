@@ -321,6 +321,8 @@ export const api = {
   adminLugares: (token, estado = 'novo') => request(`/admin/lugares?estado=${estado}`, { token }),
   adminLugarEstado: (token, id, estado) =>
     request(`/admin/lugares/${id}/estado`, { method: 'POST', body: { estado }, token }),
+  adminRetirarDesconto: (token, id) =>
+    request(`/admin/drivers/${id}/desconto/retirar`, { method: 'POST', token }),
   adminCarregar: (token, id, body) =>
     request(`/admin/drivers/${id}/carregar`, { method: 'POST', body, token }),
   // Pagamentos da assinatura (14/09/26): confirmar contra o extracto, recusar

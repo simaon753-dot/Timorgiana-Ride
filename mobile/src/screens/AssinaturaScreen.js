@@ -205,6 +205,10 @@ export default function AssinaturaScreen({ navigation }) {
                     <Text style={[styles.linhaTexto, escolhido && styles.escolhidoTexto]}>
                       {p.dias} {t('assinDias')}
                     </Text>
+                    {/* O preço normal riscado ao lado, quando há desconto. */}
+                    {p.precoNormal != null ? (
+                      <Text style={styles.riscado}>${p.precoNormal}</Text>
+                    ) : null}
                     <Text style={[styles.linhaValor, escolhido && styles.escolhidoTexto]}>
                       ${p.usd}
                     </Text>
@@ -227,6 +231,33 @@ export default function AssinaturaScreen({ navigation }) {
                 );
               })}
             </View>
+            {/* O DESCONTO PARA QUEM GANHA POUCO, com a conta à vista antes de
+                comprar, como a cláusula promete (05/10/2026). */}
+            {a?.desconto?.ciclo && (a.desconto.aplica || a.desconto.motivo === 'cancelamentos') ? (
+              <View style={styles.desconto}>
+                <Text style={styles.descontoTitulo}>
+                  {a.desconto.aplica ? t('descontoTitulo') : t('descontoPerdido')}
+                </Text>
+                <Text style={styles.nota}>
+                  {t('descontoConta', {
+                    de: paraMostrar(a.desconto.ciclo.de),
+                    ate: paraMostrar(a.desconto.ciclo.ate),
+                    rendimento: a.desconto.ciclo.rendimento.toFixed(2),
+                    canceladas: a.desconto.ciclo.canceladas,
+                  })}
+                </Text>
+                {a.desconto.aplica ? (
+                  <Text style={styles.nota}>
+                    {t('descontoPreco', {
+                      preco: a.desconto.preco.toFixed(2),
+                      normal: a.desconto.precoNormal,
+                    })}
+                  </Text>
+                ) : (
+                  <Text style={styles.nota}>{t('descontoRegraCancelar')}</Text>
+                )}
+              </View>
+            ) : null}
 
             {!a?.comprasAbertas ? (
               <>
@@ -447,6 +478,20 @@ const criarEstilos = () =>
     escolhidoTexto: { color: colors.teal, fontWeight: '700' },
     linhaTexto: { ...tipo.corpo, color: colors.text, flex: 1 },
     linhaValor: { ...tipo.corpoForte, color: colors.text, fontVariant: ['tabular-nums'] },
+    riscado: {
+      ...tipo.pequeno,
+      color: colors.textMuted,
+      textDecorationLine: 'line-through',
+      marginRight: spacing.sm,
+    },
+    desconto: {
+      backgroundColor: colors.tintaTeal,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      marginTop: spacing.sm,
+      gap: 4,
+    },
+    descontoTitulo: { ...tipo.corpoForte, color: colors.teal },
     gratis: { color: colors.textMuted },
     vazio: { ...tipo.pequeno, color: colors.textMuted, paddingVertical: spacing.md },
     nota: { ...tipo.pequeno, color: colors.textMuted, marginTop: spacing.xs },

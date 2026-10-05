@@ -930,6 +930,18 @@ export default {
   mesesNomes:
     'Janeiro,Fevereiro,Março,Abril,Maio,Junho,Julho,Agosto,Setembro,Outubro,Novembro,Dezembro',
   mesesCurtos: 'Jan,Fev,Mar,Abr,Mai,Jun,Jul,Ago,Set,Out,Nov,Dez',
+  descontoTitulo: 'Desconto para quem ganha pouco',
+  descontoPerdido: 'Desconto perdido neste ciclo',
+  descontoConta:
+    'Último pacote de 30 dias ({de} a {ate}): rendimento registado ${rendimento}; cancelou {canceladas} viagens depois de aceitar.',
+  descontoPreco:
+    'O próximo pacote de 30 dias custa ${preco} (15% do rendimento), em vez de ${normal}.',
+  descontoRegraCancelar:
+    'Perde-se com mais de 3 cancelamentos depois de aceitar, ou mais de 20% das viagens aceites.',
+  admDescontoDe: 'com desconto (normal ${normal})',
+  admRetirarDesconto: 'Retirar o desconto',
+  admRetirarDescontoConfirmar:
+    'Só quando se provou que o motorista combinou viagens fora da aplicação. Fica registado.',
   planoTitulo: 'Plano de atividade',
   planoGratuito: 'Período gratuito',
   planoGratuitoAte:

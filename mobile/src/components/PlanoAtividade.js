@@ -125,6 +125,14 @@ export default function PlanoAtividade({ plano, diasContados, navigation }) {
       </View>
 
       <Text style={styles.forte}>{t('planoRestantes', { n: dias })}</Text>
+      {plano.desconto?.aplica ? (
+        <Text style={styles.aviso}>
+          {t('descontoPreco', {
+            preco: plano.desconto.preco.toFixed(2),
+            normal: plano.desconto.precoNormal,
+          })}
+        </Text>
+      ) : null}
       {aviso ? <Text style={[styles.aviso, acabou && styles.avisoMau]}>{aviso}</Text> : null}
       {/* Gastou o último dia HOJE: o dia está pago até à meia-noite. */}
       {acabou && plano.hojePago ? <Text style={styles.regra}>{t('planoHojePago')}</Text> : null}

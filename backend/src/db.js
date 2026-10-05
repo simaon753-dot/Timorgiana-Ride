@@ -1173,6 +1173,17 @@ export async function initSchema() {
     ON CONFLICT (user_id) WHERE fim IS NULL DO NOTHING
   `);
 
+  // DESCONTO PARA QUEM GANHA POUCO (05/10/2026, cláusula dos termos): o
+  // administrador retira o desconto de um ciclo quando se prova que o
+  // motorista combinou viagens por fora. Marca-se no carregamento de 30 dias
+  // que abriu esse ciclo, com quem e quando.
+  await query(
+    `ALTER TABLE carregamentos ADD COLUMN IF NOT EXISTS desconto_retirado_em TIMESTAMPTZ`
+  );
+  await query(
+    `ALTER TABLE carregamentos ADD COLUMN IF NOT EXISTS desconto_retirado_por INTEGER REFERENCES users(id)`
+  );
+
   const [{ now }] = await query('SELECT NOW() AS now');
   console.log('[db] PostgreSQL pronto —', now.toISOString());
 }

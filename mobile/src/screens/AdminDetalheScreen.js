@@ -805,9 +805,42 @@ function Assinatura({ c, t, token, onMudou }) {
             >
               <Text style={estilosAssin.pacoteDias}>{t('admMaisDias', { n: p.dias })}</Text>
               <Text style={estilosAssin.pacoteUsd}>${p.usd}</Text>
+              {p.precoNormal != null ? (
+                <Text style={estilosAssin.nota}>
+                  {t('admDescontoDe', { normal: p.precoNormal })}
+                </Text>
+              ) : null}
             </Pressable>
           ))}
         </View>
+        {/* Retirar o desconto: só quando se provou um acordo por fora. */}
+        {c.desconto?.aplica ? (
+          <Button
+            title={t('admRetirarDesconto')}
+            variant="perigoSuave"
+            disabled={aGravar}
+            onPress={() =>
+              Alert.alert(t('admRetirarDesconto'), t('admRetirarDescontoConfirmar'), [
+                { text: t('cancel'), style: 'cancel' },
+                {
+                  text: t('admRetirarDesconto'),
+                  style: 'destructive',
+                  onPress: async () => {
+                    setAGravar(true);
+                    try {
+                      await api.adminRetirarDesconto(token, c.id);
+                      onMudou?.();
+                    } catch (e) {
+                      Alert.alert(t('errGeneric'), e?.message || '');
+                    } finally {
+                      setAGravar(false);
+                    }
+                  },
+                },
+              ])
+            }
+          />
+        ) : null}
 
         <View style={estilosAssin.devolucao}>
           {!dev ? (

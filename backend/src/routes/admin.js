@@ -52,6 +52,8 @@ import {
   anunciarCobranca,
   AVISO_MINIMO_DIAS,
   emPeriodoGratuito,
+  pacotesDe,
+  retirarDesconto,
 } from '../assinatura.js';
 import { notificarMotoristaPagamento } from '../push.js';
 import { etiquetaOsm } from '../tiposDeLugar.js';
@@ -967,7 +969,11 @@ adminRouter.get(
         // Os preços vão daqui e não ficam escritos na app: um preço em dois
         // sítios é um preço que vai divergir. Mudar um pacote passa a ser
         // uma publicação do servidor.
-        pacotes: PACOTES[u.vehicle_type] || PACOTES.car,
+        // Com o desconto de quem ganhou pouco (05/10/2026): o preço que o
+        // administrador regista no escritório é o mesmo que a app mostra.
+        ...(u.driver_status
+          ? await pacotesDe(u.id, u.vehicle_type)
+          : { pacotes: PACOTES[u.vehicle_type] || PACOTES.car }),
         formasPagamento: FORMAS_PAGAMENTO,
         // A referência que o motorista escreve nos pagamentos (TR0042).
         referencia: referenciaDe(u.id),
@@ -1713,6 +1719,23 @@ adminRouter.post(
     const id = Number(req.params.id);
     if (!Number.isInteger(id)) return res.status(400).json({ error: 'Documento inválido.' });
     await query('UPDATE driver_documents SET revisto_em = NOW() WHERE id = $1', [id]);
+    res.json({ ok: true });
+  })
+);
+
+// POST /api/admin/drivers/:id/desconto/retirar — o motorista perde o desconto
+// do último ciclo (05/10/2026): provou-se que combinou viagens por fora. A
+// cláusula dos termos prevê-o; fica registado quem e quando.
+adminRouter.post(
+  '/drivers/:id/desconto/retirar',
+  wrap(async (req, res) => {
+    const id = Number(req.params.id);
+    try {
+      await retirarDesconto(id, req.user.id);
+    } catch (e) {
+      return res.status(e.status || 400).json({ error: e.message });
+    }
+    registarAcesso(req.user.id, 'retirou o desconto do ciclo', id);
     res.json({ ok: true });
   })
 );

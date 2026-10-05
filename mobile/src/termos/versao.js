@@ -45,7 +45,10 @@ export const VERSAO_TERMOS = '2026-09-14';
 // Alterada em 05/10/2026: os 30 dias do Carro e do Carro Pickup passam de
 // $30 para $25 (decisão do Simão). Muda o preço, portanto muda o sentido, e
 // os motoristas voltam a aceitar — durante o período gratuito, sem custo.
-export const VERSAO_TERMOS_MOTORISTA = '2026-10-05';
+// E de novo no MESMO dia (daí o 'b'): entra a cláusula «Desconto para quem
+// ganha pouco» — 15% do rendimento registado, até ao preço do pacote de 30
+// dias, perdido com mais de 3 cancelamentos ou mais de 20% (decisão do Simão).
+export const VERSAO_TERMOS_MOTORISTA = '2026-10-05b';
 
 // A privacidade tem versão PRÓPRIA, e não a dos termos.
 //

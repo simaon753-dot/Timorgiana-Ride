@@ -74,6 +74,10 @@ export const MENSAGENS = {
     'Pedidu ida-ne’e desidi tiha ona.',
     'This request has already been decided.',
   ],
+  'Esta conta não tem desconto por usar.': [
+    'Konta ida-ne’e la iha diskontu atu uza.',
+    'This account has no discount to use.',
+  ],
   'O teu registo não está recusado.': [
     'Ita-nia rejistu la hetan rekuzasaun.',
     'Your registration has not been rejected.',
