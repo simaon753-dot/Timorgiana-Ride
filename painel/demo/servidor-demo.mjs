@@ -328,6 +328,8 @@ function notificacoes() {
   };
   const niveis = { sos: 'mau', ocorrenciasGraves: 'mau', ocorrencias: 'aviso', pagamentosAtrasados: 'mau', pagamentos: 'aviso', docsCaducados: 'mau', aprovacoes: 'aviso', semResposta: 'aviso', docsACaducar: 'aviso', canceladas: 'neutro', suspensas: 'neutro' };
   const itens = Object.entries(n).filter(([, v]) => v > 0).map(([chave, v]) => ({ chave, n: v, nivel: niveis[chave], seccao: '' }));
+  // A base a 74% do espaço, para se ver o aviso (05/10/2026).
+  itens.unshift({ chave: 'espaco', n: 1, pct: 74, nivel: 'aviso', seccao: 'definicoes' });
   return { itens, porTratar: itens.filter((i) => i.nivel !== 'neutro').reduce((s, i) => s + i.n, 0) };
 }
 

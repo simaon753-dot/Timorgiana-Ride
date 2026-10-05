@@ -160,7 +160,7 @@ function Notificacoes() {
                     <span className={cn('mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg', COR_NIVEL[i.nivel])}>
                       <Icone className="size-4" aria-hidden />
                     </span>
-                    <span className="text-sm text-texto">{t(`notif.${i.chave}`, { n: i.n })}</span>
+                    <span className="text-sm text-texto">{t(`notif.${i.chave}`, { n: i.n, pct: i.pct ?? 0 })}</span>
                   </button>
                 </li>
               );

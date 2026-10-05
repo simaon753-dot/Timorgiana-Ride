@@ -49,4 +49,5 @@ export const DESTINO_NOTIFICACAO: Record<ItemNotificacao['chave'], string> = {
   docsACaducar: '/dados',
   canceladas: '/viagens',
   suspensas: '/aprovacoes?estado=suspended',
+  espaco: '/definicoes',
 };

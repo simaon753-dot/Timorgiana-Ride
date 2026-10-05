@@ -161,8 +161,11 @@ export interface ItemNotificacao {
     | 'semResposta'
     | 'docsACaducar'
     | 'canceladas'
-    | 'suspensas';
+    | 'suspensas'
+    | 'espaco';
   n: number;
+  // Só no `espaco`: a percentagem usada do tecto da base de dados.
+  pct?: number;
   nivel: NivelNotificacao;
   seccao: string;
 }

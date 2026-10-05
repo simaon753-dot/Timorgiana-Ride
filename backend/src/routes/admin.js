@@ -548,6 +548,10 @@ adminRouter.put(
   })
 );
 
+// O tecto de espaço da base. 512 MB é o plano gratuito da Neon; ao subir de
+// plano, muda-se `BASE_LIMITE_MB` no Render e o aviso acompanha.
+const LIMITE_BASE_MB = Number(process.env.BASE_LIMITE_MB) || 512;
+
 // GET /api/admin/notificacoes — o que precisa de atenção
 //
 // Não é uma tabela de notificações guardadas: é uma leitura do estado
@@ -590,7 +594,8 @@ adminRouter.get(
           AS "pagamentos",
         (SELECT COUNT(*) FROM pedidos_carregamento
           WHERE estado='pendente' AND created_at < NOW() - INTERVAL '24 hours')::int
-          AS "pagamentosAtrasados"
+          AS "pagamentosAtrasados",
+        pg_database_size(current_database())::float8 AS "bytesBase"
     `,
       [CATEGORIAS_GRAVES]
     );
@@ -618,6 +623,25 @@ adminRouter.get(
       { chave: 'canceladas', n: n.canceladas, nivel: 'neutro', seccao: 'viagens' },
       { chave: 'suspensas', n: n.suspensas, nivel: 'neutro', seccao: 'contas' },
     ].filter((i) => i.n > 0);
+
+    // O ESPAÇO DA BASE DE DADOS (05/10/2026, pedido do Simão). O plano
+    // gratuito da Neon tem 0,5 GB; cheio, a base deixa de aceitar viagens
+    // novas — nada se perde, mas a app pára. Os documentos e as fotografias
+    // dos motoristas são quase todo o peso (~5 MB por motorista).
+    //
+    // Avisa aos 70%, com tempo para passar as fotografias para fora ou subir
+    // de plano; aos 90% passa a urgente. `n` é 1 e não a percentagem: o sino
+    // soma os `n`, e 72% não são 72 tarefas.
+    const usado = Math.round((100 * n.bytesBase) / (LIMITE_BASE_MB * 1024 * 1024));
+    if (usado >= 70) {
+      itens.unshift({
+        chave: 'espaco',
+        n: 1,
+        pct: usado,
+        nivel: usado >= 90 ? 'mau' : 'aviso',
+        seccao: 'definicoes',
+      });
+    }
 
     // O número do sino conta só o que exige acção. Canceladas e suspensas
     // são informação, não tarefas — se entrassem na conta, o sino estava
