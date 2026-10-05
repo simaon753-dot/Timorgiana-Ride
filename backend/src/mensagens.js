@@ -75,11 +75,11 @@ export const MENSAGENS = {
     'This request has already been decided.',
   ],
   'O teu registo não está recusado.': [
-    'Ita-nia rejistu la rejeita.',
+    'Ita-nia rejistu la hetan rekuzasaun.',
     'Your registration has not been rejected.',
   ],
   'Formato não aceite. Envie uma fotografia do veículo.': [
-    'Formatu la aseita. Haruka fotografia veíkulu nian.',
+    'Formatu la aseita. Haruka fotografia ida husi veíkulu.',
     'Format not accepted. Send a photo of the vehicle.',
   ],
   'Corrige o teu documento ({0}): {1}': [
@@ -742,7 +742,7 @@ export const NOTIFICACOES = {
   },
   registoRecebidoTexto: {
     pt: 'Recebemos os seus documentos. Vamos verificá-los e avisamos quando houver decisão.',
-    tet: 'Ami simu ona ita-nia dokumentu sira. Ami sei verifika no fó hatene bainhira iha desizaun.',
+    tet: 'Ami simu ona ita-nia dokumentu sira. Ami sei verifika no fó hatene bainhira iha ona desizaun.',
     en: 'We have received your documents. We will check them and let you know when there is a decision.',
   },
   registoAprovadoTitulo: {
@@ -757,7 +757,7 @@ export const NOTIFICACOES = {
   },
   registoReativadoTitulo: {
     pt: 'Conta reativada',
-    tet: 'Konta ativa fali ona',
+    tet: 'Konta ativa fila-fali ona',
     en: 'Account reactivated',
   },
   registoReativadoTexto: {
@@ -772,7 +772,7 @@ export const NOTIFICACOES = {
   },
   registoRecusadoTexto: {
     pt: 'Motivo: {motivo}. Pode corrigir os documentos na app e voltar a enviar.',
-    tet: 'Motivu: {motivo}. Ita bele hadi’a dokumentu sira iha app no haruka fali.',
+    tet: 'Motivu: {motivo}. Ita bele hadi’a dokumentu sira iha app no haruka fila-fali.',
     en: 'Reason: {motivo}. You can fix the documents in the app and send them again.',
   },
   registoSuspensoTitulo: { pt: 'Conta suspensa', tet: 'Konta suspende', en: 'Account suspended' },
@@ -798,27 +798,27 @@ export const NOTIFICACOES = {
   },
   validadeFaltamTexto: {
     pt: '{documento}: caduca a {data} — faltam {dias} dias. Envie o renovado na app para não parar.',
-    tet: '{documento}: remata iha {data} — falta loron {dias}. Haruka ida foun iha app atu la para.',
+    tet: '{documento}: remata iha {data} — falta loron {dias}. Haruka ida ne’ebé renova ona ne’e iha app atu labele para.',
     en: '{documento}: expires on {data} — {dias} days left. Send the renewed one in the app so you don’t have to stop.',
   },
   validadeAmanhaTexto: {
     pt: '{documento}: caduca amanhã ({data}). Envie o renovado na app.',
-    tet: '{documento}: remata aban ({data}). Haruka ida foun iha app.',
+    tet: '{documento}: remata aban ({data}). Haruka dokumentu ida foun ne’e iha app.',
     en: '{documento}: expires tomorrow ({data}). Send the renewed one in the app.',
   },
   validadeHojeTexto: {
     pt: '{documento}: caduca hoje ({data}). Amanhã já não pode ficar disponível sem o renovado.',
-    tet: '{documento}: remata ohin ({data}). Aban ita la bele ona sai disponível se la iha ida foun.',
+    tet: '{documento}: remata ohin ({data}). Aban ita la bele ona sai disponível se la iha dokumentu foun.',
     en: '{documento}: expires today ({data}). From tomorrow you cannot go online without the renewed one.',
   },
   validadeCaducouTitulo: {
     pt: 'Documento caducado',
-    tet: 'Dokumentu remata ona',
+    tet: 'Dokumentu kaduka tiha ona',
     en: 'Document expired',
   },
   validadeCaducouTexto: {
     pt: '{documento}: caducou a {data}. Não pode ficar disponível até enviar o renovado.',
-    tet: '{documento}: remata ona iha {data}. Ita la bele sai disponível to’o haruka ida foun.',
+    tet: '{documento}: kaduka ona iha {data}. Ita la bele sai disponível to’o haruka ida foun.',
     en: '{documento}: expired on {data}. You cannot go online until you send the renewed one.',
   },
   doc_photo: { pt: 'Fotografia sua', tet: 'Ita-nia fotografia', en: 'Photo of you' },
@@ -867,7 +867,7 @@ export const NOTIFICACOES = {
   emailOla: { pt: 'Olá {nome},', tet: 'Olá {nome},', en: 'Hello {nome},' },
   emailRodape: {
     pt: 'Veja os detalhes na app TimorgianaRide, no seu registo de motorista.',
-    tet: 'Haree detallu iha app TimorgianaRide, iha ita-nia rejistu motorista.',
+    tet: 'Haree detallu iha app TimorgianaRide, iha ita-nia rejistu motorista nian.',
     en: 'See the details in the TimorgianaRide app, in your driver registration.',
   },
 };
