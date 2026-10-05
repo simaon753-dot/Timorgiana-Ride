@@ -191,7 +191,9 @@ export async function marcarComprado(rideId, driverId, valorUsd) {
 
   const teto = Number(r.jastip_teto);
   if (valor > teto) {
-    return { erro: `O passageiro autorizou até ${dolares(teto)}. Fala com ele antes de gastar mais.` };
+    return {
+      erro: `O passageiro autorizou até ${dolares(teto)}. Fala com ele antes de gastar mais.`,
+    };
   }
 
   const taxaNova = taxaCobrada(teto, valor);

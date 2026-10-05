@@ -78,6 +78,26 @@ export const MENSAGENS = {
     'Konta ida-ne’e la iha diskontu atu uza.',
     'This account has no discount to use.',
   ],
+  'Confirme o seu número de telemóvel com o código por SMS.': [
+    'Konfirma ita-nia númeru telemóvel ho kódigu ne’ebé mai liuhusi SMS.',
+    'Confirm your mobile number with the SMS code.',
+  ],
+  'A confirmação por SMS não está ligada.': [
+    'Konfirmasaun liuhusi SMS seidauk liga.',
+    'SMS confirmation is not switched on.',
+  ],
+  'Já pediu vários códigos. Espere um pouco antes de pedir outro.': [
+    'Ita husu ona kódigu barak. Hein uitoan antes husu fali.',
+    'You have asked for several codes. Wait a little before asking for another.',
+  ],
+  'Não é possível mandar o código agora. Tente mais tarde.': [
+    'Agora labele haruka kódigu. Koko fali depois.',
+    'The code cannot be sent right now. Try again later.',
+  ],
+  'Não foi possível mandar o código agora. Tente mais tarde.': [
+    'La konsege haruka kódigu agora. Koko fali depois.',
+    'The code could not be sent right now. Try again later.',
+  ],
   'O teu registo não está recusado.': [
     'Ita-nia rejistu la hetan rekuzasaun.',
     'Your registration has not been rejected.',

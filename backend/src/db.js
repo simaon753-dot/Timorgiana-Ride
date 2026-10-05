@@ -1184,6 +1184,26 @@ export async function initSchema() {
     `ALTER TABLE carregamentos ADD COLUMN IF NOT EXISTS desconto_retirado_por INTEGER REFERENCES users(id)`
   );
 
+  // CONFIRMAÇÃO DO TELEMÓVEL POR SMS (05/10/2026) — ver confirmacaoTelefone.js.
+  await query(
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS telefone_confirmado BOOLEAN NOT NULL DEFAULT FALSE`
+  );
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS telefone_confirmado_em TIMESTAMPTZ`);
+  await query(
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS telefone_confirmado_por INTEGER REFERENCES users(id)`
+  );
+  // Cada SMS pedido, para os tectos (por conta e por dia). Só a hora: o
+  // código fica no Twilio, nunca aqui.
+  await query(`
+    CREATE TABLE IF NOT EXISTS sms_envios (
+      id        BIGSERIAL PRIMARY KEY,
+      user_id   INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      ok        BOOLEAN NOT NULL,
+      criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await query('CREATE INDEX IF NOT EXISTS idx_sms_envios ON sms_envios(user_id, criado_em DESC)');
+
   const [{ now }] = await query('SELECT NOW() AS now');
   console.log('[db] PostgreSQL pronto —', now.toISOString());
 }

@@ -79,6 +79,8 @@ export const api = {
       method: 'POST',
       corpo: { decision, motivo },
     }),
+  confirmarTelefone: (id: number) =>
+    pedir<{ ok: true }>(`/admin/utilizadores/${id}/telefone-confirmado`, { method: 'POST' }),
   documentoRevisto: (id: number) =>
     pedir<{ ok: true }>(`/admin/documents/${id}/revisto`, { method: 'POST' }),
   pedirCorrecao: (id: number, motivo: string) =>

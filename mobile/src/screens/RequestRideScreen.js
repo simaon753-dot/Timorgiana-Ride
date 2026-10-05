@@ -1089,6 +1089,12 @@ export default function RequestRideScreen({ navigation, route }) {
       // `popToTop` leva ao primeiro da pilha, seja ele qual for.
       navigation.navigate('Tabs');
     } catch (e) {
+      // O número ainda não foi confirmado por SMS: abre o ecrã do código, e
+      // ao voltar o pedido faz-se com o mesmo toque.
+      if (e?.motivo === 'telefone_por_confirmar') {
+        navigation.navigate('ConfirmarTelefone');
+        return;
+      }
       setErro(e?.message === 'NETWORK' ? t('errNetwork') : e?.message || t('errGeneric'));
     } finally {
       setAPedir(false);

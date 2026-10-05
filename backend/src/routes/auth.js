@@ -1,3 +1,5 @@
+import { linguaDe } from '../mensagens.js';
+import { enviarCodigo, confirmarCodigo } from '../confirmacaoTelefone.js';
 import { Router } from 'express';
 import { CARROCERIAS, CAPACIDADES } from '../config.js';
 import {
@@ -390,6 +392,31 @@ authRouter.post('/email/confirmar', requireAuth, async (req, res) => {
     return res.json({ ok: true, user: toPublicUser(u) });
   } catch (e) {
     console.error('[auth/email/confirmar]', e);
+    return res.status(500).json({ error: 'Não foi possível confirmar.' });
+  }
+});
+
+// POST /api/auth/telefone/enviar — manda o código por SMS (05/10/2026)
+authRouter.post('/telefone/enviar', requireAuth, async (req, res) => {
+  try {
+    const r = await enviarCodigo(req.user, linguaDe(req));
+    if (r.erro) return res.status(r.status || 400).json({ error: r.erro });
+    return res.json({ ok: true, jaEstava: !!r.jaEstava });
+  } catch (e) {
+    console.error('[auth/telefone/enviar]', e);
+    return res.status(500).json({ error: 'Não foi possível enviar.' });
+  }
+});
+
+// POST /api/auth/telefone/confirmar — { codigo }
+authRouter.post('/telefone/confirmar', requireAuth, async (req, res) => {
+  try {
+    const r = await confirmarCodigo(req.user, req.body?.codigo);
+    if (r.erro) return res.status(r.status || 400).json({ error: r.erro });
+    const u = await findUserById(req.user.id);
+    return res.json({ ok: true, user: toPublicUser(u) });
+  } catch (e) {
+    console.error('[auth/telefone/confirmar]', e);
     return res.status(500).json({ error: 'Não foi possível confirmar.' });
   }
 });

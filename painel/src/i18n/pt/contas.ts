@@ -28,6 +28,10 @@ export const contas = {
   'contas.codigoValido': 'Válido {n} minutos, e só serve uma vez.',
   'contas.codigoExplica': 'Na app, no ecrã de entrada, a pessoa toca em «Esqueci a palavra-passe», escreve o número, este código e escolhe a senha nova. Nunca fica a saber a senha dela — e é assim que deve ser.',
 
+  'ficha.telConfirmado': 'Confirmado por SMS',
+  'ficha.telPorConfirmar': 'Por confirmar',
+  'ficha.telConfirmarMao': 'Confirmar à mão',
+  'ficha.telConfirmadoAviso': 'Número confirmado.',
   'ficha.informacao': 'Informação pessoal',
   'ficha.estadoConta': 'Estado da conta',
   'ficha.taxaAcesso': 'Taxa de Acesso',

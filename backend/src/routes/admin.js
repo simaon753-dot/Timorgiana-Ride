@@ -1,3 +1,4 @@
+import { marcarConfirmado as marcarTelefoneConfirmado } from '../confirmacaoTelefone.js';
 import { Router } from 'express';
 import { preco } from '../routing.js';
 import {
@@ -1719,6 +1720,20 @@ adminRouter.post(
     const id = Number(req.params.id);
     if (!Number.isInteger(id)) return res.status(400).json({ error: 'Documento inválido.' });
     await query('UPDATE driver_documents SET revisto_em = NOW() WHERE id = $1', [id]);
+    res.json({ ok: true });
+  })
+);
+
+// POST /api/admin/utilizadores/:id/telefone-confirmado — confirmar à mão
+// (05/10/2026): o SMS não chega àquela pessoa e ela mostrou o telemóvel com
+// o número no escritório. Fica registado quem confirmou.
+adminRouter.post(
+  '/utilizadores/:id/telefone-confirmado',
+  wrap(async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) return res.status(400).json({ error: 'Conta inválida.' });
+    await marcarTelefoneConfirmado(id, req.user.id);
+    registarAcesso(req.user.id, 'confirmou o telemóvel à mão', id);
     res.json({ ok: true });
   })
 );

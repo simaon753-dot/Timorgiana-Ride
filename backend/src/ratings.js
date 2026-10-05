@@ -45,8 +45,7 @@ export const ESTRELAS_COM_MOTIVO = 3;
 // marca tudo não está a dizer nada, e uma queixa de três pontos é a que se
 // consegue ler depois.
 export function limparMotivos(motivos, papelDoAvaliado) {
-  const validos =
-    papelDoAvaliado === 'driver' ? MOTIVOS_SOBRE_MOTORISTA : MOTIVOS_SOBRE_PASSAGEIRO;
+  const validos = papelDoAvaliado === 'driver' ? MOTIVOS_SOBRE_MOTORISTA : MOTIVOS_SOBRE_PASSAGEIRO;
   if (!Array.isArray(motivos)) return [];
   return [...new Set(motivos.filter((m) => validos.includes(m)))].slice(0, 3);
 }

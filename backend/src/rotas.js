@@ -688,10 +688,9 @@ function registarCaminhos(modo, pediuAlternativas, quantos) {
     [linha.para, modo, pediuAlternativas, quantos]
   )
     .then(() =>
-      query(
-        `DELETE FROM registo_rotas WHERE id <= (SELECT MAX(id) FROM registo_rotas) - $1`,
-        [REGISTO_MAX]
-      )
+      query(`DELETE FROM registo_rotas WHERE id <= (SELECT MAX(id) FROM registo_rotas) - $1`, [
+        REGISTO_MAX,
+      ])
     )
     .catch(() => {});
 }

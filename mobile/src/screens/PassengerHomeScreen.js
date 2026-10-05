@@ -21,6 +21,7 @@ import { tipo } from '../design/tipografia.js';
 import AvisoTeste from '../components/AvisoTeste.js';
 import Button from '../components/Button.js';
 import { VERSAO_TERMOS, VERSAO_PRIVACIDADE } from '../termos/versao.js';
+import FaixaTelefone from '../components/FaixaTelefone.js';
 import BarraTopo from '../components/BarraTopo.js';
 import { useModo } from '../context/ModoContext.js';
 import ViagemPassageiro from '../components/ViagemPassageiro.js';
@@ -127,6 +128,7 @@ export default function PassengerHomeScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.scroll}>
         <AvisoTeste />
         <BarraTopo navigation={navigation} />
+        <FaixaTelefone navigation={navigation} />
 
         {/* Um motorista que veio aqui pedir uma viagem tem de saber como
             volta ao trabalho. Sem isto ficaria a olhar para o ecrã errado

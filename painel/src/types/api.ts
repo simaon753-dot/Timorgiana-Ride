@@ -35,6 +35,7 @@ export interface UtilizadorPublico {
   phone: string;
   email: string | null;
   emailConfirmado: boolean;
+  telefoneConfirmado?: boolean;
   role: 'passenger' | 'driver';
   ratingAvg: number | null;
   ratingCount: number | null;

@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { dadosDeCarga } from './capacidade.js';
 import { TIPOS_VEICULO } from './config.js';
 import { query, one } from './db.js';
+import { faltaConfirmar } from './confirmacaoTelefone.js';
 
 // Normaliza o número de telemóvel: remove espaços e símbolos comuns.
 // Em Timor-Leste o indicativo é +670. Guardamos o que o utilizador
@@ -71,6 +72,10 @@ export function toPublicUser(row) {
     phone: row.phone,
     email: row.email || null,
     emailConfirmado: !!row.email_confirmado,
+    // O número confirmado por SMS (05/10/2026), e se isso é exigido agora —
+    // só é quando o serviço de SMS está ligado no servidor.
+    telefoneConfirmado: !!row.telefone_confirmado,
+    telefoneObrigatorio: faltaConfirmar(row),
     role: row.role,
     ratingAvg: row.rating_avg,
     ratingCount: row.rating_count,

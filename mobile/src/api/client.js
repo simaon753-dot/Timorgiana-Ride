@@ -312,6 +312,10 @@ export const api = {
   confirmarEmail: (token, codigo) =>
     request('/auth/email/confirmar', { method: 'POST', token, body: { codigo } }),
   reenviarEmail: (token) => request('/auth/email/reenviar', { method: 'POST', token, body: {} }),
+  // O número por SMS (05/10/2026).
+  telefoneEnviar: (token) => request('/auth/telefone/enviar', { method: 'POST', token, body: {} }),
+  telefoneConfirmar: (token, codigo) =>
+    request('/auth/telefone/confirmar', { method: 'POST', token, body: { codigo } }),
   mudarEmail: (token, email) => request('/auth/email', { method: 'POST', token, body: { email } }),
   mudarNome: (token, nome) => request('/auth/nome', { method: 'POST', token, body: { nome } }),
 

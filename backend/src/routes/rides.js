@@ -1,3 +1,4 @@
+import { faltaConfirmar } from '../confirmacaoTelefone.js';
 import { Router } from 'express';
 import { marcarEtapaCarga } from '../rides.js';
 import { notificarComprado, notificarEtapaCarga } from '../push.js';
@@ -209,6 +210,14 @@ ridesRouter.post(
     } = req.body || {};
     if (!destLabel || !destLabel.trim()) {
       return res.status(400).json({ error: 'Indica o destino.' });
+    }
+    // O NÚMERO CONFIRMADO POR SMS (05/10/2026), quando o serviço está ligado:
+    // o motorista vai ligar para este número.
+    if (faltaConfirmar(req.user)) {
+      return res.status(403).json({
+        error: 'Confirme o seu número de telemóvel com o código por SMS.',
+        motivo: 'telefone_por_confirmar',
+      });
     }
 
     // UM SERVIÇO DESLIGADO NO PAINEL não aceita pedidos novos. As viagens já a

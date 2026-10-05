@@ -1,3 +1,4 @@
+import { faltaConfirmar } from '../confirmacaoTelefone.js';
 import { Router } from 'express';
 // Faltava: a lista era usada sem ser importada (ver scripts/verificar-nomes.mjs).
 import { dadosDeCarga } from '../capacidade.js';
@@ -158,6 +159,13 @@ driverRouter.post(
         return res.status(403).json({
           error: 'Os termos para motoristas mudaram. Lê-os e aceita-os para ficares disponível.',
           motivo: 'termos',
+        });
+      }
+      // O número confirmado por SMS, quando o serviço está ligado (05/10/2026).
+      if (faltaConfirmar(req.user)) {
+        return res.status(403).json({
+          error: 'Confirme o seu número de telemóvel com o código por SMS.',
+          motivo: 'telefone_por_confirmar',
         });
       }
       const apto = await podeTrabalhar(req.user.id);

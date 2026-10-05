@@ -17,6 +17,7 @@ import MolduraModal from '../design/MolduraModal.js';
 import Logo from '../components/Logo.js';
 import AvisoTeste from '../components/AvisoTeste.js';
 import Button from '../components/Button.js';
+import FaixaTelefone from '../components/FaixaTelefone.js';
 import BarraTopo from '../components/BarraTopo.js';
 import { statusMeta } from '../components/StatusBadge.js';
 import Avatar from '../design/Avatar.js';
@@ -179,6 +180,7 @@ export default function DriverHomeScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.scroll}>
         <AvisoTeste />
         <BarraTopo navigation={navigation} motoristaOnline={!!online} />
+        <FaixaTelefone navigation={navigation} />
 
         {/* A fotografia do dia vem ANTES do interruptor: sem ela o
             interruptor não funciona, e um botão que recusa sem explicar

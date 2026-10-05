@@ -29,6 +29,7 @@ import { estadoDasRotas, usoDeHoje } from './rotas.js';
 import { estadoDasRotasNossas } from './comparacaoRotas.js';
 import { mapaRouter } from '../mapa/index.js';
 import { estadoDoEmail } from './email.js';
+import { estadoDoSms, ligado as ligadoSms } from './confirmacaoTelefone.js';
 import { municipioDe } from './municipios.js';
 import {
   ACTIVE_DRIVER,
@@ -121,6 +122,7 @@ app.get('/api/health', async (req, res) => {
       rotasNossas: await estadoDasRotasNossas(),
       memoriaMB: Math.round(process.memoryUsage().rss / 1e6),
       email: estadoDoEmail(),
+      sms: estadoDoSms(),
     });
   } catch (e) {
     console.error('[health] base de dados inacessível:', e.message);
@@ -372,6 +374,12 @@ io.on('connection', (socket) => {
       if (online) {
         // Os termos em vigor, como na rota HTTP (15/09/26).
         if (!(await aceitouTermosMotorista(user.id))) return ack?.({ ok: false, motivo: 'termos' });
+        // O número confirmado por SMS, como na rota HTTP (05/10/2026).
+        if (ligadoSms()) {
+          const u = await one('SELECT telefone_confirmado FROM users WHERE id = $1', [user.id]);
+          if (!u?.telefone_confirmado)
+            return ack?.({ ok: false, motivo: 'telefone_por_confirmar' });
+        }
         const apto = await podeTrabalhar(user.id);
         if (!apto.pode) return ack?.({ ok: false, motivo: apto.motivo, qual: apto.qual });
         if (!(await temFotoDeHoje(user.id))) {

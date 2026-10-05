@@ -11,6 +11,7 @@ import { Distintivo } from '@/components/ui/distintivo';
 import { Avatar } from '@/components/ui/avatar';
 import { Esqueleto } from '@/components/ui/esqueleto';
 import { EstadoErro } from '@/components/ui/estados';
+import { avisar, mensagemDe } from '@/components/ui/aviso';
 import { Dado, EstadoDaViagem, IconeVeiculo, PapelDaConta, Telefone } from '@/components/comuns';
 import { useCodigoAcesso } from './CodigoAcesso';
 
@@ -84,7 +85,31 @@ export function FichaConta({ id, aoFechar }: { id: number | null; aoFechar: () =
             <Bloco titulo={t('ficha.informacao')}>
               <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Dado rotulo={t('comum.telefone')}>
-                  <Telefone numero={c.phone} />
+                  <span className="inline-flex flex-wrap items-center gap-1.5">
+                    <Telefone numero={c.phone} />
+                    {/* Confirmado por SMS (05/10/2026), ou à mão aqui quando o
+                        SMS não chega e a pessoa mostrou o telemóvel. */}
+                    <Distintivo cor={c.telefoneConfirmado ? 'sucesso' : 'neutro'}>
+                      {c.telefoneConfirmado ? t('ficha.telConfirmado') : t('ficha.telPorConfirmar')}
+                    </Distintivo>
+                    {!c.telefoneConfirmado ? (
+                      <Botao
+                        variante="secundario"
+                        tamanho="sm"
+                        onClick={async () => {
+                          try {
+                            await api.confirmarTelefone(c.id);
+                            avisar.sucesso(t('ficha.telConfirmadoAviso'));
+                            recarregar();
+                          } catch (e) {
+                            avisar.erro(mensagemDe(e));
+                          }
+                        }}
+                      >
+                        {t('ficha.telConfirmarMao')}
+                      </Botao>
+                    ) : null}
+                  </span>
                 </Dado>
                 <Dado rotulo={t('comum.email')}>
                   {c.email ? (
