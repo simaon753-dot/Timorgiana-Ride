@@ -574,8 +574,26 @@ ridesRouter.get(
 ridesRouter.get(
   '/history',
   wrap(async (req, res) => {
-    const rows = await getRideHistoryForUser(req.user);
-    return res.json({ rides: rows.map((r) => toPublicRide(r)) });
+    // Com `limite`, aos bocados (a app nova pede 20 de cada vez); sem nada,
+    // as 50 de sempre. Um a mais do que se mostra diz se há mais para trás.
+    const pedeLimite = req.query.limite != null;
+    const limite = pedeLimite ? Math.min(50, Math.max(5, Number(req.query.limite) || 20)) : 50;
+    const antes =
+      Number.isInteger(Number(req.query.antes)) && Number(req.query.antes) > 0
+        ? Number(req.query.antes)
+        : null;
+    const desde = /^\d{4}-\d{2}-\d{2}$/.test(String(req.query.desde || ''))
+      ? String(req.query.desde)
+      : null;
+    const rows = await getRideHistoryForUser(req.user, pedeLimite ? limite + 1 : limite, {
+      antes,
+      desde,
+    });
+    const mais = pedeLimite && rows.length > limite;
+    return res.json({
+      rides: rows.slice(0, limite).map((r) => toPublicRide(r)),
+      ...(pedeLimite ? { mais } : {}),
+    });
   })
 );
 

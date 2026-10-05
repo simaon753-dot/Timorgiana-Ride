@@ -7,7 +7,12 @@ import {
   ActivityIndicator,
   Pressable,
   Alert,
+  Share,
 } from 'react-native';
+import MapaExpandivel from '../components/MapaExpandivel.js';
+import { LinhaInfo } from '../design/LinhaMenu.js';
+import { VEICULOS } from '../dados/tiposDeVeiculo.js';
+import { rideMarkers } from '../lib/rideMarkers.js';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import Voltar from '../components/Voltar.js';
@@ -90,6 +95,37 @@ export default function DetalheViagemScreen({ navigation, route }) {
   const descricaoVeiculo = veiculo
     ? [veiculo.model, veiculo.color, veiculo.plate].filter(Boolean).join(' · ')
     : null;
+  // O RESUMO (05/10/2026, pedido do Simão): as horas, a duração e o veículo.
+  // A duração é a da viagem real (do início à conclusão); sem as duas horas,
+  // fica a estimada.
+  const tipoVeiculo = VEICULOS[r.vehicleType || r.driver?.vehicle?.type] || null;
+  const hora = (s) => (s ? dataHora(s).split(' · ')[1] : null);
+  const minutosReais =
+    r.startedAt && r.concluidaEm
+      ? Math.max(1, Math.round((new Date(r.concluidaEm) - new Date(r.startedAt)) / 60000))
+      : null;
+  const marcadores = rideMarkers(r);
+
+  // O RECIBO: um texto para partilhar (WhatsApp, email, guardar). Sem PDF nem
+  // biblioteca nova — vai pelo ar. Diz o que a app sabe: o preço registado e
+  // que foi pago em mão ao motorista, não à TimorgianaRide.
+  function partilharRecibo() {
+    const linhas = [
+      `TimorgianaRide — ${t('detalheRecibo')}`,
+      r.referencia ? `${t('codigoViagem')}: ${r.referencia}` : null,
+      dataHora(r.concluidaEm || r.createdAt),
+      `${t('detalheRecolha')}: ${r.originLabel || '—'}`,
+      `${t('detalheDestino')}: ${r.destLabel || '—'}`,
+      r.distanceKm != null ? `${t('detalheDistancia')}: ${r.distanceKm} km` : null,
+      tipoVeiculo ? `${t('detalheVeiculo')}: ${t(tipoVeiculo.chaveNome)}` : null,
+      outro?.name
+        ? `${souMotorista ? t('detalhePassageiro') : t('detalheMotorista')}: ${outro.name}`
+        : null,
+      `${t('detalhePreco')}: ${r.fareUsd != null ? `$${Number(r.fareUsd).toFixed(2)}` : '—'}`,
+      `${t('detalhePagamento')}: ${t('detalhePagamentoDinheiro')}`,
+    ].filter(Boolean);
+    Share.share({ message: linhas.join('\n') }).catch(() => {});
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -135,22 +171,54 @@ export default function DetalheViagemScreen({ navigation, route }) {
             </View>
           </View>
 
-          {r.distanceKm != null || r.durationMin != null ? (
-            <View style={styles.numeros}>
-              {r.distanceKm != null ? (
-                <View style={styles.numero}>
-                  <Icone nome="rota" tamanho={16} cor={colors.textMuted} />
-                  <Text style={styles.numeroTexto}>{r.distanceKm} km</Text>
-                </View>
-              ) : null}
-              {r.durationMin != null ? (
-                <View style={styles.numero}>
-                  <Icone nome="relogio" tamanho={16} cor={colors.textMuted} />
-                  <Text style={styles.numeroTexto}>{r.durationMin} min</Text>
-                </View>
-              ) : null}
-            </View>
-          ) : null}
+          {/* Os km e os minutos estão no resumo, por baixo: aqui eram a
+              estimativa, e lá é a duração real. */}
+        </View>
+
+        {/* O mapa do percurso: recolha e destino. */}
+        {marcadores.length ? (
+          <View style={styles.mapa}>
+            <MapaExpandivel
+              markers={marcadores}
+              height={170}
+              info={
+                r.distanceKm != null
+                  ? { km: r.distanceKm, min: minutosReais ?? r.durationMin }
+                  : undefined
+              }
+            />
+          </View>
+        ) : null}
+
+        {/* O RESUMO: horas, duração, distância, veículo, pagamento. */}
+        <View style={[styles.cartao, styles.cartaoLista]}>
+          <LinhaInfo rotulo={t('detalheHoraPedido')} valor={hora(r.createdAt)} />
+          <LinhaInfo rotulo={t('detalheHoraInicio')} valor={hora(r.startedAt)} />
+          <LinhaInfo rotulo={t('detalheHoraFim')} valor={hora(r.concluidaEm)} />
+          <LinhaInfo
+            rotulo={t('detalheDuracao')}
+            valor={
+              minutosReais != null
+                ? `${minutosReais} min`
+                : r.durationMin != null
+                  ? `${r.durationMin} min`
+                  : null
+            }
+          />
+          <LinhaInfo
+            rotulo={t('detalheDistancia')}
+            valor={r.distanceKm != null ? `${r.distanceKm} km` : null}
+          />
+          <LinhaInfo
+            rotulo={t('detalheVeiculo')}
+            valor={
+              tipoVeiculo
+                ? [t(tipoVeiculo.chaveNome), r.driver?.vehicle?.model].filter(Boolean).join(' · ')
+                : null
+            }
+          />
+          <LinhaInfo rotulo={t('detalheMatricula')} valor={r.driver?.vehicle?.plate || null} />
+          <LinhaInfo rotulo={t('detalhePagamento')} valor={t('detalhePagamentoDinheiro')} ultimo />
         </View>
 
         {outro?.name ? (
@@ -197,6 +265,18 @@ export default function DetalheViagemScreen({ navigation, route }) {
               </View>
             ))}
           </View>
+        ) : null}
+
+        {r.status === 'completed' ? (
+          <Pressable
+            onPress={partilharRecibo}
+            style={({ pressed }) => [styles.recibo, pressed && { opacity: 0.7 }]}
+            accessibilityRole="button"
+          >
+            <Icone nome="partilhar" tamanho={20} cor={colors.teal} />
+            <Text style={styles.reciboTexto}>{t('detalheObterRecibo')}</Text>
+            <Text style={styles.seta}>›</Text>
+          </Pressable>
         ) : null}
 
         {dados.podeReportar ? (
@@ -264,6 +344,19 @@ function dataHora(s) {
 
 const criarEstilos = () =>
   StyleSheet.create({
+    mapa: { marginBottom: spacing.md, borderRadius: radius.xl, overflow: 'hidden' },
+    cartaoLista: { paddingVertical: 0 },
+    recibo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      minHeight: 56,
+      backgroundColor: colors.white,
+      borderRadius: radius.lg,
+      paddingHorizontal: spacing.md,
+      marginBottom: spacing.md,
+    },
+    reciboTexto: { ...tipo.corpoForte, color: colors.teal, flex: 1 },
     safe: { flex: 1, backgroundColor: colors.paper },
     cabeca: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
     conteudo: { padding: spacing.lg, paddingTop: spacing.sm, gap: spacing.md },

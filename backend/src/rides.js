@@ -121,6 +121,7 @@ export function toPublicRide(row, opcoes = {}) {
   return {
     ...(paraPassageiro && row.pickup_code ? { pickupCode: row.pickup_code } : {}),
     ...(row.my_stars !== undefined ? { myStars: row.my_stars } : {}),
+    ...(row.reportada !== undefined ? { reportada: !!row.reportada } : {}),
     ...(row.pickup_km !== undefined
       ? { pickupKm: row.pickup_km != null ? Math.round(row.pickup_km * 10) / 10 : null }
       : {}),
@@ -145,6 +146,8 @@ export function toPublicRide(row, opcoes = {}) {
     jastip: jastipPublico(row),
     passengers: row.passengers ?? null,
     startedAt: row.started_at ?? null,
+    // Quando acabou (04/10/2026) — a hora de conclusão do detalhe.
+    concluidaEm: row.concluida_em ?? null,
     acceptedAt: row.accepted_at ?? null,
     // As horas da linha do tempo (14/09/26). As três últimas só numa entrega.
     aChegarEm: row.a_chegar_em ?? null,
@@ -529,17 +532,27 @@ export function getActiveRideForUser(user) {
 // passageiro desistiu, ou caducou ao fim de MINUTOS_ATE_DESISTIR) não é uma
 // viagem cancelada, porque não chegou a haver viagem (decisão do Simão, 16/09/2026). Fica na base
 // e o administrador vê-o à parte, como "sem motorista"; aqui não aparece.
-export function getRideHistoryForUser(user, limit = 50) {
+//
+// AOS BOCADOS E POR PERÍODO (05/10/2026, ecrã «As suas viagens»): `antes` é o
+// id da última viagem já mostrada (as seguintes são as mais antigas do que
+// ela) e `desde` um dia de Díli ('AAAA-MM-DD') para os filtros Hoje, Esta
+// semana e Este mês. Sem nada, as 50 mais recentes, como as versões antigas
+// da app esperam. `reportada`: esta pessoa reportou um problema nesta viagem.
+export function getRideHistoryForUser(user, limit = 50, { antes = null, desde = null } = {}) {
   return query(
     `SELECT sub.*, (
        SELECT stars FROM ratings WHERE ride_id = sub.id AND rater_id = $1
-     ) AS my_stars
+     ) AS my_stars,
+     EXISTS (SELECT 1 FROM ocorrencias o WHERE o.ride_id = sub.id AND o.autor_id = $1) AS reportada
      FROM (${RIDE_SELECT}
             WHERE (r.passenger_id = $1 OR r.driver_id = $1)
               AND (r.status = 'completed'
-                   OR (r.status = 'cancelled' AND r.driver_id IS NOT NULL))) sub
+                   OR (r.status = 'cancelled' AND r.driver_id IS NOT NULL))
+              AND ($3::int IS NULL OR r.id < $3::int)
+              AND ($4::date IS NULL
+                   OR r.created_at >= ($4::date::timestamp AT TIME ZONE 'Asia/Dili'))) sub
      ORDER BY sub.id DESC LIMIT $2`,
-    [user.id, limit]
+    [user.id, limit, antes, desde]
   );
 }
 

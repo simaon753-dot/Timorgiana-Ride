@@ -187,6 +187,13 @@ export const api = {
   // sabe dizer o que aconteceu à que se estava a seguir.
   ride: (token, id) => request(`/rides/${id}`, { token }),
   rideHistory: (token) => request('/rides/history', { token }),
+  // Aos bocados e por período (05/10/2026): { limite, antes, desde }.
+  historicoPagina: (token, { limite = 20, antes, desde } = {}) => {
+    const q = [`limite=${limite}`];
+    if (antes) q.push(`antes=${antes}`);
+    if (desde) q.push(`desde=${desde}`);
+    return request(`/rides/history?${q.join('&')}`, { token });
+  },
   availableRides: (token) => request('/rides/available', { token }),
   // As etapas da entrega (carregada / no_destino / descarregada), pelo motorista.
   // ── Encomenda (jastip), 20/09/2026 ──

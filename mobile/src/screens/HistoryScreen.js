@@ -1,162 +1,256 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Pressable } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import BarraTopo from '../components/BarraTopo.js';
-import StatusBadge from '../components/StatusBadge.js';
-import StarRating from '../components/StarRating.js';
+import Button from '../components/Button.js';
+import CartaoViagem, { CartaoViagemEsqueleto } from '../components/CartaoViagem.js';
+import Chip from '../design/Chip.js';
+import Icone from '../design/Icone.js';
+import BarraEstado from '../design/BarraEstado.js';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
+import { useModo } from '../context/ModoContext.js';
 import { api } from '../api/client.js';
-import { colors, spacing, fontSize, radius, registarEstilos } from '../theme.js';
+import { hojeEmDili, segundaDaSemana } from '../lib/periodos.js';
+import { colors, spacing, registarEstilos } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
-import BarraEstado from '../design/BarraEstado.js';
+
+// AS SUAS VIAGENS (05/10/2026, pedido do Simão).
+//
+// O histórico das viagens desta conta, como passageiro e como motorista: as
+// concluídas e as canceladas depois de haver motorista. Vem do servidor aos
+// bocados de 20 — com centenas de viagens, pedir tudo de uma vez era esperar
+// pela rede de Díli por coisas que ninguém vai ver —, e os filtros pedem ao
+// servidor só o período (Hoje, Esta semana a começar à segunda, Este mês).
+//
+// Ao voltar de uma viagem aberta, a lista NÃO recomeça: só essa viagem é
+// relida, para a avaliação ou a queixa que lá se fez aparecerem no cartão sem
+// perder o sítio onde se ia.
+const PAGINA = 20;
+const FILTROS = ['todas', 'hoje', 'semana', 'mes'];
+
+function desdeDe(filtro) {
+  const hoje = hojeEmDili();
+  if (filtro === 'hoje') return hoje;
+  if (filtro === 'semana') return segundaDaSemana(hoje);
+  if (filtro === 'mes') return `${hoje.slice(0, 8)}01`;
+  return null;
+}
 
 export default function HistoryScreen({ navigation }) {
   const { t } = useI18n();
   const { token, user } = useAuth();
-  const [rides, setRides] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { modo } = useModo();
+  const [filtro, setFiltro] = useState('todas');
+  const [viagens, setViagens] = useState([]);
+  const [mais, setMais] = useState(false);
+  const [estado, setEstado] = useState('carregar'); // carregar | pronto | erro
+  const [aMais, setAMais] = useState(false);
+  const [aRefrescar, setARefrescar] = useState(false);
+  const aberta = useRef(null);
+  const pedido = useRef(0);
+
+  const primeira = useCallback(
+    async (comRoda = true) => {
+      const n = ++pedido.current;
+      if (comRoda) setEstado('carregar');
+      try {
+        const r = await api.historicoPagina(token, { limite: PAGINA, desde: desdeDe(filtro) });
+        if (n !== pedido.current) return;
+        setViagens(r.rides || []);
+        setMais(!!r.mais);
+        setEstado('pronto');
+      } catch {
+        if (n === pedido.current) setEstado('erro');
+      }
+    },
+    [token, filtro]
+  );
 
   useEffect(() => {
-    let cancelled = false;
-    api
-      .rideHistory(token)
-      .then(({ rides }) => {
-        if (!cancelled) setRides(rides || []);
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [token]);
+    primeira();
+  }, [primeira]);
 
-  // O "outro" participante depende de quem está a ver
-  const otherName = (r) => (r.driver?.id === user?.id ? r.passenger?.name : r.driver?.name);
+  async function seguinte() {
+    if (!mais || aMais || estado !== 'pronto' || !viagens.length) return;
+    setAMais(true);
+    const n = pedido.current;
+    try {
+      const r = await api.historicoPagina(token, {
+        limite: PAGINA,
+        desde: desdeDe(filtro),
+        antes: viagens[viagens.length - 1].id,
+      });
+      if (n !== pedido.current) return;
+      setViagens((v) => [...v, ...(r.rides || []).filter((x) => !v.some((y) => y.id === x.id))]);
+      setMais(!!r.mais);
+    } catch {
+      /* fica como estava; ao chegar outra vez ao fim tenta de novo */
+    } finally {
+      setAMais(false);
+    }
+  }
+
+  // Ao voltar do detalhe: só a viagem que se abriu.
+  useFocusEffect(
+    useCallback(() => {
+      const id = aberta.current;
+      if (!id) return undefined;
+      aberta.current = null;
+      let vivo = true;
+      api
+        .detalheViagem(token, id)
+        .then((d) => {
+          if (!vivo) return;
+          setViagens((v) =>
+            v.map((x) =>
+              x.id === id
+                ? {
+                    ...x,
+                    myStars: d.minhaAvaliacao?.estrelas ?? x.myStars ?? null,
+                    reportada: x.reportada || (d.ocorrencias?.length ?? 0) > 0,
+                  }
+                : x
+            )
+          );
+        })
+        .catch(() => {});
+      return () => {
+        vivo = false;
+      };
+    }, [token])
+  );
+
+  const abrir = (r, avaliar = false) => {
+    aberta.current = r.id;
+    navigation.navigate('DetalheViagem', { rideId: r.id, avaliar });
+  };
+
+  async function refrescar() {
+    setARefrescar(true);
+    await primeira(false);
+    setARefrescar(false);
+  }
+
+  const cabecalho = (
+    <View style={styles.filtros}>
+      {FILTROS.map((f) => (
+        <Chip
+          key={f}
+          texto={t(`historyFiltro_${f}`)}
+          activo={filtro === f}
+          onPress={() => setFiltro(f)}
+        />
+      ))}
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <BarraEstado />
-      <BarraTopo navigation={navigation} titulo={t('historyTitle')} />
+      <BarraTopo
+        navigation={navigation}
+        titulo={t('historyTitle')}
+        subtitulo={t('historySubtitulo')}
+      />
 
-      {loading ? (
-        <ActivityIndicator color={colors.teal} style={{ marginTop: spacing.xxl }} />
-      ) : rides.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={styles.emptyIcon}>🧾</Text>
-          <Text style={styles.emptyTitle}>{t('historyEmpty')}</Text>
-          <Text style={styles.emptyHint}>{t('historyEmptyHint')}</Text>
+      {estado === 'carregar' ? (
+        <View style={styles.lista}>
+          {cabecalho}
+          {[0, 1, 2].map((i) => (
+            <CartaoViagemEsqueleto key={i} />
+          ))}
+        </View>
+      ) : estado === 'erro' ? (
+        <View style={styles.lista}>
+          {cabecalho}
+          <View style={styles.vazio}>
+            <Icone nome="aviso" tamanho={40} cor={colors.textMuted} />
+            <Text style={styles.vazioTitulo}>{t('historyErro')}</Text>
+            <View style={styles.vazioBotao}>
+              <Button title={t('historyTentar')} variant="secondary" onPress={() => primeira()} />
+            </View>
+          </View>
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.list}>
-          {rides.map((r) => (
-            // CADA VIAGEM ABRE (27/09/2026): o detalhe, avaliar se ficou por
-            // avaliar, e reportar um problema. Ver DetalheViagemScreen.
-            <Pressable
-              key={r.id}
-              onPress={() => navigation.navigate('DetalheViagem', { rideId: r.id })}
-              style={({ pressed }) => [styles.card, pressed && { opacity: 0.7 }]}
-              accessibilityRole="button"
-              accessibilityHint={t('historyVerDetalhe')}
-            >
-              <View style={styles.cardTop}>
-                <StatusBadge status={r.status} />
-                <Text style={styles.fare}>{r.fareUsd != null ? `$${r.fareUsd}` : '—'}</Text>
-              </View>
-
-              <Text style={styles.dest}>{r.destLabel}</Text>
-              {r.originLabel ? <Text style={styles.origin}>{r.originLabel}</Text> : null}
-
-              {otherName(r) ? (
-                <Text style={styles.with}>
-                  {t('withLabel')}: {otherName(r)}
-                </Text>
+        <FlatList
+          data={viagens}
+          keyExtractor={(r) => String(r.id)}
+          renderItem={({ item }) => (
+            <CartaoViagem
+              r={item}
+              eu={user?.id}
+              onAbrir={() => abrir(item)}
+              onAvaliar={() => abrir(item, true)}
+            />
+          )}
+          ListHeaderComponent={cabecalho}
+          contentContainerStyle={styles.lista}
+          onEndReached={seguinte}
+          onEndReachedThreshold={0.5}
+          refreshControl={
+            <RefreshControl refreshing={aRefrescar} onRefresh={refrescar} tintColor={colors.teal} />
+          }
+          ListFooterComponent={
+            aMais ? (
+              <ActivityIndicator color={colors.teal} style={{ marginVertical: spacing.md }} />
+            ) : (
+              <View style={{ height: spacing.md }} />
+            )
+          }
+          ListEmptyComponent={
+            <View style={styles.vazio}>
+              <Icone nome="rota" tamanho={44} cor={colors.teal} />
+              <Text style={styles.vazioTitulo}>
+                {filtro === 'todas' ? t('historyVazioTitulo') : t('historyVazioPeriodo')}
+              </Text>
+              {filtro === 'todas' ? (
+                <Text style={styles.vazioTexto}>{t('historyVazioTexto')}</Text>
               ) : null}
-
-              <View style={styles.cardBottom}>
-                <Text style={styles.date}>{formatDate(r.createdAt)}</Text>
-                {r.myStars != null ? (
-                  <StarRating value={r.myStars} size={16} readOnly />
-                ) : (
-                  <Text style={styles.notRated}>{t('notRated')}</Text>
-                )}
-              </View>
-            </Pressable>
-          ))}
-          <View style={{ height: spacing.xl }} />
-        </ScrollView>
+              {/* «Fazer uma viagem» só a quem está no modo de passageiro: o
+                  motorista não pede viagens daqui. */}
+              {filtro === 'todas' && modo !== 'motorista' ? (
+                <View style={styles.vazioBotao}>
+                  <Button
+                    title={t('historyFazerViagem')}
+                    variant="secondary"
+                    onPress={() => navigation.navigate('Inicio')}
+                  />
+                </View>
+              ) : null}
+            </View>
+          }
+        />
       )}
     </SafeAreaView>
   );
 }
 
-// Aceita tanto "2026-08-19 03:24:49" (SQLite) como o formato ISO que o
-// PostgreSQL devolve — e nunca mostra "Invalid Date" ao utilizador.
-function formatDate(s) {
-  if (!s) return '';
-  const d = new Date(s);
-  if (!Number.isNaN(d.getTime())) {
-    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-  }
-  const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
-  return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
-}
-
 const criarEstilos = () =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.paper },
-    header: {
+    lista: { paddingHorizontal: spacing.md, paddingBottom: spacing.lg },
+    filtros: {
       flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: spacing.lg,
-      paddingVertical: spacing.md,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    back: { ...tipo.subtitulo, color: colors.teal, width: 60 },
-    title: { ...tipo.subtitulo, color: colors.text },
-    list: { padding: spacing.lg },
-    card: {
-      backgroundColor: colors.white,
-      borderRadius: radius.lg,
-      borderWidth: 1,
-      borderColor: colors.border,
-      padding: spacing.md,
+      flexWrap: 'wrap',
+      gap: spacing.xs,
       marginBottom: spacing.md,
     },
-    cardTop: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: spacing.sm,
-    },
-    fare: { ...tipo.titulo, color: colors.teal },
-    dest: { ...tipo.subtitulo, color: colors.text },
-    origin: { ...tipo.pequeno, color: colors.textMuted, marginTop: 2 },
-    with: { ...tipo.pequeno, color: colors.textMuted, marginTop: spacing.xs },
-    cardBottom: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+    vazio: { alignItems: 'center', paddingVertical: spacing.xxl, paddingHorizontal: spacing.lg },
+    vazioTitulo: {
+      ...tipo.subtitulo,
+      color: colors.text,
+      textAlign: 'center',
       marginTop: spacing.md,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-      paddingTop: spacing.sm,
     },
-    date: { ...tipo.legenda, color: colors.textMuted },
-    notRated: { ...tipo.legenda, color: colors.textMuted, fontStyle: 'italic' },
-    empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
-    emptyIcon: { fontSize: 40, marginBottom: spacing.md },
-    emptyTitle: { ...tipo.subtitulo, color: colors.text },
-    emptyHint: {
+    vazioTexto: {
       ...tipo.pequeno,
       color: colors.textMuted,
-      marginTop: spacing.xs,
       textAlign: 'center',
+      marginTop: spacing.xs,
     },
+    vazioBotao: { marginTop: spacing.lg, alignSelf: 'stretch' },
   });
 
 let styles = criarEstilos();

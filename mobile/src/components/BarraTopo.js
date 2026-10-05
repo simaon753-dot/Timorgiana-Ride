@@ -25,13 +25,28 @@ import { useI18n } from '../i18n/index.js';
 // `scripts/recortar-novos-icones.py`.
 const PERFIL = require('../../assets/ilustracoes/perfil.png');
 
-export default function BarraTopo({ navigation, titulo, motoristaOnline }) {
+// `subtitulo` (05/10/2026): uma linha discreta por baixo do título — «Histórico
+// das suas viagens».
+export default function BarraTopo({ navigation, titulo, subtitulo, motoristaOnline }) {
   const { user } = useAuth();
   const { t } = useI18n();
   const motorista = motoristaOnline === true || motoristaOnline === false;
   return (
     <View style={styles.barra}>
-      {titulo ? <Text style={styles.titulo}>{titulo}</Text> : <Logo size="sm" />}
+      {titulo ? (
+        <View style={styles.titulos}>
+          <Text style={styles.titulo} numberOfLines={1}>
+            {titulo}
+          </Text>
+          {subtitulo ? (
+            <Text style={styles.subtitulo} numberOfLines={1}>
+              {subtitulo}
+            </Text>
+          ) : null}
+        </View>
+      ) : (
+        <Logo size="sm" />
+      )}
 
       {motorista ? (
         <Pressable
@@ -88,7 +103,9 @@ const criarEstilos = () =>
       paddingTop: spacing.sm,
       paddingBottom: spacing.md,
     },
+    titulos: { flex: 1, minWidth: 0, marginRight: spacing.md },
     titulo: { ...tipo.titulo, color: colors.text },
+    subtitulo: { ...tipo.pequeno, color: colors.textMuted, marginTop: 1 },
     avatarImagem: { width: 28, height: 28 },
     avatar: {
       width: 46,
