@@ -552,6 +552,44 @@ adminRouter.put(
 // plano, muda-se `BASE_LIMITE_MB` no Render e o aviso acompanha.
 const LIMITE_BASE_MB = Number(process.env.BASE_LIMITE_MB) || 512;
 
+// A memória do servidor. O plano gratuito do Render dá 512 MB; passado isso,
+// o Render reinicia o servidor a meio do que estiver a fazer.
+const LIMITE_SERVIDOR_MB = Number(process.env.SERVIDOR_LIMITE_MB) || 512;
+const LIGADO_DESDE = new Date().toISOString();
+
+// GET /api/admin/espaco — quanto se gasta dos planos gratuitos (05/10/2026)
+//
+// O sino só avisa aos 70%; aqui vê-se sempre. Neon: o espaço da base, e as
+// tabelas que mais pesam (para saber o que mudar quando encher). Render: a
+// memória que o servidor está a usar neste momento.
+adminRouter.get(
+  '/espaco',
+  wrap(async (_req, res) => {
+    const [b] = await query(`SELECT pg_database_size(current_database())::float8 AS bytes`);
+    const maiores = await query(`
+      SELECT relname AS tabela, pg_total_relation_size(relid)::float8 AS bytes
+        FROM pg_catalog.pg_statio_user_tables
+       ORDER BY pg_total_relation_size(relid) DESC
+       LIMIT 3`);
+    const mb = (x) => Math.round((x / 1024 / 1024) * 10) / 10;
+    const memoria = mb(process.memoryUsage().rss);
+    res.json({
+      base: {
+        usadoMb: mb(b.bytes),
+        limiteMb: LIMITE_BASE_MB,
+        pct: Math.round((100 * mb(b.bytes)) / LIMITE_BASE_MB),
+        maiores: maiores.map((m) => ({ tabela: m.tabela, mb: mb(m.bytes) })),
+      },
+      servidor: {
+        memoriaMb: memoria,
+        limiteMb: LIMITE_SERVIDOR_MB,
+        pct: Math.round((100 * memoria) / LIMITE_SERVIDOR_MB),
+        ligadoDesde: LIGADO_DESDE,
+      },
+    });
+  })
+);
+
 // GET /api/admin/notificacoes — o que precisa de atenção
 //
 // Não é uma tabela de notificações guardadas: é uma leitura do estado

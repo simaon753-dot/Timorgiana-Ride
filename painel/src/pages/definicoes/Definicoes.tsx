@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bike, Car, MapPinned, CreditCard, HardHat, ImageUp, Lock, Package, Plus, QrCode, RotateCcw, Save, ToggleRight, Trash2, Truck, User } from 'lucide-react';
+import { Bike, Car, Database, MapPinned, CreditCard, HardHat, ImageUp, Lock, Server, Package, Plus, QrCode, RotateCcw, Save, ToggleRight, Trash2, Truck, User } from 'lucide-react';
 import { t, tl, type Chave } from '@/i18n';
 import { api } from '@/services/admin';
 import { useDados } from '@/hooks/useDados';
@@ -23,6 +23,7 @@ import { SeccaoDestinosCarry } from './DestinosCarry';
 
 const SECCOES = [
   { id: 'conta', rotulo: 'def.conta' as Chave, icone: User },
+  { id: 'espaco', rotulo: 'def.espaco' as Chave, icone: Database },
   { id: 'servicos', rotulo: 'def.servicos' as Chave, icone: ToggleRight },
   { id: 'carry', rotulo: 'def.carry' as Chave, icone: Truck },
   { id: 'destinos', rotulo: 'dest.titulo' as Chave, icone: MapPinned },
@@ -51,6 +52,7 @@ export function Definicoes() {
         </nav>
         <div className="min-w-0 space-y-6">
           <SeccaoConta />
+          <SeccaoEspaco />
           <SeccaoServicos />
           <SeccaoCarry />
           <SeccaoDestinosCarry />
@@ -98,6 +100,92 @@ function SeccaoConta() {
         </div>
       </CartaoConteudo>
     </Cartao>
+  );
+}
+
+// QUANTO SE GASTA DOS PLANOS GRATUITOS (05/10/2026, pedido do Simão).
+//
+// O sino só avisa aos 70%; aqui os números vêem-se sempre. A barra muda de
+// cor com a mesma regra do sino: aviso aos 70%, perigo aos 90%.
+function SeccaoEspaco() {
+  const { dados, erro, aCarregar, recarregar } = useDados(() => api.espaco(), [], { aCada: 300_000 });
+  return (
+    <Cartao id="espaco" className="scroll-mt-24">
+      <CartaoCabecalho>
+        <div>
+          <CartaoTitulo>{t('def.espaco')}</CartaoTitulo>
+          <CartaoDescricao>{t('def.espacoNota')}</CartaoDescricao>
+        </div>
+      </CartaoCabecalho>
+      <CartaoConteudo>
+        {erro ? (
+          <EstadoErro mensagem={erro} aoTentar={recarregar} />
+        ) : aCarregar || !dados ? (
+          <Esqueleto className="h-28" />
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2">
+            <Medidor
+              icone={Database}
+              titulo={t('def.espacoBase')}
+              usado={dados.base.usadoMb}
+              limite={dados.base.limiteMb}
+              pct={dados.base.pct}
+              nota={t('def.espacoBaseNota', {
+                tabelas: dados.base.maiores.map((m) => `${NOME_TABELA[m.tabela] ?? m.tabela} ${mb(m.mb)} MB`).join(' · '),
+              })}
+            />
+            <Medidor
+              icone={Server}
+              titulo={t('def.espacoServidor')}
+              usado={dados.servidor.memoriaMb}
+              limite={dados.servidor.limiteMb}
+              pct={dados.servidor.pct}
+              nota={t('def.espacoServidorNota', { desde: dataHora(dados.servidor.ligadoDesde) })}
+            />
+          </div>
+        )}
+      </CartaoConteudo>
+    </Cartao>
+  );
+}
+
+// As tabelas que costumam pesar mais, em palavras. Uma que não esteja aqui
+// aparece com o nome técnico — melhor do que não aparecer.
+const NOME_TABELA: Record<string, string> = {
+  driver_documents: 'documentos dos motoristas',
+  driver_shifts: 'fotografias de turno',
+  rides: 'viagens',
+  ride_events: 'registo das viagens',
+  users: 'contas',
+  lugares_propostos: 'lugares propostos',
+  messages: 'mensagens',
+};
+const mb = (v: number) => v.toLocaleString('pt-PT', { maximumFractionDigits: 1 });
+
+function Medidor(p: { icone: typeof Database; titulo: string; usado: number; limite: number; pct: number; nota: string }) {
+  const cor = p.pct >= 90 ? 'bg-perigo' : p.pct >= 70 ? 'bg-aviso' : 'bg-teal';
+  const corTexto = p.pct >= 90 ? 'text-perigo' : p.pct >= 70 ? 'text-aviso' : 'text-teal';
+  return (
+    <div className="min-w-0">
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="inline-flex items-center gap-1.5 text-sm font-semibold">
+          <p.icone className="size-4 text-secundario" aria-hidden /> {p.titulo}
+        </p>
+        <p className={cn('numeros text-2xl font-bold', corTexto)}>{p.pct}%</p>
+      </div>
+      <div
+        className="mt-2 h-2.5 overflow-hidden rounded-full bg-borda"
+        role="meter"
+        aria-label={p.titulo}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={p.pct}
+      >
+        <div className={cn('h-full rounded-full', cor)} style={{ width: `${Math.max(2, Math.min(100, p.pct))}%` }} />
+      </div>
+      <p className="numeros mt-1.5 text-sm">{t('def.espacoDe', { usado: mb(p.usado), limite: mb(p.limite) })}</p>
+      <p className="mt-1 text-xs text-secundario">{p.nota}</p>
+    </div>
   );
 }
 

@@ -410,6 +410,11 @@ async function api(req, res, url) {
     });
   }
   if (p === '/admin/notificacoes') return json(res, notificacoes());
+  if (p === '/admin/espaco')
+    return json(res, {
+      base: { usadoMb: 14.5, limiteMb: 512, pct: 3, maiores: [{ tabela: 'driver_documents', mb: 2.3 }, { tabela: 'driver_shifts', mb: 1.4 }, { tabela: 'rides', mb: 0.2 }] },
+      servidor: { memoriaMb: 142.3, limiteMb: 512, pct: 28, ligadoDesde: new Date(Date.now() - 3 * 3600e3).toISOString() },
+    });
   if (p === '/admin/sos') return json(res, { alertas: sos });
   if (p === '/admin/ocorrencias') {
     const todas = url.searchParams.get('filtro') === 'todas';

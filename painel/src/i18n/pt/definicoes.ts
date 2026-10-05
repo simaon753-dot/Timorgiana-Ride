@@ -7,6 +7,13 @@ export const definicoes = {
   'def.idioma': 'Idioma do painel',
   'def.idiomaPt': 'Português',
   'def.idiomaNota': 'Tétum e inglês estão preparados e chegam numa próxima fase.',
+  'def.espaco': 'Espaço e memória',
+  'def.espacoNota': 'Quanto se gasta dos planos gratuitos. O sino avisa aos 70%.',
+  'def.espacoBase': 'Base de dados (Neon)',
+  'def.espacoServidor': 'Servidor (Render)',
+  'def.espacoDe': '{usado} MB de {limite} MB',
+  'def.espacoBaseNota': 'O que mais pesa: {tabelas}. Cheia, a app deixa de gravar viagens novas.',
+  'def.espacoServidorNota': 'Memória neste momento. Varia ao longo do dia; ligado desde {desde}.',
   'def.palavraPasse': 'Palavra-passe',
   'def.palavraPasseNota': 'Muda-se na app: Entrar → «Esqueci a palavra-passe».',
 

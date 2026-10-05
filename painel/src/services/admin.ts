@@ -1,5 +1,6 @@
 import { pedir } from './cliente';
 import type {
+  Espaco,
   MoradaDoPonto,
   MunicipioArvore,
   AcessoRegistado,
@@ -179,6 +180,7 @@ export const api = {
     pedir<{ ok: true }>(`/admin/lugares/${id}/mostrar`, { method: 'POST', corpo: { mostrarSempre } }),
 
   // Serviços da plataforma
+  espaco: () => pedir<Espaco>('/admin/espaco'),
   servicos: () => pedir<{ servicos: Servico[] }>('/admin/servicos'),
   ligarServico: (id: string, ativo: boolean) =>
     pedir<{ servicos: Servico[] }>(`/admin/servicos/${id}/ativo`, { method: 'PUT', corpo: { ativo } }),

@@ -630,6 +630,11 @@ export interface Retencao {
   viagens: { linhas: number; meses: null };
 }
 
+export interface Espaco {
+  base: { usadoMb: number; limiteMb: number; pct: number; maiores: { tabela: string; mb: number }[] };
+  servidor: { memoriaMb: number; limiteMb: number; pct: number; ligadoDesde: string };
+}
+
 export interface Saude {
   service: string;
   versao: string;
