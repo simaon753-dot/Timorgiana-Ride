@@ -59,6 +59,7 @@ const REVISOES = [
   { commit: 'f8901e9', tudo: false }, // 30/09/2026: o texto da lista do «escolher no mapa»
   { commit: 'cf7c18d', tudo: true }, // 30/09/2026: os 3 que faltavam (motoristas perto, código da viagem) — tudo lido
   { commit: '2aac48f', tudo: true }, // 30/09/2026: os dois do «Outro» (Tipu saida?, postu gasolina) — tudo lido
+  { commit: '311f60d', tudo: true }, // 05/10/2026: Word «Novas palavras» (registo, ganhos, favoritos) — tudo lido
 ];
 const RAIZ = fileURLToPath(new URL('..', import.meta.url));
 async function tetEm(commit) {
