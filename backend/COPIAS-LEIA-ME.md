@@ -33,6 +33,17 @@ com os documentos da empresa.
    Deve terminar com `✓ …/timorgianaride-mac-AAAA-MM-DD.sql.gz.enc`.
    Se o macOS perguntar se o `bash` pode aceder à pasta Documentos, aceitar.
 
+3. (Opcional, desde 06/10/2026) **Também a base do mapa (GIARA_MAPS).** Pôr a
+   ligação **direct** da Neon do projeto GIARA_MAPS no Porta-chaves:
+
+   ```
+   security add-generic-password -a giara -s giara-maps-base -T /usr/bin/security -w
+   ```
+
+   Cola-se a ligação quando pedir a password (duas vezes). A partir daí, cada
+   domingo sai também um `giara-maps-mac-AAAA-MM-DD.sql.gz.enc`. Sem isto, o
+   mapa é saltado, com aviso no registo.
+
 O registo de cada execução fica em `~/Library/Logs/timorgianaride-copia.log`.
 O Mac tem de estar ligado ao domingo (se estiver a dormir, corre quando
 acordar).
@@ -63,3 +74,7 @@ openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in timorgianaride-mac-AAAA-MM-
 
 Cópia do GitHub (completa, com as tabelas): ver o início de
 `scripts/restaurar.mjs`.
+
+Cópia do mapa (`giara-maps-mac-…`): também só dados. No branch novo, correr
+primeiro as migrações 001 a 007 do repositório GIARA_MAPS
+(`database/migrations/`), e depois o passo 2 acima.

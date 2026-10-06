@@ -47,7 +47,12 @@ export async function ordemDasTabelas(c) {
   const tabelas = (
     await c.query(`SELECT table_name FROM information_schema.tables
        WHERE table_schema='public' AND table_type='BASE TABLE' ORDER BY table_name`)
-  ).rows.map((r) => r.table_name);
+  ).rows
+    .map((r) => r.table_name)
+    // A base do mapa (GIARA_MAPS) tem PostGIS: `spatial_ref_sys` é da própria
+    // extensão e volta com ela. Copiá-la fazia o restauro chocar com as
+    // linhas que a extensão já lá pôs.
+    .filter((t) => t !== 'spatial_ref_sys');
 
   const ligacoes = (
     await c.query(`SELECT tc.table_name AS filho, ccu.table_name AS pai

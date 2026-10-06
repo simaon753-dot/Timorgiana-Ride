@@ -34,36 +34,64 @@ export SENHA
 mkdir -p "$DESTINO"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
-
-NOME="timorgianaride-mac-$(date +%Y-%m-%d).sql.gz.enc"
-
 cd "$BACKEND"
-"$NODE" scripts/copia-de-seguranca.mjs "$TMP/copia.sql" >/dev/null
-gzip -9 -c "$TMP/copia.sql" \
-  | openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -pass env:SENHA \
-  > "$TMP/$NOME"
-rm -f "$TMP/copia.sql"
 
-# Uma cópia que não abre não é uma cópia: decifra-se já o que se cifrou.
-openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:SENHA -in "$TMP/$NOME" \
-  | gunzip > "$TMP/verificar.sql"
-if ! head -c 200 "$TMP/verificar.sql" | grep -q "Cópia de segurança da TimorgianaRide"; then
-  echo "A cópia NÃO se consegue decifrar. Não foi guardada."
-  exit 1
+# copiar <prefixo> — usa o DATABASE_URL que estiver no ambiente (o do .env da
+# TimorgianaRide, ou o do mapa vindo do Porta-chaves). Uma base que falhe não
+# impede a outra; o guião termina com erro se alguma falhou.
+FALHAS=0
+copiar() {
+  local PREFIXO="$1"
+  local NOME="$PREFIXO-$(date +%Y-%m-%d).sql.gz.enc"
+  if ! "$NODE" scripts/copia-de-seguranca.mjs "$TMP/copia.sql" >/dev/null; then
+    echo "$PREFIXO: a cópia falhou (sem ligação à base?)."
+    FALHAS=$((FALHAS + 1)); return
+  fi
+  gzip -9 -c "$TMP/copia.sql" \
+    | openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -pass env:SENHA \
+    > "$TMP/$NOME"
+  rm -f "$TMP/copia.sql"
+
+  # Uma cópia que não abre não é uma cópia: decifra-se já o que se cifrou.
+  openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:SENHA -in "$TMP/$NOME" \
+    | gunzip > "$TMP/verificar.sql"
+  if ! head -c 200 "$TMP/verificar.sql" | grep -q "Cópia de segurança da TimorgianaRide"; then
+    echo "$PREFIXO: a cópia NÃO se consegue decifrar. Não foi guardada."
+    FALHAS=$((FALHAS + 1)); return
+  fi
+  local LINHAS
+  LINHAS=$(grep -c '^INSERT' "$TMP/verificar.sql" || true)
+  rm -f "$TMP/verificar.sql"
+  if [ "$LINHAS" -lt 10 ]; then
+    echo "$PREFIXO: a cópia tem só $LINHAS linhas de dados. Não pode estar certa; não foi guardada."
+    FALHAS=$((FALHAS + 1)); return
+  fi
+
+  mv "$TMP/$NOME" "$DESTINO/$NOME"
+  echo "✓ $DESTINO/$NOME ($(du -h "$DESTINO/$NOME" | cut -f1), $LINHAS linhas)"
+
+  # Só as últimas $GUARDAR. Os nomes têm a data, por isso a ordem alfabética é
+  # a ordem do tempo.
+  local COPIAS=() f i
+  while IFS= read -r f; do COPIAS+=("$f"); done < <(ls -1 "$DESTINO"/"$PREFIXO"-*.sql.gz.enc 2>/dev/null | sort)
+  for ((i = 0; i < ${#COPIAS[@]} - GUARDAR; i++)); do
+    rm -f "${COPIAS[$i]}" && echo "  apagada a antiga: $(basename "${COPIAS[$i]}")"
+  done
+}
+
+# 1. A TimorgianaRide (DATABASE_URL do backend/.env).
+copiar timorgianaride-mac
+
+# 2. O mapa (GIARA_MAPS, 06/10/2026). A ligação à base vive no Porta-chaves,
+# como a senha; sem ela, salta-se, com aviso.
+MAPA="$(security find-generic-password -s giara-maps-base -a giara -w 2>/dev/null || true)"
+MAPA="$(printf '%s' "$MAPA" | tr -d '[:space:]')"
+if [ -n "$MAPA" ]; then
+  export DATABASE_URL="$MAPA"
+  copiar giara-maps-mac
+  unset DATABASE_URL
+else
+  echo "Mapa: sem a ligação no Porta-chaves (giara-maps-base); não copiado. Ver backend/COPIAS-LEIA-ME.md."
 fi
-LINHAS=$(grep -c '^INSERT' "$TMP/verificar.sql" || true)
-if [ "$LINHAS" -lt 10 ]; then
-  echo "A cópia tem só $LINHAS linhas de dados. Não pode estar certa; não foi guardada."
-  exit 1
-fi
 
-mv "$TMP/$NOME" "$DESTINO/$NOME"
-echo "✓ $DESTINO/$NOME ($(du -h "$DESTINO/$NOME" | cut -f1), $LINHAS linhas)"
-
-# Só as últimas $GUARDAR. Os nomes têm a data, por isso a ordem alfabética é
-# a ordem do tempo.
-COPIAS=()
-while IFS= read -r f; do COPIAS+=("$f"); done < <(ls -1 "$DESTINO"/timorgianaride-mac-*.sql.gz.enc 2>/dev/null | sort)
-for ((i = 0; i < ${#COPIAS[@]} - GUARDAR; i++)); do
-  rm -f "${COPIAS[$i]}" && echo "  apagada a antiga: $(basename "${COPIAS[$i]}")"
-done
+[ "$FALHAS" -eq 0 ] || exit 1
