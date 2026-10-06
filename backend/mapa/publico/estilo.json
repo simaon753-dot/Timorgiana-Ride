@@ -28,7 +28,14 @@
       "source-layer": "earth",
       "paint": {
         "fill-color": "#F7F4EF"
-      }
+      },
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "Polygon"
+      ]
     },
     {
       "id": "vegetacao",
@@ -38,7 +45,14 @@
       "paint": {
         "fill-color": "#E9EDE4",
         "fill-opacity": 0.9
-      }
+      },
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "Polygon"
+      ]
     },
     {
       "id": "uso",
@@ -46,20 +60,30 @@
       "source": "tl",
       "source-layer": "landuse",
       "filter": [
-        "match",
+        "all",
         [
-          "get",
-          "kind"
+          "==",
+          [
+            "geometry-type"
+          ],
+          "Polygon"
         ],
         [
-          "park",
-          "forest",
-          "cemetery",
-          "grass",
-          "pitch"
-        ],
-        true,
-        false
+          "match",
+          [
+            "get",
+            "kind"
+          ],
+          [
+            "park",
+            "forest",
+            "cemetery",
+            "grass",
+            "pitch"
+          ],
+          true,
+          false
+        ]
       ],
       "paint": {
         "fill-color": "#E2E9DE"
@@ -72,6 +96,48 @@
       "source-layer": "water",
       "paint": {
         "fill-color": "#BFD6D4"
+      },
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "Polygon"
+      ]
+    },
+    {
+      "id": "agua-linhas",
+      "type": "line",
+      "source": "tl",
+      "source-layer": "water",
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "LineString"
+      ],
+      "layout": {
+        "line-cap": "round",
+        "line-join": "round"
+      },
+      "paint": {
+        "line-color": "#BFD6D4",
+        "line-width": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          12,
+          0.6,
+          15,
+          1.6,
+          18,
+          4
+        ]
       }
     },
     {
@@ -83,7 +149,14 @@
       "paint": {
         "fill-color": "#EBE5DC",
         "fill-opacity": 0.9
-      }
+      },
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "Polygon"
+      ]
     },
     {
       "id": "estradas-contorno",
