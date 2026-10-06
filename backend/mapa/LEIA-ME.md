@@ -49,10 +49,24 @@ porta: a comparação com o Google (`src/comparacaoRotas.js`) e o
 `/navegar`, `/navegar/rota`: os mesmos de antes da mudança. A app e o painel
 não precisaram de saber que o código mudou de sítio.
 
-## Refazer os dados
+## Atualizar os dados (uma vez por mês)
 
-- **A rede de estradas**: ver `rede/LEIA-ME.md`.
-- **O mapa**: ver `receita/LEIA-ME.md` (passo 2, `pmtiles extract`).
+O desenho e a rede são fotografias do OpenStreetMap: uma rua corrigida lá só
+chega aqui quando se atualizam. Um comando faz tudo (desde 06/10/2026), em
+`backend/`:
+
+    npm run atualizar-mapa
+
+Descarrega o planeta da Protomaps e o recorte da Geofabrik mais recentes,
+constrói a rede, **confere os tamanhos antes de trocar** (se algo encolher de
+mais, pára sem tocar no que funciona) e guarda os anteriores em
+`receita/anterior/`. No fim mostra os três comandos git para publicar.
+
+Cada atualização junta ~35 MB ao histórico do git. Se o repositório crescer
+demais, o desenho passa para o Cloudflare R2 (ver a página de custos).
+
+Os passos à mão, se o comando um dia falhar: `rede/LEIA-ME.md` e
+`receita/LEIA-ME.md` (passo 2, `pmtiles extract`).
 
 ## Licenças
 

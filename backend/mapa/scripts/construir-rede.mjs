@@ -29,7 +29,11 @@ if (!ORIGEM) {
   console.error('Uso (em backend/): node mapa/scripts/construir-rede.mjs <ficheiro .osm.pbf>');
   process.exit(1);
 }
-const SAIDA = path.join(AQUI, '..', 'rede', 'estradas-tl.bin');
+// O terceiro argumento (opcional) escreve noutro sítio: o `atualizar-mapa.mjs`
+// constrói num ficheiro temporário e só troca depois de verificar.
+const SAIDA = process.argv[3]
+  ? path.resolve(process.argv[3])
+  : path.join(AQUI, '..', 'rede', 'estradas-tl.bin');
 
 // ── Que estradas entram, e a que velocidade (km/h) ────────────────────
 //
