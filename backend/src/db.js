@@ -436,6 +436,32 @@ export async function initSchema() {
   // Para procurar depressa as aldeias já escritas num suco. É a consulta
   // que faz o campo da aldeia aprender.
   await query(`CREATE INDEX IF NOT EXISTS idx_propostos_aldeia ON lugares_propostos(suco, aldeia)`);
+
+  // OS LUGARES PUBLICADOS NO TIMORGIANA MAPS (GIARA), 07/10/2026.
+  //
+  // Uma cópia, refeita por inteiro a cada sincronização (`giara.js`): o Giara
+  // é que manda, e o que lá for arquivado tem de desaparecer daqui. Tabela à
+  // parte dos lugares_propostos de propósito: esses são o registo de quem
+  // propôs o quê; estes são só o que está publicado no mapa.
+  await query(`
+    CREATE TABLE IF NOT EXISTS lugares_giara (
+      feature_id TEXT PRIMARY KEY,
+      nome       TEXT NOT NULL,
+      nome_busca TEXT NOT NULL,
+      lat        DOUBLE PRECISION NOT NULL,
+      lng        DOUBLE PRECISION NOT NULL,
+      tipo       TEXT,
+      categoria  TEXT,
+      municipio  TEXT,
+      posto      TEXT,
+      suco       TEXT,
+      aldeia     TEXT,
+      bairro     TEXT,
+      versao     TEXT NOT NULL,
+      atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await query('CREATE INDEX IF NOT EXISTS idx_giara_lat_lng ON lugares_giara(lat, lng)');
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_lat DOUBLE PRECISION`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_lng DOUBLE PRECISION`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ`);

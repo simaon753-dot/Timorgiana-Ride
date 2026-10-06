@@ -30,6 +30,7 @@ import { estadoDasRotasNossas } from './comparacaoRotas.js';
 import { mapaRouter } from '../mapa/index.js';
 import { estadoDoEmail } from './email.js';
 import { estadoDoSms, ligado as ligadoSms } from './confirmacaoTelefone.js';
+import { sincronizarGiara, estadoGiara } from './giara.js';
 import { municipioDe } from './municipios.js';
 import {
   ACTIVE_DRIVER,
@@ -123,6 +124,7 @@ app.get('/api/health', async (req, res) => {
       memoriaMB: Math.round(process.memoryUsage().rss / 1e6),
       email: estadoDoEmail(),
       sms: estadoDoSms(),
+      giara: estadoGiara(),
     });
   } catch (e) {
     console.error('[health] base de dados inacessível:', e.message);
@@ -482,6 +484,10 @@ async function start() {
         .catch((e) => console.error('[validades]', e.message));
     setTimeout(validades, 2 * 60 * 1000).unref?.();
     setInterval(validades, 60 * 60 * 1000).unref?.();
+    // OS LUGARES DO TIMORGIANA MAPS (07/10/2026): três minutos depois de
+    // arrancar e depois de seis em seis horas. Ver `giara.js`.
+    setTimeout(sincronizarGiara, 3 * 60 * 1000).unref?.();
+    setInterval(sincronizarGiara, 6 * 60 * 60 * 1000).unref?.();
   } catch (e) {
     console.error('[arranque] não foi possível preparar a base de dados:', e.message);
     process.exit(1);

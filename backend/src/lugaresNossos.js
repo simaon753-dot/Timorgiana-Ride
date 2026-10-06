@@ -83,7 +83,41 @@ export async function procurarNossos(termo, userId) {
     });
     if (saida.length >= 6) break;
   }
+
+  // Os do Timorgiana Maps (Giara), a seguir aos nossos (07/10/2026).
+  if (saida.length < 6) {
+    const doGiara = await query(
+      `SELECT feature_id, nome, lat, lng, aldeia, bairro, suco, posto, municipio
+         FROM lugares_giara
+        WHERE nome_busca LIKE $1
+        ORDER BY CASE WHEN nome_busca LIKE $2 THEN 0 ELSE 1 END, nome
+        LIMIT 20`,
+      [`%${n}%`, `${n}%`]
+    );
+    for (const r of doGiara) {
+      const g = doGiara2saida(r, [r.aldeia, r.bairro, r.suco, r.posto, r.municipio]);
+      if (saida.some((x) => perto(x, g) && normalizar(x.label) === normalizar(g.label))) continue;
+      saida.push(g);
+      if (saida.length >= 6) break;
+    }
+  }
   return saida;
+}
+
+// Um lugar do Giara com a mesma forma dos nossos. `fonte: 'nosso'` porque o
+// é: o Giara é o mapa da empresa. `desenhar: false`: não se sabe se o Google
+// já escreve aquele nome, e é melhor não o repetir por cima do mapa dele.
+function doGiara2saida(r, morada) {
+  return {
+    id: `giara:${r.feature_id}`,
+    label: r.nome,
+    desenhar: false,
+    detalhe: morada.filter(Boolean).join(', '),
+    lat: Number(r.lat),
+    lng: Number(r.lng),
+    fonte: 'nosso',
+    porRever: false,
+  };
 }
 
 // Os sítios com nome que estão PERTO deste ponto.
@@ -176,6 +210,22 @@ export async function lugaresPerto(lat, lng, userId, raioM = RAIO_M) {
       fonte: 'nosso',
       porRever: r.estado !== 'aceite',
     });
+  }
+
+  // Os do Timorgiana Maps (Giara), na mesma caixa (07/10/2026).
+  const doGiara = await query(
+    `SELECT feature_id, nome, lat, lng, aldeia, bairro, suco
+       FROM lugares_giara
+      WHERE lat BETWEEN $1 AND $2 AND lng BETWEEN $3 AND $4
+      LIMIT 60`,
+    [latMin, latMax, lngMin, lngMax]
+  );
+  for (const r of doGiara) {
+    const g = doGiara2saida(r, [r.aldeia, r.bairro, r.suco]);
+    const d = metrosEntre({ lat, lng }, g);
+    if (d > raio) continue;
+    if (saida.some((x) => perto(x, g) && normalizar(x.label) === normalizar(g.label))) continue;
+    saida.push({ ...g, metros: Math.round(d) });
   }
   return saida.sort((a, b) => a.metros - b.metros).slice(0, 6);
 }
