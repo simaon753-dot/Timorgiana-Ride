@@ -67,7 +67,7 @@ export const paragens = {
   'tipoLugar.poi': 'Ponto de interesse',
   'tipoLugar.outro': 'Outro',
   // As subcategorias do Giara, por baixo dos botões (07/10/2026).
-  'parag.categoriaPesquisa': 'Pesquisar categoria (ex.: capela, oficina)',
+  'parag.categoriaPesquisa': 'Pesquisar categoria',
   'parag.categoriaEscolhida': 'Categoria no mapa:',
   'parag.categoriaNoutros': 'Noutros grupos',
   'parag.categoriaNenhuma': 'Nenhuma categoria com esse nome.',

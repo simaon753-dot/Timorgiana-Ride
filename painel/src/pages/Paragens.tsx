@@ -637,7 +637,9 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
           {/* NO ECRÃ INTEIRO (30/09/2026): em ecrã largo, cada coluna ocupa a
               altura toda e rola sozinha se não couber — o mapa estica até ao
               fundo, e os campos ficam compactos para caberem sem rolar. No
-              telemóvel, uma coluna só, a rolar como antes. */}
+              telemóvel, uma coluna só, a rolar como antes. O `min-h-0` das
+              colunas é SÓ do ecrã largo: no telemóvel encolhia-as à altura
+              da janela e o nome e as coordenadas ficavam tapados (07/10/2026). */}
           <JanelaCorpo className="grid gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:grid-rows-[minmax(0,1fr)] md:overflow-hidden">
             {erroServidor ? (
               <p role="alert" className="rounded-lg bg-perigo-claro px-3 py-2 text-sm text-perigo md:col-span-2">
@@ -648,8 +650,8 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
             {/* À esquerda: onde é. O MAPA É O MAIOR da janela (30/09/2026,
                 pedido do Simão): três quintos da largura e a altura toda; por
                 baixo dele só as coordenadas. */}
-            <div className="flex min-h-0 flex-col gap-3">
-              <div className="flex min-h-0 flex-1 flex-col">
+            <div className="flex flex-col gap-3 md:min-h-0">
+              <div className="flex flex-1 flex-col md:min-h-0">
                 {aberta ? (
                   <Suspense fallback={<Esqueleto className="min-h-80 w-full flex-1 rounded-xl" />}>
                     <MapaEscolher className="min-h-80 flex-1" ponto={ponto} aoEscolher={(lat, lng) => setValue('sitio', `${lat}, ${lng}`, { shouldValidate: true })} />
@@ -665,7 +667,7 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
             </div>
 
             {/* À direita: o que é, como na app. */}
-            <div className="min-h-0 space-y-3 md:overflow-y-auto md:pr-1">
+            <div className="space-y-3 md:min-h-0 md:overflow-y-auto md:pr-1">
               <div>
                 <Rotulo htmlFor="b-nome">{t('parag.nome')}</Rotulo>
                 <Campo id="b-nome" placeholder={t('parag.baptizarNomeExemplo')} aria-invalid={!!errors.nome} {...register('nome')} />
