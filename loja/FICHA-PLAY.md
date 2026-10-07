@@ -158,7 +158,7 @@ viagem ser aceite, e deixa de o ser quando ela termina.
 Aviso de privacidade: https://timorgiana-ride.onrender.com/privacidade
 Termos de utilização: https://timorgiana-ride.onrender.com/termos
 
-TimorgianaRide é um serviço da Timorgiara Neto, Unipessoal Lda · Díli, Timor-Leste
+TimorgianaRide é um serviço da Timorgiara Neto, Unipessoal, Lda · Díli, Timor-Leste
 ```
 
 ---

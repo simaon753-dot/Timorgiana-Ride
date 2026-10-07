@@ -15,7 +15,7 @@ pessoas numa base de dados alojada em Singapura. Isso deixou de ser um
 projecto pessoal no momento em que um motorista real enviar a primeira foto.
 
 - [x] **Licenciamento de transporte** — RESOLVIDO (30-08-2026). O estatuto
-      da Timorgiara Neto, Unipessoal Lda registado no SERVE inclui no objecto social
+      da Timorgiara Neto, Unipessoal, Lda registado no SERVE inclui no objecto social
       **"Outros transportes terrestres (transportes terrestres de
       passageiros)"**, e ainda "Consultoria e programação informática" e
       "Atividades de processamento de dados, domiciliação de informações e

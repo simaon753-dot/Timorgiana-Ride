@@ -86,7 +86,7 @@ module.exports = C.documento(
     I('Utilizar o botão de socorro da aplicação;'),
     I('Comunicar a ocorrência à plataforma logo que possível.'),
     R([`A responsabilidade civil emergente do acidente recai sobre o motorista. O seguro de responsabilidade civil automóvel é obrigatório em Timor-Leste (${C.SEGURO_LEI}) e cobre os danos até `, ['USD 20.000'], ' tratando-se de veículo de transporte de passageiros.']),
-    R([['Nem todos os veículos que circulam em Díli estão seguros.'], ' Não estando, o passageiro lesado terá de exigir a indemnização directamente ao motorista, nos termos gerais de direito. A Timorgiara Neto, Unipessoal Lda não é seguradora, não presta cobertura e não substitui a apólice que falte.']),
+    R([['Nem todos os veículos que circulam em Díli estão seguros.'], ' Não estando, o passageiro lesado terá de exigir a indemnização directamente ao motorista, nos termos gerais de direito. A Timorgiara Neto, Unipessoal, Lda não é seguradora, não presta cobertura e não substitui a apólice que falte.']),
 
     A('15.', 'Como reclamar'),
     P(`Qualquer ocorrência de segurança pode ser comunicada pelos contactos ${C.CONTACTOS}, ou através da aplicação.`),
