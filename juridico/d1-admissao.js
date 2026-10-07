@@ -26,7 +26,7 @@ module.exports = C.documento(
     R(['O seguro de responsabilidade civil automóvel é ', ['obrigatório em Timor-Leste'], ` para todos os veículos motorizados, nos termos da ${C.SEGURO_LEI} (${C.SEGURO_ART}).`]),
     R([`O mesmo diploma fixa (${C.SEGURO_TETOS}) os limites máximos de responsabilidade da seguradora em `, ['USD 20.000 para veículos de transporte de passageiros e de carga'], ' e USD 6.000 para os restantes veículos motorizados.']),
     P('Constitui obrigação exclusiva do motorista contratar e manter em vigor esse seguro, junto de seguradora licenciada pelo Banco Central de Timor-Leste, e confirmar junto dela que a apólice cobre a atividade que efetivamente exerce.'),
-    R([['A Timorgiara Neto, Unipessoal, Lda não exige a apresentação da apólice, não a verifica e não é seguradora.'], ' A verificação do cumprimento desta obrigação compete às autoridades.']),
+    R([['A Timorgiara Neto, Unipessoal, Lda. não exige a apresentação da apólice, não a verifica e não é seguradora.'], ' A verificação do cumprimento desta obrigação compete às autoridades.']),
     C.nota('Esta é a advertência que mais importa deste Regulamento. Um motorista que circule sem seguro não fica sem responsabilidade: fica sem quem a suporte por ele. Responde com o seu próprio património — casa, veículo, rendimento futuro — e sem qualquer limite, por danos causados a um passageiro ou a terceiro. Os USD 20.000 do tecto legal existem para quem tem apólice; quem não tem, não tem tecto nenhum.'),
 
     A('Artigo 4.º', 'Documentos obrigatórios'),
@@ -63,7 +63,7 @@ module.exports = C.documento(
     P('Antes do envio definitivo de cada documento, é apresentada ao candidato a fotografia captada e a data introduzida, para confirmação.'),
 
     A('Artigo 8.º', 'Apreciação e decisão'),
-    P('A candidatura é apreciada pela Timorgiara Neto, Unipessoal, Lda, que verifica a legibilidade dos documentos, a correspondência entre o titular e a fotografia, a coerência entre a matrícula declarada e a documentação apresentada, e se as categorias constantes do verso da carta de condução permitem conduzir o veículo declarado.'),
+    P('A candidatura é apreciada pela Timorgiara Neto, Unipessoal, Lda., que verifica a legibilidade dos documentos, a correspondência entre o titular e a fotografia, a coerência entre a matrícula declarada e a documentação apresentada, e se as categorias constantes do verso da carta de condução permitem conduzir o veículo declarado.'),
     P('A decisão pode ser de aprovação ou de recusa e é comunicada ao candidato na própria aplicação.'),
     R(['A recusa é sempre ', ['fundamentada'], ', indicando ao candidato o que deve corrigir.']),
 
@@ -107,6 +107,6 @@ module.exports = C.documento(
 
     A('Artigo 15.º', 'Entrada em vigor'),
     P(`O presente Regulamento entra em vigor em ${C.VERSAO} e aplica-se às candidaturas apresentadas a partir dessa data, bem como à manutenção das contas já aprovadas.`),
-    P('A Timorgiara Neto, Unipessoal, Lda pode alterá-lo, avisando os motoristas na aplicação com antecedência razoável.'),
+    P('A Timorgiara Neto, Unipessoal, Lda. pode alterá-lo, avisando os motoristas na aplicação com antecedência razoável.'),
   ]
 );

@@ -10,7 +10,7 @@
 // termos vivem dentro da app; este tem de viver nos dois sítios.
 //
 // Identificação preenchida em 30-08-2026 com os dados dados pelo Simão:
-// Timorgiara Neto, Unipessoal, Lda · Bidau Toko-Baru, Cristo Rei, Timor-Leste ·
+// Timorgiara Neto, Unipessoal, Lda. · Zero III, Fatuhada, Dom Aleixo, Díli, Timor-Leste ·
 // +670 74192857 e +670 75684566.
 //
 // AUTORIDADE E FUNDAMENTO JURÍDICO, resolvidos em 30-08-2026 a partir do
@@ -52,7 +52,7 @@ const pt = {
     {
       titulo: 'Quem trata os dados',
       texto:
-        'A HAKAT é um serviço da Timorgiara Neto, Unipessoal, Lda, Bidau Toko-Baru, Cristo Rei, Timor-Leste, e trata os dados pessoais descritos neste aviso para operar e proteger a aplicação. Para dúvidas ou pedidos sobre dados, contacte +670 74192857 · +670 75684566.',
+        'A HAKAT é um serviço da Timorgiara Neto, Unipessoal, Lda., com sede no Zero III, Fatuhada, Dom Aleixo, Díli, Timor-Leste, e trata os dados pessoais descritos neste aviso para operar e proteger a aplicação. Para dúvidas ou pedidos sobre dados, contacte +670 74192857 · +670 75684566.',
     },
     {
       titulo: 'A quem se aplica',
@@ -110,7 +110,7 @@ const tet = {
     {
       titulo: 'Sé mak trata dadus',
       texto:
-        'HAKAT hanesan servisu husi Timorgiara Neto, Unipessoal, Lda, Bidau Toko-Baru, Cristo Rei, Timor-Leste, no trata dadus pessoal neʼebé hakerek iha avizu ida neʼe atu opera no proteje aplikasaun. Ba pergunta ka pedidu kona-ba dadus, kontaktu +670 74192857 · +670 75684566.',
+        'HAKAT hanesan servisu husi Timorgiara Neto, Unipessoal, Lda., ho sede iha Zero III, Fatuhada, Dom Aleixo, Díli, Timor-Leste, no trata dadus pessoal neʼebé hakerek iha avizu ida neʼe atu opera no proteje aplikasaun. Ba pergunta ka pedidu kona-ba dadus, kontaktu +670 74192857 · +670 75684566.',
     },
     {
       titulo: 'Ba sé mak avizu ida',
@@ -168,7 +168,7 @@ const en = {
     {
       titulo: 'Who processes the data',
       texto:
-        'HAKAT is a service of Timorgiara Neto, Unipessoal, Lda, Bidau Toko-Baru, Cristo Rei, Timor-Leste, and processes the personal data described in this notice in order to operate and protect the application. For questions or requests about data, contact +670 74192857 · +670 75684566.',
+        'HAKAT is a service of Timorgiara Neto, Unipessoal, Lda., with registered office at Zero III, Fatuhada, Dom Aleixo, Díli, Timor-Leste, and processes the personal data described in this notice in order to operate and protect the application. For questions or requests about data, contact +670 74192857 · +670 75684566.',
     },
     {
       titulo: 'Who this applies to',

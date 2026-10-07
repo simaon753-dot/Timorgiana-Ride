@@ -5,7 +5,7 @@ module.exports = C.documento(
   'Checklist Documental para Aprovação na Aplicação',
   `${C.EMPRESA}  ·  Instrumento de trabalho  ·  Versão de ${C.VERSAO}`,
   [
-    C.nota('NOTA PRÉVIA, PARA QUE ESTE DOCUMENTO NÃO DESCREVA O QUE NÃO EXISTE. Hoje a aplicação NÃO aprova ninguém sozinha. Ela verifica automaticamente o que é objectivo e apresenta o resultado a quem decide, no painel. A decisão final é de uma pessoa. Este documento separa, por isso, o que a máquina verifica do que continua a exigir olhos humanos. A Timorgiara Neto, Unipessoal, Lda decidiu manter a decisão humana e não adotar a aprovação automática — ver o n.º 5.'),
+    C.nota('NOTA PRÉVIA, PARA QUE ESTE DOCUMENTO NÃO DESCREVA O QUE NÃO EXISTE. Hoje a aplicação NÃO aprova ninguém sozinha. Ela verifica automaticamente o que é objectivo e apresenta o resultado a quem decide, no painel. A decisão final é de uma pessoa. Este documento separa, por isso, o que a máquina verifica do que continua a exigir olhos humanos. A Timorgiara Neto, Unipessoal, Lda. decidiu manter a decisão humana e não adotar a aprovação automática — ver o n.º 5.'),
 
     A('1.', 'Os seis documentos'),
     T(
@@ -69,7 +69,7 @@ module.exports = C.documento(
     P('A recusa não fecha a porta: o motorista recusado continua a ver a lista de documentos, substitui o que motivou a recusa e submete de novo.'),
 
     A('5.', 'A aprovação é sempre humana'),
-    R([['A Timorgiara Neto, Unipessoal, Lda decidiu não adotar a aprovação automática.'], ' A decisão de admitir um motorista é, e continuará a ser, tomada por uma pessoa.']),
+    R([['A Timorgiara Neto, Unipessoal, Lda. decidiu não adotar a aprovação automática.'], ' A decisão de admitir um motorista é, e continuará a ser, tomada por uma pessoa.']),
     P('A aplicação verifica o que é objetivo — presença dos documentos, existência e plausibilidade das datas, caducidade — e apresenta o resultado a quem decide. Não decide em lugar dele.'),
     C.nota('A razão é simples e vale a pena ficar escrita. Nenhuma verificação automática distingue um cartão verdadeiro de uma boa fotocópia, nem confirma que o rosto da fotografia é o rosto da carta de condução. Aprovar sozinha pouparia tempo em troca de aceitar que um documento falso circulasse durante alguns dias — e quem paga esse tempo poupado é o passageiro que entra no veículo.'),
     P('Em consequência, nenhuma conta de motorista fica ativa sem que os documentos tenham sido vistos por quem exerce funções de gestão da plataforma.'),
