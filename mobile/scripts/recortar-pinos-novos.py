@@ -14,7 +14,10 @@ largura. Assim nada à volta muda de lugar no ecrã.
 
 O PONTO DE BAIXO É A ÂNCORA. O marcador aponta ao sítio pelo centro do ponto
 por baixo da ponta (`ANCORA_Y` no MapaGoogle.js). Este guião mede onde esse
-ponto ficou e escreve-o no fim, para conferir com a constante.
+ponto ficou e escreve-o no fim, para conferir com a constante — e também o
+VÃO entre a ponta e o ponto, onde a mira se corta em duas (`CORTE_DO_PONTO`).
+Os dois números mudam com o desenho: esquecer o segundo partiu o ponto da
+mira a 07/10/2026.
 
 As funções de recorte e de cor são as do recortar-novos-icones.py: o preto
 sai em todo o sítio (o anel branco fica, é o miolo do pino) e o verde vai para
@@ -72,6 +75,15 @@ def ponto_de_baixo(im):
     return (topo + fundo + 1) / 2 / h
 
 
+def vao_do_ponto(im):
+    """As linhas vazias entre a ponta da gota e o ponto, em fracção da altura:
+    é aí que a mira se corta em duas (CORTE_DO_PONTO no MapaGoogle.js)."""
+    alfa = im.split()[3]
+    w, h = im.size
+    vazias = [y for y in range(int(h * 0.8), h) if not any(alfa.getpixel((x, y)) > 20 for x in range(w))]
+    return (vazias[0] / h, (vazias[-1] + 1) / h) if vazias else None
+
+
 def gravar(im, nome, tamanho):
     w, h = tamanho
     for sufixo, escala in (('', 1), ('@2x', 2), ('@3x', 3)):
@@ -89,7 +101,9 @@ def gravar(im, nome, tamanho):
 def main():
     for nome, (ficheiro, tamanho, teal) in PINOS.items():
         im = gravar(arte(ficheiro, teal), nome, tamanho)
-        print(f'{nome:22} {tamanho[0]}x{tamanho[1]}  ponto de baixo a {ponto_de_baixo(im):.4f} da altura')
+        vao = vao_do_ponto(im)
+        vao = f'{vao[0]:.4f}–{vao[1]:.4f}' if vao else 'NENHUM: a ponta toca no ponto'
+        print(f'{nome:22} {tamanho[0]}x{tamanho[1]}  ponto de baixo a {ponto_de_baixo(im):.4f}  vão {vao}')
 
 
 if __name__ == '__main__':

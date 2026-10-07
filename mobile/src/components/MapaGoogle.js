@@ -425,10 +425,14 @@ const MIRA_LEVANTA = 8;
 const MIRA_SOBE_MS = 50;
 const MIRA_DESCE_MS = 60;
 
-// ONDE SE CORTA O DESENHO DO PINO: entre o corpo e o ponto do chão. O corpo
-// acaba aos 91% da altura e o ponto começa aos 94% (medido nos dois pinos);
-// cortando a 92,5% cada parte fica inteira do seu lado.
-const CORTE_DO_PONTO = 0.925;
+// ONDE SE CORTA O DESENHO DO PINO: entre o corpo e o ponto do chão, no vão
+// vazio entre os dois — cada parte tem de ficar inteira do seu lado.
+// Nos pinos finais de 07/10 o vão vai de 89,3% a 90,4% da altura (medido nos
+// dois por `scripts/recortar-pinos-novos.py`, que o escreve). Os 92,5% dos
+// pinos antigos passavam pelo MEIO do ponto, que é maior: metade subia com o
+// corpo e o Simão viu-o partido no Samsung (07/10/2026). AO TROCAR OS PINOS,
+// ATUALIZAR ESTE NÚMERO E O ANCORA_Y.
+const CORTE_DO_PONTO = 0.898;
 
 // O cartão com o nome, ao lado do pino.
 //
