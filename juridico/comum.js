@@ -13,7 +13,7 @@ const TEAL = '0E5C54';
 const CINZA = '6A7671';
 const CORAL = 'C0392B';
 
-const EMPRESA = 'Timorgiana, Lda';
+const EMPRESA = 'Timorgiara Neto, Unipessoal Lda';
 const MORADA = 'Bidau Toko-Baru, Cristo Rei, Díli, Timor-Leste';
 const CONTACTOS = '+670 74192857  ·  +670 75684566';
 const APP = 'TimorgianaRide';

@@ -139,6 +139,6 @@ module.exports = C.documento(
     P('Os factos que indiciem a prática de crime são comunicados às autoridades competentes, independentemente da sanção aplicada no âmbito da plataforma.'),
 
     A('Artigo 15.º', 'Reapreciação'),
-    P('O motorista pode pedir a reapreciação de qualquer sanção pelos contactos da Timorgiana, Lda, no prazo de quinze dias a contar da comunicação.'),
+    P('O motorista pode pedir a reapreciação de qualquer sanção pelos contactos da Timorgiara Neto, Unipessoal Lda, no prazo de quinze dias a contar da comunicação.'),
   ]
 );

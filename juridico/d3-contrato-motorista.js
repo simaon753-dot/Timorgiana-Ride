@@ -104,7 +104,7 @@ module.exports = C.documento(
     C.p(' ', { after: 200 }),
     R(['Feito em duplicado, ficando um exemplar na posse de cada parte.']),
     R(['Díli, ______ de _________________________ de 20______']),
-    AS('A Plataforma  ·  Timorgiana, Lda', 'O Motorista'),
+    AS('A Plataforma  ·  Timorgiara Neto, Unipessoal Lda', 'O Motorista'),
   ],
   // Versão própria (28/09/2026): mudou a cláusula 5.ª, período gratuito até
   // novo aviso oficial. Os outros seis documentos ficam com a de comum.js.

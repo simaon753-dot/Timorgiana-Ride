@@ -15,7 +15,7 @@ module.exports = function parte1(pres) {
     B.texto(s, 'Plano de implementação e caminho de desenvolvimento', {
       x: 0.9, y: 3.95, w: 11.5, h: 0.4, fontSize: 15, color: CLARO,
     });
-    B.texto(s, 'Timorgiana, Lda  ·  Díli, Timor-Leste  ·  Setembro de 2026', {
+    B.texto(s, 'Timorgiara Neto, Unipessoal Lda  ·  Díli, Timor-Leste  ·  Setembro de 2026', {
       x: 0.9, y: 6.4, w: 11.5, h: 0.35, fontSize: 12, color: '9DB0AA',
     });
   }
