@@ -4,9 +4,14 @@
 HAKAT (07/10/2026): a app passou a chamar-se HAKAT. Antes era o TGA
 «timorgiana ride» sobre preto (ver o histórico do git deste ficheiro).
 
-ENTRADA: desenho/imagens/HAKAT/Logótipo HAKAT do app.png (fora do
-repositório) — o H teal/coral atravessado por uma estrada, com a palavra
-HAKAT por baixo, num cartão BRANCO de cantos redondos.
+ENTRADA: desenho/imagens/HAKAT/Logótipo HAKAT com Estrada Dinâmica.jpeg (fora
+do repositório; a 2.ª versão dele, 07/10/2026 à noite) — o H teal/coral
+atravessado por uma estrada, com a palavra HAKAT por baixo, sobre BRANCO.
+
+AS CORES SÃO AS DA APP (pedido dele: «harmonizar»). O desenho traz um teal
+mais verde e um coral mais vermelho do que a app. Cada pixel teal recebe a
+MATIZ do teal da app (#0E5C54) e cada pixel coral a do coral (#FF6B4A); a
+luminosidade fica — é ela que faz o volume e o brilho do desenho.
 
 SAÍDA, com os mesmos nomes dos ficheiros que substitui:
   assets/logo-completo{,-claro}.png   (H + palavra)
@@ -41,9 +46,7 @@ BRANCO = (255, 255, 255)  # o fundo do ícone e do arranque, o mesmo do app.json
 def sem_branco(caminho):
     im = Image.open(caminho).convert('RGB')
     w, h = im.size
-    # Dentro do cartão branco (o cartão e a sombra ficam de fora).
-    im = im.crop((int(w * 0.07), int(h * 0.07), int(w * 0.93), int(h * 0.93)))
-    w, h = im.size
+    # O desenho vem sobre branco liso, sem cartão: nada a cortar à volta.
     px = im.load()
     claro = Image.new('L', (w, h), 0)
     cp = claro.load()
@@ -82,22 +85,52 @@ def sem_branco(caminho):
     return fora.crop(fora.getchannel('A').getbbox())
 
 
+TEAL_APP = (0x0E, 0x5C, 0x54)
+CORAL_APP = (0xFF, 0x6B, 0x4A)
+
+
+def harmonizar(imagem):
+    """Dá a cada pixel teal a matiz do teal da app e a cada pixel coral a do
+    coral; a luminosidade e a saturação ficam (são o desenho)."""
+    import colorsys
+    h_teal = colorsys.rgb_to_hls(*[c / 255 for c in TEAL_APP])[0]
+    h_coral = colorsys.rgb_to_hls(*[c / 255 for c in CORAL_APP])[0]
+    im = imagem.copy()
+    px = im.load()
+    for y in range(im.height):
+        for x in range(im.width):
+            r, g, b, a = px[x, y]
+            if not a:
+                continue
+            h, l, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
+            if s < 0.12:
+                continue  # brancos e cinzentos (os traços da estrada)
+            if 0.38 < h < 0.60:
+                h = h_teal
+            elif h < 0.12 or h > 0.92:
+                h = h_coral
+            else:
+                continue
+            px[x, y] = tuple(round(c * 255) for c in colorsys.hls_to_rgb(h, l, s)) + (a,)
+    return im
+
+
 def aclarar(imagem, quanto=0.45):
-    """Sobe a luminosidade dos teais; o coral fica como está."""
+    """Sobe a luminosidade dos teais e deixa o coral em paz. Sobe em HLS, com
+    a matiz e a saturação no sítio: misturar com branco deixava o teal
+    acinzentado sobre o teal dos ecrãs (visto a 07/10/2026)."""
+    import colorsys
     im = imagem.copy()
     px = im.load()
     for y in range(im.height):
         for x in range(im.width):
             r, g, b, a = px[x, y]
             if a and (g > r * 1.15 and b > r * 1.05):
-                px[x, y] = (
-                    int(r + (255 - r) * quanto),
-                    int(g + (255 - g) * quanto),
-                    int(b + (255 - b) * quanto),
-                    a,
-                )
+                h, l, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
+                l = l + (0.92 - l) * quanto
+                s = s * 0.6  # sem isto o teal claro ficava fluorescente
+                px[x, y] = tuple(round(c * 255) for c in colorsys.hls_to_rgb(h, l, s)) + (a,)
     return im
-
 
 def partir(imagem):
     """Separa o símbolo (em cima) da palavra (em baixo) pela faixa vazia."""
@@ -131,17 +164,17 @@ def encaixar(desenho, larg, alt, fundo=None, margem=0.04, ocupa=1.0):
 
 def main():
     aqui = os.path.dirname(os.path.abspath(__file__))
-    origem = os.path.abspath(os.path.join(aqui, '..', '..', 'desenho', 'imagens', 'HAKAT', 'Logótipo HAKAT do app.png'))
+    origem = os.path.abspath(os.path.join(aqui, '..', '..', 'desenho', 'imagens', 'HAKAT', 'Logótipo HAKAT com Estrada Dinâmica.jpeg'))
     if not os.path.exists(origem):
         raise SystemExit(f'falta o ficheiro: {origem}')
     assets = os.path.join(aqui, '..', 'assets')
     raiz = os.path.abspath(os.path.join(aqui, '..', '..'))
     loja = os.path.join(raiz, 'loja')
 
-    completo = sem_branco(origem)
-    completo_claro = aclarar(completo, 0.3)
+    completo = harmonizar(sem_branco(origem))
+    completo_claro = aclarar(completo, 0.38)
     marca = partir(completo)
-    marca_clara = aclarar(marca, 0.3)
+    marca_clara = aclarar(marca, 0.38)
     # As telas seguem as proporções do desenho novo (o H é mais largo que alto
     # do que era o TGA); o Logo.js usa estas mesmas medidas.
     m_alt = 200

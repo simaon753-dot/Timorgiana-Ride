@@ -34,8 +34,8 @@ export default function Logo({ size = 'lg', onTeal = false }) {
 
 const styles = StyleSheet.create({
   caixa: { flexDirection: 'row', alignItems: 'center' },
-  // Proporções dos ficheiros (scripts/gerar-logotipos.py): marca 277×200,
-  // completo 512×468.
-  grande: { width: 196, height: 179 },
-  pequeno: { width: 58, height: 42 },
+  // Proporções dos ficheiros (scripts/gerar-logotipos.py): marca 328×200,
+  // completo 512×389.
+  grande: { width: 196, height: 149 },
+  pequeno: { width: 69, height: 42 },
 });

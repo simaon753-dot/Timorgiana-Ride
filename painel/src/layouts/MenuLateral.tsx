@@ -9,7 +9,7 @@ import { contagemDe, useServico } from './servico';
 export function Marca({ compacta }: { compacta?: boolean }) {
   return (
     <div className={cn('flex items-center gap-3', compacta && 'justify-center')}>
-      <img src={logo} alt="" className="h-10 w-auto shrink-0" width={55} height={40} />
+      <img src={logo} alt="" className="h-10 w-auto shrink-0" width={66} height={40} />
       {compacta ? (
         <span className="sr-only">{t('marca.nome')}</span>
       ) : (
