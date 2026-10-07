@@ -472,8 +472,7 @@ export default {
   loginButton: 'Sign in',
   recEsqueci: 'I forgot my password',
   recTitulo: 'Recover access',
-  recComo:
-    'Call HAKAT and ask for an access code. It is given over the phone and works only once.',
+  recComo: 'Call HAKAT and ask for an access code. It is given over the phone and works only once.',
   recCodigo: 'Access code',
   recCodigoInvalido: 'The code has six digits.',
   recNovaSenha: 'New password',
@@ -654,8 +653,7 @@ export default {
     'Returns the language, theme and mode to their starting values, as on a fresh install. Your account, home, work and history are untouched.',
   reporPrefsFeito: 'Preferences reset.',
   serverTitle: 'Server address',
-  serverExplain:
-    "The HAKAT server address. You only need to change this if the app can't connect.",
+  serverExplain: "The HAKAT server address. You only need to change this if the app can't connect.",
   serverField: 'Address',
   serverPlaceholder: 'e.g. 10.0.0.5:4000 or myserver.com',
   serverTest: 'Test connection',

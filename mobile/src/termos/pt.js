@@ -86,8 +86,7 @@ export const termosPassageiro = {
 
 export const termosMotorista = {
   titulo: 'Termos para motoristas',
-  subtitulo:
-    'Condições aplicáveis à prestação de serviços de transporte interligados pela HAKAT.',
+  subtitulo: 'Condições aplicáveis à prestação de serviços de transporte interligados pela HAKAT.',
   atualizado: 'Versão de 5 de Outubro de 2026',
   // Texto da caixa de aceitação. O que está entre ** fica clicável
   // e abre o documento. Sem este campo o ecrã de registo não abre.
