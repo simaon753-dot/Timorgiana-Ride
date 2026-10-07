@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { setSlowHandler } from '../api/client.js';
 import { useI18n } from '../i18n/index.js';
 import { colors, spacing, fontSize, registarEstilos } from '../theme.js';
@@ -11,6 +12,10 @@ import { tipo } from '../design/tipografia.js';
 export default function SlowBanner() {
   const { t } = useI18n();
   const [slow, setSlow] = useState(false);
+  // A app desenha de ponta a ponta (edgeToEdgeEnabled): sem esta margem, a
+  // faixa ficava por baixo do relógio e dos ícones do telemóvel, com o texto
+  // em cima deles (visto no Samsung, 07/10/2026).
+  const { top } = useSafeAreaInsets();
 
   useEffect(() => {
     setSlowHandler(setSlow);
@@ -20,7 +25,7 @@ export default function SlowBanner() {
   if (!slow) return null;
 
   return (
-    <View style={styles.bar}>
+    <View style={[styles.bar, { paddingTop: top + 8 }]}>
       <ActivityIndicator size="small" color={colors.white} />
       <Text style={styles.text}>{t('waking')}</Text>
     </View>

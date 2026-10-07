@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext.js';
 import { useI18n } from '../i18n/index.js';
 import { colors, spacing, registarEstilos } from '../theme.js';
@@ -26,12 +27,18 @@ import { tipo } from '../design/tipografia.js';
 // duas.
 export default function AvisoSessao() {
   const { t } = useI18n();
+  // De ponta a ponta: a margem do relógio do telemóvel, como no SlowBanner.
+  const { top } = useSafeAreaInsets();
   const { avisoSessao } = useAuth();
 
   if (!avisoSessao) return null;
 
   return (
-    <View style={styles.barra} accessibilityRole="alert" accessibilityLiveRegion="assertive">
+    <View
+      style={[styles.barra, { paddingTop: top + spacing.sm }]}
+      accessibilityRole="alert"
+      accessibilityLiveRegion="assertive"
+    >
       <Text style={styles.titulo}>{t('sessaoAvisoTitulo')}</Text>
       <Text style={styles.texto}>{t('sessaoAvisoTexto')}</Text>
     </View>
