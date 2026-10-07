@@ -3,9 +3,9 @@
 export default {
   navegarSemDestino: 'Falta destinu. Fila no toka fila-fali iha Navega.',
   navegarCom: 'Navega ho',
-  navegarNossa: 'TimorgianaRide (la ho Google)',
+  navegarNossa: 'HAKAT (la ho Google)',
   navegarComNota:
-    'TimorgianaRide uza ami-nia mapa. Organic Maps funsiona la ho internet, hafoin halo transferénsia mapa «East Timor». Rua ne’e la uza Google.',
+    'HAKAT uza ami-nia mapa. Organic Maps funsiona la ho internet, hafoin halo transferénsia mapa «East Timor». Rua ne’e la uza Google.',
   organicFalta: 'Organic Maps seidauk halo instalasaun',
   organicFaltaNota:
     'Gratuitu. Hafoin instalasaun, transferénsia mapa iha laran «East Timor», ideal liu halo transferénsia ho Wi-Fi.',
@@ -306,7 +306,7 @@ export default {
   semMotoristaTexto:
     'Presu estimadu: {preco}. Pedidu loke minutu {min}, no motorista ne’ebé simu primeiru mak sei tula ita.',
   procurarMotoristaPreco: 'Buka motorista · {preco}',
-  viagemSegura: 'Viajen seguru ho TimorgianaRide',
+  viagemSegura: 'Viajen seguru ho HAKAT',
   destinoSub: 'Hili destinu no ita bá!',
   procurarDestinoSub: 'Enderesu, fatin ka pontu interese',
   limparTudo: 'Hamoos hotu',
@@ -465,14 +465,14 @@ export default {
   avalCargaDiferente: 'Karga la hanesan ho saida mak kombina ona',
   sessaoAvisoTitulo: 'Ita-nia konta loke ona iha telemóvel seluk',
   sessaoAvisoTexto:
-    'Ita bele termina ita-nia viajen ne’ebé la’o daudaun hela. Depois ne’e ita presiza tama fila-fali. Se la’ós ita mak halo, avisa TimorgianaRide no troka ita-nia seña.',
+    'Ita bele termina ita-nia viajen ne’ebé la’o daudaun hela. Depois ne’e ita presiza tama fila-fali. Se la’ós ita mak halo, avisa HAKAT no troka ita-nia seña.',
   sessaoNoutroAparelho:
     'Ita-nia konta loke ona iha telemóvel seluk. Se la’ós ita, tama fali no troka ita-nia seña.',
   loginButton: 'Tama',
   recEsqueci: "Ha'u haluha seña",
   recTitulo: 'Rekupera fila-fali asesu',
   recComo:
-    'Telefone ba TimorgianaRide no husu kódigu asesu. Sira fó liuhusi telefone no serve dala ida de’it.',
+    'Telefone ba HAKAT no husu kódigu asesu. Sira fó liuhusi telefone no serve dala ida de’it.',
   recCodigo: 'Kódigu asesu',
   recCodigoInvalido: 'Kódigu iha dígitu neen.',
   recNovaSenha: 'Seña foun',
@@ -566,7 +566,7 @@ export default {
   detalheMotorista: 'Motorista',
   detalheSuaAvaliacao: 'Ita-nia avaliasaun',
   detalheOcorrencias: 'Saida mak ita relata',
-  detalheResposta: 'Resposta husi TimorgianaRide',
+  detalheResposta: 'Resposta husi HAKAT',
   reportarBotao: 'Relata problema ida',
   reportarBotaoDica: 'Sasán haluha, kobransa, hahalok…',
   reportarPrazoPassou: 'Prazu atu relata viajen ida-ne’e remata iha {data}.',
@@ -576,13 +576,13 @@ export default {
   ocorEstadoArquivada: 'Arkiva ona',
   reportarTitulo: 'Relata problema ida',
   reportarTexto:
-    'Ekipa TimorgianaRide sei lee no trata. Iha ligasaun ho viajen ida-ne’e, nune’e la presiza esplika se mak nia, bainhira ka iha ne’ebé.',
+    'Ekipa HAKAT sei lee no trata. Iha ligasaun ho viajen ida-ne’e, nune’e la presiza esplika se mak nia, bainhira ka iha ne’ebé.',
   reportarEmergencia: 'Iha perigu agora? Uza butaun SOS ka bolu 112 (polísia) ka 110 (ambulánsia).',
   reportarQueAconteceu: 'Saida mak akontese?',
   reportarDescricao: 'Konta liu tan mai ami',
   reportarDescricaoDica: 'Ezemplu: haluha sombreiru azul iha kadeira kotuk.',
   reportarPrivado:
-    'Ekipa TimorgianaRide de’it mak haree saida mak ita hakerek iha ne’e. Ema seluk iha viajen la hetan avizu ruma.',
+    'Ekipa HAKAT de’it mak haree saida mak ita hakerek iha ne’e. Ema seluk iha viajen la hetan avizu ruma.',
   reportarEnviar: 'Haruka',
   reportarEnviadoTitulo: 'Ami simu ona',
   reportarEnviadoTexto:
@@ -660,7 +660,7 @@ export default {
     'Fila ba lian, tema no modu inisiál, hanesan instalasaun foun. Sei la toka ita-nia konta, uma, servisu no istória sira.',
   reporPrefsFeito: 'Preferénsia sira reset tiha ona.',
   serverTitle: 'Enderesu servidór',
-  serverExplain: 'Enderesu servidór TimorgianaRide. Troka deʼit se labele liga ba aplikasaun.',
+  serverExplain: 'Enderesu servidór HAKAT. Troka deʼit se labele liga ba aplikasaun.',
   serverField: 'Enderesu',
   serverPlaceholder: 'Ezemplu: 10.0.0.5:4000 ka haʼu-nia-servidor.com',
   serverTest: 'Testa ligasaun',
@@ -823,15 +823,15 @@ export default {
   chatSemViagem: 'Konversa iha de’it durante viajen.',
   sosSentTitle: '🚨 Pedidu husu ajuda haruka ona',
   sosSentExplain:
-    'TimorgianaRide hatene ona. Ita hakarak telefone ba polísia, ambulánsia no bombeiros agora?',
+    'HAKAT hatene ona. Ita hakarak telefone ba polísia, ambulánsia no bombeiros agora?',
   sosOnlyAlert: 'Lae, obrigadu',
   sosCall: 'Telefone {n}',
   emgAlso: 'ka {n}',
   sosOffline: 'La iha ligasaun',
-  sosOfflineExplain: 'Ami labele avisa TimorgianaRide. Ita bele telefone ba polísia diretamente.',
+  sosOfflineExplain: 'Ami labele avisa HAKAT. Ita bele telefone ba polísia diretamente.',
   shareTrip: 'Fahe viajen',
   shareTripText:
-    'Haʼu iha hela viajen ida ho TimorgianaRide. Motorista: {driver} ({plate}) Destinu: {dest} Fatin: {link}',
+    'Haʼu iha hela viajen ida ho HAKAT. Motorista: {driver} ({plate}) Destinu: {dest} Fatin: {link}',
 
   // Kanselamentu
   cancelConfirmAccepted: 'Motorista ida dalan mai ona. Kansela agora halo nia lakon viajen.',
@@ -875,7 +875,7 @@ export default {
   paisOutroDica: 'Hakerek numeru internasionál hotu-hotu, ho indikativu no laiha +.',
   driverSoTimorTel: 'Tenke hakerek númeru telefone ne’ebé loos.',
   driverDeclaraCidadao:
-    'Haʼu deklara katak haʼu sidadaun Timor-Leste. Lori karreta ho TimorgianaRide rezerva de’it ba sidadaun timoroan.',
+    'Haʼu deklara katak haʼu sidadaun Timor-Leste. Lori karreta ho HAKAT rezerva de’it ba sidadaun timoroan.',
   errCidadaoTL: 'Atu lori karreta tenke deklara katak ita sidadaun Timor-Leste.',
 
   // Kanselamentu
@@ -912,7 +912,7 @@ export default {
   earningsLastDays: 'Kada loron',
   earningsEmpty: 'Ita seidauk remata viajen ruma.',
   earningsNote:
-    'Valór sira ne’e mak viajen ne’ebé remata ona no rejista iha aplikasaun. Pasajeiru mak selu viajen direta ba motorista. TimorgianaRide la simu no la rai osan viajen nian.',
+    'Valór sira ne’e mak viajen ne’ebé remata ona no rejista iha aplikasaun. Pasajeiru mak selu viajen direta ba motorista. HAKAT la simu no la rai osan viajen nian.',
   // Ganhos e plano de atividade (04/10/2026)
   ganhosMelhorDia: 'Loron di’ak liu',
   ganhosColData: 'Data',

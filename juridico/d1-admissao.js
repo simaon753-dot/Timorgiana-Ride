@@ -6,7 +6,7 @@ module.exports = C.documento(
   `${C.EMPRESA}  ·  ${C.MORADA}  ·  ${C.CONTACTOS}  ·  Versão de ${C.VERSAO}`,
   [
     A('Artigo 1.º', 'Objeto'),
-    P('O presente Regulamento fixa os requisitos, os documentos e o procedimento de admissão de motoristas à plataforma tecnológica TimorgianaRide, explorada pela Timorgiara Neto, Unipessoal, Lda.'),
+    P('O presente Regulamento fixa os requisitos, os documentos e o procedimento de admissão de motoristas à plataforma tecnológica HAKAT, explorada pela Timorgiara Neto, Unipessoal, Lda.'),
     P('Aplica-se a todos os candidatos, independentemente do município onde pretendam exercer atividade e do tipo de veículo que conduzam.'),
 
     A('Artigo 2.º', 'Natureza da admissão'),

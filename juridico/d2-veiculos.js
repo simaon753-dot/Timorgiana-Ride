@@ -6,7 +6,7 @@ module.exports = C.documento(
   `${C.EMPRESA}  ·  ${C.MORADA}  ·  ${C.CONTACTOS}  ·  Versão de ${C.VERSAO}`,
   [
     A('Artigo 1.º', 'Objeto'),
-    P('O presente Regulamento fixa as condições que um veículo deve reunir para ser utilizado no transporte de passageiros angariados através da aplicação TimorgianaRide, bem como as regras de registo, inspeção e substituição desse veículo.'),
+    P('O presente Regulamento fixa as condições que um veículo deve reunir para ser utilizado no transporte de passageiros angariados através da aplicação HAKAT, bem como as regras de registo, inspeção e substituição desse veículo.'),
 
     A('Artigo 2.º', 'Veículos admitidos'),
     P('São admitidos dois tipos de veículo:'),

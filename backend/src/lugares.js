@@ -61,7 +61,7 @@
 import { one } from './db.js';
 import { procurarNossos, lugaresPerto } from './lugaresNossos.js';
 
-const UA = 'TimorgianaRide/1.0 (app de transporte, Dili, Timor-Leste)';
+const UA = 'HAKAT/1.0 (app de transporte, Dili, Timor-Leste)';
 
 // A mesma caixa que a app usava, com margem nas pontas para não cortar
 // Oecusse nem o norte de Ataúro.

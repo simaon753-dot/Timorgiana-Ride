@@ -9,7 +9,7 @@ module.exports = C.documento(
   [
     A('Artigo 1.º', 'Âmbito'),
     P('A presente Tabela fixa as infrações aos Regulamentos, ao Contrato de Utilização da Plataforma e à Política de Segurança dos Passageiros, e as sanções que lhes correspondem.'),
-    P('Aplica-se aos motoristas admitidos à plataforma TimorgianaRide.'),
+    P('Aplica-se aos motoristas admitidos à plataforma HAKAT.'),
 
     A('Artigo 2.º', 'Graduação'),
     T(

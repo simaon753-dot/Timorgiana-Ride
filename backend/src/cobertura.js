@@ -46,7 +46,7 @@ function soLetras(t) {
 }
 
 const PRAZO_MS = 7000;
-const UA = 'TimorgianaRide/1.0 (app de transporte, Dili, Timor-Leste)';
+const UA = 'HAKAT/1.0 (app de transporte, Dili, Timor-Leste)';
 
 async function comPrazo(url, opcoes = {}) {
   const ctrl = new AbortController();

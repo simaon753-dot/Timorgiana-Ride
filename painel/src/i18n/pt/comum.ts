@@ -1,6 +1,6 @@
 // Rótulos partilhados por vários módulos: estados, veículos, documentos.
 export const comum = {
-  'marca.nome': 'TimorgianaRide',
+  'marca.nome': 'HAKAT',
   'marca.sub': 'Painel de administração',
 
   'comum.atualizar': 'Atualizar',

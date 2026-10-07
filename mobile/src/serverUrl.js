@@ -79,7 +79,7 @@ export async function testServer(input) {
     if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
     const data = await res.json();
     if (data?.service !== 'TimorgianaRide') {
-      return { ok: false, error: 'Respondeu, mas não parece um servidor TimorgianaRide.' };
+      return { ok: false, error: 'Respondeu, mas não parece um servidor HAKAT.' };
     }
     return { ok: true };
   } catch (e) {

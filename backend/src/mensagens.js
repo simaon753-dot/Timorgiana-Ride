@@ -363,9 +363,9 @@ export const MENSAGENS = {
     'Motorista tenke hakerek veíkulu nia matríkula.',
     'Drivers must give the vehicle’s plate.',
   ],
-  'Conduzir na TimorgianaRide está reservado a cidadãos de Timor-Leste.': [
-    'Konduz iha TimorgianaRide rezerva de’it ba sidadaun Timor-Leste.',
-    'Driving with TimorgianaRide is reserved for citizens of Timor-Leste.',
+  'Conduzir na HAKAT está reservado a cidadãos de Timor-Leste.': [
+    'Konduz iha HAKAT rezerva de’it ba sidadaun Timor-Leste.',
+    'Driving with HAKAT is reserved for citizens of Timor-Leste.',
   ],
   'Para conduzir é preciso um número de telemóvel de Timor-Leste.': [
     'Atu konduz, presiza númeru telemóvel Timor-Leste nian.',
@@ -891,9 +891,9 @@ export const NOTIFICACOES = {
   },
   emailOla: { pt: 'Olá {nome},', tet: 'Olá {nome},', en: 'Hello {nome},' },
   emailRodape: {
-    pt: 'Veja os detalhes na app TimorgianaRide, no seu registo de motorista.',
-    tet: 'Haree detallu iha app TimorgianaRide, iha ita-nia rejistu motorista nian.',
-    en: 'See the details in the TimorgianaRide app, in your driver registration.',
+    pt: 'Veja os detalhes na app HAKAT, no seu registo de motorista.',
+    tet: 'Haree detallu iha app HAKAT, iha ita-nia rejistu motorista nian.',
+    en: 'See the details in the HAKAT app, in your driver registration.',
   },
 };
 

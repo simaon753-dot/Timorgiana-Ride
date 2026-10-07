@@ -5,7 +5,7 @@ import { categoriaGiara } from './giaraCategorias.js';
 // OS LUGARES DO TIMORGIANA MAPS (GIARA) NA PESQUISA DA APP (07/10/2026,
 // pedido do Simão: «liga os dois mapas»).
 //
-// O Giara é onde se corrige e publica o mapa; a TimorgianaRide vai lá buscar
+// O Giara é onde se corrige e publica o mapa; a HAKAT vai lá buscar
 // o que estiver PUBLICADO e guarda uma cópia em `lugares_giara`. A pesquisa
 // e a lista «perto daqui» leem essa cópia (lugaresNossos.js), nunca o Giara
 // diretamente: um passageiro não pode ficar à espera de outro servidor, que
@@ -20,7 +20,7 @@ import { categoriaGiara } from './giaraCategorias.js';
 // SEM DUPLICADOS. Os primeiros 96 lugares do Giara vieram daqui
 // (scripts/lugares-para-giara.mjs). O mapa público não diz de onde veio cada
 // um, por isso reconhece-se assim: o mesmo nome a menos de 30 metros de um
-// lugar já aceite na TimorgianaRide é o mesmo lugar, e fica de fora.
+// lugar já aceite na HAKAT é o mesmo lugar, e fica de fora.
 //
 // O Giara manda: o que lá for arquivado sai daqui na sincronização seguinte.
 const GIARA = (process.env.GIARA_URL || 'https://giara-maps.onrender.com').replace(/\/$/, '');
@@ -177,9 +177,9 @@ export async function sincronizarGiara() {
 
 // ── NO OUTRO SENTIDO: os lugares aceites aqui vão para o Giara (07/10/2026) ──
 //
-// Pedido do Simão: um nome aceite no painel da TimorgianaRide deve chegar ao
+// Pedido do Simão: um nome aceite no painel da HAKAT deve chegar ao
 // Giara sozinho. Chega como PROPOSTA, num rascunho «Lugares novos da
-// TimorgianaRide» em nome do Super Admin: nada aparece no mapa público sem
+// HAKAT» em nome do Super Admin: nada aparece no mapa público sem
 // ele rever e publicar, como qualquer edição feita no editor.
 //
 // Uma chave partilhada (GIARA_INTEGRACAO_TOKEN aqui, MAP_INTEGRATION_TOKEN no

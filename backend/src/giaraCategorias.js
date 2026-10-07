@@ -1,4 +1,4 @@
-// O TIPO DE UM LUGAR NA TIMORGIANARIDE → A CATEGORIA NO GIARA (07/10/2026).
+// O TIPO DE UM LUGAR NA HAKAT → A CATEGORIA NO GIARA (07/10/2026).
 //
 // Partilhado pelo envio automático (giara.js) e pelo CSV da primeira
 // importação (scripts/lugares-para-giara.mjs): uma só tabela, para os dois

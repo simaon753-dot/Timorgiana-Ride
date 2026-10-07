@@ -93,7 +93,7 @@ authRouter.post('/register', async (req, res) => {
     if (role === 'driver') {
       if (cidadaoTL !== true) {
         return res.status(400).json({
-          error: 'Conduzir na TimorgianaRide está reservado a cidadãos de Timor-Leste.',
+          error: 'Conduzir na HAKAT está reservado a cidadãos de Timor-Leste.',
         });
       }
       // Um número timorense chega aqui com oito dígitos e sem indicativo — o

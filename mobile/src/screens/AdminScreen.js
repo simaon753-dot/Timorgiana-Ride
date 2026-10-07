@@ -62,7 +62,7 @@ const SECCOES = [
   ['registo', 'admSecRegisto', 'documento'],
   ['lugares', 'admSecLugares', 'pin'],
 ];
-const SUBTITULO = 'TimorgianaRide · Díli';
+const SUBTITULO = 'HAKAT · Díli';
 // Estado, rótulo e ícone de cada pastilha do filtro de motoristas.
 const FILTROS = [
   ['todos', 'admFiltroTodos', 'grupo'],

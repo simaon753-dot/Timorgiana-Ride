@@ -54,7 +54,7 @@ export default function PerfilScreen({ navigation }) {
       <CabecalhoEcra
         navigation={navigation}
         titulo={t('perfilTitulo')}
-        subtitulo="TimorgianaRide · Díli"
+        subtitulo="HAKAT · Díli"
         direita={
           <Pressable
             onPress={() => navigation.navigate('Opcoes')}

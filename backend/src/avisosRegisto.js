@@ -45,12 +45,12 @@ async function avisar(userId, chaveTitulo, chaveTexto, vars = {}) {
     u.email && u.email_confirmado
       ? enviarEmail({
           para: u.email,
-          assunto: `TimorgianaRide — ${titulo}`,
+          assunto: `HAKAT — ${titulo}`,
           texto:
             `${n('emailOla', lingua, { nome: u.name || '' })}\n\n` +
             `${texto}\n\n` +
             `${n('emailRodape', lingua)}\n\n` +
-            `TimorgianaRide — Díli, Timor-Leste`,
+            `HAKAT — Díli, Timor-Leste`,
         })
       : null,
   ]);

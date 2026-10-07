@@ -108,10 +108,10 @@ export default function DetalheViagemScreen({ navigation, route }) {
 
   // O RECIBO: um texto para partilhar (WhatsApp, email, guardar). Sem PDF nem
   // biblioteca nova — vai pelo ar. Diz o que a app sabe: o preço registado e
-  // que foi pago em mão ao motorista, não à TimorgianaRide.
+  // que foi pago em mão ao motorista, não à HAKAT.
   function partilharRecibo() {
     const linhas = [
-      `TimorgianaRide — ${t('detalheRecibo')}`,
+      `HAKAT — ${t('detalheRecibo')}`,
       r.referencia ? `${t('codigoViagem')}: ${r.referencia}` : null,
       dataHora(r.concluidaEm || r.createdAt),
       `${t('detalheRecolha')}: ${r.originLabel || '—'}`,

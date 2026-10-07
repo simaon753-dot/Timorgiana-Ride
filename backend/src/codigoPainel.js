@@ -63,7 +63,7 @@ export async function emitirCodigoPainel(user) {
   );
   const enviado = await enviarEmail({
     para: user.email,
-    assunto: `TimorgianaRide — código do painel ${codigo}`,
+    assunto: `HAKAT — código do painel ${codigo}`,
     texto:
       `Olá${user.name ? ' ' + user.name : ''},\n\n` +
       `O seu código para entrar no painel de administração é: ${codigo}\n\n` +
@@ -71,7 +71,7 @@ export async function emitirCodigoPainel(user) {
       `Se não foi o senhor que tentou entrar agora, alguém sabe a sua ` +
       `palavra-passe: mude-a na aplicação o quanto antes. Sem este código, ` +
       `essa pessoa não consegue entrar.\n\n` +
-      `TimorgianaRide — Díli, Timor-Leste`,
+      `HAKAT — Díli, Timor-Leste`,
   });
   if (!enviado) {
     return {

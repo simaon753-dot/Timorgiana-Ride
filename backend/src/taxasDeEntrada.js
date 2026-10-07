@@ -14,7 +14,7 @@
 // discussão inteira.
 //
 // A taxa NÃO entra na tarifa. O dinheiro é entregue na cancela, não ao
-// motorista — e a TimorgianaRide continua a não tocar em dinheiro nenhum. É
+// motorista — e a HAKAT continua a não tocar em dinheiro nenhum. É
 // só um aviso.
 
 export const LOCAIS_COM_TAXA = [

@@ -5,7 +5,7 @@ module.exports = function parte1(pres) {
   // ── 1. Capa ──────────────────────────────────────────────────────────
   {
     const s = B.escuro(pres);
-    B.texto(s, 'TimorgianaRide', {
+    B.texto(s, 'HAKAT', {
       x: 0.9, y: 2.15, w: 11.5, h: 1.1, fontSize: 54, bold: true,
       color: BRANCO, fontFace: 'Cambria',
     });

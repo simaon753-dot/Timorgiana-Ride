@@ -63,7 +63,7 @@ export function Entrar() {
       <IlustracaoPaisagem className="pointer-events-none absolute inset-x-0 bottom-0 h-56 w-full opacity-70" />
       <div className="relative w-full max-w-[400px] rounded-2xl border border-borda bg-white p-7 shadow-cartao sm:p-8">
         <div className="mb-6 flex flex-col items-center text-center">
-          <img src={logo} alt="TimorgianaRide" className="mb-4 h-14 w-auto" width={71} height={56} />
+          <img src={logo} alt="HAKAT" className="mb-4 h-14 w-auto" width={78} height={56} />
           <h1 className="text-xl font-bold tracking-tight text-texto">{t('entrar.titulo')}</h1>
           <p className="mt-1 text-sm text-secundario">{t('entrar.sub')}</p>
         </div>

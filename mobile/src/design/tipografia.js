@@ -9,7 +9,7 @@ import { PlusJakartaSans_600SemiBold } from '@expo-google-fonts/plus-jakarta-san
 import { PlusJakartaSans_700Bold } from '@expo-google-fonts/plus-jakarta-sans/700Bold';
 import { PlusJakartaSans_800ExtraBold } from '@expo-google-fonts/plus-jakarta-sans/800ExtraBold';
 
-// Tipografia TimorgianaRide — Plus Jakarta Sans.
+// Tipografia HAKAT — Plus Jakarta Sans.
 //
 // A app usava o tipo de letra do sistema, que no Android é Roboto. Nada
 // está errado com o Roboto, mas é o que TODAS as apps usam por omissão —

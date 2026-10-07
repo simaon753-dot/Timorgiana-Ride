@@ -49,7 +49,7 @@ export async function emitirConfirmacao(userId) {
 
   const enviado = await enviarEmail({
     para: u.email,
-    assunto: `TimorgianaRide — código ${codigo}`,
+    assunto: `HAKAT — código ${codigo}`,
     texto:
       `Olá${u.name ? ' ' + u.name : ''},\n\n` +
       `O seu código de confirmação é: ${codigo}\n\n` +
@@ -57,7 +57,7 @@ export async function emitirConfirmacao(userId) {
       `Serve para recuperar a sua conta se esquecer a palavra-passe.\n\n` +
       `O código expira dentro de ${VALIDADE_MINUTOS} minutos.\n` +
       `Se não foi o senhor que se registou, ignore esta mensagem.\n\n` +
-      `TimorgianaRide — Díli, Timor-Leste`,
+      `HAKAT — Díli, Timor-Leste`,
   });
 
   // Devolve se conseguiu enviar, mas quem chama não deve falhar por isso.

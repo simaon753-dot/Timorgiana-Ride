@@ -2,7 +2,7 @@ import { query, one, tx } from './db.js';
 
 // Assinatura dos motoristas.
 //
-// A TimorgianaRide não cobra comissão: o motorista fica com cada dólar de
+// A HAKAT não cobra comissão: o motorista fica com cada dólar de
 // cada viagem. Em vez disso paga o acesso à plataforma, em dias, adiantado.
 //
 // Porquê dias e não meses: a regra que o Simão desenhou é que um dia só

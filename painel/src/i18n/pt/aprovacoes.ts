@@ -2,7 +2,7 @@ export const aprovacoes = {
   'aprov.bomDia': 'Bom dia, {nome}!',
   'aprov.boaTarde': 'Boa tarde, {nome}!',
   'aprov.boaNoite': 'Boa noite, {nome}!',
-  'aprov.resumo': 'Aqui está o resumo da plataforma TimorgianaRide.',
+  'aprov.resumo': 'Aqui está o resumo da plataforma HAKAT.',
   'aprov.frase': 'Mobilidade para um Timor-Leste mais conectado.',
 
   'aprov.titulo': 'Aprovações',

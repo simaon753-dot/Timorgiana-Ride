@@ -1,12 +1,12 @@
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 
-// Marca TimorgianaRide.
+// Marca HAKAT (a app chamava-se HAKAT até 07/10/2026).
 //
 // Quatro ficheiros, não um. Duas razões independentes:
 //
-// TAMANHO — a versão completa traz a palavra "timorgiana ride", que num
-// cabeçalho de 40 px de altura seria uma mancha. Aí usa-se só o TGA.
+// TAMANHO — a versão completa traz a palavra "HAKAT", que num cabeçalho de
+// 40 px de altura seria uma mancha. Aí usa-se só o H com a estrada.
 //
 // FUNDO — o logótipo tem teal escuro, e vários ecrãs desta app SÃO teal
 // escuro. Sobre eles a palavra desaparecia. A variante clara sobe a
@@ -26,7 +26,7 @@ export default function Logo({ size = 'lg', onTeal = false }) {
         source={fonte}
         style={grande ? styles.grande : styles.pequeno}
         resizeMode="contain"
-        accessibilityLabel="TimorgianaRide"
+        accessibilityLabel="HAKAT"
       />
     </View>
   );
@@ -34,7 +34,8 @@ export default function Logo({ size = 'lg', onTeal = false }) {
 
 const styles = StyleSheet.create({
   caixa: { flexDirection: 'row', alignItems: 'center' },
-  // Proporções dos ficheiros: marca 256×201, completo 512×447.
-  grande: { width: 196, height: 171 },
-  pequeno: { width: 54, height: 42 },
+  // Proporções dos ficheiros (scripts/gerar-logotipos.py): marca 277×200,
+  // completo 512×468.
+  grande: { width: 196, height: 179 },
+  pequeno: { width: 58, height: 42 },
 });

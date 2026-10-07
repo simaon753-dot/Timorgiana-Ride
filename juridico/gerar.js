@@ -4,7 +4,7 @@ const fs = require('fs');
 const docs = [
   ['./d1-admissao.js', '1 - Regulamento de Admissao de Motoristas.docx'],
   ['./d2-veiculos.js', '2 - Regulamento de Registo e Inspecao de Veiculos.docx'],
-  ['./d3-contrato-motorista.js', '3 - Contrato TimorgianaRide e Motorista.docx'],
+  ['./d3-contrato-motorista.js', '3 - Contrato HAKAT e Motorista.docx'],
   ['./d4-proprietario.js', '4 - Declaracao entre Proprietario e Motorista.docx'],
   ['./d5-seguranca.js', '5 - Politica de Seguranca dos Passageiros.docx'],
   ['./d6-infracoes.js', '6 - Tabela de Infracoes e Sancoes.docx'],

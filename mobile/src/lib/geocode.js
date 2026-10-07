@@ -5,7 +5,7 @@ import { getApiUrl } from '../serverUrl.js';
 // façam mais de ~1 pedido por segundo. Por isso a pesquisa é adiada
 // enquanto a pessoa escreve (ver useBuscaLugares) em vez de disparar a
 // cada tecla.
-const UA = 'TimorgianaRide/1.0 (app de transporte, Dili, Timor-Leste)';
+const UA = 'HAKAT/1.0 (app de transporte, Dili, Timor-Leste)';
 const BASE = 'https://nominatim.openstreetmap.org';
 
 // Limites de Timor-Leste: evita devolver sítios com o mesmo nome noutros

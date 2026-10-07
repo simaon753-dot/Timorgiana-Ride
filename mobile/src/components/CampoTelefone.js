@@ -110,7 +110,7 @@ export default function CampoTelefone({
             cor={erroMostrado ? colors.danger : focado ? colors.teal : colors.textMuted}
           />
         </View>
-        {/* TRANCADO PARA MOTORISTAS. Conduzir na TimorgianaRide é para
+        {/* TRANCADO PARA MOTORISTAS. Conduzir na HAKAT é para
             cidadãos de Timor-Leste, por isso o selector deixa de ser uma
             escolha — e mostrar uma escolha que não é escolha seria pior do
             que não a mostrar. A bandeira fica, para se ver qual é. */}

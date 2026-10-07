@@ -851,7 +851,7 @@ export async function initSchema() {
 
   // CIDADANIA DECLARADA PELO MOTORISTA.
   //
-  // Conduzir na TimorgianaRide é para cidadãos de Timor-Leste, por decisão do
+  // Conduzir na HAKAT é para cidadãos de Timor-Leste, por decisão do
   // Simão a 08/09/2026. A app não consegue PROVAR a nacionalidade de ninguém —
   // o que consegue é fazer a pergunta antes de haver conta e guardar a
   // resposta com a hora. A prova é o documento de identificação, que já é

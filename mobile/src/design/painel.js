@@ -16,7 +16,7 @@ import { tipo } from './tipografia.js';
 //   1. O estado tem forma, não só número. Uma pastilha, uma barra de cor,
 //      um ponto — coisas que se apanham pelo canto do olho.
 //   2. A cor de aviso é SEPARADA da cor da marca. O coral da
-//      TimorgianaRide é destaque; o vermelho é problema. Se forem a mesma
+//      HAKAT é destaque; o vermelho é problema. Se forem a mesma
 //      coisa, deixa de haver forma de gritar.
 //   3. Nada de emoji. Um 🟢 muda de desenho conforme o telemóvel, não se
 //      alinha com o texto e não recebe a cor do tema. As formas aqui são
@@ -143,7 +143,7 @@ export function CartaoKPI({ icone, valor, etiqueta, nota, estado = ESTADO.neutro
 // ── A tarifa, com a conta à vista ────────────────────────────────────
 //
 // A referência pedia "Tarifa ba pasajeiru / Komisaun plataforma / Motorista
-// simu" — e mostrava uma comissão de 15% que NÃO existe. A TimorgianaRide não
+// simu" — e mostrava uma comissão de 15% que NÃO existe. A HAKAT não
 // cobra comissão: vive das assinaturas dos motoristas, e os termos dizem-no.
 // A conta fica, porque é boa pergunta; a comissão sai a $0.00, porque é a
 // verdade. Um painel da própria empresa a mostrar receita que ela não tem

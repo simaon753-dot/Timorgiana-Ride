@@ -113,7 +113,7 @@ export async function comecarAEnviarPosicao({ emViagem }) {
     // preço — e é também honestidade: quem está a ser localizado tem direito
     // a ver que está.
     foregroundService: {
-      notificationTitle: 'TimorgianaRide — ao serviço',
+      notificationTitle: 'HAKAT — ao serviço',
       notificationBody: 'A tua posição está a ser enviada para quem te espera.',
       notificationColor: '#0E5C54',
     },

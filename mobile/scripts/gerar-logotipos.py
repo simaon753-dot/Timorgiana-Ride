@@ -1,54 +1,85 @@
 #!/usr/bin/env python3
 """Gera todos os ficheiros do logótipo a partir do desenho do Simão.
 
-ENTRADA: desenho/imagens/Novo logo.jpg (fora do repositório) — o TGA com a
-palavra "timorgiana ride", em coral e teal sobre PRETO.
+HAKAT (07/10/2026): a app passou a chamar-se HAKAT. Antes era o TGA
+«timorgiana ride» sobre preto (ver o histórico do git deste ficheiro).
 
-SAÍDA, com as mesmas telas e nomes dos ficheiros que substitui, para nada
-mudar de tamanho nos ecrãs:
-  assets/logo-completo{,-claro}.png   512x448  (TGA + palavra)
-  assets/logo-marca{,-claro}.png      256x200  (só o TGA)
-  assets/icon.png                     1024     (ícone da app, teal opaco)
-  assets/adaptive-icon.png            1024     (frente do ícone Android)
-  assets/splash-icon.png              1024     (arranque, sobre teal)
+ENTRADA: desenho/imagens/HAKAT/Logótipo HAKAT do app.png (fora do
+repositório) — o H teal/coral atravessado por uma estrada, com a palavra
+HAKAT por baixo, num cartão BRANCO de cantos redondos.
+
+SAÍDA, com os mesmos nomes dos ficheiros que substitui:
+  assets/logo-completo{,-claro}.png   (H + palavra)
+  assets/logo-marca{,-claro}.png      (só o H com a estrada)
+  assets/icon.png                     1024  (ícone da app: o H sobre branco — escolha dele)
+  assets/adaptive-icon.png            1024  (frente do ícone Android; o fundo branco vem do app.json)
+  assets/splash-icon.png              1024  (arranque, sobre branco)
   assets/favicon.png                  48
-  ../loja/icone-512.png               512      (ficha da Play Store)
-  ../loja/destaque-1024x500.png       1024x500 (imagem de destaque)
+  ../painel/src/assets/logo-marca.png       (o painel)
+  ../painel/public/favicon.png              48
+  ../loja/icone-512.png               512   (ficha da Play Store)
+  ../loja/destaque-1024x500.png       1024x500
 
-O FUNDO SAI POR SER PRETO, e não pelas bordas: dentro das letras há vazios
-(o G, o A, a estrada) que também são fundo e que um balde de tinta lançado
-das bordas nunca alcançaria. Aqui a regra é outra — o desenho não tem preto
-nenhum, logo tudo o que é escuro é fundo.
+O FUNDO SAI A PARTIR DAS BORDAS: o desenho tem branco dentro (os traços da
+estrada), e esse fica — só o branco ligado ao exterior é fundo. Na orla, o
+branco sai «misturado» (cor para alfa), para não deixar um halo claro sobre o
+teal dos ecrãs.
 
-A VARIANTE CLARA sobe a luminosidade dos TEAIS e deixa o coral em paz, que já
-contrasta sobre o teal escuro dos ecrãs. É a regra que o componente Logo.js
-descreve, e existia nos ficheiros antigos.
+A VARIANTE CLARA sobe a luminosidade dos TEAIS e deixa o coral em paz: a
+estrada e a palavra são teal escuro e desapareciam sobre o teal dos ecrãs.
 
 Correr:  python3 scripts/gerar-logotipos.py
 Precisa: Pillow
 """
 
 import os
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFilter
 
-TEAL = (14, 92, 84)  # o fundo teal da marca, o mesmo do app.json
+BRANCO = (255, 255, 255)  # o fundo do ícone e do arranque, o mesmo do app.json
 
 
-def sem_preto(caminho, limiar_baixo=10, limiar_alto=46):
+def sem_branco(caminho):
     im = Image.open(caminho).convert('RGB')
     w, h = im.size
+    # Dentro do cartão branco (o cartão e a sombra ficam de fora).
+    im = im.crop((int(w * 0.07), int(h * 0.07), int(w * 0.93), int(h * 0.93)))
+    w, h = im.size
     px = im.load()
-    alfa = Image.new('L', (w, h), 0)
-    ap = alfa.load()
+    claro = Image.new('L', (w, h), 0)
+    cp = claro.load()
     for y in range(h):
         for x in range(w):
-            v = max(px[x, y])
-            ap[x, y] = 0 if v <= limiar_baixo else (
-                255 if v >= limiar_alto else int((v - limiar_baixo) * 255 / (limiar_alto - limiar_baixo))
-            )
-    fora = im.convert('RGBA')
-    fora.putalpha(alfa)
-    return fora.crop(alfa.getbbox())
+            # Claro e quase sem cor: o branco do cartão e o cinzento da sua
+            # borda (que um limiar só de claridade deixava como uma linha).
+            if min(px[x, y]) > 175 and max(px[x, y]) - min(px[x, y]) < 30:
+                cp[x, y] = 255
+    for semente in [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)]:
+        if cp[semente] == 255:
+            ImageDraw.floodfill(claro, semente, 128)
+    fundo = claro.point(lambda v: 255 if v == 128 else 0)
+    orla = fundo.filter(ImageFilter.MaxFilter(5))
+    op = orla.load()
+    fdp = fundo.load()
+    fora = Image.new('RGBA', (w, h))
+    fp = fora.load()
+    for y in range(h):
+        for x in range(w):
+            r, g, b = px[x, y]
+            if fdp[x, y]:
+                # O fundo sai inteiro — tratado como «cor para alfa», o
+                # cinzento por fora do cartão virava uma sombra visível.
+                fp[x, y] = (0, 0, 0, 0)
+            elif op[x, y]:
+                # Cor para alfa contra o branco.
+                a = max(255 - r, 255 - g, 255 - b)
+                if a == 0:
+                    fp[x, y] = (0, 0, 0, 0)
+                else:
+                    k = 255 / a
+                    fp[x, y] = tuple(max(0, min(255, int(255 - (255 - c) * k))) for c in (r, g, b)) + (a,)
+            else:
+                fp[x, y] = (r, g, b, 255)
+    return fora.crop(fora.getchannel('A').getbbox())
 
 
 def aclarar(imagem, quanto=0.45):
@@ -100,31 +131,41 @@ def encaixar(desenho, larg, alt, fundo=None, margem=0.04, ocupa=1.0):
 
 def main():
     aqui = os.path.dirname(os.path.abspath(__file__))
-    origem = os.path.abspath(os.path.join(aqui, '..', '..', 'desenho', 'imagens', 'Novo logo.jpg'))
+    origem = os.path.abspath(os.path.join(aqui, '..', '..', 'desenho', 'imagens', 'HAKAT', 'Logótipo HAKAT do app.png'))
     if not os.path.exists(origem):
         raise SystemExit(f'falta o ficheiro: {origem}')
     assets = os.path.join(aqui, '..', 'assets')
-    loja = os.path.abspath(os.path.join(aqui, '..', '..', 'loja'))
+    raiz = os.path.abspath(os.path.join(aqui, '..', '..'))
+    loja = os.path.join(raiz, 'loja')
 
-    completo = sem_preto(origem)
-    completo_claro = aclarar(completo)
+    completo = sem_branco(origem)
+    completo_claro = aclarar(completo, 0.3)
     marca = partir(completo)
-    marca_clara = aclarar(marca)
+    marca_clara = aclarar(marca, 0.3)
+    # As telas seguem as proporções do desenho novo (o H é mais largo que alto
+    # do que era o TGA); o Logo.js usa estas mesmas medidas.
+    m_alt = 200
+    m_larg = round(marca.width * m_alt / marca.height)
+    c_larg = 512
+    c_alt = round(completo.height * c_larg / completo.width)
+    print(f'proporções: marca {m_larg}x{m_alt}, completo {c_larg}x{c_alt}')
 
     saidas = [
-        (encaixar(completo, 512, 448), os.path.join(assets, 'logo-completo.png')),
-        (encaixar(completo_claro, 512, 448), os.path.join(assets, 'logo-completo-claro.png')),
-        (encaixar(marca, 256, 200), os.path.join(assets, 'logo-marca.png')),
-        (encaixar(marca_clara, 256, 200), os.path.join(assets, 'logo-marca-claro.png')),
-        # O ícone da app: a marca clara sobre o teal, como estava.
-        (encaixar(marca_clara, 1024, 1024, fundo=TEAL, ocupa=0.78), os.path.join(assets, 'icon.png')),
+        (encaixar(completo, c_larg, c_alt, margem=0), os.path.join(assets, 'logo-completo.png')),
+        (encaixar(completo_claro, c_larg, c_alt, margem=0), os.path.join(assets, 'logo-completo-claro.png')),
+        (encaixar(marca, m_larg, m_alt, margem=0), os.path.join(assets, 'logo-marca.png')),
+        (encaixar(marca_clara, m_larg, m_alt, margem=0), os.path.join(assets, 'logo-marca-claro.png')),
+        # O ícone da app: o H sobre branco (decisão dele, 07/10/2026).
+        (encaixar(marca, 1024, 1024, fundo=BRANCO, ocupa=0.84), os.path.join(assets, 'icon.png')),
         # A frente do ícone adaptativo do Android fica mais pequena: o sistema
         # recorta-a num círculo, e o que sair da zona segura desaparece.
-        (encaixar(marca_clara, 1024, 1024, ocupa=0.62), os.path.join(assets, 'adaptive-icon.png')),
-        (encaixar(completo_claro, 1024, 1024, ocupa=0.82), os.path.join(assets, 'splash-icon.png')),
+        (encaixar(marca, 1024, 1024, ocupa=0.62), os.path.join(assets, 'adaptive-icon.png')),
+        (encaixar(completo, 1024, 1024, ocupa=0.62), os.path.join(assets, 'splash-icon.png')),
         (encaixar(marca, 48, 48), os.path.join(assets, 'favicon.png')),
-        (encaixar(marca_clara, 512, 512, fundo=TEAL, ocupa=0.78), os.path.join(loja, 'icone-512.png')),
-        (encaixar(completo_claro, 1024, 500, fundo=TEAL, ocupa=0.72), os.path.join(loja, 'destaque-1024x500.png')),
+        (encaixar(marca, m_larg, m_alt, margem=0), os.path.join(raiz, 'painel', 'src', 'assets', 'logo-marca.png')),
+        (encaixar(marca, 48, 48), os.path.join(raiz, 'painel', 'public', 'favicon.png')),
+        (encaixar(marca, 512, 512, fundo=BRANCO, ocupa=0.84), os.path.join(loja, 'icone-512.png')),
+        (encaixar(completo, 1024, 500, fundo=BRANCO, ocupa=0.72), os.path.join(loja, 'destaque-1024x500.png')),
     ]
     for imagem, destino in saidas:
         imagem.save(destino, optimize=True)

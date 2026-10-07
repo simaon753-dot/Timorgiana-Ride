@@ -54,7 +54,7 @@ export async function ondeFica(lat, lng) {
     const r = await fetch(url, {
       headers: {
         Accept: 'application/json',
-        'User-Agent': 'TimorgianaRide/1.0 (app de transporte, Dili, Timor-Leste)',
+        'User-Agent': 'HAKAT/1.0 (app de transporte, Dili, Timor-Leste)',
       },
       signal: ctrl.signal,
     });

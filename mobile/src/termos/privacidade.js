@@ -31,7 +31,7 @@
 // prevenção de fraude e confirmação de identidade (d), obrigação legal
 // (b), interesses legítimos (h) e consentimento (a).
 //
-// Origem: piloto/TimorgianaRide_Aviso_de_Privacidade_PT_Tetum.docx
+// Origem: piloto/HAKAT_Aviso_de_Privacidade_PT_Tetum.docx
 //
 // REVISÃO DE 14/09/2026, redigida por mim a pedido do Simão e revista por ele
 // antes de publicar: fotografia de turno, pedidos para outra pessoa e
@@ -52,12 +52,12 @@ const pt = {
     {
       titulo: 'Quem trata os dados',
       texto:
-        'A TimorgianaRide é um serviço da Timorgiara Neto, Unipessoal, Lda, Bidau Toko-Baru, Cristo Rei, Timor-Leste, e trata os dados pessoais descritos neste aviso para operar e proteger a aplicação. Para dúvidas ou pedidos sobre dados, contacte +670 74192857 · +670 75684566.',
+        'A HAKAT é um serviço da Timorgiara Neto, Unipessoal, Lda, Bidau Toko-Baru, Cristo Rei, Timor-Leste, e trata os dados pessoais descritos neste aviso para operar e proteger a aplicação. Para dúvidas ou pedidos sobre dados, contacte +670 74192857 · +670 75684566.',
     },
     {
       titulo: 'A quem se aplica',
       texto:
-        'Este aviso aplica-se a passageiros, motoristas, candidatos a motorista e pessoas que contactem a TimorgianaRide. Complementa os Termos de Utilização e deve ser lido antes de criar ou usar conta.',
+        'Este aviso aplica-se a passageiros, motoristas, candidatos a motorista e pessoas que contactem a HAKAT. Complementa os Termos de Utilização e deve ser lido antes de criar ou usar conta.',
     },
     {
       titulo: 'Dados que recolhemos',
@@ -110,12 +110,12 @@ const tet = {
     {
       titulo: 'Sé mak trata dadus',
       texto:
-        'TimorgianaRide hanesan servisu husi Timorgiara Neto, Unipessoal, Lda, Bidau Toko-Baru, Cristo Rei, Timor-Leste, no trata dadus pessoal neʼebé hakerek iha avizu ida neʼe atu opera no proteje aplikasaun. Ba pergunta ka pedidu kona-ba dadus, kontaktu +670 74192857 · +670 75684566.',
+        'HAKAT hanesan servisu husi Timorgiara Neto, Unipessoal, Lda, Bidau Toko-Baru, Cristo Rei, Timor-Leste, no trata dadus pessoal neʼebé hakerek iha avizu ida neʼe atu opera no proteje aplikasaun. Ba pergunta ka pedidu kona-ba dadus, kontaktu +670 74192857 · +670 75684566.',
     },
     {
       titulo: 'Ba sé mak avizu ida',
       texto:
-        'Avizu ida neʼe aplika ba pasajeiru, motorista, kandidatu ba motorista no ema neʼebé kontaktu ho TimorgianaRide. Nia kompleta Termos de Utilização no tenke lee molok kria ka uza konta.',
+        'Avizu ida neʼe aplika ba pasajeiru, motorista, kandidatu ba motorista no ema neʼebé kontaktu ho HAKAT. Nia kompleta Termos de Utilização no tenke lee molok kria ka uza konta.',
     },
     {
       titulo: 'Dadus neʼebé ami halibur',
@@ -168,12 +168,12 @@ const en = {
     {
       titulo: 'Who processes the data',
       texto:
-        'TimorgianaRide is a service of Timorgiara Neto, Unipessoal, Lda, Bidau Toko-Baru, Cristo Rei, Timor-Leste, and processes the personal data described in this notice in order to operate and protect the application. For questions or requests about data, contact +670 74192857 · +670 75684566.',
+        'HAKAT is a service of Timorgiara Neto, Unipessoal, Lda, Bidau Toko-Baru, Cristo Rei, Timor-Leste, and processes the personal data described in this notice in order to operate and protect the application. For questions or requests about data, contact +670 74192857 · +670 75684566.',
     },
     {
       titulo: 'Who this applies to',
       texto:
-        'This notice applies to passengers, drivers, applicants to become drivers, and people who contact TimorgianaRide. It supplements the Terms of Use and should be read before creating or using an account.',
+        'This notice applies to passengers, drivers, applicants to become drivers, and people who contact HAKAT. It supplements the Terms of Use and should be read before creating or using an account.',
     },
     {
       titulo: 'Data we collect',

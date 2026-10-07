@@ -91,7 +91,7 @@ const ARRANQUE = new Date().toISOString();
 
 app.get('/api/health', async (req, res) => {
   const base = {
-    service: 'TimorgianaRide',
+    service: 'TimorgianaRide', // identificação técnica: as apps instaladas procuram este valor; não mudar com a marca
     time: new Date().toISOString(),
     versao: VERSAO,
     desde: ARRANQUE,
@@ -176,7 +176,7 @@ app.use(mapaRouter);
 // só: ninguém sabe qual vale.
 //
 // Ao contrário do painel, estas QUEREM ser indexadas — quem procurar a
-// política de privacidade da TimorgianaRide deve encontrá-la.
+// política de privacidade da HAKAT deve encontrá-la.
 for (const [caminho, ficheiro] of [
   ['/privacidade', 'privacidade.html'],
   ['/termos', 'termos.html'],
@@ -610,7 +610,7 @@ async function start() {
   }, 60000).unref();
 
   server.listen(config.port, () => {
-    console.log(`[server] TimorgianaRide a escutar na porta ${config.port}`);
+    console.log(`[server] HAKAT a escutar na porta ${config.port}`);
   });
 }
 

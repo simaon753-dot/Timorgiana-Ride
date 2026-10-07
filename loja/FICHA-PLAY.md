@@ -1,4 +1,4 @@
-# Ficha da Google Play — TimorgianaRide
+# Ficha da Google Play — HAKAT
 
 Materiais e textos para a submissão. Os gráficos geram-se com
 `python3 loja/gerar.py`; as capturas de ecrã tira-as o Simão do telemóvel e
@@ -79,7 +79,7 @@ e quem instalar depois de a ver não se sente enganado.
 ## Nome (máx. 30 caracteres)
 
 ```
-TimorgianaRide
+HAKAT
 ```
 
 ## Descrição curta (máx. 80)
@@ -106,7 +106,7 @@ Viajen iha Dili. Selu ho osan. Motorista la selu komisaun.
 **Português**
 
 ```
-A TimorgianaRide liga passageiros a motoristas em Díli.
+A HAKAT liga passageiros a motoristas em Díli.
 
 Peça uma viagem de carro ou de motorizada, veja o preço antes de entrar, e
 pague em dinheiro ao motorista no fim.
@@ -158,7 +158,7 @@ viagem ser aceite, e deixa de o ser quando ela termina.
 Aviso de privacidade: https://timorgiana-ride.onrender.com/privacidade
 Termos de utilização: https://timorgiana-ride.onrender.com/termos
 
-TimorgianaRide é um serviço da Timorgiara Neto, Unipessoal, Lda · Díli, Timor-Leste
+HAKAT é um serviço da Timorgiara Neto, Unipessoal, Lda · Díli, Timor-Leste
 ```
 
 ---

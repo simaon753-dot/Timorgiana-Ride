@@ -24,7 +24,7 @@ export default function RodapeMarca() {
         accessibilityIgnoresInvertColors
       />
       <Logo size="sm" />
-      <Text style={styles.nome}>TimorgianaRide</Text>
+      <Text style={styles.nome}>HAKAT</Text>
       <Text style={styles.lugar}>DÍLI · TIMOR-LESTE</Text>
     </View>
   );

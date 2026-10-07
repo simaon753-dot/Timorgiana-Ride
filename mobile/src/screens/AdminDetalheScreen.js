@@ -95,7 +95,7 @@ export default function AdminDetalheScreen({ navigation, route }) {
       <CabecalhoEcra
         navigation={navigation}
         titulo={tipoAlvo === 'viagem' ? `${t('admDetalheViagem')} #${id}` : t('admDetalheConta')}
-        subtitulo="TimorgianaRide · Díli"
+        subtitulo="HAKAT · Díli"
       />
       <ScrollView contentContainerStyle={styles.conteudo}>
         <Aviso texto={erro} style={{ marginBottom: spacing.md }} />

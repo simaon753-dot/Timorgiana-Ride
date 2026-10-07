@@ -21,7 +21,7 @@ export interface PontoMapa {
 
 const CORES = { origem: '#0F766E', destino: '#FF6B57', paragem: '#687572' };
 
-// O MAPA DA VIAGEM, com o mapa próprio da TimorgianaRide (/mapa/estilo.json):
+// O MAPA DA VIAGEM, com o mapa próprio da HAKAT (/mapa/estilo.json):
 // os mosaicos são os nossos, e não há chave de terceiros nem custo por visita.
 //
 // Este ficheiro só é descarregado quando se abre uma viagem — o MapLibre pesa

@@ -1,4 +1,4 @@
-// Identidade visual TimorgianaRide
+// Identidade visual HAKAT
 // Paleta: teal (primária), coral (ação/destaque), papel (fundo)
 //
 // DUAS PALETAS, não duas marcas. A escura é a mesma identidade vista de

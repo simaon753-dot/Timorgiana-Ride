@@ -117,7 +117,7 @@ export const definicoes = {
   'def.guardarFormas': 'Guardar formas de pagamento',
   'def.formasGuardadas': 'Formas de pagamento guardadas.',
   'def.qr': 'Imagem do QR',
-  'def.qrNota': 'A imagem do QR que o banco deu à TimorgianaRide. O motorista vê-a quando escolhe pagar por QR. JPEG, PNG ou WebP, até 2 MB.',
+  'def.qrNota': 'A imagem do QR que o banco deu à HAKAT. O motorista vê-a quando escolhe pagar por QR. JPEG, PNG ou WebP, até 2 MB.',
   'def.qrCarregada': 'Imagem carregada',
   'def.qrEmFalta': 'Sem imagem',
   'def.qrCarregar': 'Carregar imagem',

@@ -354,7 +354,7 @@ adminRouter.get(
             AND created_at > NOW() - INTERVAL '24 hours')::int
           AS "semMotorista24h",
         -- Soma das tarifas cobradas PELOS MOTORISTAS nas viagens concluídas.
-        -- Não é receita da TimorgianaRide: a plataforma não cobra comissão e
+        -- Não é receita da HAKAT: a plataforma não cobra comissão e
         -- não recebe nada. Chamar-lhe receita seria dizer, no próprio painel
         -- da empresa, o contrário do que os termos afirmam.
         (SELECT COALESCE(SUM(fare_usd),0) FROM rides
@@ -1478,7 +1478,7 @@ adminRouter.get(
   })
 );
 
-// GET /api/admin/pagamentos/resumo — a receita da TimorgianaRide (17/09/2026)
+// GET /api/admin/pagamentos/resumo — a receita da HAKAT (17/09/2026)
 //
 // A ÚNICA RECEITA É A TAXA DE ACESSO: o que entrou em carregamentos. O preço
 // das viagens é do motorista, pago em mão, e não entra aqui — somá-lo seria

@@ -8,9 +8,9 @@
 export default {
   navegarSemDestino: 'The destination is missing. Go back and tap Navigate again.',
   navegarCom: 'Navigate with',
-  navegarNossa: 'TimorgianaRide (no Google)',
+  navegarNossa: 'HAKAT (no Google)',
   navegarComNota:
-    'TimorgianaRide uses our own map. Organic Maps works offline once the East Timor map is downloaded. Neither uses Google.',
+    'HAKAT uses our own map. Organic Maps works offline once the East Timor map is downloaded. Neither uses Google.',
   organicFalta: 'Organic Maps is not installed',
   organicFaltaNota:
     'It is free. After installing it, download the «East Timor» map inside it, ideally on Wi-Fi.',
@@ -308,7 +308,7 @@ export default {
   semMotoristaTexto:
     'Estimated fare: {preco}. The request stays open for {min} minutes and the first driver to accept takes it.',
   procurarMotoristaPreco: 'Find a driver · {preco}',
-  viagemSegura: 'Safe rides with TimorgianaRide',
+  viagemSegura: 'Safe rides with HAKAT',
   destinoSub: "Choose your destination and let's go!",
   procurarDestinoSub: 'Address, place or landmark',
   limparTudo: 'Clear all',
@@ -466,14 +466,14 @@ export default {
   avalCargaDiferente: 'The load was not what was agreed',
   sessaoAvisoTitulo: 'Your account was opened on another phone',
   sessaoAvisoTexto:
-    'You can finish the ride you are on. After that you will have to sign in again. If it was not you, tell TimorgianaRide and change your password.',
+    'You can finish the ride you are on. After that you will have to sign in again. If it was not you, tell HAKAT and change your password.',
   sessaoNoutroAparelho:
     'Your account was opened on another phone. If it was not you, sign in and change your password.',
   loginButton: 'Sign in',
   recEsqueci: 'I forgot my password',
   recTitulo: 'Recover access',
   recComo:
-    'Call TimorgianaRide and ask for an access code. It is given over the phone and works only once.',
+    'Call HAKAT and ask for an access code. It is given over the phone and works only once.',
   recCodigo: 'Access code',
   recCodigoInvalido: 'The code has six digits.',
   recNovaSenha: 'New password',
@@ -562,7 +562,7 @@ export default {
   detalheMotorista: 'Driver',
   detalheSuaAvaliacao: 'Your rating',
   detalheOcorrencias: 'What you reported',
-  detalheResposta: 'TimorgianaRide reply',
+  detalheResposta: 'HAKAT reply',
   reportarBotao: 'Report a problem',
   reportarBotaoDica: 'Lost item, charge, behaviour…',
   reportarPrazoPassou: 'The deadline to report this trip ended on {data}.',
@@ -572,13 +572,13 @@ export default {
   ocorEstadoArquivada: 'Closed',
   reportarTitulo: 'Report a problem',
   reportarTexto:
-    'The TimorgianaRide team will read it and follow up. It is linked to this trip, so you do not need to explain who, when or where.',
+    'The HAKAT team will read it and follow up. It is linked to this trip, so you do not need to explain who, when or where.',
   reportarEmergencia: 'In danger now? Use the SOS button or call 112 (police) or 110 (ambulance).',
   reportarQueAconteceu: 'What happened?',
   reportarDescricao: 'Tell us more',
   reportarDescricaoDica: 'For example: I left a blue umbrella on the back seat.',
   reportarPrivado:
-    'Only the TimorgianaRide team sees what you write here. The other person on the trip is not notified.',
+    'Only the HAKAT team sees what you write here. The other person on the trip is not notified.',
   reportarEnviar: 'Send',
   reportarEnviadoTitulo: 'We have received it',
   reportarEnviadoTexto:
@@ -655,7 +655,7 @@ export default {
   reporPrefsFeito: 'Preferences reset.',
   serverTitle: 'Server address',
   serverExplain:
-    "The TimorgianaRide server address. You only need to change this if the app can't connect.",
+    "The HAKAT server address. You only need to change this if the app can't connect.",
   serverField: 'Address',
   serverPlaceholder: 'e.g. 10.0.0.5:4000 or myserver.com',
   serverTest: 'Test connection',
@@ -815,15 +815,15 @@ export default {
   sos: 'Emergency',
   chatSemViagem: 'The chat only exists during a ride.',
   sosSentTitle: '🚨 Help request sent',
-  sosSentExplain: 'TimorgianaRide has been alerted. Do you want to call the police now?',
+  sosSentExplain: 'HAKAT has been alerted. Do you want to call the police now?',
   sosOnlyAlert: 'No, thanks',
   sosCall: 'Call {n}',
   emgAlso: 'or {n}',
   sosOffline: 'No connection',
-  sosOfflineExplain: "We couldn't alert TimorgianaRide. You can call the police directly.",
+  sosOfflineExplain: "We couldn't alert HAKAT. You can call the police directly.",
   shareTrip: 'Share ride',
   shareTripText:
-    'I am on a TimorgianaRide trip.\nDriver: {driver} ({plate})\nDestination: {dest}\nLocation: {link}',
+    'I am on a HAKAT trip.\nDriver: {driver} ({plate})\nDestination: {dest}\nLocation: {link}',
 
   cancelConfirmAccepted:
     'The driver is already on the way. Cancelling now means they lose the trip.',
@@ -867,7 +867,7 @@ export default {
   paisOutroDica: 'Type the full international number, with the country code and no +.',
   driverSoTimorTel: 'You must enter a valid phone number.',
   driverDeclaraCidadao:
-    'I declare that I am a citizen of Timor-Leste. Driving with TimorgianaRide is reserved for Timorese citizens.',
+    'I declare that I am a citizen of Timor-Leste. Driving with HAKAT is reserved for Timorese citizens.',
   errCidadaoTL: 'To drive you must declare that you are a citizen of Timor-Leste.',
 
   cancelWhyTitle: 'Why are you cancelling?',
@@ -900,7 +900,7 @@ export default {
   earningsLastDays: 'Per day',
   earningsEmpty: "You haven't completed any rides yet.",
   earningsNote:
-    'The amounts shown are the trips completed and recorded in the app. The passenger pays for the trip directly to the driver. TimorgianaRide does not receive or hold the trip money.',
+    'The amounts shown are the trips completed and recorded in the app. The passenger pays for the trip directly to the driver. HAKAT does not receive or hold the trip money.',
   // Ganhos e plano de atividade (04/10/2026)
   ganhosMelhorDia: 'Best day',
   ganhosColData: 'Date',

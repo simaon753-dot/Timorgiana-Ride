@@ -1,6 +1,6 @@
 export const pagamentos = {
   'pag.titulo': 'Pagamentos',
-  'pag.descricao': 'A Taxa de Acesso dos motoristas — a única receita da TimorgianaRide. O preço das viagens é do motorista e não passa por aqui.',
+  'pag.descricao': 'A Taxa de Acesso dos motoristas — a única receita da HAKAT. O preço das viagens é do motorista e não passa por aqui.',
   'pag.gratuitoTitulo': 'Sem taxa de acesso até novo aviso oficial',
   'pag.gratuitoTexto': 'Nenhum motorista paga nem é bloqueado; os dias de trabalho ficam registados como gratuitos. A cobrança só começa quando anunciar aqui o dia, com pelo menos {n} dias de antecedência — é o que os termos do motorista prometem. As compras abrem com o anúncio.',
   'pag.anunciadoTitulo': 'Sem taxa de acesso até {d}',

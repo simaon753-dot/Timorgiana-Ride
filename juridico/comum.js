@@ -1,4 +1,4 @@
-// Base comum dos documentos jurídicos da TimorgianaRide.
+// Base comum dos documentos jurídicos da HAKAT.
 //
 // Sete documentos com o mesmo cabeçalho, a mesma tipografia e a mesma
 // numeração. Escritos num sítio só para não divergirem: sete ficheiros com
@@ -16,7 +16,7 @@ const CORAL = 'C0392B';
 const EMPRESA = 'Timorgiara Neto, Unipessoal, Lda';
 const MORADA = 'Bidau Toko-Baru, Cristo Rei, Díli, Timor-Leste';
 const CONTACTOS = '+670 74192857  ·  +670 75684566';
-const APP = 'TimorgianaRide';
+const APP = 'HAKAT';
 
 // Data de emissão. Muda aqui e muda nos sete.
 const VERSAO = '14 de Setembro de 2026';

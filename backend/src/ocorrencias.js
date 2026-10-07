@@ -5,7 +5,7 @@ import { query, one } from './db.js';
 // PORQUE EXISTE. A avaliação diz COMO correu, e os motivos das estrelas
 // baixas dizem o que correu menos bem. Mas há coisas que não são uma nota: um
 // objecto esquecido no banco de trás, uma cobrança acima do preço, um
-// assédio. Isso precisa de alguém do lado da TimorgianaRide que leia, trate e
+// assédio. Isso precisa de alguém do lado da HAKAT que leia, trate e
 // responda — e de ficar PRESO À VIAGEM, para quem trata saber logo quem
 // conduzia, quem viajava, quando e por onde, sem ter de perguntar.
 //

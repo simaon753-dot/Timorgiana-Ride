@@ -7,7 +7,7 @@ export const viagens = {
   'viag.cartaoCanceladas': 'Canceladas (24 h)',
   'viag.cartaoSemMotorista': 'Sem motorista (24 h)',
   'viag.tarifas': 'Tarifas cobradas pelos motoristas nas últimas 24 horas: {v}.',
-  'viag.tarifasNota': 'É dinheiro dos motoristas, pago em mão — não é receita da TimorgianaRide, que não cobra comissão.',
+  'viag.tarifasNota': 'É dinheiro dos motoristas, pago em mão — não é receita da HAKAT, que não cobra comissão.',
   'viag.filtroVeiculo': 'Filtrar por tipo de veículo',
   'viag.horas24': 'Últimas 24 horas',
   'viag.horas48': 'Últimas 48 horas',

@@ -2,9 +2,9 @@
 export default {
   navegarSemDestino: 'Falta o destino. Volte e toque outra vez em Navegar.',
   navegarCom: 'Navegar com',
-  navegarNossa: 'TimorgianaRide (sem Google)',
+  navegarNossa: 'HAKAT (sem Google)',
   navegarComNota:
-    'A TimorgianaRide usa o nosso mapa. O Organic Maps funciona sem internet, depois de descarregado o mapa «East Timor». Nenhum dos dois usa o Google.',
+    'A HAKAT usa o nosso mapa. O Organic Maps funciona sem internet, depois de descarregado o mapa «East Timor». Nenhum dos dois usa o Google.',
   organicFalta: 'O Organic Maps não está instalado',
   organicFaltaNota:
     'É gratuito. Depois de o instalar, descarregue lá dentro o mapa «East Timor», de preferência com Wi-Fi.',
@@ -309,7 +309,7 @@ export default {
   semMotoristaTexto:
     'Preço estimado: {preco}. O pedido fica aberto {min} minutos, e o primeiro motorista que aceitar leva-o.',
   procurarMotoristaPreco: 'Procurar motorista · {preco}',
-  viagemSegura: 'Viagem segura com a TimorgianaRide',
+  viagemSegura: 'Viagem segura com a HAKAT',
   destinoSub: 'Escolha o destino e vamos lá!',
   procurarDestinoSub: 'Endereço, local ou ponto de interesse',
   limparTudo: 'Limpar tudo',
@@ -468,14 +468,14 @@ export default {
   avalCargaDiferente: 'A carga não era a combinada',
   sessaoAvisoTitulo: 'A sua conta foi aberta noutro telemóvel',
   sessaoAvisoTexto:
-    'Pode terminar a viagem que tem em mãos. Depois disso terá de entrar de novo. Se não foi você, avise a TimorgianaRide e mude a palavra-passe.',
+    'Pode terminar a viagem que tem em mãos. Depois disso terá de entrar de novo. Se não foi você, avise a HAKAT e mude a palavra-passe.',
   sessaoNoutroAparelho:
     'A sua conta foi aberta noutro telemóvel. Se não foi você, entre e mude a palavra-passe.',
   loginButton: 'Entrar',
   recEsqueci: 'Esqueci a palavra-passe',
   recTitulo: 'Recuperar o acesso',
   recComo:
-    'Telefone para a TimorgianaRide e peça um código de acesso. É dito ao telefone e serve uma vez só.',
+    'Telefone para a HAKAT e peça um código de acesso. É dito ao telefone e serve uma vez só.',
   recCodigo: 'Código de acesso',
   recCodigoInvalido: 'O código tem seis dígitos.',
   recNovaSenha: 'Palavra-passe nova',
@@ -570,7 +570,7 @@ export default {
   detalheMotorista: 'Motorista',
   detalheSuaAvaliacao: 'A sua avaliação',
   detalheOcorrencias: 'O que reportou',
-  detalheResposta: 'Resposta da TimorgianaRide',
+  detalheResposta: 'Resposta da HAKAT',
   reportarBotao: 'Reportar um problema',
   reportarBotaoDica: 'Objeto esquecido, cobrança, comportamento…',
   reportarPrazoPassou: 'O prazo para reportar esta viagem terminou a {data}.',
@@ -580,14 +580,14 @@ export default {
   ocorEstadoArquivada: 'Arquivada',
   reportarTitulo: 'Reportar um problema',
   reportarTexto:
-    'A equipa da TimorgianaRide vai ler e tratar. Fica ligado a esta viagem, por isso não precisa de explicar quem, quando nem onde.',
+    'A equipa da HAKAT vai ler e tratar. Fica ligado a esta viagem, por isso não precisa de explicar quem, quando nem onde.',
   reportarEmergencia:
     'Em perigo agora? Use o botão SOS ou ligue 112 (polícia) ou 110 (ambulância).',
   reportarQueAconteceu: 'O que aconteceu?',
   reportarDescricao: 'Conte-nos mais',
   reportarDescricaoDica: 'Por exemplo: esqueci um guarda-chuva azul no banco de trás.',
   reportarPrivado:
-    'Só a equipa da TimorgianaRide vê o que escreve aqui. A outra pessoa da viagem não é avisada.',
+    'Só a equipa da HAKAT vê o que escreve aqui. A outra pessoa da viagem não é avisada.',
   reportarEnviar: 'Enviar',
   reportarEnviadoTitulo: 'Recebemos',
   reportarEnviadoTexto:
@@ -666,7 +666,7 @@ export default {
   reporPrefsFeito: 'Preferências repostas.',
   serverTitle: 'Endereço do servidor',
   serverExplain:
-    'Endereço do servidor TimorgianaRide. Só precisas de mexer aqui se a app não conseguir ligar-se.',
+    'Endereço do servidor HAKAT. Só precisas de mexer aqui se a app não conseguir ligar-se.',
   serverField: 'Endereço',
   serverPlaceholder: 'Ex.: 10.0.0.5:4000 ou meuservidor.com',
   serverTest: 'Testar ligação',
@@ -829,15 +829,15 @@ export default {
   sos: 'Emergência',
   chatSemViagem: 'A conversa só existe durante uma viagem.',
   sosSentTitle: '🚨 Pedido de ajuda enviado',
-  sosSentExplain: 'A TimorgianaRide foi avisada. Queres ligar à polícia agora?',
+  sosSentExplain: 'A HAKAT foi avisada. Queres ligar à polícia agora?',
   sosOnlyAlert: 'Não, obrigado',
   sosCall: 'Ligar {n}',
   emgAlso: 'ou {n}',
   sosOffline: 'Sem ligação',
-  sosOfflineExplain: 'Não conseguimos avisar a TimorgianaRide. Pode ligar à polícia directamente.',
+  sosOfflineExplain: 'Não conseguimos avisar a HAKAT. Pode ligar à polícia directamente.',
   shareTrip: 'Partilhar viagem',
   shareTripText:
-    'Estou numa viagem TimorgianaRide.\nMotorista: {driver} ({plate})\nDestino: {dest}\nPosição: {link}',
+    'Estou numa viagem HAKAT.\nMotorista: {driver} ({plate})\nDestino: {dest}\nPosição: {link}',
 
   // Cancelamentos
   cancelConfirmAccepted:
@@ -882,7 +882,7 @@ export default {
   paisOutroDica: 'Escreva o número internacional inteiro, com o indicativo e sem o +.',
   driverSoTimorTel: 'Tem de escrever um número de telefone válido.',
   driverDeclaraCidadao:
-    'Declaro que sou cidadão de Timor-Leste. Conduzir na TimorgianaRide está reservado a cidadãos timorenses.',
+    'Declaro que sou cidadão de Timor-Leste. Conduzir na HAKAT está reservado a cidadãos timorenses.',
   errCidadaoTL: 'Para conduzir é preciso declarar que é cidadão de Timor-Leste.',
 
   // Cancelamento
@@ -919,7 +919,7 @@ export default {
   earningsLastDays: 'Por dia',
   earningsEmpty: 'Ainda não concluíste nenhuma viagem.',
   earningsNote:
-    'Os valores apresentados correspondem às viagens concluídas e registadas na aplicação. O pagamento da viagem é efetuado diretamente pelo passageiro ao motorista. A TimorgianaRide não recebe nem guarda o valor da viagem.',
+    'Os valores apresentados correspondem às viagens concluídas e registadas na aplicação. O pagamento da viagem é efetuado diretamente pelo passageiro ao motorista. A HAKAT não recebe nem guarda o valor da viagem.',
   // Ganhos e plano de atividade (04/10/2026)
   ganhosMelhorDia: 'Melhor dia',
   ganhosColData: 'Data',

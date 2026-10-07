@@ -5,7 +5,7 @@ module.exports = C.documento(
   'Política de Segurança dos Passageiros',
   `${C.EMPRESA}  ·  ${C.MORADA}  ·  ${C.CONTACTOS}  ·  Versão de ${C.VERSAO}`,
   [
-    P('Esta Política descreve o que a TimorgianaRide faz para proteger quem viaja, o que pede ao passageiro que faça, e — com igual clareza — o que não pode garantir.'),
+    P('Esta Política descreve o que a HAKAT faz para proteger quem viaja, o que pede ao passageiro que faça, e — com igual clareza — o que não pode garantir.'),
 
     A('1.', 'Quem conduz foi verificado'),
     P('Nenhum motorista recebe pedidos de viagem sem que a sua conta tenha sido aprovada. A aprovação exige seis documentos: fotografia, documento de identificação, carta de condução — frente e verso, porque é no verso que constam as categorias de veículos que o motorista pode conduzir —, cartão de registo do veículo e cartão de inspeção.'),

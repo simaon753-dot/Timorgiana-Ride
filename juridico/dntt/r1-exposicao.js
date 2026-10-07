@@ -19,7 +19,7 @@ module.exports = documento(
 
     rico([
       ['Assunto: '],
-      'Apresentação da plataforma TimorgianaRide, pedido de audiência e manifestação de ' +
+      'Apresentação da plataforma HAKAT, pedido de audiência e manifestação de ' +
         'disponibilidade para o enquadramento regulamentar da atividade.',
     ], { after: 240 }),
 

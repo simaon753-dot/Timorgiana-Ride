@@ -56,7 +56,7 @@ export const layout = {
   'pesquisa.codigoNaoEncontrado': 'Nenhuma viagem com o código {codigo}.',
   'pesquisa.aProcurar': 'A procurar…',
 
-  'rodape.direitos': '© {ano} TimorgianaRide. Todos os direitos reservados.',
+  'rodape.direitos': '© {ano} HAKAT. Todos os direitos reservados.',
   'rodape.termos': 'Termos de utilização',
   'rodape.privacidade': 'Política de privacidade',
   'rodape.versao': 'Versão {v}',
