@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-"""Os pinos novos do Simão (07/10/2026): gota com ANEL branco e ponto por baixo.
+"""Os pinos do Simão (07/10/2026): gota com círculo branco e ponto por baixo.
 
-ENTRADA  desenho/imagens/Pinos 07-10/pino {recolha,destino}.png  (fora do git)
+DUAS RONDAS NO MESMO DIA: de manhã com um anel branco; à tarde a versão que
+ele chamou FINAL, com o círculo branco cheio. É esta que vale.
+
+ENTRADA  desenho/imagens/Pinos finais 07-10/pino {recolha,destino}.png  (fora do git)
 SAÍDA    assets/mapa/pino-{origem,destino}{,-pequeno}{,@2x,@3x}.png
 
 O MESMO TAMANHO DOS ANTERIORES, ao ponto — foi o pedido. Os grandes ficam em
@@ -30,12 +33,12 @@ _spec = importlib.util.spec_from_file_location('icones', os.path.join(AQUI, 'rec
 icones = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(icones)
 
-ORIGEM = os.path.abspath(os.path.join(AQUI, '..', '..', 'desenho', 'imagens', 'Pinos 07-10'))
+ORIGEM = os.path.abspath(os.path.join(AQUI, '..', '..', 'desenho', 'imagens', 'Pinos finais 07-10'))
 DESTINO = os.path.join(AQUI, '..', 'assets', 'mapa')
 
-# A luminosidade do corpo teal destes desenhos (#017D82), medida: com ela o
+# A luminosidade do corpo teal destes desenhos (#017B7A), medida: com ela o
 # corpo sai exactamente em #0E5C54.
-L_CORPO_RECOLHA = (130 + 1) / 2 / 255
+L_CORPO_RECOLHA = (123 + 1) / 2 / 255
 
 # nome de saída -> (ficheiro, tamanho em pontos, pintar de teal?)
 PINOS = {

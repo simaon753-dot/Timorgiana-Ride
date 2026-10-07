@@ -317,11 +317,11 @@ const ALTERNATIVA_PERTO_M = 300;
 // `scripts/recortar-novos-icones.py` a produzir 46x59, deu 0,9689.
 // (Mudou com os pinos novos de 22/09: o desenho é menos alto e o ponto
 // está mais em baixo — 0,941 apontaria acima do sítio.)
-// (E outra vez com os de 07/10, de anel branco, feitos por
+// (E outra vez com os FINAIS de 07/10, de círculo branco cheio, feitos por
 // `scripts/recortar-pinos-novos.py`: o ponto de baixo é maior e o centro dele
-// sobe — recolha 0,9576, destino 0,9633. Um número para os dois, o do meio:
-// fica a menos de 0,2 pontos de cada um.)
-const ANCORA_Y = 0.9605;
+// sobe — recolha 0,9492, destino 0,9520. Um número para os dois, o do meio:
+// fica a menos de 0,1 ponto de cada um.)
+const ANCORA_Y = 0.9506;
 
 // QUANTO A MIRA SOBE PARA A PONTA CAIR NO CENTRO DO ECRÃ.
 //
