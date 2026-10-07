@@ -432,6 +432,7 @@ export const MENSAGENS = {
 
   // ── Lugares e cotação
   'Tipo desconhecido.': ['Tipu deskoñesidu.', 'Unknown type.'],
+  'Categoria desconhecida.': ['Kategoria deskoñesidu.', 'Unknown category.'],
   'Nome inválido.': ['Naran inválidu.', 'Invalid name.'],
   'Faltam as coordenadas.': ['Falta koordenada.', 'Coordinates missing.'],
   // Baptizar um sítio no painel (30/09/2026). Tétum revisto pelo Simão no mesmo dia.

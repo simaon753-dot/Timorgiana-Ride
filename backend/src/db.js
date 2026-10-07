@@ -393,6 +393,8 @@ export async function initSchema() {
   // conjunto da ONU. Mas é como as pessoas em Díli dizem onde moram, e um
   // endereço sem ele fica irreconhecível para quem lá vive.
   await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS bairro    TEXT`);
+  // A categoria exata do Giara (07/10/2026), escolhida no painel. Ver giaraCategorias.js.
+  await query(`ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS categoria TEXT`);
   // O nome sem acentos e em minúsculas, para a busca.
   //
   // O `ILIKE` do Postgres não ignora acentos: sem isto, quem escreve

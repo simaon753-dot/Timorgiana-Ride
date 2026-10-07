@@ -683,6 +683,7 @@ async function api(req, res, url) {
       id: Math.max(0, ...lugares.map((l) => l.id)) + 1, nome, nomeMapa: null, lat: b.lat, lng: b.lng, estado: 'aceite',
       quando: new Date().toISOString(), quem: 'Administrador (demonstração)', tipo: b.tipo || null,
       tipoOutro: b.tipo === 'outro' ? b.tipoOutro || null : null,
+      categoria: b.categoria || null,
       morada: [b.endereco, b.aldeia, b.bairro, b.suco, b.posto, b.municipio].filter(Boolean).join(', ') || null,
       etiquetas: `name=${nome}`, etiqueta: null, mostrarSempre: b.mostrarSempre === true, googleConhece: null,
       editar: `https://www.openstreetmap.org/edit#map=19/${Number(b.lat).toFixed(5)}/${Number(b.lng).toFixed(5)}`,

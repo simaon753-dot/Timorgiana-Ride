@@ -201,7 +201,7 @@ export async function enviarAoGiara() {
     let total = 0;
     for (;;) {
       const lugares = await query(
-        `SELECT id, nome, lat, lng, tipo, tipo_outro, municipio, posto, suco, aldeia, bairro, endereco
+        `SELECT id, nome, lat, lng, tipo, tipo_outro, categoria, municipio, posto, suco, aldeia, bairro, endereco
            FROM lugares_propostos
           WHERE estado = 'aceite' AND giara_enviado_em IS NULL
           ORDER BY id

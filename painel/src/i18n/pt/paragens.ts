@@ -66,6 +66,11 @@ export const paragens = {
   'tipoLugar.bairro': 'Bairro ou zona',
   'tipoLugar.poi': 'Ponto de interesse',
   'tipoLugar.outro': 'Outro',
+  // As subcategorias do Giara, por baixo dos botões (07/10/2026).
+  'parag.categoriaPesquisa': 'Pesquisar categoria (ex.: capela, oficina)',
+  'parag.categoriaEscolhida': 'Categoria no mapa:',
+  'parag.categoriaNoutros': 'Noutros grupos',
+  'parag.categoriaNenhuma': 'Nenhuma categoria com esse nome.',
   'parag.ondeFica': 'Onde fica',
   'parag.ondeFicaExplica': 'Para o mapa aceitar o sítio, ajuda saber onde ele fica. Preenchemos o que já sabemos pelas coordenadas.',
   'parag.aDescobrir': 'A ver onde fica…',

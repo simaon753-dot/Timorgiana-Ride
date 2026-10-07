@@ -166,6 +166,7 @@ export const api = {
     mostrarSempre: boolean;
     tipo?: string | null;
     tipoOutro?: string | null;
+    categoria?: string | null;
     endereco?: string | null;
     municipio?: string | null;
     posto?: string | null;

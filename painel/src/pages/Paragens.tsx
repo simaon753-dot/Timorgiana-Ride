@@ -25,6 +25,8 @@ import { Menu, MenuAbrir, MenuConteudo, MenuItem, MenuSeparador } from '@/compon
 import { DialogoConfirmacao } from '@/components/ui/confirmar';
 import { avisar, mensagemDe } from '@/components/ui/aviso';
 import { IlustracaoIcone } from '@/components/ilustracoes';
+import { EscolherCategoria } from '@/components/escolher-categoria';
+import { CATEGORIA_DO_TIPO, nomeCategoria, tipoDaCategoria } from '@/lib/categoriasGiara';
 
 // O MapLibre pesa mais do que o resto do painel junto: só se descarrega quando
 // se abre a janela de baptizar, como o mapa da viagem.
@@ -160,7 +162,7 @@ function Lugares({ procura, estadoInicial }: { procura: string; estadoInicial: E
                   <TCelula>
                     <p className="font-semibold">{l.nome}</p>
                     <p className="text-xs text-secundario">
-                      {l.etiqueta ?? (l.tipo === 'outro' && l.tipoOutro ? `${t('tipoLugar.outro')}: ${l.tipoOutro}` : l.tipo) ?? '—'}
+                      {nomeCategoria(l.categoria) ?? l.etiqueta ?? (l.tipo === 'outro' && l.tipoOutro ? `${t('tipoLugar.outro')}: ${l.tipoOutro}` : l.tipo) ?? '—'}
                     </p>
                     {l.mostrarSempre ? (
                       <Distintivo cor="teal" className="mt-1">
@@ -487,6 +489,7 @@ const esquemaBaptizar = z.object({
   mostrarSempre: z.boolean(),
   tipo: z.string(),
   tipoOutro: z.string(),
+  categoria: z.string(),
   endereco: z.string(),
   municipio: z.string(),
   posto: z.string(),
@@ -495,7 +498,7 @@ const esquemaBaptizar = z.object({
   bairro: z.string(),
 });
 type FormBaptizar = z.input<typeof esquemaBaptizar>;
-const VAZIO: FormBaptizar = { nome: '', sitio: '', mostrarSempre: false, tipo: '', tipoOutro: '', endereco: '', municipio: '', posto: '', suco: '', aldeia: '', bairro: '' };
+const VAZIO: FormBaptizar = { nome: '', sitio: '', mostrarSempre: false, tipo: '', tipoOutro: '', categoria: '', endereco: '', municipio: '', posto: '', suco: '', aldeia: '', bairro: '' };
 
 // A árvore não muda enquanto o painel está aberto: pede-se uma vez.
 let arvoreGuardada: MunicipioArvore[] | null = null;
@@ -522,7 +525,7 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
   // O pino segue o campo: só um ponto que se percebe e que é de Timor-Leste.
   const lido = lerCoordenadas(watch('sitio'));
   const ponto = lido && dentroDeTL(lido) ? lido : null;
-  const [mostrarSempre, tipo, municipioId, postoId, sucoId, aldeia] = watch(['mostrarSempre', 'tipo', 'municipio', 'posto', 'suco', 'aldeia']);
+  const [mostrarSempre, tipo, categoria, municipioId, postoId, sucoId, aldeia] = watch(['mostrarSempre', 'tipo', 'categoria', 'municipio', 'posto', 'suco', 'aldeia']);
 
   // A árvore, ao abrir.
   useEffect(() => {
@@ -602,6 +605,7 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
         mostrarSempre: f.mostrarSempre,
         tipo: f.tipo || null,
         tipoOutro: f.tipo === 'outro' ? texto(f.tipoOutro) : null,
+        categoria: f.tipo ? f.categoria || null : null,
         endereco: texto(f.endereco),
         municipio: municipios.find((m) => m.id === f.municipio)?.nome ?? null,
         posto: postos.find((x) => x.id === f.posto)?.nome ?? null,
@@ -680,6 +684,8 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
                         aria-pressed={escolhido}
                         onClick={() => {
                           setValue('tipo', escolhido ? '' : x);
+                          // Um toque já escolhe a categoria mais comum do botão.
+                          setValue('categoria', escolhido ? '' : CATEGORIA_DO_TIPO[x] ?? '');
                           if (x !== 'outro' || escolhido) setValue('tipoOutro', '');
                         }}
                         className={cn(
@@ -692,6 +698,18 @@ function BaptizarLugar({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMuda
                     );
                   })}
                 </div>
+                {/* AS SUBCATEGORIAS DO GIARA (07/10/2026, pedido do Simão): o nome
+                    vai para o Giara Maps, e lá a categoria é a exata. A chave
+                    reinicia a pesquisa ao trocar de botão. */}
+                {tipo ? <EscolherCategoria key={tipo} tipo={tipo} categoria={categoria} aoEscolher={(c) => {
+                      setValue('categoria', c);
+                      const novo = tipoDaCategoria(c, tipo);
+                      if (novo !== tipo) {
+                        setValue('tipo', novo);
+                        // Em «Outro», o «Que tipo?» fica já escrito com a categoria.
+                        setValue('tipoOutro', novo === 'outro' ? nomeCategoria(c) ?? '' : '');
+                      }
+                    }} /> : null}
                 {/* «OUTRO» PEDE O TIPO ESCRITO (30/09/2026, pedido do Simão): sozinho
                     não diz a quem revê que etiqueta pôr no OpenStreetMap. */}
                 {tipo === 'outro' ? (

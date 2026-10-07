@@ -586,6 +586,8 @@ export interface LugarProposto {
   googleConhece?: boolean | null;
   // O que se escreveu ao escolher o tipo «Outro» (30/09/2026).
   tipoOutro?: string | null;
+  // A categoria exata do Giara, escolhida no painel (07/10/2026).
+  categoria?: string | null;
 }
 
 // A árvore administrativa (dados da ONU), e o que as coordenadas dizem dela —
