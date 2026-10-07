@@ -30,7 +30,7 @@ import { estadoDasRotasNossas } from './comparacaoRotas.js';
 import { mapaRouter } from '../mapa/index.js';
 import { estadoDoEmail } from './email.js';
 import { estadoDoSms, ligado as ligadoSms } from './confirmacaoTelefone.js';
-import { sincronizarGiara, estadoGiara } from './giara.js';
+import { sincronizarGiara, estadoGiara, enviarAoGiara, estadoEnvioGiara } from './giara.js';
 import { municipioDe } from './municipios.js';
 import {
   ACTIVE_DRIVER,
@@ -124,7 +124,7 @@ app.get('/api/health', async (req, res) => {
       memoriaMB: Math.round(process.memoryUsage().rss / 1e6),
       email: estadoDoEmail(),
       sms: estadoDoSms(),
-      giara: estadoGiara(),
+      giara: { ...estadoGiara(), envio: estadoEnvioGiara() },
     });
   } catch (e) {
     console.error('[health] base de dados inacessível:', e.message);
@@ -488,6 +488,9 @@ async function start() {
     // arrancar e depois de seis em seis horas. Ver `giara.js`.
     setTimeout(sincronizarGiara, 3 * 60 * 1000).unref?.();
     setInterval(sincronizarGiara, 6 * 60 * 60 * 1000).unref?.();
+    // E no outro sentido: os aceites ainda por enviar, de 10 em 10 minutos.
+    setTimeout(enviarAoGiara, 4 * 60 * 1000).unref?.();
+    setInterval(enviarAoGiara, 10 * 60 * 1000).unref?.();
   } catch (e) {
     console.error('[arranque] não foi possível preparar a base de dados:', e.message);
     process.exit(1);

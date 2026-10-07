@@ -462,6 +462,11 @@ export async function initSchema() {
     )
   `);
   await query('CREATE INDEX IF NOT EXISTS idx_giara_lat_lng ON lugares_giara(lat, lng)');
+  // Quando o lugar aceite foi enviado ao Giara como proposta (giara.js).
+  // NULL = ainda não: a passagem de 10 em 10 minutos tenta outra vez.
+  await query(
+    'ALTER TABLE lugares_propostos ADD COLUMN IF NOT EXISTS giara_enviado_em TIMESTAMPTZ'
+  );
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_lat DOUBLE PRECISION`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_lng DOUBLE PRECISION`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ`);

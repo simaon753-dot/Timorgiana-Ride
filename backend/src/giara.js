@@ -1,5 +1,6 @@
 import { query, tx } from './db.js';
 import { normalizar } from './texto.js';
+import { categoriaGiara } from './giaraCategorias.js';
 
 // OS LUGARES DO TIMORGIANA MAPS (GIARA) NA PESQUISA DA APP (07/10/2026,
 // pedido do Simão: «liga os dois mapas»).
@@ -171,5 +172,86 @@ export async function sincronizarGiara() {
     estado = { ...estado, ultima: new Date().toISOString(), erro: e.message };
     console.error('[giara]', e.message);
     return { erro: e.message };
+  }
+}
+
+// ── NO OUTRO SENTIDO: os lugares aceites aqui vão para o Giara (07/10/2026) ──
+//
+// Pedido do Simão: um nome aceite no painel da TimorgianaRide deve chegar ao
+// Giara sozinho. Chega como PROPOSTA, num rascunho «Lugares novos da
+// TimorgianaRide» em nome do Super Admin: nada aparece no mapa público sem
+// ele rever e publicar, como qualquer edição feita no editor.
+//
+// Uma chave partilhada (GIARA_INTEGRACAO_TOKEN aqui, MAP_INTEGRATION_TOKEN no
+// Giara, o MESMO valor). Sem ela, não se envia nada e o /api/health diz
+// porquê. O Giara não aceita o mesmo lugar duas vezes (pelo «tgr-N»), por isso
+// reenviar é seguro — e é o que a passagem de 10 em 10 minutos faz ao que
+// tenha falhado (o Giara a dormir, sem rede).
+const LOTE = 100; // o máximo que o Giara aceita por pedido
+let aEnviar = false;
+let envio = { ligado: false, enviados: 0, ultimo: null, erro: null };
+export const estadoEnvioGiara = () => ({ ...envio, ligado: !!chave() });
+const chave = () => process.env.GIARA_INTEGRACAO_TOKEN?.trim() || null;
+
+export async function enviarAoGiara() {
+  if (desligado() || !chave()) return { saltado: 'sem chave' };
+  if (aEnviar) return { saltado: 'já a enviar' };
+  aEnviar = true;
+  try {
+    let total = 0;
+    for (;;) {
+      const lugares = await query(
+        `SELECT id, nome, lat, lng, tipo, tipo_outro, municipio, posto, suco, aldeia, bairro, endereco
+           FROM lugares_propostos
+          WHERE estado = 'aceite' AND giara_enviado_em IS NULL
+          ORDER BY id
+          LIMIT ${LOTE}`
+      );
+      if (!lugares.length) break;
+      const places = lugares.map((l) => ({
+        id: `tgr-${l.id}`,
+        name: l.nome.trim().slice(0, 300),
+        lat: Number(l.lat),
+        lng: Number(l.lng),
+        category: categoriaGiara(l),
+        municipality: l.municipio || null,
+        administrativePost: l.posto || null,
+        suco: l.suco || null,
+        aldeia: l.aldeia || null,
+        neighborhood: l.bairro || null,
+        address: l.endereco || null,
+        description: l.tipo === 'outro' && l.tipo_outro ? l.tipo_outro : null,
+      }));
+      const r = await fetch(`${GIARA}/editor-api/integrations/timorgianaride/places`, {
+        method: 'POST',
+        headers: { authorization: `Bearer ${chave()}`, 'content-type': 'application/json' },
+        body: JSON.stringify({ places }),
+        // O Giara pode estar a dormir: até um minuto para acordar.
+        signal: AbortSignal.timeout(60_000),
+      });
+      const corpo = await r.json().catch(() => ({}));
+      if (!r.ok)
+        throw new FalhaGiara(`o Giara recusou as propostas (${r.status}): ${corpo?.error ?? ''}`);
+      await query(
+        'UPDATE lugares_propostos SET giara_enviado_em = NOW() WHERE id = ANY($1::int[])',
+        [lugares.map((l) => l.id)]
+      );
+      total += Number(corpo.added) || 0;
+      if (lugares.length < LOTE) break;
+    }
+    envio = {
+      ligado: true,
+      enviados: envio.enviados + total,
+      ultimo: new Date().toISOString(),
+      erro: null,
+    };
+    if (total) console.log(`[giara] ${total} lugar(es) proposto(s) ao Giara`);
+    return { propostos: total };
+  } catch (e) {
+    envio = { ...envio, ultimo: new Date().toISOString(), erro: e.message };
+    console.error('[giara] envio:', e.message);
+    return { erro: e.message };
+  } finally {
+    aEnviar = false;
   }
 }

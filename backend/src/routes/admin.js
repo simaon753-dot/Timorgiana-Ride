@@ -70,6 +70,7 @@ import { fotoDaCarga } from '../fotosDaCarga.js';
 import { destinosDaViagem } from '../destinosDaViagem.js';
 import { percursoDe } from '../percursos.js';
 import { normalizarReferencia } from '../referenciaViagem.js';
+import { enviarAoGiara } from '../giara.js';
 
 export const adminRouter = Router();
 adminRouter.use(requireAuth);
@@ -1947,6 +1948,9 @@ adminRouter.post(
           : query('UPDATE lugares_propostos SET google_conhece = $2 WHERE id = $1', [novo.id, sabe])
       )
       .catch((e) => console.error('[lugares] googleConhece:', e.message));
+    // Para o Giara como proposta. Trinta segundos de espera: o município e o
+    // posto acima chegam por um pedido de fora, e a proposta deve levá-los.
+    setTimeout(() => enviarAoGiara().catch(() => {}), 30_000).unref?.();
   })
 );
 
@@ -2053,6 +2057,8 @@ adminRouter.post(
           await query('UPDATE lugares_propostos SET google_conhece = $2 WHERE id = $1', [id, sabe]);
         })
         .catch((e) => console.error('[lugares] googleConhece:', e.message));
+      // E vai para o Giara como proposta, sem o painel ficar à espera.
+      enviarAoGiara().catch(() => {});
     }
 
     res.json({ ok: true });

@@ -16,26 +16,11 @@
 import 'dotenv/config';
 import fs from 'node:fs';
 import { query } from '../src/db.js';
+import { categoriaGiara } from '../src/giaraCategorias.js';
 
 const destino = process.argv[2] || 'lugares-para-giara.csv';
 
-// tipo na TimorgianaRide → categoria do Giara (database/migrations/004).
-const CATEGORIA = {
-  edificio: 'building',
-  loja: 'shop',
-  restaurante: 'restaurant',
-  escola: 'school',
-  hotel: 'hotel',
-  escritorio: 'company',
-  igreja: 'church',
-};
-function categoria(l) {
-  if (CATEGORIA[l.tipo]) return CATEGORIA[l.tipo];
-  // Os «outro» são sobretudo ATMs; o nome di-lo.
-  if (/^atm\b/i.test(l.nome)) return 'atm';
-  if (/\bbanco\b|\bbank\b|\bBNU\b|\bBNCTL\b/i.test(l.nome)) return 'bank';
-  return 'other';
-}
+const categoria = categoriaGiara;
 
 const cel = (v) => {
   let t = v == null ? '' : String(v);
@@ -50,16 +35,45 @@ const lugares = await query(
 );
 
 const linhas = [
-  ['id', 'kind', 'name', 'category', 'source', 'longitude', 'latitude', 'municipality',
-    'administrative_post', 'suco', 'aldeia', 'neighborhood', 'address', 'description'].map(cel).join(','),
+  [
+    'id',
+    'kind',
+    'name',
+    'category',
+    'source',
+    'longitude',
+    'latitude',
+    'municipality',
+    'administrative_post',
+    'suco',
+    'aldeia',
+    'neighborhood',
+    'address',
+    'description',
+  ]
+    .map(cel)
+    .join(','),
 ];
 for (const l of lugares) {
   linhas.push(
     [
-      `tgr-${l.id}`, 'place', l.nome.trim(), categoria(l), 'TimorgianaRide — nomes aceites no painel',
-      Number(l.lng).toFixed(7), Number(l.lat).toFixed(7), l.municipio, l.posto, l.suco, l.aldeia,
-      l.bairro, l.endereco, l.tipo === 'outro' && l.tipo_outro ? l.tipo_outro : null,
-    ].map((v, i) => (i === 5 || i === 6 ? v : cel(v))).join(',')
+      `tgr-${l.id}`,
+      'place',
+      l.nome.trim(),
+      categoria(l),
+      'TimorgianaRide — nomes aceites no painel',
+      Number(l.lng).toFixed(7),
+      Number(l.lat).toFixed(7),
+      l.municipio,
+      l.posto,
+      l.suco,
+      l.aldeia,
+      l.bairro,
+      l.endereco,
+      l.tipo === 'outro' && l.tipo_outro ? l.tipo_outro : null,
+    ]
+      .map((v, i) => (i === 5 || i === 6 ? v : cel(v)))
+      .join(',')
   );
 }
 fs.writeFileSync(destino, '﻿' + linhas.join('\n') + '\n');
@@ -67,5 +81,11 @@ fs.writeFileSync(destino, '﻿' + linhas.join('\n') + '\n');
 const porCategoria = {};
 for (const l of lugares) porCategoria[categoria(l)] = (porCategoria[categoria(l)] || 0) + 1;
 console.log(`✓ ${destino}: ${lugares.length} lugares`);
-console.log('  ' + Object.entries(porCategoria).sort((a, b) => b[1] - a[1]).map(([c, n]) => `${c} ${n}`).join(' · '));
+console.log(
+  '  ' +
+    Object.entries(porCategoria)
+      .sort((a, b) => b[1] - a[1])
+      .map(([c, n]) => `${c} ${n}`)
+      .join(' · ')
+);
 process.exit(0);
