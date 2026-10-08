@@ -16,10 +16,10 @@ contraste entre os dois. O coral já é o da app.
 SAÍDA, com os mesmos nomes dos ficheiros que substitui:
   assets/logo-completo{,-claro}.png   as letras HAKAT (cabeçalhos grandes, entrada)
   assets/logo-marca{,-claro}.png      só o H (cabeçalhos pequenos)
-  assets/icon.png                     1024  o H sobre branco — a palavra inteira é
-                                            três vezes mais larga que alta e não
-                                            se lia num ícone quadrado
-  assets/adaptive-icon.png            1024  (frente do ícone Android; fundo branco no app.json)
+  assets/icon.png                     1024  a PALAVRA HAKAT sobre branco (pedido dele,
+                                            08/10: «o ícone deve mostrar HAKAT»)
+  assets/adaptive-icon.png            1024  a palavra, dentro do círculo do Android
+                                            (fundo branco no app.json)
   assets/splash-icon.png              1024  as letras, sobre branco
   assets/favicon.png                  48
   ../painel/src/assets/logo-marca.png       (o painel)
@@ -27,8 +27,10 @@ SAÍDA, com os mesmos nomes dos ficheiros que substitui:
   ../loja/icone-512.png               512   (ficha da Play Store)
   ../loja/destaque-1024x500.png       1024x500
 
-A VARIANTE CLARA (ecrãs teal) sobe a luminosidade dos verdes/teais em HLS, com
-menos saturação; o coral fica.
+AS VARIANTES «CLARAS» SÃO IGUAIS ÀS NORMAIS desde 08/10/2026: ele não quer o
+logótipo com outra cor no ecrã de entrada («isto não podia ser mudado»). As
+cores originais leem-se sobre o teal (verificado na foto da entrada e no teal
+liso do ecrã de espera). Os ficheiros -claro ficam para o Logo.js não mudar.
 
 Correr:  python3 scripts/gerar-logotipos.py
 Precisa: Pillow e o Google Chrome
@@ -73,23 +75,6 @@ def so_o_h(letras):
     return regiao.crop(regiao.getbbox())
 
 
-def aclarar(imagem, quanto=0.45):
-    """Sobe a luminosidade dos teais e deixa o coral em paz. Sobe em HLS, com
-    a matiz e a saturação no sítio: misturar com branco deixava o teal
-    acinzentado sobre o teal dos ecrãs (visto a 07/10/2026)."""
-    import colorsys
-    im = imagem.copy()
-    px = im.load()
-    for y in range(im.height):
-        for x in range(im.width):
-            r, g, b, a = px[x, y]
-            if a and (g > r * 1.15 and b > r * 1.05):
-                h, l, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
-                l = l + (0.92 - l) * quanto
-                s = s * 0.6  # sem isto o teal claro ficava fluorescente
-                px[x, y] = tuple(round(c * 255) for c in colorsys.hls_to_rgb(h, l, s)) + (a,)
-    return im
-
 def encaixar(desenho, larg, alt, fundo=None, margem=0.04, ocupa=1.0):
     tela = Image.new('RGBA', (larg, alt), (fundo + (255,)) if fundo else (0, 0, 0, 0))
     util = (larg * (1 - 2 * margem) * ocupa, alt * (1 - 2 * margem) * ocupa)
@@ -109,9 +94,9 @@ def main():
     loja = os.path.join(raiz, 'loja')
 
     completo = desenhar_svg(origem)
-    completo_claro = aclarar(completo, 0.38)
+    completo_claro = completo
     marca = so_o_h(completo)
-    marca_clara = aclarar(marca, 0.38)
+    marca_clara = marca
     # As telas seguem as proporções do desenho; o Logo.js usa estas medidas.
     m_alt = 200
     m_larg = round(marca.width * m_alt / marca.height)
@@ -124,15 +109,16 @@ def main():
         (encaixar(completo_claro, c_larg, c_alt, margem=0), os.path.join(assets, 'logo-completo-claro.png')),
         (encaixar(marca, m_larg, m_alt, margem=0), os.path.join(assets, 'logo-marca.png')),
         (encaixar(marca_clara, m_larg, m_alt, margem=0), os.path.join(assets, 'logo-marca-claro.png')),
-        (encaixar(marca, 1024, 1024, fundo=BRANCO, ocupa=0.72), os.path.join(assets, 'icon.png')),
-        # A frente do ícone adaptativo do Android fica mais pequena: o sistema
-        # recorta-a num círculo, e o que sair da zona segura desaparece.
-        (encaixar(marca, 1024, 1024, ocupa=0.56), os.path.join(assets, 'adaptive-icon.png')),
+        (encaixar(completo, 1024, 1024, fundo=BRANCO, ocupa=0.9), os.path.join(assets, 'icon.png')),
+        # A frente do ícone adaptativo do Android: o sistema recorta-a num
+        # círculo (zona segura = 66% do lado), e uma palavra seis vezes mais
+        # larga que alta só cabe se a largura for ~0,65 do lado.
+        (encaixar(completo, 1024, 1024, ocupa=0.66), os.path.join(assets, 'adaptive-icon.png')),
         (encaixar(completo, 1024, 1024, ocupa=0.7), os.path.join(assets, 'splash-icon.png')),
         (encaixar(marca, 48, 48), os.path.join(assets, 'favicon.png')),
         (encaixar(marca, m_larg, m_alt, margem=0), os.path.join(raiz, 'painel', 'src', 'assets', 'logo-marca.png')),
         (encaixar(marca, 48, 48), os.path.join(raiz, 'painel', 'public', 'favicon.png')),
-        (encaixar(marca, 512, 512, fundo=BRANCO, ocupa=0.72), os.path.join(loja, 'icone-512.png')),
+        (encaixar(completo, 512, 512, fundo=BRANCO, ocupa=0.9), os.path.join(loja, 'icone-512.png')),
         (encaixar(completo, 1024, 500, fundo=BRANCO, ocupa=0.8), os.path.join(loja, 'destaque-1024x500.png')),
     ]
     for imagem, destino in saidas:
