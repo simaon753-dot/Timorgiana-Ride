@@ -26,11 +26,11 @@ SAÍDA, com os mesmos nomes dos ficheiros que substitui:
   ../loja/icone-512.png               512   (ficha da Play Store)
   ../loja/destaque-1024x500.png       1024x500
 
-AS VARIANTES «-claro» (ecrãs teal) TÊM AS CORES ORIGINAIS + UM CONTORNO
-BRANCO FINO. Ele não quer o logótipo de outra cor («isto não podia ser
-mudado», 08/10/2026); mas o verde escuro das letras (#005B50) é quase o teal
-do véu da entrada e partes do H e do K sumiam (fotografia do Samsung). O
-contorno separa as letras do fundo sem lhes tocar na cor.
+A VARIANTE «-claro» (ecrãs teal) É IGUAL À NORMAL: o logótipo tal como ele o
+desenhou, em todo o lado. Tentou-se (08/10/2026) clareá-lo e depois dar-lhe um
+contorno branco; ele recusou os dois — no tema escuro o contorno ficava
+estranho. Não voltar a mexer-lhe sem ele pedir. O ficheiro -claro fica para o
+Logo.js não mudar.
 
 Correr:  python3 scripts/gerar-logotipos.py
 Precisa: Pillow e o Google Chrome
@@ -75,19 +75,6 @@ def so_o_h(letras):
     return regiao.crop(regiao.getbbox())
 
 
-def com_contorno(imagem, raio):
-    """As cores intactas, com um contorno branco de `raio` píxeis à volta."""
-    alfa = imagem.getchannel('A')
-    folga = raio + 2
-    tela = Image.new('RGBA', (imagem.width + 2 * folga, imagem.height + 2 * folga), (0, 0, 0, 0))
-    grande = Image.new('L', tela.size, 0)
-    grande.paste(alfa, (folga, folga))
-    contorno = grande.filter(ImageFilter.MaxFilter(2 * raio + 1)).filter(ImageFilter.GaussianBlur(1))
-    tela.paste(Image.new('RGBA', tela.size, (255, 255, 255, 255)), (0, 0), contorno)
-    tela.alpha_composite(imagem, (folga, folga))
-    return tela
-
-
 def encaixar(desenho, larg, alt, fundo=None, margem=0.04, ocupa=1.0):
     tela = Image.new('RGBA', (larg, alt), (fundo + (255,)) if fundo else (0, 0, 0, 0))
     util = (larg * (1 - 2 * margem) * ocupa, alt * (1 - 2 * margem) * ocupa)
@@ -107,9 +94,7 @@ def main():
     loja = os.path.join(raiz, 'loja')
 
     completo = desenhar_svg(origem)
-    # O desenho tem ~3700 px de largura e o ficheiro final 768: 11 px aqui são
-    # ~2 px no ficheiro, ~1 dp no ecrã.
-    completo_claro = com_contorno(completo, 11)
+    completo_claro = completo
     marca = so_o_h(completo)
     # As telas seguem as proporções do desenho; o Logo.js usa estas medidas.
     m_alt = 200
