@@ -5,8 +5,8 @@ import { Image, StyleSheet, View } from 'react-native';
 //
 // Quatro ficheiros, não um. Duas razões independentes:
 //
-// TAMANHO — a versão completa traz a palavra "HAKAT", que num cabeçalho de
-// 40 px de altura seria uma mancha. Aí usa-se só o H com a estrada.
+// TAMANHO — a versão completa é a palavra "HAKAT" (seis vezes mais larga
+// que alta), que num cabeçalho de 40 px seria um fio. Aí usa-se só o H.
 //
 // FUNDO — o logótipo tem teal escuro, e vários ecrãs desta app SÃO teal
 // escuro. Sobre eles a palavra desaparecia. A variante clara sobe a
@@ -34,8 +34,8 @@ export default function Logo({ size = 'lg', onTeal = false }) {
 
 const styles = StyleSheet.create({
   caixa: { flexDirection: 'row', alignItems: 'center' },
-  // Proporções dos ficheiros (scripts/gerar-logotipos.py): marca 328×200,
-  // completo 512×389.
-  grande: { width: 196, height: 149 },
-  pequeno: { width: 69, height: 42 },
+  // Proporções dos ficheiros (scripts/gerar-logotipos.py): marca 221×200,
+  // completo 768×134 — só as letras desde 08/10/2026.
+  grande: { width: 264, height: 46 },
+  pequeno: { width: 46, height: 42 },
 });

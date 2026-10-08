@@ -1,118 +1,76 @@
 #!/usr/bin/env python3
 """Gera todos os ficheiros do logótipo a partir do desenho do Simão.
 
-HAKAT (07/10/2026): a app passou a chamar-se HAKAT. Antes era o TGA
-«timorgiana ride» sobre preto (ver o histórico do git deste ficheiro).
+HAKAT, 3.ª versão (08/10/2026): SÓ AS LETRAS «HAKAT», vetoriais — o H com uma
+fita teal, os dois A com um triângulo coral. As versões anteriores (o H com
+uma estrada, 07/10) estão no histórico do git deste ficheiro.
 
-ENTRADA: desenho/imagens/HAKAT/Logótipo HAKAT com Estrada Dinâmica.jpeg (fora
-do repositório; a 2.ª versão dele, 07/10/2026 à noite) — o H teal/coral
-atravessado por uma estrada, com a palavra HAKAT por baixo, sobre BRANCO.
+ENTRADA: desenho/imagens/HAKAT/HAKAT letras.svg (fora do repositório; veio
+como «LOG HAKAT.svg»). É VETORIAL e de fundo transparente: nada de recortar
+fundo nem de adivinhar orlas. O Chrome desenha-o (sem programas a instalar).
 
-AS CORES SÃO AS DA APP (pedido dele: «harmonizar»). O desenho traz um teal
-mais verde e um coral mais vermelho do que a app. Cada pixel teal recebe a
-MATIZ do teal da app (#0E5C54) e cada pixel coral a do coral (#FF6B4A); a
-luminosidade fica — é ela que faz o volume e o brilho do desenho.
+AS CORES FICAM COMO ELE AS DESENHOU. O verde das letras e o teal da fita são
+o desenho; trazê-los para uma só matiz (como se fez à 2.ª versão) apagava o
+contraste entre os dois. O coral já é o da app.
 
 SAÍDA, com os mesmos nomes dos ficheiros que substitui:
-  assets/logo-completo{,-claro}.png   (H + palavra)
-  assets/logo-marca{,-claro}.png      (só o H com a estrada)
-  assets/icon.png                     1024  (ícone da app: o H sobre branco — escolha dele)
-  assets/adaptive-icon.png            1024  (frente do ícone Android; o fundo branco vem do app.json)
-  assets/splash-icon.png              1024  (arranque, sobre branco)
+  assets/logo-completo{,-claro}.png   as letras HAKAT (cabeçalhos grandes, entrada)
+  assets/logo-marca{,-claro}.png      só o H (cabeçalhos pequenos)
+  assets/icon.png                     1024  o H sobre branco — a palavra inteira é
+                                            três vezes mais larga que alta e não
+                                            se lia num ícone quadrado
+  assets/adaptive-icon.png            1024  (frente do ícone Android; fundo branco no app.json)
+  assets/splash-icon.png              1024  as letras, sobre branco
   assets/favicon.png                  48
   ../painel/src/assets/logo-marca.png       (o painel)
   ../painel/public/favicon.png              48
   ../loja/icone-512.png               512   (ficha da Play Store)
   ../loja/destaque-1024x500.png       1024x500
 
-O FUNDO SAI A PARTIR DAS BORDAS: o desenho tem branco dentro (os traços da
-estrada), e esse fica — só o branco ligado ao exterior é fundo. Na orla, o
-branco sai «misturado» (cor para alfa), para não deixar um halo claro sobre o
-teal dos ecrãs.
-
-A VARIANTE CLARA sobe a luminosidade dos TEAIS e deixa o coral em paz: a
-estrada e a palavra são teal escuro e desapareciam sobre o teal dos ecrãs.
+A VARIANTE CLARA (ecrãs teal) sobe a luminosidade dos verdes/teais em HLS, com
+menos saturação; o coral fica.
 
 Correr:  python3 scripts/gerar-logotipos.py
-Precisa: Pillow
+Precisa: Pillow e o Google Chrome
 """
 
 import os
-from PIL import Image, ImageDraw, ImageFilter
+import subprocess
+import tempfile
+
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 BRANCO = (255, 255, 255)  # o fundo do ícone e do arranque, o mesmo do app.json
+CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
 
-def sem_branco(caminho):
-    im = Image.open(caminho).convert('RGB')
-    w, h = im.size
-    # O desenho vem sobre branco liso, sem cartão: nada a cortar à volta.
-    px = im.load()
-    claro = Image.new('L', (w, h), 0)
-    cp = claro.load()
-    for y in range(h):
-        for x in range(w):
-            # Claro e quase sem cor: o branco do cartão e o cinzento da sua
-            # borda (que um limiar só de claridade deixava como uma linha).
-            if min(px[x, y]) > 175 and max(px[x, y]) - min(px[x, y]) < 30:
-                cp[x, y] = 255
-    for semente in [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)]:
-        if cp[semente] == 255:
-            ImageDraw.floodfill(claro, semente, 128)
-    fundo = claro.point(lambda v: 255 if v == 128 else 0)
-    orla = fundo.filter(ImageFilter.MaxFilter(5))
-    op = orla.load()
-    fdp = fundo.load()
-    fora = Image.new('RGBA', (w, h))
-    fp = fora.load()
-    for y in range(h):
-        for x in range(w):
-            r, g, b = px[x, y]
-            if fdp[x, y]:
-                # O fundo sai inteiro — tratado como «cor para alfa», o
-                # cinzento por fora do cartão virava uma sombra visível.
-                fp[x, y] = (0, 0, 0, 0)
-            elif op[x, y]:
-                # Cor para alfa contra o branco.
-                a = max(255 - r, 255 - g, 255 - b)
-                if a == 0:
-                    fp[x, y] = (0, 0, 0, 0)
-                else:
-                    k = 255 / a
-                    fp[x, y] = tuple(max(0, min(255, int(255 - (255 - c) * k))) for c in (r, g, b)) + (a,)
-            else:
-                fp[x, y] = (r, g, b, 255)
-    return fora.crop(fora.getchannel('A').getbbox())
+def desenhar_svg(caminho, largura=4096):
+    """O SVG em PNG transparente, pelo Chrome sem janela."""
+    with tempfile.TemporaryDirectory() as pasta:
+        # A proporção do SVG é 2048×682; a janela segue-a.
+        altura = round(largura * 682 / 2048)
+        html = os.path.join(pasta, 'p.html')
+        png = os.path.join(pasta, 'p.png')
+        with open(html, 'w') as f:
+            f.write(f'<html><body style="margin:0;background:transparent"><img src="file://{caminho}" '
+                    f'style="width:{largura}px;height:{altura}px;display:block"></body></html>')
+        subprocess.run([CHROME, '--headless=new', '--disable-gpu', '--hide-scrollbars',
+                        '--default-background-color=00000000', f'--window-size={largura},{altura}',
+                        f'--screenshot={png}', f'file://{html}'], check=True, capture_output=True)
+        im = Image.open(png).convert('RGBA')
+        im.load()
+    return im.crop(im.getbbox())
 
 
-TEAL_APP = (0x0E, 0x5C, 0x54)
-CORAL_APP = (0xFF, 0x6B, 0x4A)
-
-
-def harmonizar(imagem):
-    """Dá a cada pixel teal a matiz do teal da app e a cada pixel coral a do
-    coral; a luminosidade e a saturação ficam (são o desenho)."""
-    import colorsys
-    h_teal = colorsys.rgb_to_hls(*[c / 255 for c in TEAL_APP])[0]
-    h_coral = colorsys.rgb_to_hls(*[c / 255 for c in CORAL_APP])[0]
-    im = imagem.copy()
-    px = im.load()
-    for y in range(im.height):
-        for x in range(im.width):
-            r, g, b, a = px[x, y]
-            if not a:
-                continue
-            h, l, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
-            if s < 0.12:
-                continue  # brancos e cinzentos (os traços da estrada)
-            if 0.38 < h < 0.60:
-                h = h_teal
-            elif h < 0.12 or h > 0.92:
-                h = h_coral
-            else:
-                continue
-            px[x, y] = tuple(round(c * 255) for c in colorsys.hls_to_rgb(h, l, s)) + (a,)
-    return im
+def so_o_h(letras):
+    """O H sozinho. O pé do A encosta-lhe no canto de baixo, mas há um vão
+    transparente entre os dois: fica só a forma ligada ao H."""
+    regiao = letras.crop((0, 0, round(letras.width * 0.22), letras.height))
+    cheio = regiao.getchannel('A').point(lambda v: 255 if v > 40 else 0)
+    ImageDraw.floodfill(cheio, (round(regiao.width * 0.17), round(regiao.height * 0.5)), 128)
+    manter = cheio.point(lambda v: 255 if v == 128 else 0).filter(ImageFilter.MaxFilter(3))
+    regiao.putalpha(ImageChops.multiply(regiao.getchannel('A'), manter))
+    return regiao.crop(regiao.getbbox())
 
 
 def aclarar(imagem, quanto=0.45):
@@ -132,27 +90,6 @@ def aclarar(imagem, quanto=0.45):
                 px[x, y] = tuple(round(c * 255) for c in colorsys.hls_to_rgb(h, l, s)) + (a,)
     return im
 
-def partir(imagem):
-    """Separa o símbolo (em cima) da palavra (em baixo) pela faixa vazia."""
-    alfa = imagem.getchannel('A')
-    linhas = [max(alfa.crop((0, y, imagem.width, y + 1)).getextrema()) for y in range(imagem.height)]
-    vazias = [y for y, v in enumerate(linhas) if v < 8]
-    # A faixa vazia mais longa abaixo do meio é a que separa os dois.
-    melhor, atual = (0, 0), []
-    for y in vazias:
-        if y < imagem.height * 0.5:
-            continue
-        if atual and y == atual[-1] + 1:
-            atual.append(y)
-        else:
-            atual = [y]
-        if len(atual) > melhor[1] - melhor[0]:
-            melhor = (atual[0], atual[-1])
-    corte = (melhor[0] + melhor[1]) // 2 if melhor[1] else imagem.height
-    simbolo = imagem.crop((0, 0, imagem.width, corte))
-    return simbolo.crop(simbolo.getchannel('A').getbbox())
-
-
 def encaixar(desenho, larg, alt, fundo=None, margem=0.04, ocupa=1.0):
     tela = Image.new('RGBA', (larg, alt), (fundo + (255,)) if fundo else (0, 0, 0, 0))
     util = (larg * (1 - 2 * margem) * ocupa, alt * (1 - 2 * margem) * ocupa)
@@ -164,22 +101,21 @@ def encaixar(desenho, larg, alt, fundo=None, margem=0.04, ocupa=1.0):
 
 def main():
     aqui = os.path.dirname(os.path.abspath(__file__))
-    origem = os.path.abspath(os.path.join(aqui, '..', '..', 'desenho', 'imagens', 'HAKAT', 'Logótipo HAKAT com Estrada Dinâmica.jpeg'))
+    origem = os.path.abspath(os.path.join(aqui, '..', '..', 'desenho', 'imagens', 'HAKAT', 'HAKAT letras.svg'))
     if not os.path.exists(origem):
         raise SystemExit(f'falta o ficheiro: {origem}')
     assets = os.path.join(aqui, '..', 'assets')
     raiz = os.path.abspath(os.path.join(aqui, '..', '..'))
     loja = os.path.join(raiz, 'loja')
 
-    completo = harmonizar(sem_branco(origem))
+    completo = desenhar_svg(origem)
     completo_claro = aclarar(completo, 0.38)
-    marca = partir(completo)
+    marca = so_o_h(completo)
     marca_clara = aclarar(marca, 0.38)
-    # As telas seguem as proporções do desenho novo (o H é mais largo que alto
-    # do que era o TGA); o Logo.js usa estas mesmas medidas.
+    # As telas seguem as proporções do desenho; o Logo.js usa estas medidas.
     m_alt = 200
     m_larg = round(marca.width * m_alt / marca.height)
-    c_larg = 512
+    c_larg = 768
     c_alt = round(completo.height * c_larg / completo.width)
     print(f'proporções: marca {m_larg}x{m_alt}, completo {c_larg}x{c_alt}')
 
@@ -188,17 +124,16 @@ def main():
         (encaixar(completo_claro, c_larg, c_alt, margem=0), os.path.join(assets, 'logo-completo-claro.png')),
         (encaixar(marca, m_larg, m_alt, margem=0), os.path.join(assets, 'logo-marca.png')),
         (encaixar(marca_clara, m_larg, m_alt, margem=0), os.path.join(assets, 'logo-marca-claro.png')),
-        # O ícone da app: o H sobre branco (decisão dele, 07/10/2026).
-        (encaixar(marca, 1024, 1024, fundo=BRANCO, ocupa=0.84), os.path.join(assets, 'icon.png')),
+        (encaixar(marca, 1024, 1024, fundo=BRANCO, ocupa=0.72), os.path.join(assets, 'icon.png')),
         # A frente do ícone adaptativo do Android fica mais pequena: o sistema
         # recorta-a num círculo, e o que sair da zona segura desaparece.
-        (encaixar(marca, 1024, 1024, ocupa=0.62), os.path.join(assets, 'adaptive-icon.png')),
-        (encaixar(completo, 1024, 1024, ocupa=0.62), os.path.join(assets, 'splash-icon.png')),
+        (encaixar(marca, 1024, 1024, ocupa=0.56), os.path.join(assets, 'adaptive-icon.png')),
+        (encaixar(completo, 1024, 1024, ocupa=0.7), os.path.join(assets, 'splash-icon.png')),
         (encaixar(marca, 48, 48), os.path.join(assets, 'favicon.png')),
         (encaixar(marca, m_larg, m_alt, margem=0), os.path.join(raiz, 'painel', 'src', 'assets', 'logo-marca.png')),
         (encaixar(marca, 48, 48), os.path.join(raiz, 'painel', 'public', 'favicon.png')),
-        (encaixar(marca, 512, 512, fundo=BRANCO, ocupa=0.84), os.path.join(loja, 'icone-512.png')),
-        (encaixar(completo, 1024, 500, fundo=BRANCO, ocupa=0.72), os.path.join(loja, 'destaque-1024x500.png')),
+        (encaixar(marca, 512, 512, fundo=BRANCO, ocupa=0.72), os.path.join(loja, 'icone-512.png')),
+        (encaixar(completo, 1024, 500, fundo=BRANCO, ocupa=0.8), os.path.join(loja, 'destaque-1024x500.png')),
     ]
     for imagem, destino in saidas:
         imagem.save(destino, optimize=True)
