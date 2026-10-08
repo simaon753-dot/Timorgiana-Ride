@@ -5,20 +5,20 @@ import { Image, StyleSheet, View } from 'react-native';
 //
 // Quatro ficheiros, não um. Duas razões independentes:
 //
-// TAMANHO — a versão completa é a palavra "HAKAT" (seis vezes mais larga
-// que alta), que num cabeçalho de 40 px seria um fio. Aí usa-se só o H.
+// TAMANHO — desde 08/10/2026 as duas medidas mostram a palavra "HAKAT"
+// (pedido dele: o H sozinho no início e no perfil não dizia o nome). A
+// pequena tem 23 dp de altura; o H sozinho ficou só para o painel e o
+// favicon.
 //
 // FUNDO — o logótipo tem teal escuro, e vários ecrãs desta app SÃO teal
 // escuro. Sobre eles a palavra desaparecia. A variante clara sobe a
 // luminosidade dos teais e deixa o coral em paz, que já contrasta.
-const MARCA = require('../../assets/logo-marca.png');
-const MARCA_CLARA = require('../../assets/logo-marca-claro.png');
 const COMPLETO = require('../../assets/logo-completo.png');
 const COMPLETO_CLARO = require('../../assets/logo-completo-claro.png');
 
 export default function Logo({ size = 'lg', onTeal = false }) {
   const grande = size === 'lg';
-  const fonte = grande ? (onTeal ? COMPLETO_CLARO : COMPLETO) : onTeal ? MARCA_CLARA : MARCA;
+  const fonte = onTeal ? COMPLETO_CLARO : COMPLETO;
 
   return (
     <View style={styles.caixa}>
@@ -37,5 +37,5 @@ const styles = StyleSheet.create({
   // Proporções dos ficheiros (scripts/gerar-logotipos.py): marca 221×200,
   // completo 768×134 — só as letras desde 08/10/2026.
   grande: { width: 264, height: 46 },
-  pequeno: { width: 46, height: 42 },
+  pequeno: { width: 132, height: 23 },
 });

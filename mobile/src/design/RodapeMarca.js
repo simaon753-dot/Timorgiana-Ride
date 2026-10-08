@@ -23,8 +23,9 @@ export default function RodapeMarca() {
         resizeMode="contain"
         accessibilityIgnoresInvertColors
       />
+      {/* O logótipo já é a palavra HAKAT (08/10/2026): o nome escrito por
+          baixo repetia-a. */}
       <Logo size="sm" />
-      <Text style={styles.nome}>HAKAT</Text>
       <Text style={styles.lugar}>DÍLI · TIMOR-LESTE</Text>
     </View>
   );
@@ -47,7 +48,6 @@ const criarEstilos = () =>
       aspectRatio: 914 / 506,
       opacity: paletaEmUso() === 'escuro' ? 0.12 : 0.22,
     },
-    nome: { ...tipo.subtitulo, color: colors.teal, marginTop: spacing.xs },
     lugar: { ...tipo.legenda, color: colors.textMuted, letterSpacing: 3, marginTop: 2 },
   });
 
