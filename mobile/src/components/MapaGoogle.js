@@ -9,6 +9,7 @@ import {
   Linking,
   Animated,
   Easing,
+  PixelRatio,
 } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -413,13 +414,23 @@ const ancoraDe = (qual) => ANCORA[qual] ?? ANCORA_Y;
 // do tamanho do pino; o motor das etiquetas usa-a para saber que espaço um
 // pino ocupa no ecrã e não o tapar. Um número, dois leitores.
 //
-// NOVA MEDIÇÃO A 09/10/2026, com os pinos de 07/10 (que trazem @3x): no
-// Samsung dele o pino do mapa media 56 px de largura e a mira 43 px — o
-// marcador saía 30% MAIOR do que a mira. Os 0,79 de setembro eram dos pinos
-// antigos; com ficheiros @3x o Android passou a desenhá-los ~ao tamanho
-// declarado. 0,79 × 1,30 ≈ 1,03. Ao trocar os desenhos dos pinos, MEDIR DE
-// NOVO numa captura dele — a escala é do ficheiro, não da app.
-const ESCALA_MARCADOR = Platform.OS === 'ios' ? 1 : 1.03;
+// CALCULADA, NÃO MEDIDA (09/10/2026). Duas capturas do mesmo Samsung, no
+// mesmo dia, deram o contrário uma da outra: o pino do mapa 30% MAIOR do que
+// a mira, e depois 22% MAIS PEQUENO. Os Samsung deixam mudar a resolução do
+// ecrã (FHD+ ≈ 2,8 píxeis por ponto, QHD+ ≈ 3,75), e o Android desenha o pino
+// com os píxeis do FICHEIRO que escolhe — o primeiro @Nx com N ≥ densidade,
+// ou o maior que houver. Logo o pino sai a N/densidade do declarado, e isso
+// conta-se: não há número fixo que sirva aos dois ecrãs. Com o @4x (para o
+// QHD+ não ficar a 80%), um FHD+ dá 3/2,8 = 1,07 e um QHD+ 4/3,75 = 1,07.
+// No iPhone o mapa converte para pontos: 1.
+const ESCALAS_DOS_PINOS = [1, 2, 3, 4]; // os ficheiros @Nx de assets/mapa/pino-*
+function escalaDoMarcador() {
+  if (Platform.OS === 'ios') return 1;
+  const densidade = PixelRatio.get();
+  const ficheiro = ESCALAS_DOS_PINOS.find((n) => n >= densidade) ?? 4;
+  return ficheiro / densidade;
+}
+const ESCALA_MARCADOR = escalaDoMarcador();
 const MIRA_ESCALA = ESCALA_MARCADOR;
 const MIRA_L = Math.round(PINO_L * MIRA_ESCALA);
 const MIRA_A = Math.round(PINO_A * MIRA_ESCALA);

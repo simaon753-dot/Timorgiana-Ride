@@ -92,7 +92,10 @@ def vao_do_ponto(im):
 
 def gravar(im, nome, tamanho):
     w, h = tamanho
-    for sufixo, escala in (('', 1), ('@2x', 2), ('@3x', 3)):
+    # @4x (09/10/2026): os ecrãs de alta resolução (Samsung em QHD+, ~3,75
+    # píxeis por ponto) passavam do @3x, e o Android desenha os pinos do mapa
+    # com os píxeis do ficheiro — saíam a 80% do tamanho. Ver ESCALA_MARCADOR.
+    for sufixo, escala in (('', 1), ('@2x', 2), ('@3x', 3), ('@4x', 4)):
         # CABER NAS DUAS MEDIDAS (09/10/2026): os pinos de 09/10 são um pouco
         # mais largos em proporção, e ajustados só pela altura passavam meio
         # píxel da tela de cada lado — os lados saíam cortados a direito.
@@ -104,7 +107,7 @@ def gravar(im, nome, tamanho):
         tela.paste(reduzida, ((w * escala - largura) // 2, h * escala - altura), reduzida)
         tela.save(os.path.join(DESTINO, f'{nome}{sufixo}.png'))
         if escala == 3:
-            final = tela
+            final = tela  # as medidas fazem-se no @3x, como sempre
     return final
 
 
