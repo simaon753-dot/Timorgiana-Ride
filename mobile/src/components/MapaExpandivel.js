@@ -21,6 +21,7 @@ export default function MapaExpandivel({
   liveLabel,
   // O tipo do veículo que se mexe, para o distintivo certo no mapa.
   veiculoVivo,
+  vivoComoPino,
   // Onde centrar quando não há marcadores de viagem — o caso do motorista
   // parado, que só quer ver onde está.
   center,
@@ -83,6 +84,7 @@ export default function MapaExpandivel({
           liveMarker={liveMarker}
           liveLabel={liveLabel}
           veiculoVivo={veiculoVivo}
+          vivoComoPino={vivoComoPino}
           height={height}
           aproximacaoAte={aproximacaoAte}
           rotularPinos={rotularPinos}
@@ -150,6 +152,7 @@ export default function MapaExpandivel({
                 liveMarker={liveMarker}
                 liveLabel={liveLabel}
                 veiculoVivo={veiculoVivo}
+                vivoComoPino={vivoComoPino}
                 aproximacaoAte={aproximacaoAte}
                 rotularPinos={rotularPinos}
                 pontoAzul={pontoAzul}

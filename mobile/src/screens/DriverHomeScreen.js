@@ -345,6 +345,9 @@ export default function DriverHomeScreen({ navigation }) {
               // O distintivo do veículo DELE: da viagem quando há uma, e da
               // conta quando está parado à espera de pedidos.
               veiculoVivo={activeRide?.vehicleType || user?.vehicle?.type}
+              // É ELE: o pino com o veículo dentro, não o disco que o
+              // passageiro vê a aproximar-se.
+              vivoComoPino
               liveLabel={t('myLocation')}
               pontoAzul={false}
               // SEM O PONTO AZUL DO GOOGLE. A posição dele já está desenhada
@@ -569,6 +572,7 @@ function RequestCard({ ride, minhaPosicao, onAccept, onIgnorar }) {
             // ponto que dá sentido aos outros dois.
             liveMarker={minhaPosicao}
             veiculoVivo={ride.vehicleType}
+            vivoComoPino
             liveLabel={t('youAreHere')}
             height={150}
             info={

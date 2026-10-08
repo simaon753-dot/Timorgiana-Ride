@@ -153,6 +153,17 @@ const VEICULO_IMAGEM = {
   car: require('../../assets/mapa/veiculo-car.png'),
   carry: require('../../assets/mapa/veiculo-carry.png'),
 };
+// O «ESTÁS AQUI» DO MOTORISTA (08/10/2026, pedido do Simão): o pino de destino
+// coral com o veículo dele no círculo branco. Só no mapa do próprio motorista
+// (`vivoComoPino`); ao passageiro, o motorista a chegar continua o disco — um
+// pino a andar parecia um destino. Desenhados por scripts/desenhar-pino-aqui.py.
+const AQUI_IMAGEM = {
+  motorbike: require('../../assets/mapa/aqui-motorbike.png'),
+  car: require('../../assets/mapa/aqui-car.png'),
+  carry: require('../../assets/mapa/aqui-carry.png'),
+};
+// Aponta pelo ponto de baixo, como o pino de destino (medido pelo guião).
+const ANCORA_AQUI_Y = 0.952;
 // O ponto onde o carro encosta. IMAGEM e não vista por cima do mapa: uma
 // vista tem de ser recolocada a cada movimento, e recolocar depois do
 // movimento é vê-la a flutuar durante ele. Um marcador com imagem é
@@ -585,15 +596,17 @@ function usarDeslize(alvo) {
 //
 // Aqui dentro, cada passo redesenha um marcador e mais nada. O que se vê é
 // igual; o que o telemóvel faz para o mostrar é uma fração.
-function VeiculoAndar({ alvo, tipo }) {
+function VeiculoAndar({ alvo, tipo, comoPino }) {
   const pos = usarDeslize(alvo);
   if (!pos) return null;
   return (
     <Marker
       coordinate={{ latitude: pos.lat, longitude: pos.lng }}
-      anchor={{ x: 0.5, y: 0.5 }}
+      anchor={{ x: 0.5, y: comoPino ? ANCORA_AQUI_Y : 0.5 }}
       zIndex={1000}
-      image={VEICULO_IMAGEM[tipo] || VEICULO_IMAGEM.car}
+      image={
+        comoPino ? AQUI_IMAGEM[tipo] || AQUI_IMAGEM.car : VEICULO_IMAGEM[tipo] || VEICULO_IMAGEM.car
+      }
     />
   );
 }
@@ -809,6 +822,7 @@ export default function MapaGoogle({
   // O TIPO do veículo que se mexe, para o distintivo ser o certo. Sem ele,
   // fica o carro: é o que a conta devolve por omissão no servidor.
   veiculoVivo,
+  vivoComoPino,
   fill = false,
   // QUANTO DESCER A COLUNA DE BOTÕES.
   //
@@ -2556,7 +2570,7 @@ export default function MapaGoogle({
             chegando. O valor CRU (`liveMarker`) continua a servir tudo o
             resto — o enquadramento, o rótulo —; só o marcador usa o
             suavizado, e é ele sozinho que se redesenha. */}
-        <VeiculoAndar alvo={liveMarker} tipo={veiculoVivo} />
+        <VeiculoAndar alvo={liveMarker} tipo={veiculoVivo} comoPino={vivoComoPino} />
       </MapView>
 
       {/* OS NOSSOS LUGARES, escritos no mapa.
@@ -2668,7 +2682,12 @@ export default function MapaGoogle({
       {veiculo && liveLabel && !aMexer ? (
         <View
           pointerEvents="none"
-          style={[styles.veiculo, { left: veiculo.x + 24, top: veiculo.y - 17 }]}
+          style={[
+            styles.veiculo,
+            // Ao lado do disco, a meia altura; ao lado da CABEÇA do pino
+            // (34 dp acima da ponta) quando é o «estás aqui» do motorista.
+            { left: veiculo.x + 24, top: veiculo.y - 17 - (vivoComoPino ? 34 : 0) },
+          ]}
         >
           <Cartao nome={liveLabel} qual="origem" agora />
         </View>
