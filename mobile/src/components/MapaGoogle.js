@@ -163,7 +163,7 @@ const AQUI_IMAGEM = {
   carry: require('../../assets/mapa/aqui-carry.png'),
 };
 // Aponta pelo ponto de baixo, como o pino de destino (medido pelo guião).
-const ANCORA_AQUI_Y = 0.952;
+const ANCORA_AQUI_Y = 0.9661; // o mesmo do pino de destino (09/10)
 // O ponto onde o carro encosta. IMAGEM e não vista por cima do mapa: uma
 // vista tem de ser recolocada a cada movimento, e recolocar depois do
 // movimento é vê-la a flutuar durante ele. Um marcador com imagem é
@@ -332,7 +332,13 @@ const ALTERNATIVA_PERTO_M = 300;
 // `scripts/recortar-pinos-novos.py`: o ponto de baixo é maior e o centro dele
 // sobe — recolha 0,9492, destino 0,9520. Um número para os dois, o do meio:
 // fica a menos de 0,1 ponto de cada um.)
+// (E os de 09/10, que ele quis SEM mexer no desenho: o ponto do destino é
+// mais pequeno e fica mais em baixo — recolha 0,9576, destino 0,9661. Aqui
+// um número só já errava 0,5 pt; passa a haver UM POR PINO. A paragem
+// mantém o desenho e o número de antes.)
 const ANCORA_Y = 0.9506;
+const ANCORA = { origem: 0.9576, destino: 0.9661 };
+const ancoraDe = (qual) => ANCORA[qual] ?? ANCORA_Y;
 
 // QUANTO A MIRA SOBE PARA A PONTA CAIR NO CENTRO DO ECRÃ.
 //
@@ -418,7 +424,8 @@ const MIRA_ESCALA = ESCALA_MARCADOR;
 const MIRA_L = Math.round(PINO_L * MIRA_ESCALA);
 const MIRA_A = Math.round(PINO_A * MIRA_ESCALA);
 
-const SUBIR_MIRA = MIRA_A * (0.5 - ANCORA_Y);
+// Por pino: a mira mostra a recolha ou o destino, e cada um tem a sua ponta.
+const subirMira = (qual) => MIRA_A * (0.5 - ancoraDe(qual));
 
 // A MIRA LEVANTA-SE ENQUANTO O MAPA MEXE (27/09/2026). É o que dá a sensação
 // de que é o mapa a passar por baixo dela, e não ela a arrastar o mapa.
@@ -450,7 +457,9 @@ const MIRA_DESCE_MS = 60;
 // pinos antigos passavam pelo MEIO do ponto, que é maior: metade subia com o
 // corpo e o Simão viu-o partido no Samsung (07/10/2026). AO TROCAR OS PINOS,
 // ATUALIZAR ESTE NÚMERO E O ANCORA_Y.
-const CORTE_DO_PONTO = 0.898;
+// Pinos de 09/10: recolha vão 90,4–91,5%, destino 91,5–93,2% — não há um
+// número que caia nos dois vãos. Um por pino, a meio do vão de cada um.
+const CORTE = { origem: 0.909, destino: 0.923 };
 
 // O cartão com o nome, ao lado do pino.
 //
@@ -936,7 +945,7 @@ export default function MapaGoogle({
     }).start();
   }, [miraNoAr, miraLevantada]);
   // Quanto o corpo sobe acima de onde está pousado. A posição de repouso —
-  // a ponta no centro exacto do ecrã — é da caixa de fora (`SUBIR_MIRA`).
+  // a ponta no centro exacto do ecrã — é da caixa de fora (`subirMira`).
   const miraSobe = miraLevantada.interpolate({
     inputRange: [0, 1],
     outputRange: [0, -MIRA_LEVANTA],
@@ -1930,14 +1939,19 @@ export default function MapaGoogle({
     for (const p of pinosDesenhados) {
       obstaculos.push({
         id: `pino:${p.qual}:${p.lat},${p.lng}`,
-        ...rect(p.x - pl / 2, p.y - pa * ANCORA_Y, pl, pa),
+        ...rect(p.x - pl / 2, p.y - pa * ancoraDe(p.qual), pl, pa),
       });
     }
     // A mira, com a ponta no centro exacto do ecrã.
     if (modoEscolha) {
       obstaculos.push({
         id: 'mira',
-        ...rect(largura / 2 - MIRA_L / 2, altura / 2 - MIRA_A * ANCORA_Y, MIRA_L, MIRA_A),
+        ...rect(
+          largura / 2 - MIRA_L / 2,
+          altura / 2 - MIRA_A * ancoraDe(modoEscolha === 'destino' ? 'destino' : 'origem'),
+          MIRA_L,
+          MIRA_A
+        ),
       });
     }
     // A coluna de botões, e o losango de guiar.
@@ -2097,6 +2111,9 @@ export default function MapaGoogle({
       </View>
     );
   }
+
+  // O pino que a mira mostra: cada um tem a sua ponta e o seu corte.
+  const qualMira = modoEscolha === 'destino' ? 'destino' : 'origem';
 
   return (
     <View
@@ -2462,7 +2479,7 @@ export default function MapaGoogle({
               latitude: p.pino ? p.pino.lat : p.lat,
               longitude: p.pino ? p.pino.lng : p.lng,
             }}
-            anchor={{ x: 0.5, y: ANCORA_Y }}
+            anchor={{ x: 0.5, y: ancoraDe(p.qual) }}
             // ACIMA DAS PARAGENS ALTERNATIVAS (880) e abaixo do veículo em
             // movimento (1000): a ordem entre os NOSSOS desenhos é esta, e
             // agora está escrita em vez de depender da ordem do código.
@@ -2857,15 +2874,21 @@ export default function MapaGoogle({
               cima só mostra o corpo e sobe; a de baixo só mostra o ponto e
               não se mexe. Pousado, as duas juntam-se e é o pino de sempre,
               pixel a pixel. */}
-          <View style={{ width: MIRA_L, height: MIRA_A, transform: [{ translateY: SUBIR_MIRA }] }}>
+          <View
+            style={{
+              width: MIRA_L,
+              height: MIRA_A,
+              transform: [{ translateY: subirMira(qualMira) }],
+            }}
+          >
             <Animated.View
               style={[
                 styles.miraParte,
-                { height: MIRA_A * CORTE_DO_PONTO, transform: [{ translateY: miraSobe }] },
+                { height: MIRA_A * CORTE[qualMira], transform: [{ translateY: miraSobe }] },
               ]}
             >
               <Image
-                source={IMAGEM[modoEscolha === 'destino' ? 'destino' : 'origem']}
+                source={IMAGEM[qualMira]}
                 style={{ width: MIRA_L, height: MIRA_A }}
                 resizeMode="contain"
               />
@@ -2873,12 +2896,12 @@ export default function MapaGoogle({
             <View
               style={[
                 styles.miraParte,
-                { top: MIRA_A * CORTE_DO_PONTO, height: MIRA_A * (1 - CORTE_DO_PONTO) },
+                { top: MIRA_A * CORTE[qualMira], height: MIRA_A * (1 - CORTE[qualMira]) },
               ]}
             >
               <Image
-                source={IMAGEM[modoEscolha === 'destino' ? 'destino' : 'origem']}
-                style={{ width: MIRA_L, height: MIRA_A, marginTop: -MIRA_A * CORTE_DO_PONTO }}
+                source={IMAGEM[qualMira]}
+                style={{ width: MIRA_L, height: MIRA_A, marginTop: -MIRA_A * CORTE[qualMira] }}
                 resizeMode="contain"
               />
             </View>

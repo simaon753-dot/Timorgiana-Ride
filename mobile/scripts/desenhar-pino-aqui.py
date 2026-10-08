@@ -10,7 +10,7 @@ SÓ NO MAPA DO PRÓPRIO MOTORISTA. O mesmo marcador mostra ao passageiro o
 motorista a chegar, e aí fica o disco: um pino a andar parecia um destino.
 Ver `vivoComoPino` no MapaGoogle.js.
 
-ENTRADA  desenho/imagens/Pinos finais 07-10/pino destino.png   (fora do git)
+ENTRADA  o pino de destino em vigor (ver recortar-pinos-novos.py: ORIGEM)
          assets/icones/veiculo-{mota,carro,carry}@3x.png        (silhuetas brancas)
 SAÍDA    assets/mapa/aqui-{motorbike,car,carry}{,@2x,@3x}.png   46 × 59, como o pino
 
@@ -48,7 +48,8 @@ VEICULOS = {'motorbike': 'veiculo-mota', 'car': 'veiculo-carro', 'carry': 'veicu
 
 
 def pino_com(veiculo):
-    pino = icones.sem_preto(os.path.join(pinos.ORIGEM, 'pino destino.png')).copy()
+    # O desenho do pino de destino em vigor (recortar-pinos-novos.py).
+    pino = pinos.arte('pino destino.png', False).copy()
     alfa = pino.getchannel('A')
     w, h = pino.size
     # A cabeça do pino: a linha mais larga dá o centro e o raio.

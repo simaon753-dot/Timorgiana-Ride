@@ -2,9 +2,15 @@
 """Os pinos do Simão (07/10/2026): gota com círculo branco e ponto por baixo.
 
 DUAS RONDAS NO MESMO DIA: de manhã com um anel branco; à tarde a versão que
-ele chamou FINAL, com o círculo branco cheio. É esta que vale.
+ele chamou FINAL, com o círculo branco cheio.
 
-ENTRADA  desenho/imagens/Pinos finais 07-10/pino {recolha,destino}.png  (fora do git)
+09/10/2026 — A VERSÃO QUE VALE: «pino recolha final-2» e «O prino destino
+final-2». Vêm já com fundo TRANSPARENTE e, por ordem dele, NÃO SE MEXE no
+desenho: nem forma, nem elementos, nem COR (o teal da recolha é o dele,
+#077F7F aprox., e não é repintado para #0E5C54 como os de 07/10). Só se
+recorta à arte e se reduz ao tamanho.
+
+ENTRADA  desenho/imagens/Pinos finais 09-10/pino {recolha,destino}.png  (fora do git)
 SAÍDA    assets/mapa/pino-{origem,destino}{,-pequeno}{,@2x,@3x}.png
 
 O MESMO TAMANHO DOS ANTERIORES, ao ponto — foi o pedido. Os grandes ficam em
@@ -36,7 +42,7 @@ _spec = importlib.util.spec_from_file_location('icones', os.path.join(AQUI, 'rec
 icones = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(icones)
 
-ORIGEM = os.path.abspath(os.path.join(AQUI, '..', '..', 'desenho', 'imagens', 'Pinos finais 07-10'))
+ORIGEM = os.path.abspath(os.path.join(AQUI, '..', '..', 'desenho', 'imagens', 'Pinos finais 09-10'))
 DESTINO = os.path.join(AQUI, '..', 'assets', 'mapa')
 
 # A luminosidade do corpo teal destes desenhos (#017B7A), medida: com ela o
@@ -56,10 +62,10 @@ def arte(ficheiro, teal):
     caminho = os.path.join(ORIGEM, ficheiro)
     if not os.path.exists(caminho):
         raise SystemExit(f'falta o ficheiro: {caminho}')
-    if teal:
-        return icones.sem_preto(caminho, alvo=icones.PINO_TEAL, l_origem=L_CORPO_RECOLHA)
-    # O coral não passa pelo repintar: _teal() não o reconhece, e fica como veio.
-    return icones.sem_preto(caminho)
+    # Desde 09/10/2026 o desenho vem transparente e fica como veio: só se
+    # corta à arte (o `teal` deixou de repintar — ordem dele).
+    im = Image.open(caminho).convert('RGBA')
+    return im.crop(im.getchannel('A').point(lambda v: 255 if v > 8 else 0).getbbox())
 
 
 def ponto_de_baixo(im):
@@ -87,11 +93,15 @@ def vao_do_ponto(im):
 def gravar(im, nome, tamanho):
     w, h = tamanho
     for sufixo, escala in (('', 1), ('@2x', 2), ('@3x', 3)):
-        altura = h * escala
-        largura = round(im.width * altura / im.height)
+        # CABER NAS DUAS MEDIDAS (09/10/2026): os pinos de 09/10 são um pouco
+        # mais largos em proporção, e ajustados só pela altura passavam meio
+        # píxel da tela de cada lado — os lados saíam cortados a direito.
+        # O desenho fica encostado em BAIXO (o ponto do chão), centrado.
+        k = min(w * escala / im.width, h * escala / im.height)
+        largura, altura = round(im.width * k), round(im.height * k)
         reduzida = im.resize((largura, altura), Image.LANCZOS)
-        tela = Image.new('RGBA', (w * escala, altura), (0, 0, 0, 0))
-        tela.paste(reduzida, ((w * escala - largura) // 2, 0), reduzida)
+        tela = Image.new('RGBA', (w * escala, h * escala), (0, 0, 0, 0))
+        tela.paste(reduzida, ((w * escala - largura) // 2, h * escala - altura), reduzida)
         tela.save(os.path.join(DESTINO, f'{nome}{sufixo}.png'))
         if escala == 3:
             final = tela
