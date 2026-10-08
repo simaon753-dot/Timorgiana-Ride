@@ -406,7 +406,14 @@ const ANCORA_Y = 0.9506;
 // 0,79 no Android, medido nas fotografias do Simão. A mira usa-a para ficar
 // do tamanho do pino; o motor das etiquetas usa-a para saber que espaço um
 // pino ocupa no ecrã e não o tapar. Um número, dois leitores.
-const ESCALA_MARCADOR = Platform.OS === 'ios' ? 1 : 0.79;
+//
+// NOVA MEDIÇÃO A 09/10/2026, com os pinos de 07/10 (que trazem @3x): no
+// Samsung dele o pino do mapa media 56 px de largura e a mira 43 px — o
+// marcador saía 30% MAIOR do que a mira. Os 0,79 de setembro eram dos pinos
+// antigos; com ficheiros @3x o Android passou a desenhá-los ~ao tamanho
+// declarado. 0,79 × 1,30 ≈ 1,03. Ao trocar os desenhos dos pinos, MEDIR DE
+// NOVO numa captura dele — a escala é do ficheiro, não da app.
+const ESCALA_MARCADOR = Platform.OS === 'ios' ? 1 : 1.03;
 const MIRA_ESCALA = ESCALA_MARCADOR;
 const MIRA_L = Math.round(PINO_L * MIRA_ESCALA);
 const MIRA_A = Math.round(PINO_A * MIRA_ESCALA);
