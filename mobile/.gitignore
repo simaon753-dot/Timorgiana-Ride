@@ -39,3 +39,8 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# A configuração do Firebase da HAKAT (08/10/2026). Fica fora do GitHub:
+# traz uma chave que os robôs de varrimento apanham. Sobe na compilação
+# (o .easignore não a exclui) — EAS_NO_VCS=1 arquiva a pasta, não o git.
+google-services.json
