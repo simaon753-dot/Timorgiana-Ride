@@ -42,7 +42,7 @@
 //
 // O iPhone precisa de uma chave PRÓPRIA: na consola do Google a restrição é
 // por plataforma — no Android pacote + SHA-1, no iOS o bundle
-// `tl.timorgiana.ride` — e uma chave não aceita as duas. Mesmo esquema da
+// `tl.timorgiaraneto.hakat` (era `tl.timorgiana.ride` até 08/10/2026) — e uma chave não aceita as duas. Mesmo esquema da
 // do Android: vem do ambiente e nunca passa pelo Git.
 //
 // Sem ela a compilação iOS sai sem o SDK do Google Maps, e o mapa, que pede

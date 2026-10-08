@@ -1,12 +1,12 @@
 {
   "expo": {
     "name": "HAKAT",
-    "slug": "timorgianaride",
+    "slug": "hakat",
     "version": "1.5.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "scheme": "timorgianaride",
+    "scheme": "hakat",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -14,7 +14,7 @@
       "backgroundColor": "#FFFFFF"
     },
     "ios": {
-      "bundleIdentifier": "tl.timorgiana.ride",
+      "bundleIdentifier": "tl.timorgiaraneto.hakat",
       "supportsTablet": true,
       "config": {
         "usesNonExemptEncryption": false
@@ -30,7 +30,7 @@
       }
     },
     "android": {
-      "package": "tl.timorgiana.ride",
+      "package": "tl.timorgiaraneto.hakat",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
@@ -53,7 +53,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "d23e9f97-dffd-40bd-98d6-74f93437289c"
+        "projectId": "0f085f69-3151-4e8c-802d-49bc959e1e81"
       }
     },
     "owner": "timorgiana",
@@ -85,7 +85,7 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/d23e9f97-dffd-40bd-98d6-74f93437289c",
+      "url": "https://u.expo.dev/0f085f69-3151-4e8c-802d-49bc959e1e81",
       "fallbackToCacheTimeout": 0,
       "checkAutomatically": "ON_LOAD"
     }
