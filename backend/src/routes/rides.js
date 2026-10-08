@@ -1,7 +1,7 @@
 import { faltaConfirmar } from '../confirmacaoTelefone.js';
 import { Router } from 'express';
 import { marcarEtapaCarga } from '../rides.js';
-import { notificarComprado, notificarEtapaCarga } from '../push.js';
+import { notificarChegada, notificarComprado, notificarEtapaCarga } from '../push.js';
 import { criarAviso, cancelarAvisos } from '../avisos.js';
 import { servicoEstaAtivo } from '../configServico.js';
 import { marcarComprado, exigirQuePode, taxaDe } from '../jastip.js';
@@ -983,6 +983,28 @@ ridesRouter.post(
 
     const updated = await setRideStatus(rideId, status);
 
+    // «CHEGUEI» AVISA O PASSAGEIRO (09/10/2026), se o aviso pela distância
+    // ainda não saiu (ver `avisosChegada` em posicaoMotorista.js). A mesma
+    // coluna: um aviso só, venha do GPS ou do botão.
+    if (status === 'arriving') {
+      one(
+        `UPDATE rides SET aviso_chegou_em = NOW(), aviso_perto_em = COALESCE(aviso_perto_em, NOW())
+          WHERE id = $1 AND aviso_chegou_em IS NULL RETURNING passenger_id`,
+        [rideId]
+      )
+        .then((r) =>
+          r
+            ? one('SELECT push_token, lingua FROM users WHERE id = $1', [r.passenger_id]).then((u) =>
+                notificarChegada(u, 'chegou', rideId, {
+                  nome: req.user.name,
+                  matricula: req.user.vehicle_plate,
+                })
+              )
+            : null
+        )
+        .catch((e) => console.error('[chegada]', e.message));
+    }
+
     // ONDE ESTAVA O CARRO QUANDO ISTO ACONTECEU.
     //
     // Não se recusa uma conclusão longe do destino — recusar deixaria uma
@@ -990,7 +1012,7 @@ ridesRouter.post(
     // de ter sido deixado a meio, há onde ver.
     registarSemEsperar({
       rideId,
-      que: status === 'completed' ? EVENTOS.TERMINOU : EVENTOS.A_CAMINHO,
+      que: status === 'completed' ? EVENTOS.TERMINOU : EVENTOS.CHEGOU,
       por: req.user.id,
       de: row.status,
       para: status,

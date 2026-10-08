@@ -796,7 +796,11 @@ function ActiveRideCard({
   // deixou de ser possível — o código é que abre a viagem.
   const principal =
     ride.status === 'accepted'
-      ? { titulo: t('onTheWay'), icone: 'rota', onPress: onArriving }
+      ? // «CHEGUEI», NÃO «A CAMINHO» (09/10/2026). Depois de aceitar já está
+        // a caminho; o botão marcava `arriving` ao SAIR, e a navegação marca
+        // o mesmo estado com «Cheguei» — o passageiro lia «chegou» a quem
+        // acabava de partir. Agora `arriving` é sempre «está na recolha».
+        { titulo: t('cheguei'), icone: 'pin', onPress: onArriving }
       : ride.status === 'arriving'
         ? { titulo: t('startRide'), icone: 'volante', onPress: () => setAPedirCodigo(true) }
         : etapaSeguinte

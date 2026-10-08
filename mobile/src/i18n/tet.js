@@ -213,6 +213,7 @@ export default {
   saudacaoOla: 'Olá,',
   subRequested: 'Ami haruka ita-nia pedidu ba motorista sira ne’ebé besik liu.',
   subAccepted: 'Akompaña motorista iha tempu reál.',
+  subArrived: 'Motorista to’o ona fatin foti nian. Bá hasoru nia.',
   subInProgress: 'Ita iha dalan ba fatin destinu.',
   etapaPedidu: 'Pedidu konfirmadu',
   etapaMotoristaDalan: 'Motorista iha dalan',
@@ -504,7 +505,7 @@ export default {
 
   statusRequested: 'Buka motorista…',
   statusAccepted: 'Motorista iha dalan',
-  statusArriving: 'Motorista besik ona',
+  statusArriving: 'Motorista to’o ona',
   statusCompleted: 'Viajen remata',
   statusCancelled: 'Viajen kansela',
 
@@ -526,6 +527,7 @@ export default {
   youAreHere: 'Ita iha ne’e',
   waitingRequests: 'Pedidu foun sei mosu iha neʼe automatikamente.',
   onTheWay: 'Iha dalan ona',
+  cheguei: 'Ha’u to’o ona',
   completeRide: 'Viajen remata ona',
   liveOff: 'Liga ba tempu reál…',
 

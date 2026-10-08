@@ -25,7 +25,10 @@ import { query } from './db.js';
 export const EVENTOS = {
   PEDIDA: 'pedida',
   ACEITE: 'aceite',
+  // Registos antigos: o botão «A caminho» do Início (ao sair). Já não se escreve.
   A_CAMINHO: 'a_caminho',
+  // O motorista tocou em «Cheguei» (09/10/2026): está no local de recolha.
+  CHEGOU: 'chegou',
   COMECOU: 'comecou',
   CODIGO_ERRADO: 'codigo_errado',
   TERMINOU: 'terminou',

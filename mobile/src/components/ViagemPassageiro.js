@@ -43,7 +43,7 @@ import EsperaPedido from './EsperaPedido.js';
 const SUBTITULO = {
   requested: 'subRequested',
   accepted: 'subAccepted',
-  arriving: 'subAccepted',
+  arriving: 'subArrived',
   in_progress: 'subInProgress',
 };
 

@@ -216,6 +216,7 @@ export default {
   saudacaoOla: 'Hello,',
   subRequested: 'We sent your request to nearby drivers.',
   subAccepted: 'Follow your driver in real time.',
+  subArrived: 'Your driver is at the pick-up point. Please go to them.',
   subInProgress: 'You are on your way.',
   etapaPedidu: 'Request confirmed',
   etapaMotoristaDalan: 'Driver on the way',
@@ -503,7 +504,7 @@ export default {
 
   statusRequested: 'Looking for a driver…',
   statusAccepted: 'Driver on the way',
-  statusArriving: 'Driver arriving',
+  statusArriving: 'Driver has arrived',
   statusCompleted: 'Ride completed',
   statusCancelled: 'Ride cancelled',
 
@@ -525,6 +526,7 @@ export default {
   youAreHere: 'You are here',
   waitingRequests: 'New requests appear here automatically.',
   onTheWay: 'On the way',
+  cheguei: "I've arrived",
   completeRide: 'Complete ride',
   liveOff: 'Connecting…',
 

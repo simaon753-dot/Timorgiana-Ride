@@ -71,7 +71,7 @@ export const comum = {
 
   'estadoViagem.requested': 'Solicitada',
   'estadoViagem.accepted': 'Aceite',
-  'estadoViagem.arriving': 'A caminho',
+  'estadoViagem.arriving': 'Na recolha',
   'estadoViagem.in_progress': 'Em andamento',
   'estadoViagem.completed': 'Concluída',
   'estadoViagem.cancelled': 'Cancelada',
@@ -129,6 +129,7 @@ export const comum = {
   'evento.pedida': 'Pedido feito',
   'evento.aceite': 'Aceite pelo motorista',
   'evento.a_caminho': 'Motorista a caminho',
+  'evento.chegou': 'Motorista chegou à recolha',
   'evento.comecou': 'Viagem iniciada',
   'evento.codigo_errado': 'Código de recolha errado',
   'evento.terminou': 'Viagem concluída',

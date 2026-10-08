@@ -214,6 +214,7 @@ export default {
   saudacaoOla: 'Olá,',
   subRequested: 'Enviámos o seu pedido aos motoristas próximos.',
   subAccepted: 'Acompanhe o motorista em tempo real.',
+  subArrived: 'O motorista chegou ao local de recolha. Vá ter com ele.',
   subInProgress: 'Está a caminho do destino.',
   etapaPedidu: 'Pedido confirmado',
   etapaMotoristaDalan: 'Motorista a caminho',
@@ -508,7 +509,8 @@ export default {
 
   statusRequested: 'À procura de motorista…',
   statusAccepted: 'Motorista a caminho',
-  statusArriving: 'Motorista a chegar',
+  // «arriving» = o motorista CHEGOU à recolha (09/10/2026; era ambíguo).
+  statusArriving: 'Motorista chegou',
   statusCompleted: 'Viagem concluída',
   statusCancelled: 'Viagem cancelada',
 
@@ -530,6 +532,7 @@ export default {
   youAreHere: 'Está aqui',
   waitingRequests: 'Os novos pedidos aparecem aqui automaticamente.',
   onTheWay: 'A caminho',
+  cheguei: 'Cheguei',
   completeRide: 'Concluir viagem',
   liveOff: 'A ligar ao tempo real…',
 
