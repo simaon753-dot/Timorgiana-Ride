@@ -174,6 +174,27 @@ export async function notificarAceite(quem, ride) {
   ]);
 }
 
+// O motorista a chegar e já chegado, ao passageiro (08/10/2026). `qual` é
+// 'perto' ou 'chegou'; `motorista` traz o nome e a matrícula.
+export async function notificarChegada(quem, qual, rideId, motorista = {}) {
+  const d = destino(quem);
+  if (!d) return { enviadas: 0 };
+  const vars = {
+    nome: motorista.nome || '',
+    matricula: motorista.matricula ? ` · ${motorista.matricula}` : '',
+  };
+  return enviar([
+    {
+      to: d.to,
+      sound: 'default',
+      title: n(`${qual}Titulo`, d.lingua),
+      body: n(`${qual}Texto`, d.lingua, vars),
+      data: { tipo: `ride:${qual}`, rideId },
+      priority: 'high',
+    },
+  ]);
+}
+
 function administradores() {
   return query(
     'SELECT push_token, lingua FROM users WHERE is_admin = TRUE AND push_token IS NOT NULL'

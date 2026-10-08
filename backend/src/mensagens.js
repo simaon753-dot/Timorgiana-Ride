@@ -689,6 +689,20 @@ export const NOTIFICACOES = {
     tet: '{nome} mai foti ita{preco}',
     en: '{nome} is coming to pick you up{preco}',
   },
+  // O motorista a aproximar-se da recolha (08/10/2026): pela distância,
+  // uma vez cada. Ver `avisosChegada` em posicaoMotorista.js.
+  pertoTitulo: { pt: 'O motorista está a chegar', tet: 'Motorista besik ona', en: 'Your driver is arriving' },
+  pertoTexto: {
+    pt: '{nome} está a menos de 300 m{matricula}. Prepara-te.',
+    tet: '{nome} besik ona, la to’o metru 300{matricula}. Prepara an.',
+    en: '{nome} is less than 300 m away{matricula}. Get ready.',
+  },
+  chegouTitulo: { pt: 'O motorista chegou', tet: 'Motorista to’o ona', en: 'Your driver has arrived' },
+  chegouTexto: {
+    pt: '{nome} está no local de recolha{matricula}.',
+    tet: '{nome} iha ona fatin foti nian{matricula}.',
+    en: '{nome} is at the pick-up point{matricula}.',
+  },
   sosTitulo: { pt: '🚨 PEDIDO DE AJUDA', tet: '🚨 PEDIDU ATU HUSU AJUDA', en: '🚨 CALL FOR HELP' },
   sosTexto: {
     pt: '{nome} carregou no SOS · {onde}',

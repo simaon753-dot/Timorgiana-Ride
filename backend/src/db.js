@@ -1091,6 +1091,10 @@ export async function initSchema() {
   // `a_chegar_em` serve todas as viagens: é quando o motorista disse que
   // chegou à recolha.
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS a_chegar_em TIMESTAMPTZ`);
+  // Os avisos ao passageiro pela distância (08/10/2026): quando saíram, para
+  // cada um sair UMA vez por viagem. Ver `avisosChegada` em posicaoMotorista.js.
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS aviso_perto_em TIMESTAMPTZ`);
+  await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS aviso_chegou_em TIMESTAMPTZ`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS carregada_em TIMESTAMPTZ`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS no_destino_em TIMESTAMPTZ`);
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS descarregada_em TIMESTAMPTZ`);
