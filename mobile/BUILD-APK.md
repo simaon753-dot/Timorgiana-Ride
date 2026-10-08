@@ -88,7 +88,7 @@ cinzento** — funciona tudo o resto, mas o mapa não aparece.
 - **Projecto:** TimorgianaRide
 - **API activada:** Maps SDK for Android (só essa)
 - **Restrição de aplicação:** Apps Android
-- **Pacote:** `tl.timorgiana.ride`
+- **Pacote:** `tl.timorgiaraneto.hakat` (era `tl.timorgiana.ride` até 08/10/2026; projeto Expo `hakat`)
 - **SHA-1:** o do certificado com que o EAS assina o APK
 
 Para descobrir o SHA-1 sem instalar Java: está no [expo.dev](https://expo.dev),
@@ -142,7 +142,7 @@ avisa, mas só nas compilações iOS.
 - **API activada:** Maps SDK for iOS (só essa). É gratuita e sem limite, tal
   como a do Android
 - **Restrição de aplicação:** Apps iOS
-- **Bundle:** `tl.timorgiana.ride`
+- **Bundle:** `tl.timorgiaraneto.hakat` (era `tl.timorgiana.ride` até 08/10/2026)
 
 ### Guardar no EAS
 
