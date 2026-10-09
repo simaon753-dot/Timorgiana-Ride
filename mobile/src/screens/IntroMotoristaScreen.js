@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Image, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import Svg, { Defs, LinearGradient, Stop, Rect, Path } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import Logo from '../components/Logo.js';
 import Icone from '../design/Icone.js';
 import { tipo } from '../design/tipografia.js';
@@ -16,9 +16,10 @@ import { colors, spacing, radius, elevacao, registarEstilos } from '../theme.js'
 // precisar. Quem chega ao formulário sem saber que lhe vão pedir a carta
 // frente e verso e quatro fotografias do carro desiste a meio.
 //
-// O FUNDO É O TEAL DA ENTRADA, e não o creme do registo: vem de lá, e é um
-// convite. O cartão dos passos é creme, como o resto do registo que se segue.
+// O FUNDO É O CREME DA APP (pedido dele, 09/10/2026 — a 1.ª versão era teal,
+// como a entrada). O cartão dos passos é branco, para se destacar do creme.
 // O logótipo vai com as cores dele, sem mexer (pedido dele, 08/10/2026).
+// Os TRÊS veículos da app: carro, motorizada e pickup.
 //
 // OS REQUISITOS SÃO OS QUE A APP PEDE MESMO (backend/src/documents.js e a
 // declaração de cidadania do registo). Se a lista de documentos mudar, esta
@@ -27,6 +28,7 @@ import { colors, spacing, radius, elevacao, registarEstilos } from '../theme.js'
 const FIGURA = {
   carro: require('../../assets/icones/veiculo-carro.png'),
   mota: require('../../assets/icones/veiculo-mota.png'),
+  carry: require('../../assets/icones/veiculo-carry.png'),
 };
 
 const PASSOS = [
@@ -52,20 +54,13 @@ export default function IntroMotoristaScreen({ navigation }) {
   return (
     <View style={styles.fundo}>
       <Svg style={StyleSheet.absoluteFill} preserveAspectRatio="none" viewBox="0 0 100 100">
-        <Defs>
-          <LinearGradient id="fundo" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={colors.degradeDe} />
-            <Stop offset="1" stopColor={colors.degradePara} />
-          </LinearGradient>
-        </Defs>
-        <Rect x="0" y="0" width="100" height="100" fill="url(#fundo)" />
         {/* Os dois arcos da maqueta: coral em cima à esquerda, a estrada
-            tracejada à direita. Ficam por trás de tudo e não se tocam. */}
+            tracejada em teal à direita, sobre o creme. Por trás de tudo. */}
         <Path d="M -10 14 Q 18 12 30 -4" stroke={colors.coral} strokeWidth="5" fill="none" />
         <Path
           d="M 112 6 Q 70 16 84 40"
-          stroke={colors.onTeal}
-          strokeOpacity="0.18"
+          stroke={colors.teal}
+          strokeOpacity="0.22"
           strokeWidth="0.6"
           strokeDasharray="2 2"
           fill="none"
@@ -73,7 +68,7 @@ export default function IntroMotoristaScreen({ navigation }) {
       </Svg>
 
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <StatusBar style="light" />
+        <StatusBar style={colors.paper === '#000000' ? 'light' : 'dark'} />
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <Pressable
             onPress={() => navigation.goBack()}
@@ -82,14 +77,15 @@ export default function IntroMotoristaScreen({ navigation }) {
             accessibilityRole="button"
             accessibilityLabel={t('back')}
           >
-            <Icone nome="voltar" tamanho={24} cor={colors.onTeal} />
+            <Icone nome="voltar" tamanho={24} cor={colors.teal} />
           </Pressable>
 
           <View style={styles.marca}>
-            <Logo onTeal />
+            <Logo />
             <View style={styles.veiculos} accessible={false}>
               <Image source={FIGURA.carro} style={styles.carro} resizeMode="contain" />
               <Image source={FIGURA.mota} style={styles.mota} resizeMode="contain" />
+              <Image source={FIGURA.carry} style={styles.carry} resizeMode="contain" />
             </View>
             <Text style={styles.titulo} accessibilityRole="header">
               {t('introMotTitulo')}
@@ -145,7 +141,7 @@ export default function IntroMotoristaScreen({ navigation }) {
           </Pressable>
 
           <View style={styles.nota}>
-            <Icone nome="escudo" tamanho={22} cor={colors.coral} />
+            <Icone nome="escudo" tamanho={22} cor={colors.coralDark} />
             <View style={styles.notaLinha} />
             <Text style={styles.notaTexto}>{t('introMotNota')}</Text>
           </View>
@@ -157,7 +153,7 @@ export default function IntroMotoristaScreen({ navigation }) {
 
 const criarEstilos = () =>
   StyleSheet.create({
-    fundo: { flex: 1, backgroundColor: colors.degradePara },
+    fundo: { flex: 1, backgroundColor: colors.paper },
     safe: { flex: 1 },
     scroll: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl, flexGrow: 1 },
     voltar: { alignSelf: 'flex-start', paddingVertical: spacing.sm },
@@ -168,23 +164,26 @@ const criarEstilos = () =>
       gap: spacing.md,
       marginTop: spacing.lg,
     },
-    carro: { width: 64, height: 22, tintColor: colors.onTeal },
-    mota: { width: 44, height: 28, tintColor: colors.onTeal },
+    // As proporções dos ficheiros: carro 192×66, mota 192×120, pickup 192×75.
+    carro: { width: 64, height: 22, tintColor: colors.teal },
+    mota: { width: 45, height: 28, tintColor: colors.teal },
+    carry: { width: 64, height: 25, tintColor: colors.teal },
     titulo: {
       ...tipo.displayPequeno,
-      color: colors.onTeal,
+      color: colors.text,
       textAlign: 'center',
       marginTop: spacing.lg,
     },
     subtitulo: {
       ...tipo.corpo,
-      color: colors.onTeal,
-      opacity: 0.9,
+      color: colors.textMuted,
       textAlign: 'center',
       marginTop: spacing.sm,
     },
     cartao: {
-      backgroundColor: colors.paper,
+      backgroundColor: colors.white,
+      borderWidth: 1,
+      borderColor: colors.border,
       borderRadius: radius.xl,
       padding: spacing.lg,
       marginTop: spacing.xl,
@@ -241,11 +240,11 @@ const criarEstilos = () =>
       alignItems: 'center',
       borderRadius: 999,
       borderWidth: 1.5,
-      borderColor: colors.onTeal,
+      borderColor: colors.teal,
       paddingVertical: 14,
       marginTop: spacing.md,
     },
-    botaoContornoTexto: { ...tipo.botao, color: colors.onTeal, fontSize: 17, lineHeight: 22 },
+    botaoContornoTexto: { ...tipo.botao, color: colors.teal, fontSize: 17, lineHeight: 22 },
     premido: { opacity: 0.9, transform: [{ scale: 0.99 }] },
     nota: {
       flexDirection: 'row',
@@ -256,11 +255,10 @@ const criarEstilos = () =>
     notaLinha: {
       width: 1,
       height: 32,
-      backgroundColor: colors.onTeal,
-      opacity: 0.35,
+      backgroundColor: colors.border,
       marginHorizontal: spacing.md,
     },
-    notaTexto: { ...tipo.pequeno, color: colors.onTeal, opacity: 0.9, flex: 1 },
+    notaTexto: { ...tipo.pequeno, color: colors.textMuted, flex: 1 },
   });
 
 let styles = criarEstilos();
