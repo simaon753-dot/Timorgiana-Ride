@@ -35,7 +35,7 @@ const criarEstilos = () =>
     rotulo: { ...tipo.etiqueta, color: colors.onTeal, opacity: 0.85 },
     numero: {
       color: colors.white,
-      fontSize: 40,
+      fontSize: 34,
       fontWeight: '800',
       letterSpacing: 4,
       marginVertical: 2,

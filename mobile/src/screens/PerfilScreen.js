@@ -77,7 +77,7 @@ export default function PerfilScreen({ navigation }) {
           {/* A fotografia mais recente do motorista; quem não tem continua a
               ver a silhueta — é o servidor que responde 404 e o componente
               que trata disso. */}
-          <Retrato tamanho={84} />
+          <Retrato tamanho={72} />
           <View style={styles.perfilTextos}>
             <EditarNome />
             {/* O PAPEL em pastilhas, com o selo de verificação: diz que alguém

@@ -1,3 +1,4 @@
+import { Dimensions } from 'react-native';
 import { useFonts } from 'expo-font';
 // Importado peso a peso, pelo subcaminho, e NÃO pelo índice do pacote.
 // O índice reexporta os 28 ficheiros (14 pesos × direito e itálico) e o
@@ -63,20 +64,45 @@ export function useTipografia() {
 //
 // A entrelinha é generosa de propósito: o português e o tétum fazem
 // palavras longas, e linhas apertadas em ecrãs pequenos cansam.
+//
+// ESCALA COMPACTA (10/10/2026, revisão de todos os ecrãs pedida pelo Simão).
+// Os títulos eram de 34/27/21 e ocupavam meio ecrã antes do que interessa;
+// passaram a 24/21/18, como nas apps de mobilidade. Só os TÍTULOS encolhem
+// mais um pouco num telemóvel estreito (`porLargura`): o texto de ler fica
+// a 15, que é o mínimo confortável, e a letra do sistema ainda o aumenta.
+const LARGURA = Dimensions.get('window').width || 390;
+// 390 dp é um telemóvel médio; abaixo de 360 dp os títulos descem até 8 %.
+const porLargura = (n) => Math.round(n * Math.min(1, Math.max(0.92, LARGURA / 390)));
+
 export const tipo = {
   // Números grandes e momentos de abertura. Espaçamento negativo para o
   // texto grande não parecer solto.
-  display: { fontFamily: FAMILIAS.extra, fontSize: 34, lineHeight: 40, letterSpacing: -0.8 },
-  displayPequeno: { fontFamily: FAMILIAS.extra, fontSize: 27, lineHeight: 33, letterSpacing: -0.5 },
+  display: {
+    fontFamily: FAMILIAS.extra,
+    fontSize: porLargura(24),
+    lineHeight: porLargura(30),
+    letterSpacing: -0.5,
+  },
+  displayPequeno: {
+    fontFamily: FAMILIAS.extra,
+    fontSize: porLargura(21),
+    lineHeight: porLargura(27),
+    letterSpacing: -0.3,
+  },
 
   // Títulos de ecrã.
-  titulo: { fontFamily: FAMILIAS.forte, fontSize: 21, lineHeight: 27, letterSpacing: -0.3 },
+  titulo: {
+    fontFamily: FAMILIAS.forte,
+    fontSize: porLargura(18),
+    lineHeight: porLargura(24),
+    letterSpacing: -0.2,
+  },
   // Cabeçalhos de secção dentro de um ecrã.
-  subtitulo: { fontFamily: FAMILIAS.semi, fontSize: 17, lineHeight: 23, letterSpacing: -0.1 },
+  subtitulo: { fontFamily: FAMILIAS.semi, fontSize: 16, lineHeight: 22, letterSpacing: -0.1 },
 
-  corpoForte: { fontFamily: FAMILIAS.semi, fontSize: 15, lineHeight: 22 },
-  corpo: { fontFamily: FAMILIAS.normal, fontSize: 15, lineHeight: 22 },
-  pequeno: { fontFamily: FAMILIAS.normal, fontSize: 13.5, lineHeight: 19 },
+  corpoForte: { fontFamily: FAMILIAS.semi, fontSize: 15, lineHeight: 21 },
+  corpo: { fontFamily: FAMILIAS.normal, fontSize: 15, lineHeight: 21 },
+  pequeno: { fontFamily: FAMILIAS.normal, fontSize: 13, lineHeight: 18 },
   legenda: { fontFamily: FAMILIAS.normal, fontSize: 12, lineHeight: 16 },
 
   // Etiquetas de secção. Maiúsculas e espaçadas: lêem-se como estrutura,
@@ -91,7 +117,7 @@ export const tipo = {
 
   // Botões. Um pouco mais apertados do que o corpo, para o texto assentar
   // no centro do alvo.
-  botao: { fontFamily: FAMILIAS.forte, fontSize: 15.5, lineHeight: 20, letterSpacing: 0.1 },
+  botao: { fontFamily: FAMILIAS.forte, fontSize: 15, lineHeight: 20, letterSpacing: 0.1 },
 
   // Tudo o que é número e muda: preços, ganhos, códigos, distâncias. As
   // figuras tabulares impedem que o texto salte quando o valor muda.
@@ -99,4 +125,4 @@ export const tipo = {
 };
 
 // Mantido para o código antigo enquanto os ecrãs migram, um a um.
-export const fontSize = { xs: 12, sm: 13.5, md: 15, lg: 21, xl: 27, xxl: 34 };
+export const fontSize = { xs: 12, sm: 13, md: 15, lg: 18, xl: 21, xxl: 24 };

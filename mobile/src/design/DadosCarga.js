@@ -90,7 +90,7 @@ const criarEstilos = () =>
       borderRadius: radius.lg,
       paddingVertical: spacing.sm,
       paddingHorizontal: spacing.md,
-      minHeight: 56,
+      minHeight: 52,
       justifyContent: 'center',
     },
     capacidadeActiva: { borderColor: colors.teal, backgroundColor: colors.tintaTeal },

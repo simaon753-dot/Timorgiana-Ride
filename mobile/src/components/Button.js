@@ -128,7 +128,7 @@ const criarEstilos = () =>
       justifyContent: 'center',
       paddingHorizontal: spacing.lg,
     },
-    grande: { minHeight: 60, borderRadius: radius.xl },
+    grande: { minHeight: 52, borderRadius: radius.xl },
     // Escala quase imperceptível: o dedo sente a resposta, o olho não vê
     // um salto. Exagerar aqui é o que faz uma app parecer um brinquedo.
     premido: { opacity: 0.9, transform: [{ scale: 0.985 }] },

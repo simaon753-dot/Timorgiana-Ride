@@ -97,7 +97,7 @@ const criarEstilos = () =>
       alignItems: 'center',
       justifyContent: 'center',
       gap: spacing.sm,
-      minHeight: 56,
+      minHeight: 52,
       borderRadius: radius.lg,
       borderWidth: 1.5,
       paddingHorizontal: spacing.md,
@@ -105,8 +105,8 @@ const criarEstilos = () =>
     premido: { opacity: 0.8 },
     // A ACÇÃO DE TRABALHO, sozinha na linha, mais alta e com letra maior:
     // é a que o motorista carrega em todas as viagens (Simão, 16/09/2026).
-    grande: { minHeight: 68 },
-    tituloGrande: { fontSize: 19, lineHeight: 26 },
+    grande: { minHeight: 56 },
+    tituloGrande: { fontSize: 17, lineHeight: 22 },
     // TRÊS NUMA LINHA: ícone por cima do texto. Com o ícone ao lado, num terço
     // da largura, "Telefone" e o número eram cortados.
     //
@@ -118,7 +118,7 @@ const criarEstilos = () =>
     empilhado: {
       flexDirection: 'column',
       gap: 4,
-      minHeight: 64,
+      minHeight: 60,
       paddingHorizontal: spacing.sm,
       paddingVertical: spacing.sm,
     },
@@ -127,7 +127,7 @@ const criarEstilos = () =>
     subEmpilhado: { textAlign: 'center' },
     contagemCanto: { position: 'absolute', top: 6, right: 6 },
     textos: { flexShrink: 1 },
-    titulo: { ...tipo.corpoForte, fontSize: 16 },
+    titulo: { ...tipo.corpoForte, fontSize: 15 },
     sub: { ...tipo.pequeno, fontVariant: ['tabular-nums'] },
     contagem: {
       minWidth: 22,

@@ -84,7 +84,7 @@ export default function EscolherCarryScreen({ navigation }) {
             accessibilityLabel={`${t(o.titulo)}. ${t(o.sub)}`}
           >
             <View style={[styles.opcaoIcone, { backgroundColor: colors[o.acento] }]}>
-              <Icone nome={o.icone} tamanho={40} cor={colors.onAcento} traco={1.8} />
+              <Icone nome={o.icone} tamanho={32} cor={colors.onAcento} traco={1.8} />
             </View>
             <View style={styles.opcaoTextos}>
               <Text style={styles.opcaoTitulo}>{t(o.titulo)}</Text>

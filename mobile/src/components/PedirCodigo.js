@@ -88,7 +88,7 @@ const criarEstilos = () =>
       borderRadius: radius.md,
       marginTop: spacing.md,
       paddingVertical: spacing.md,
-      fontSize: 38,
+      fontSize: 32,
       fontWeight: '800',
       letterSpacing: 12,
       textAlign: 'center',

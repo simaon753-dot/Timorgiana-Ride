@@ -334,7 +334,7 @@ const criarEstilos = () =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.sm,
-      minHeight: 60,
+      minHeight: 52,
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,
     },

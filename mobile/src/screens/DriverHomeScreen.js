@@ -417,7 +417,7 @@ export default function DriverHomeScreen({ navigation }) {
                     volante de carro. Sem veículo na conta, fica o volante. */}
                 <Icone
                   nome={VEICULOS[user?.vehicle?.type]?.icone || 'volante'}
-                  tamanho={52}
+                  tamanho={40}
                   cor={colors.textMuted}
                   traco={1.6}
                 />
@@ -821,7 +821,7 @@ function ActiveRideCard({
           hora do pedido — é o que se diz ao telefone quando alguma coisa
           corre mal ("a viagem 63, das 21:52"). */}
       <View style={styles.viagemTopo}>
-        <Icone nome={tipoV?.icone || 'carro'} tamanho={30} cor={colors.teal} />
+        <Icone nome={tipoV?.icone || 'carro'} tamanho={26} cor={colors.teal} />
         <Text style={styles.viagemEstado}>{t(statusMeta(ride.status).key)}</Text>
         <View style={styles.viagemId}>
           <View style={styles.idPastilha}>
@@ -867,7 +867,7 @@ function ActiveRideCard({
 
       <View style={styles.passageiroCaixa}>
         <View style={styles.passageiroLinha}>
-          <Avatar nome={quemViaja} tamanho={56} />
+          <Avatar nome={quemViaja} tamanho={48} />
           <View style={styles.passageiroTextos}>
             <Text style={styles.passageiroRotulo}>{t('yourPassenger')}</Text>
             <Text style={styles.passageiroNome} numberOfLines={2}>

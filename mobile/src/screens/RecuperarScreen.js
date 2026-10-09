@@ -136,7 +136,7 @@ const criarEstilos = () =>
     safe: { flex: 1, backgroundColor: colors.paper },
     scroll: { padding: spacing.lg, gap: spacing.sm },
     centro: { flex: 1, justifyContent: 'center', padding: spacing.lg },
-    icone: { fontSize: 46, color: colors.teal, textAlign: 'center' },
+    icone: { fontSize: 36, color: colors.teal, textAlign: 'center' },
     titulo: { ...tipo.display, color: colors.text, marginTop: spacing.md },
     explica: { ...tipo.corpo, color: colors.textMuted, marginBottom: spacing.md },
   });

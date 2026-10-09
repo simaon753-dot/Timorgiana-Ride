@@ -97,7 +97,7 @@ export default function ConfirmarTelefoneScreen({ navigation }) {
         <ScrollView contentContainerStyle={styles.conteudo} keyboardShouldPersistTaps="handled">
           <Voltar navigation={navigation} />
           <View style={styles.icone}>
-            <Icone nome={feito ? 'visto' : 'telefone'} tamanho={44} cor={colors.teal} />
+            <Icone nome={feito ? 'visto' : 'telefone'} tamanho={36} cor={colors.teal} />
           </View>
           <Text style={styles.titulo}>
             {feito ? t('telConfirmadoTitulo') : t('telConfirmarTitulo')}

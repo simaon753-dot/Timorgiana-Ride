@@ -166,7 +166,7 @@ export default function HistoryScreen({ navigation }) {
         <View style={styles.lista}>
           {cabecalho}
           <View style={styles.vazio}>
-            <Icone nome="aviso" tamanho={40} cor={colors.textMuted} />
+            <Icone nome="aviso" tamanho={32} cor={colors.textMuted} />
             <Text style={styles.vazioTitulo}>{t('historyErro')}</Text>
             <View style={styles.vazioBotao}>
               <Button title={t('historyTentar')} variant="secondary" onPress={() => primeira()} />
@@ -201,7 +201,7 @@ export default function HistoryScreen({ navigation }) {
           }
           ListEmptyComponent={
             <View style={styles.vazio}>
-              <Icone nome="rota" tamanho={44} cor={colors.teal} />
+              <Icone nome="rota" tamanho={36} cor={colors.teal} />
               <Text style={styles.vazioTitulo}>
                 {filtro === 'todas' ? t('historyVazioTitulo') : t('historyVazioPeriodo')}
               </Text>

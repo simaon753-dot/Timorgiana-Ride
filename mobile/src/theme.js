@@ -224,7 +224,9 @@ export function paletaEmUso() {
 
 // Espaçamento em passos de 4, com um passo extra em baixo: 2 px existe
 // para separações finas onde 4 já é uma folga visível.
-export const spacing = { xxs: 2, xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48 };
+// Mais compacto desde 10/10/2026 (revisão de todos os ecrãs): `lg` é a margem
+// lateral (20) e `xl`/`xxl` eram os grandes vazios entre blocos.
+export const spacing = { xxs: 2, xs: 4, sm: 8, md: 14, lg: 20, xl: 24, xxl: 32 };
 
 // Raios menos arredondados do que antes. Cantos muito redondos lêem-se
 // como aplicação de lazer; esta é uma app em que se confia dinheiro e
@@ -263,7 +265,7 @@ export const elevacao = {
 };
 
 // Mantido enquanto os ecrãs migram para os papéis tipográficos.
-export const fontSize = { xs: 12, sm: 13.5, md: 15, lg: 21, xl: 27, xxl: 34 };
+export const fontSize = { xs: 12, sm: 13, md: 15, lg: 18, xl: 21, xxl: 24 };
 
 export const theme = { colors, spacing, radius, fontSize };
 export default theme;

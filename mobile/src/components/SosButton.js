@@ -199,7 +199,7 @@ const criarEstilos = () =>
     // BotaoAccao empilhado, e ocupa a caixa inteira.
     empilhado: {
       flex: 1,
-      minHeight: 64,
+      minHeight: 60,
       borderRadius: radius.lg,
       paddingVertical: spacing.sm,
       paddingHorizontal: spacing.sm,

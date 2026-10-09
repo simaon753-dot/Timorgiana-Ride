@@ -143,7 +143,7 @@ const criarEstilos = () =>
     inputRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      minHeight: 54,
+      minHeight: 50,
       backgroundColor: colors.inputBg,
       borderWidth: 1.5,
       borderColor: colors.border,
@@ -167,7 +167,7 @@ const criarEstilos = () =>
       borderRightColor: colors.border,
       marginRight: spacing.md,
     },
-    input: { flex: 1, ...tipo.corpo, color: colors.text, paddingVertical: 14 },
+    input: { flex: 1, ...tipo.corpo, color: colors.text, paddingVertical: 12 },
     olho: { paddingLeft: spacing.sm, justifyContent: 'center' },
     hint: { ...tipo.legenda, color: colors.textMuted, marginTop: spacing.xs },
     errorText: { ...tipo.legenda, color: colors.danger, marginTop: spacing.xs },

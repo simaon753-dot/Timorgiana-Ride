@@ -43,7 +43,7 @@ const criarEstilos = () =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.sm,
-      minHeight: 52,
+      minHeight: 48,
       paddingHorizontal: spacing.md,
       backgroundColor: colors.white,
       borderRadius: radius.xl,

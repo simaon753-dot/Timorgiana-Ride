@@ -38,7 +38,7 @@ const criarEstilos = () =>
       backgroundColor: colors.white,
     },
     optionActive: { borderColor: colors.teal, backgroundColor: colors.tintaTeal },
-    icon: { fontSize: 24, marginBottom: spacing.xs },
+    icon: { fontSize: 22, marginBottom: spacing.xs },
     label: { ...tipo.corpoForte, color: colors.textMuted },
     labelActive: { color: colors.teal },
   });

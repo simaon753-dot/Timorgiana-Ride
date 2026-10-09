@@ -755,7 +755,7 @@ const criarEstilos = () =>
     },
     reenviarTexto: { ...tipo.pequeno, color: colors.text },
     cardAprovado: { borderColor: colors.teal },
-    icon: { fontSize: 38, marginBottom: spacing.sm },
+    icon: { fontSize: 30, marginBottom: spacing.sm },
     title: { ...tipo.titulo, color: colors.text, textAlign: 'center' },
     explain: {
       ...tipo.pequeno,

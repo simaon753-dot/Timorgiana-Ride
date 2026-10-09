@@ -23,7 +23,7 @@ export default function EstadoVazio({ imagem, icone, titulo, texto, accao, onAcc
         </View>
       ) : icone ? (
         <View style={styles.icone}>
-          <Icone nome={icone} tamanho={56} cor={colors.teal} traco={1.5} />
+          <Icone nome={icone} tamanho={40} cor={colors.teal} traco={1.5} />
         </View>
       ) : null}
       <Text style={styles.titulo}>{titulo}</Text>
@@ -51,13 +51,13 @@ const criarEstilos = () =>
     },
     imagemCaixa: {
       width: 160,
-      height: 110,
+      height: 88,
       borderRadius: radius.xl,
       overflow: 'hidden',
       marginBottom: spacing.md,
       backgroundColor: paletaEmUso() === 'escuro' ? '#000000' : '#FFFFFF',
     },
-    imagem: { width: 160, height: 110 },
+    imagem: { width: 128, height: 88 },
     icone: { marginBottom: spacing.md },
     titulo: { ...tipo.subtitulo, color: colors.text, textAlign: 'center' },
     texto: {

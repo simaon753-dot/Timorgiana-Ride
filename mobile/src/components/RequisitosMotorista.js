@@ -196,10 +196,10 @@ const criarEstilos = () =>
       gap: spacing.sm,
       backgroundColor: colors.coral,
       borderRadius: 999,
-      paddingVertical: 16,
+      paddingVertical: 14,
       marginTop: spacing.sm,
     },
-    botaoTexto: { ...tipo.botao, color: colors.onAcento, fontSize: 17, lineHeight: 22 },
+    botaoTexto: { ...tipo.botao, color: colors.onAcento, fontSize: 16, lineHeight: 22 },
   });
 
 let styles = criarEstilos();

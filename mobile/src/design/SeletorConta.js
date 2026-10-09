@@ -39,7 +39,7 @@ export default function SeletorConta({ valor, onMudar }) {
                 <Icone nome="visto" tamanho={14} cor={colors.onTeal} traco={3} />
               </View>
             ) : null}
-            <Icone nome={o.icone} tamanho={34} cor={activo ? colors.teal : colors.text} />
+            <Icone nome={o.icone} tamanho={28} cor={activo ? colors.teal : colors.text} />
             <Text style={[styles.nome, activo && styles.nomeActivo]}>{o.nome}</Text>
             <Text style={[styles.nota, activo && styles.notaActiva]}>{o.nota}</Text>
           </Pressable>

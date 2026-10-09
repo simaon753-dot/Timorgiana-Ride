@@ -41,7 +41,7 @@ const criarEstilos = () =>
       borderRadius: radius.lg,
       padding: spacing.md,
       marginBottom: spacing.md,
-      minHeight: 56,
+      minHeight: 52,
     },
     titulo: { ...tipo.corpoForte, color: colors.text },
     texto: { ...tipo.pequeno, color: colors.textMuted },

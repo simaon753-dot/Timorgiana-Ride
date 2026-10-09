@@ -175,7 +175,7 @@ export default function ViagemPassageiro({ ride, navigation }) {
       {withDriver ? (
         <View style={styles.cartao}>
           <View style={styles.motoristaLinha}>
-            <Retrato tamanho={56} caminho={`/rides/${ride.id}/retrato`} />
+            <Retrato tamanho={48} caminho={`/rides/${ride.id}/retrato`} />
             <View style={styles.motoristaTextos}>
               <Text style={styles.motoristaNome} numberOfLines={2}>
                 {ride.driver.name}

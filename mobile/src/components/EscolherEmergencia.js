@@ -122,7 +122,7 @@ const criarEstilos = () =>
       paddingVertical: spacing.md,
       paddingHorizontal: spacing.md,
     },
-    icone: { fontSize: 30 },
+    icone: { fontSize: 26 },
     nome: { ...tipo.subtitulo, color: colors.text },
     exemplo: { ...tipo.legenda, color: colors.textMuted, marginTop: 1, lineHeight: 16 },
     numeros: { alignItems: 'flex-end' },

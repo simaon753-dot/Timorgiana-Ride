@@ -463,7 +463,7 @@ const criarEstilos = () =>
     hojeRotulo: { ...tipo.corpoForte, fontSize: 14, color: colors.onTeal },
     hojeValor: {
       fontFamily: FAMILIAS.forte,
-      fontSize: 34,
+      fontSize: 28,
       color: colors.onTeal,
       fontVariant: ['tabular-nums'],
     },

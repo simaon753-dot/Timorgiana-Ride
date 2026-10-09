@@ -209,7 +209,7 @@ export default function EscolherDestinoScreen({ navigation, route }) {
           onPress={() => irPara(null)}
           accessibilityRole="button"
         >
-          <Icone nome="pin" tamanho={30} cor={colors.teal} />
+          <Icone nome="pin" tamanho={26} cor={colors.teal} />
           <View style={{ flex: 1 }}>
             <Text style={styles.procuraTitulo}>{t('procurarDestino')}</Text>
             <Text style={styles.procuraSub}>{t('procurarDestinoSub')}</Text>
