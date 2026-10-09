@@ -18,6 +18,8 @@ const TIPOS = [
   'veiculotras',
   'veiculoesquerda',
   'veiculodireita',
+  // O certificado de registo criminal (09/10/2026). Ver OBRIGATORIOS_REGISTO.
+  'registocriminal',
 ];
 
 // O dia em Díli, e não o dia do servidor.
@@ -163,7 +165,14 @@ export const OBRIGATORIOS = ['photo', 'identity', 'licence', 'cartaverso', 'vehi
 // por um pedido que não existia quando se registou. Pode juntá-las quando
 // quiser, e o painel mostra quem ainda não as tem.
 export const FOTOS_VEICULO = ['veiculofrente', 'veiculotras', 'veiculoesquerda', 'veiculodireita'];
-export const OBRIGATORIOS_REGISTO = [...OBRIGATORIOS, ...FOTOS_VEICULO];
+// O CERTIFICADO DE REGISTO CRIMINAL (09/10/2026, decisão do Simão): um
+// desconhecido leva passageiros, e é o que o Grab e o Gojek pedem. Como as
+// fotografias do veículo, conta para um REGISTO NOVO e não para
+// `podeTrabalhar` — quem já estava aprovado não fica parado; o painel aponta-o.
+// Sem data de validade aqui: «recente» é quem aprova que o vê na data de
+// emissão (a app pede «emitido nos últimos 3 meses»).
+export const REGISTO_CRIMINAL = 'registocriminal';
+export const OBRIGATORIOS_REGISTO = [...OBRIGATORIOS, REGISTO_CRIMINAL, ...FOTOS_VEICULO];
 
 // Avisar quinze dias antes. Chega para tratar de um papel em Díli sem
 // perder um dia de trabalho, e não é tão cedo que se esqueça.

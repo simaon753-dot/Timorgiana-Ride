@@ -14,6 +14,11 @@ export const TIPOS_DOCUMENTO: TipoDocumento[] = ['photo', 'identity', 'licence',
 // apontam, porque não existiam quando se registou.
 export const FOTOS_VEICULO: TipoDocumento[] = ['veiculofrente', 'veiculotras', 'veiculoesquerda', 'veiculodireita'];
 
+// O certificado de registo criminal (09/10/2026, decisão do Simão): como as
+// fotografias, impede a aprovação de um registo NOVO; a quem já está aprovado
+// só se aponta. «Recente» (3 meses) vê-se na data de emissão do papel.
+export const REGISTO_CRIMINAL: TipoDocumento = 'registocriminal';
+
 // Quanto tempo é PLAUSÍVEL faltar para cada documento caducar. As datas são
 // escritas pelo próprio motorista a olhar para o cartão, e nada o impede de
 // escrever 2035 — mas um Kartaun Inspesaun vale um ano: uma validade a três
@@ -53,6 +58,15 @@ export function verificar(d: Motorista): LinhaVerificacao[] {
       : { nivel: 'ok', texto: 'Os seis documentos estão presentes' }
   );
 
+  if (!docs[REGISTO_CRIMINAL]) {
+    linhas.push({
+      nivel: d.driverStatus === 'approved' ? 'duvida' : 'no',
+      texto: 'Falta o certificado de registo criminal',
+    });
+  } else {
+    linhas.push({ nivel: 'duvida', texto: 'Registo criminal: confirmar que foi emitido nos últimos 3 meses e que está limpo' });
+  }
+
   const semFotos = FOTOS_VEICULO.filter((k) => !docs[k]).map((k) => tl('documento', k).toLowerCase());
   if (semFotos.length) {
     linhas.push({
@@ -91,7 +105,7 @@ export function verificar(d: Motorista): LinhaVerificacao[] {
   // A CORREÇÃO PEDIDA IMPEDE, como um documento em falta (04/10/2026): quem
   // pediu disse que aquele papel não serve. Aprovar sem ele obriga ao «mesmo
   // assim», com a lista à frente.
-  for (const k of [...TIPOS_DOCUMENTO, ...FOTOS_VEICULO]) {
+  for (const k of [...TIPOS_DOCUMENTO, REGISTO_CRIMINAL, ...FOTOS_VEICULO]) {
     const doc = docs[k];
     if (doc?.correcao) linhas.push({ nivel: 'no', texto: `${tl('documento', k)}: correção pedida — ${doc.correcao}` });
   }

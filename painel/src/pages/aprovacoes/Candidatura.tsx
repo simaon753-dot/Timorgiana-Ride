@@ -15,7 +15,7 @@ import { DialogoConfirmacao } from '@/components/ui/confirmar';
 import { ImagemProtegida, Lupa } from '@/components/ui/imagem-protegida';
 import { avisar, mensagemDe } from '@/components/ui/aviso';
 import { Dado, EstadoDoMotorista, IconeVeiculo, Telefone } from '@/components/comuns';
-import { FOTOS_VEICULO, TIPOS_DOCUMENTO, documentoSuspeito, porTipo, resumoVerificacao, type NivelVerificacao } from './verificar';
+import { FOTOS_VEICULO, REGISTO_CRIMINAL, TIPOS_DOCUMENTO, documentoSuspeito, porTipo, resumoVerificacao, type NivelVerificacao } from './verificar';
 
 type Acao = null | 'aprovarMesmoAssim' | 'recusar' | 'suspender';
 
@@ -310,7 +310,7 @@ export function Candidatura({
 
             <Seccao titulo={t('cand.documentos')}>
               <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                {TIPOS_DOCUMENTO.map(cartaoDocumento)}
+                {[...TIPOS_DOCUMENTO, REGISTO_CRIMINAL].map(cartaoDocumento)}
               </ul>
             </Seccao>
 

@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import Svg, { Path } from 'react-native-svg';
 import Logo from '../components/Logo.js';
 import Icone from '../design/Icone.js';
+import RequisitosMotorista from '../components/RequisitosMotorista.js';
 import { tipo } from '../design/tipografia.js';
 import { useI18n } from '../i18n/index.js';
 import { colors, spacing, radius, elevacao, registarEstilos } from '../theme.js';
@@ -21,10 +22,8 @@ import { colors, spacing, radius, elevacao, registarEstilos } from '../theme.js'
 // O logótipo vai com as cores dele, sem mexer (pedido dele, 08/10/2026).
 // Os TRÊS veículos da app: carro, motorizada e pickup.
 //
-// OS REQUISITOS SÃO OS QUE A APP PEDE MESMO (backend/src/documents.js e a
-// declaração de cidadania do registo). Se a lista de documentos mudar, esta
-// muda com ela — uma promessa aqui que o registo não cumpre é pior do que
-// nenhuma.
+// «VER REQUISITOS» abre uma folha que sobe do fundo (components/
+// RequisitosMotorista.js), com o que a app pede de facto.
 const FIGURA = {
   carro: require('../../assets/icones/veiculo-carro.png'),
   mota: require('../../assets/icones/veiculo-mota.png'),
@@ -36,15 +35,6 @@ const PASSOS = [
   { icone: 'documento', texto: 'introMotPasso2' },
   { icone: 'escudo', texto: 'introMotPasso3' },
   { icone: 'rota', texto: 'introMotPasso4' },
-];
-
-const REQUISITOS = [
-  'introMotReq1',
-  'introMotReq2',
-  'introMotReq3',
-  'introMotReq4',
-  'introMotReq5',
-  'introMotReq6',
 ];
 
 export default function IntroMotoristaScreen({ navigation }) {
@@ -106,18 +96,6 @@ export default function IntroMotoristaScreen({ navigation }) {
                 <Text style={styles.passoTexto}>{t(p.texto)}</Text>
               </View>
             ))}
-
-            {verRequisitos ? (
-              <View style={styles.requisitos}>
-                <Text style={styles.requisitosTitulo}>{t('introMotReqTitulo')}</Text>
-                {REQUISITOS.map((r) => (
-                  <View key={r} style={styles.requisito}>
-                    <Icone nome="visto" tamanho={16} cor={colors.teal} />
-                    <Text style={styles.requisitoTexto}>{t(r)}</Text>
-                  </View>
-                ))}
-              </View>
-            ) : null}
           </View>
 
           <Pressable
@@ -130,14 +108,11 @@ export default function IntroMotoristaScreen({ navigation }) {
           </Pressable>
 
           <Pressable
-            onPress={() => setVerRequisitos((v) => !v)}
+            onPress={() => setVerRequisitos(true)}
             style={({ pressed }) => [styles.botaoContorno, pressed && styles.premido]}
             accessibilityRole="button"
-            accessibilityState={{ expanded: verRequisitos }}
           >
-            <Text style={styles.botaoContornoTexto}>
-              {t(verRequisitos ? 'introMotEsconder' : 'introMotRequisitos')}
-            </Text>
+            <Text style={styles.botaoContornoTexto}>{t('introMotRequisitos')}</Text>
           </Pressable>
 
           <View style={styles.nota}>
@@ -147,6 +122,15 @@ export default function IntroMotoristaScreen({ navigation }) {
           </View>
         </ScrollView>
       </SafeAreaView>
+
+      <RequisitosMotorista
+        visivel={verRequisitos}
+        aoFechar={() => setVerRequisitos(false)}
+        aoComecar={() => {
+          setVerRequisitos(false);
+          navigation.navigate('Register', { role: 'driver' });
+        }}
+      />
     </View>
   );
 }
@@ -211,20 +195,6 @@ const criarEstilos = () =>
       marginRight: spacing.md,
     },
     passoTexto: { ...tipo.corpo, color: colors.text, flex: 1 },
-    requisitos: {
-      marginTop: spacing.lg,
-      paddingTop: spacing.md,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-    },
-    requisitosTitulo: { ...tipo.corpoForte, color: colors.text, marginBottom: spacing.xs },
-    requisito: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: spacing.sm,
-      marginTop: spacing.xs,
-    },
-    requisitoTexto: { ...tipo.pequeno, color: colors.text, flex: 1 },
     botao: {
       flexDirection: 'row',
       alignItems: 'center',

@@ -63,6 +63,7 @@ export const comum = {
   'documento.veiculotras': 'Traseira',
   'documento.veiculoesquerda': 'Lado esquerdo',
   'documento.veiculodireita': 'Lado direito',
+  'documento.registocriminal': 'Registo criminal',
 
   'motivoDocumento.caducado': 'Caducou e foi renovado',
   'motivoDocumento.perdido': 'Perdeu o documento e tirou outro',

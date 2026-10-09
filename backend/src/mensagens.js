@@ -882,6 +882,11 @@ export const NOTIFICACOES = {
     en: 'Vehicle registration card',
   },
   doc_inspection: { pt: 'Cartão de inspeção', tet: 'Kartaun Inspesaun', en: 'Inspection card' },
+  doc_registocriminal: {
+    pt: 'Certificado de registo criminal',
+    tet: 'Sertifikadu rejistu kriminál',
+    en: 'Criminal record certificate',
+  },
   doc_veiculofrente: {
     pt: 'Veículo, frente',
     tet: 'Veíkulu, oin',

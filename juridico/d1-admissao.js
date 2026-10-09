@@ -30,7 +30,7 @@ module.exports = C.documento(
     C.nota('Esta é a advertência que mais importa deste Regulamento. Um motorista que circule sem seguro não fica sem responsabilidade: fica sem quem a suporte por ele. Responde com o seu próprio património — casa, veículo, rendimento futuro — e sem qualquer limite, por danos causados a um passageiro ou a terceiro. Os USD 20.000 do tecto legal existem para quem tem apólice; quem não tem, não tem tecto nenhum.'),
 
     A('Artigo 4.º', 'Documentos obrigatórios'),
-    P('A candidatura só é apreciada quando estiverem submetidos os seis documentos seguintes:'),
+    P('A candidatura só é apreciada quando estiverem submetidos os sete documentos seguintes:'),
     T(
       ['Documento', 'Finalidade', 'Validade'],
       [
@@ -40,9 +40,11 @@ module.exports = C.documento(
         ['4. Carta de condução (verso)', 'Confirmar as categorias de veículos que o candidato está habilitado a conduzir', 'Não é exigida data — a validade consta da frente'],
         ['5. Cartão de registo do veículo', 'Confirmar a identificação e a titularidade do veículo', 'Data obrigatória'],
         ['6. Cartão de inspeção (Kartaun Inspesaun)', 'Confirmar a aptidão técnica do veículo para circular', 'Data obrigatória'],
+        ['7. Certificado de registo criminal', 'Verificar a idoneidade do candidato para transportar passageiros', 'Emitido nos três meses anteriores à candidatura'],
       ],
       [2500, 4100, 1900]
     ),
+    P('O certificado de registo criminal é apreciado por quem decide a candidatura, nos termos do artigo 8.º. Os motoristas já aprovados à data da entrada em vigor desta exigência mantêm a sua conta ativa e são convidados a apresentá-lo, sem que a sua falta determine a suspensão.'),
     N('O documento de identificação não exige data de validade. O bilhete de identidade tem prazo, mas o que dele releva é a identidade — e essa não caduca. Suspender uma conta por um documento de identificação por renovar seria impedir alguém de trabalhar por motivo alheio à condução.'),
 
     A('Artigo 5.º', 'Datas de validade'),

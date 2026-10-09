@@ -12,6 +12,7 @@ export const ORDEM_DOCUMENTOS = [
   'cartaverso',
   'vehicle',
   'inspection',
+  'registocriminal',
   'fotoveiculo',
   'veiculofrente',
   'veiculotras',

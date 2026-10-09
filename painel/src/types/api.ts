@@ -16,7 +16,8 @@ export type TipoDocumento =
   | 'veiculofrente'
   | 'veiculotras'
   | 'veiculoesquerda'
-  | 'veiculodireita';
+  | 'veiculodireita'
+  | 'registocriminal';
 
 export interface Veiculo {
   type: TipoVeiculo;

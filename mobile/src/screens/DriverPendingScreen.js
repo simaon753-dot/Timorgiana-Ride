@@ -67,6 +67,9 @@ const TIPOS = [
   // com ele caducado dá multa a dobrar se a polícia de trânsito mandar
   // parar. Entrou em 02/09/2026.
   { kind: 'inspection', label: 'docInspection' },
+  // O CERTIFICADO DE REGISTO CRIMINAL (09/10/2026). Obrigatório para um
+  // registo novo; a quem já está aprovado fica pedido, sem o parar.
+  { kind: 'registocriminal', label: 'docRegistocriminal', nota: 'docRegistocriminalNota' },
   // A fotografia do Carry, com a matrícula à vista (14/09/26). Opcional, sem
   // validade, e só para quem conduz um Carry: é ela que mostra ao
   // administrador o tamanho real da caixa que o motorista declarou.
