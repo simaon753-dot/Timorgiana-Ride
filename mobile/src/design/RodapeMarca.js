@@ -34,8 +34,10 @@ const criarEstilos = () =>
     caixa: {
       alignItems: 'center',
       justifyContent: 'flex-end',
-      minHeight: 170,
-      marginTop: spacing.xl,
+      // Mais baixo desde que o logótipo saiu (10/10/2026): com 170 ficava um
+      // vazio entre o menu e o «DÍLI · TIMOR-LESTE» (captura do Simão).
+      minHeight: 84,
+      marginTop: spacing.md,
       paddingBottom: spacing.md,
       overflow: 'hidden',
     },
