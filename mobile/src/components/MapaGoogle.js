@@ -2714,7 +2714,23 @@ export default function MapaGoogle({
           não há imagem que sirva. Esconde-se enquanto o dedo arrasta, como
           os outros cartões: um nome atrasado a flutuar diz que aquela rua é
           a de agora, e não é. O carro, esse, nunca desaparece. */}
-      {veiculo && liveLabel && !aMexer ? (
+      {veiculo && liveLabel && !aMexer && vivoComoPino ? (
+        // «ITA IHA NE'E» COMO NA IMAGEM DO SIMÃO (10/10/2026): uma pastilha
+        // escura, colada à cabeça do pino por um bico, centrada nela. A
+        // cabeça está 33 dp acima da ponta e tem ~23 dp de raio; a pastilha
+        // tem 34 de altura, daí o −17.
+        <View
+          pointerEvents="none"
+          style={[styles.aquiCaixa, { left: veiculo.x + 20, top: veiculo.y - 33 - 17 }]}
+        >
+          <View style={styles.aquiBico} />
+          <View style={styles.aquiPastilha}>
+            <Text style={styles.aquiTexto} numberOfLines={1}>
+              {liveLabel}
+            </Text>
+          </View>
+        </View>
+      ) : veiculo && liveLabel && !aMexer ? (
         <View
           pointerEvents="none"
           style={[
@@ -2982,6 +2998,32 @@ const criarEstilos = () =>
     // carro é a acção.
 
     veiculo: { position: 'absolute', width: CARTAO_L },
+    aquiCaixa: { position: 'absolute', flexDirection: 'row', alignItems: 'center' },
+    // O bico: um triângulo a apontar para a cabeça do pino.
+    aquiBico: {
+      width: 0,
+      height: 0,
+      borderTopWidth: 7,
+      borderBottomWidth: 7,
+      borderRightWidth: 8,
+      borderTopColor: 'transparent',
+      borderBottomColor: 'transparent',
+      borderRightColor: '#12302A',
+    },
+    aquiPastilha: {
+      backgroundColor: '#12302A',
+      borderRadius: 12,
+      height: 34,
+      maxWidth: 210,
+      paddingHorizontal: 14,
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOpacity: 0.25,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 4,
+    },
+    aquiTexto: { fontSize: 14.5, fontWeight: '700', color: '#FFFFFF', letterSpacing: -0.1 },
 
     cartaoSolto: { position: 'absolute' },
     nosso: {
