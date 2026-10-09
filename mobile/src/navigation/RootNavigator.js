@@ -9,6 +9,7 @@ import { ModoProvider } from '../context/ModoContext.js';
 import WelcomeScreen from '../screens/WelcomeScreen.js';
 import LoginScreen from '../screens/LoginScreen.js';
 import RegisterScreen from '../screens/RegisterScreen.js';
+import IntroMotoristaScreen from '../screens/IntroMotoristaScreen.js';
 import RecuperarScreen from '../screens/RecuperarScreen.js';
 import RequestRideScreen from '../screens/RequestRideScreen.js';
 import EscolherDestinoScreen from '../screens/EscolherDestinoScreen.js';
@@ -149,6 +150,7 @@ export default function RootNavigator() {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="IntroMotorista" component={IntroMotoristaScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="Recuperar" component={RecuperarScreen} />
           {/* Tem de existir na área pública: se o endereço do servidor

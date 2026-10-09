@@ -174,7 +174,8 @@ export default function WelcomeScreen({ navigation }) {
                   { fonte: FIGURA.mota, tinta: colors.teal },
                 ]}
                 texto={t('driver')}
-                onPress={() => navigation.navigate('Register', { role: 'driver' })}
+                // Primeiro o ecrã que explica o que vem (09/10/2026); o registo vem dele.
+                onPress={() => navigation.navigate('IntroMotorista')}
               />
             </View>
 
