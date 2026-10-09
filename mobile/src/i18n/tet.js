@@ -776,7 +776,7 @@ export default {
   docVehicle: 'Kartaun Rejistu Veíkulu',
   docFotoveiculo: 'Fotografia veíkulu nian',
   docRegistocriminal: 'Sertifikadu rejistu kriminál',
-  docRegistocriminalNota: 'Hasai iha fulan 3 ikus ne’e nia laran. Foto ka PDF.',
+  docRegistocriminalNota: 'Sertifikadu ne’ebé sei válidu. Formatu ne’ebé simu: foto ka PDF.',
   docVeiculofrente: 'Veíkulu, oin',
   docVeiculotras: 'Veíkulu, kotuk',
   docVeiculoesquerda: 'Veíkulu, sorin karuk',

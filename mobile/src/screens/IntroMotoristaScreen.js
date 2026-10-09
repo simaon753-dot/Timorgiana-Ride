@@ -3,7 +3,6 @@ import { View, Text, Image, Pressable, ScrollView, StyleSheet } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Svg, { Path } from 'react-native-svg';
-import Logo from '../components/Logo.js';
 import Icone from '../design/Icone.js';
 import RequisitosMotorista from '../components/RequisitosMotorista.js';
 import { tipo } from '../design/tipografia.js';
@@ -19,7 +18,7 @@ import { colors, spacing, radius, elevacao, registarEstilos } from '../theme.js'
 //
 // O FUNDO É O CREME DA APP (pedido dele, 09/10/2026 — a 1.ª versão era teal,
 // como a entrada). O cartão dos passos é branco, para se destacar do creme.
-// O logótipo vai com as cores dele, sem mexer (pedido dele, 08/10/2026).
+// Sem logótipo (10/10/2026): só no ícone, na entrada e no «Entrar».
 // Os TRÊS veículos da app: carro, motorizada e pickup.
 //
 // «VER REQUISITOS» abre uma folha que sobe do fundo (components/
@@ -71,7 +70,6 @@ export default function IntroMotoristaScreen({ navigation }) {
           </Pressable>
 
           <View style={styles.marca}>
-            <Logo />
             <View style={styles.veiculos} accessible={false}>
               <Image source={FIGURA.carro} style={styles.carro} resizeMode="contain" />
               <Image source={FIGURA.mota} style={styles.mota} resizeMode="contain" />
@@ -146,7 +144,7 @@ const criarEstilos = () =>
       flexDirection: 'row',
       alignItems: 'flex-end',
       gap: spacing.md,
-      marginTop: spacing.lg,
+      marginTop: spacing.sm,
     },
     // As proporções dos ficheiros: carro 192×66, mota 192×120, pickup 192×75.
     carro: { width: 64, height: 22, tintColor: colors.teal },

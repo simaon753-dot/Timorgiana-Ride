@@ -2,12 +2,11 @@ import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { colors, spacing, registarEstilos, paletaEmUso } from '../theme.js';
 import { tipo } from './tipografia.js';
-import Logo from '../components/Logo.js';
 
 // O RODAPÉ COM DÍLI — sistema de design TGA (14/09/26).
 //
 // A costa com o Cristo Rei recortada da referência do Simão, muito ténue por
-// trás do logótipo e de "DÍLI · TIMOR-LESTE". Fecha os ecrãs longos (as
+// trás de "DÍLI · TIMOR-LESTE". Fecha os ecrãs longos (as
 // definições, o painel) com a identidade local que as referências pedem, sem
 // lema — decisão do Simão.
 //
@@ -23,9 +22,8 @@ export default function RodapeMarca() {
         resizeMode="contain"
         accessibilityIgnoresInvertColors
       />
-      {/* O logótipo já é a palavra HAKAT (08/10/2026): o nome escrito por
-          baixo repetia-a. */}
-      <Logo size="sm" />
+      {/* Sem logótipo (10/10/2026): o Simão quer a marca SÓ no ícone, na
+          entrada e no «Entrar». */}
       <Text style={styles.lugar}>DÍLI · TIMOR-LESTE</Text>
     </View>
   );

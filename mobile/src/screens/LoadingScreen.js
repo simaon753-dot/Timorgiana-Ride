@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Text, Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import Logo from '../components/Logo.js';
 import Carregando from '../design/Carregando.js';
 import Tais from '../design/Tais.js';
 import Button from '../components/Button.js';
@@ -19,7 +18,6 @@ export default function LoadingScreen({ semLigacao = false }) {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      <Logo onTeal />
       {semLigacao ? (
         <View style={styles.semLigacao}>
           <Text style={styles.titulo}>{t('semLigacaoTitulo')}</Text>

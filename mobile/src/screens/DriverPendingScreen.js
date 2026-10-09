@@ -13,7 +13,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { encolherFoto } from '../lib/encolherFoto.js';
-import Logo from '../components/Logo.js';
 import Button from '../components/Button.js';
 import LanguageToggle from '../components/LanguageToggle.js';
 import TextField from '../components/TextField.js';

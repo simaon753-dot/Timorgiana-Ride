@@ -2,14 +2,12 @@ import React from 'react';
 import { View, Text, Pressable, Image, StyleSheet } from 'react-native';
 import { colors, spacing, registarEstilos, elevacao, paletaEmUso } from '../theme.js';
 import { tipo } from './tipografia.js';
-import Logo from '../components/Logo.js';
 import LanguageToggle from '../components/LanguageToggle.js';
 import { useI18n } from '../i18n/index.js';
 
 // O CABEÇALHO DO REGISTO — sistema de design TGA.
 //
-// Botão de voltar redondo à esquerda, o logótipo ao centro, a língua à
-// direita; por baixo o título grande e a frase. A ilustração é OPCIONAL e
+// Botão de voltar redondo à esquerda, a língua à direita; por baixo o título grande e a frase. A ilustração é OPCIONAL e
 // fica por trás, encostada à direita: o cabeçalho funciona sem ela, e ela
 // entra quando houver uma imagem de Díli que sirva.
 //
@@ -32,7 +30,9 @@ export default function CabecalhoRegisto({ onVoltar, titulo, subtitulo, ilustrac
         >
           <Text style={styles.voltarTexto}>‹</Text>
         </Pressable>
-        <Logo size="sm" />
+        {/* O logótipo saiu daqui (10/10/2026): só no ícone, na entrada e no
+            «Entrar». O espaço fica, para a língua continuar à direita. */}
+        <View style={{ flex: 1 }} />
         <View style={styles.lingua}>
           <LanguageToggle compacto />
         </View>

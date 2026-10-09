@@ -11,7 +11,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../components/Button.js';
 import TextField from '../components/TextField.js';
-import Logo from '../components/Logo.js';
 import * as Updates from 'expo-updates';
 import { useI18n } from '../i18n/index.js';
 import { useAuth } from '../context/AuthContext.js';
@@ -116,10 +115,6 @@ export default function ServerScreen({ navigation }) {
             </Pressable>
           </View>
 
-          <View style={styles.brand}>
-            <Logo size="sm" />
-          </View>
-
           <Text style={styles.title}>{t('serverTitle')}</Text>
           <Text style={styles.explain}>{t('serverExplain')}</Text>
           <Text style={styles.explain}>⏳ {t('serverFirstSlow')}</Text>
@@ -216,7 +211,6 @@ const criarEstilos = () =>
     scroll: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
     topBar: { paddingTop: spacing.sm },
     back: { ...tipo.subtitulo, color: colors.teal },
-    brand: { marginTop: spacing.lg, marginBottom: spacing.md },
     title: { ...tipo.displayPequeno, color: colors.text },
     explain: {
       ...tipo.pequeno,

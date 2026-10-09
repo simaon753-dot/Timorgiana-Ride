@@ -768,7 +768,7 @@ export default {
   docVehicle: 'Vehicle registration card',
   docFotoveiculo: 'Vehicle photo',
   docRegistocriminal: 'Criminal record certificate',
-  docRegistocriminalNota: 'Issued in the last 3 months. Photo or PDF.',
+  docRegistocriminalNota: 'Valid certificate. Accepted format: photo or PDF.',
   docVeiculofrente: 'Vehicle, front',
   docVeiculotras: 'Vehicle, rear',
   docVeiculoesquerda: 'Vehicle, left side',

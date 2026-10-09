@@ -782,7 +782,7 @@ export default {
   docVehicle: 'Cartão de registo do veículo',
   docFotoveiculo: 'Fotografia do veículo',
   docRegistocriminal: 'Certificado de registo criminal',
-  docRegistocriminalNota: 'Emitido nos últimos 3 meses. Fotografia ou PDF.',
+  docRegistocriminalNota: 'Certificado válido. Formato aceite: fotografia ou PDF.',
   docVeiculofrente: 'Veículo, frente',
   docVeiculotras: 'Veículo, traseira',
   docVeiculoesquerda: 'Veículo, lado esquerdo',

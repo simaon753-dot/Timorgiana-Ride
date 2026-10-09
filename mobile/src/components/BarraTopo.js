@@ -1,13 +1,12 @@
 import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import Logo from './Logo.js';
 import { colors, spacing, fontSize, registarEstilos, elevacao, radius } from '../theme.js';
 import { tipo } from '../design/tipografia.js';
 import { useAuth } from '../context/AuthContext.js';
 import Icone from '../design/Icone.js';
 import { useI18n } from '../i18n/index.js';
 
-// Barra de cima: a marca à esquerda, o perfil à direita.
+// Barra de cima: o título à esquerda (se houver), o perfil à direita.
 //
 // Levou iniciais durante algum tempo, com a ideia de confirmar a conta de
 // relance. Na prática o Simão preferiu o ícone: com três línguas e nomes
@@ -45,7 +44,9 @@ export default function BarraTopo({ navigation, titulo, subtitulo, motoristaOnli
           ) : null}
         </View>
       ) : (
-        <Logo size="sm" />
+        // Sem logótipo (10/10/2026, decisão do Simão): a marca fica só no
+        // ícone, na entrada e no «Entrar».
+        <View style={styles.titulos} />
       )}
 
       {motorista ? (

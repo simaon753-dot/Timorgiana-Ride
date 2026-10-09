@@ -5,7 +5,6 @@ import Voltar from '../components/Voltar.js';
 import Button from '../components/Button.js';
 import TextField from '../components/TextField.js';
 import Aviso from '../design/Aviso.js';
-import Logo from '../components/Logo.js';
 import { useI18n } from '../i18n/index.js';
 import { api } from '../api/client.js';
 import { colors, spacing, radius, registarEstilos } from '../theme.js';
@@ -83,7 +82,6 @@ export default function RecuperarScreen({ navigation }) {
       >
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <Voltar navigation={navigation} />
-          <Logo />
           <Text style={styles.titulo}>{t('recTitulo')}</Text>
           {/* Diz COMO se obtém o código, e não só que é preciso um. Sem isto,
               quem chega aqui fica a olhar para uma caixa vazia sem saber o
