@@ -483,6 +483,13 @@ export async function initSchema() {
   // Porque é que a viagem foi cancelada. Guardado como código curto e não
   // como texto livre: serve para contar padrões, não para ler histórias.
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS cancel_reason TEXT`);
+  // A POLÍTICA DE CANCELAMENTOS (10/10/2026, cancelamentos.js): se o
+  // passageiro cancelou depois dos 2 minutos de graça, e até quando os pedidos
+  // dele ficam suspensos ao 5.º tardio em 7 dias.
+  await query(
+    `ALTER TABLE rides ADD COLUMN IF NOT EXISTS cancel_tardio BOOLEAN NOT NULL DEFAULT FALSE`
+  );
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS pedidos_suspensos_ate TIMESTAMPTZ`);
   // Quantas pessoas vão na viagem. Só faz sentido em carro — numa
   // motorizada vai sempre uma.
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS passengers INTEGER`);

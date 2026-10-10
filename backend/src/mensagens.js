@@ -20,6 +20,20 @@ export const LINGUAS = ['pt', 'tet', 'en'];
 
 // 'texto em português': ['tétum', 'inglês']
 export const MENSAGENS = {
+  // ── Cancelamentos (10/10/2026, cancelamentos.js)
+  'Os seus pedidos estão suspensos até às {0} (hora de Díli), por cancelamentos tardios repetidos.':
+    [
+      'Ita-nia pedidu sira suspensu to’o oras {0} (oras Díli), tanba kansela tarde dala barak.',
+      'Your requests are suspended until {0} (Díli time), because of repeated late cancellations.',
+    ],
+  'Só pode dar o passageiro como faltoso depois de tocar em «Cheguei» e esperar {0} minutos.': [
+    'Ita bele hatete katak pasajeiru la mai de’it depois toka «Ha’u to’o ona» no hein minutu {0}.',
+    'You can only mark the passenger as a no-show after tapping «I’ve arrived» and waiting {0} minutes.',
+  ],
+  'Espere mais {0} min no local antes de dar o passageiro como faltoso.': [
+    'Hein tan minutu {0} iha fatin antes hatete katak pasajeiru la mai.',
+    'Wait {0} more min at the spot before marking the passenger as a no-show.',
+  ],
   // ── Assinatura e pagamentos
   'Número de dias inválido.': ['Númeru loron nian inválidu.', 'Invalid number of days.'],
   'Escreva as instruções (conta, titular ou morada) antes de ligar esta forma.': [
@@ -691,13 +705,21 @@ export const NOTIFICACOES = {
   },
   // O motorista a aproximar-se da recolha (08/10/2026): pela distância,
   // uma vez cada. Ver `avisosChegada` em posicaoMotorista.js.
-  pertoTitulo: { pt: 'O motorista está a chegar', tet: 'Motorista besik ona', en: 'Your driver is arriving' },
+  pertoTitulo: {
+    pt: 'O motorista está a chegar',
+    tet: 'Motorista besik ona',
+    en: 'Your driver is arriving',
+  },
   pertoTexto: {
     pt: '{nome} está a menos de 300 m{matricula}. Prepara-te.',
     tet: '{nome} besik ona, la to’o metru 300{matricula}. Prepara an.',
     en: '{nome} is less than 300 m away{matricula}. Get ready.',
   },
-  chegouTitulo: { pt: 'O motorista chegou', tet: 'Motorista to’o ona', en: 'Your driver has arrived' },
+  chegouTitulo: {
+    pt: 'O motorista chegou',
+    tet: 'Motorista to’o ona',
+    en: 'Your driver has arrived',
+  },
   chegouTexto: {
     pt: '{nome} está no local de recolha{matricula}.',
     tet: '{nome} iha ona fatin foti nian{matricula}.',

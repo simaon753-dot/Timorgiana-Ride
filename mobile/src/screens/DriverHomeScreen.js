@@ -1026,9 +1026,15 @@ function ActiveRideCard({
         papel="driver"
         aCaminho
         onFechar={() => setACancelar(false)}
-        onConfirmar={(motivo) => {
+        onConfirmar={async (motivo) => {
           setACancelar(false);
-          onCancel(motivo);
+          // «Passageiro não apareceu» antes dos 5 minutos de espera é recusado
+          // pelo servidor (cancelamentos.js), com os minutos que faltam: dizê-lo.
+          try {
+            await onCancel(motivo);
+          } catch (e) {
+            Alert.alert(t('cancelRide'), e?.message || t('errGeneric'));
+          }
         }}
       />
     </View>

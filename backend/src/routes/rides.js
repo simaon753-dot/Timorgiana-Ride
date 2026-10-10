@@ -56,6 +56,15 @@ import {
 } from '../ocorrencias.js';
 import { podeIr } from '../cobertura.js';
 import { config } from '../config.js';
+import {
+  ESPERA_MOTORISTA_MIN,
+  JANELA_DIAS,
+  SUSPENSAO_HORAS,
+  consequencia,
+  eTardio,
+  horaDeDili,
+  minutosDeEsperaEmFalta,
+} from '../cancelamentos.js';
 import { registarDia, podeEntrarAoServico } from '../assinatura.js';
 
 // Motivos possíveis para cancelar. Os primeiros quatro são do passageiro,
@@ -213,6 +222,19 @@ ridesRouter.post(
     }
     // O NÚMERO CONFIRMADO POR SMS (05/10/2026), quando o serviço está ligado:
     // o motorista vai ligar para este número.
+    // PEDIDOS SUSPENSOS por cancelamentos tardios repetidos (10/10/2026,
+    // cancelamentos.js). Só tira o pedir; a conta, o histórico e o socorro
+    // continuam.
+    const suspensao = await one(
+      `SELECT pedidos_suspensos_ate AS ate FROM users WHERE id = $1 AND pedidos_suspensos_ate > NOW()`,
+      [req.user.id]
+    );
+    if (suspensao) {
+      return res.status(403).json({
+        error: `Os seus pedidos estão suspensos até às ${horaDeDili(suspensao.ate)} (hora de Díli), por cancelamentos tardios repetidos.`,
+        motivo: 'pedidos_suspensos',
+      });
+    }
     if (faltaConfirmar(req.user)) {
       return res.status(403).json({
         error: 'Confirme o seu número de telemóvel com o código por SMS.',
@@ -994,11 +1016,12 @@ ridesRouter.post(
       )
         .then((r) =>
           r
-            ? one('SELECT push_token, lingua FROM users WHERE id = $1', [r.passenger_id]).then((u) =>
-                notificarChegada(u, 'chegou', rideId, {
-                  nome: req.user.name,
-                  matricula: req.user.vehicle_plate,
-                })
+            ? one('SELECT push_token, lingua FROM users WHERE id = $1', [r.passenger_id]).then(
+                (u) =>
+                  notificarChegada(u, 'chegou', rideId, {
+                    nome: req.user.name,
+                    matricula: req.user.vehicle_plate,
+                  })
               )
             : null
         )
@@ -1274,7 +1297,36 @@ ridesRouter.post(
     // perceber padrões — se metade dos motoristas cancela por "passageiro
     // não aparece", isso muda o produto, não é uma queixa isolada.
     const motivo = MOTIVOS_VALIDOS.includes(req.body?.reason) ? req.body.reason : 'outro';
-    await query('UPDATE rides SET cancel_reason = $1 WHERE id = $2', [motivo, rideId]);
+    const souPassageiro = row.passenger_id === req.user.id;
+
+    // «PASSAGEIRO NÃO APARECEU» SÓ DEPOIS DA ESPERA (cancelamentos.js): tocar
+    // em «Cheguei» e esperar 5 minutos no local. Antes disso o motorista pode
+    // cancelar na mesma, mas por outro motivo — e aí conta contra ele.
+    if (!souPassageiro && motivo === 'passageiro_nao_aparece') {
+      const falta = minutosDeEsperaEmFalta(row.a_chegar_em);
+      if (falta === null) {
+        return res.status(409).json({
+          error: `Só pode dar o passageiro como faltoso depois de tocar em «Cheguei» e esperar ${ESPERA_MOTORISTA_MIN} minutos.`,
+          motivo: 'espera_por_cumprir',
+        });
+      }
+      if (falta > 0) {
+        return res.status(409).json({
+          error: `Espere mais ${falta} min no local antes de dar o passageiro como faltoso.`,
+          motivo: 'espera_por_cumprir',
+          minutos: falta,
+        });
+      }
+    }
+
+    // TARDIO: o passageiro cancela mais de 2 minutos depois de o motorista
+    // aceitar. Guardado na viagem, para se contar sem refazer as contas.
+    const tardio = souPassageiro && row.status !== 'requested' && eTardio(row.accepted_at);
+    await query('UPDATE rides SET cancel_reason = $1, cancel_tardio = $2 WHERE id = $3', [
+      motivo,
+      tardio,
+      rideId,
+    ]);
 
     const updated = await setRideStatus(rideId, 'cancelled', req.user.id);
 
@@ -1302,8 +1354,39 @@ ridesRouter.post(
     // combustível. Não bloqueamos ninguém — devolvemos o número para a app
     // poder avisar quem está a ganhar o hábito.
     const jaAceite = row.status !== 'requested';
-    const cancelamentos = jaAceite ? await cancelamentosRecentes(req.user.id) : 0;
+    if (souPassageiro) {
+      // O passageiro conta-se pelos TARDIOS (os 2 minutos de graça não contam).
+      const n = tardio
+        ? (
+            await one(
+              `SELECT COUNT(*)::int AS n FROM rides
+                WHERE passenger_id = $1 AND cancelled_by = $1 AND cancel_tardio
+                  AND created_at > NOW() - ($2 || ' days')::interval`,
+              [req.user.id, String(JANELA_DIAS)]
+            )
+          ).n
+        : 0;
+      const aviso = consequencia(n);
+      let ate = null;
+      if (aviso === 'suspenso') {
+        ate = (
+          await one(
+            `UPDATE users SET pedidos_suspensos_ate = NOW() + ($2 || ' hours')::interval
+              WHERE id = $1 RETURNING pedidos_suspensos_ate AS ate`,
+            [req.user.id, String(SUSPENSAO_HORAS)]
+          )
+        ).ate;
+      }
+      return res.json({
+        ride: toPublicRide(updated),
+        cancelamentos: n,
+        tardio,
+        aviso,
+        ...(ate ? { suspensoAte: ate, suspensoAteDili: horaDeDili(ate) } : {}),
+      });
+    }
 
+    const cancelamentos = jaAceite ? await cancelamentosRecentes(req.user.id) : 0;
     return res.json({
       ride: toPublicRide(updated),
       cancelamentos,

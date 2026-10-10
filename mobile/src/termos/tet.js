@@ -60,7 +60,7 @@ export const termosPassageiro = {
     {
       titulo: 'Konduta no Uza ne’ebé Aseitavel',
       texto:
-        'Husu ba utilizadór sira atu trata motorista sira ho respeitu no sivilizmu.\nKanselamentu pontuál sira ne’e konpreensível. Maibé, kansela beibeik bainhira motorista simu tiha ona viajen sei soe leet de’it kustu kombustível notempu, no bele hakat ba suspensaun temporária ka definitiva ba konta.\nBandu tebes atu uza app ne’e ba finalidade ilísitu ka ilegal sira.',
+        'Husu ba utilizadór sira atu trata motorista sira ho respeitu no sivilizmu.\nKanselamentu. Ita bele kansela la ho konsekuénsia ida antes iha motorista no to’o minutu 2 depois motorista simu viajen. Kansela depois ne’e mak kanselamentu tarde: motorista dalan mai ona no lakon tempu no kombustível. Iha kanselamentu tarde da-3 iha loron 7 nia laran, aplikasaun sei fó avizu; iha da-5, ita-nia pedidu sira suspensu durante oras 24, maibé konta, istóriku no butaun ajuda kontinua. Tanba selu ho osan, la iha multa. Kansela beibeik liu ida-ne’e bele hakat ba suspensaun temporária ka definitiva ba konta.\nBandu tebes atu uza app ne’e ba finalidade ilísitu ka ilegal sira.',
     },
     {
       titulo: 'Responsabilidade',
@@ -133,7 +133,7 @@ export const termosMotorista = {
     {
       titulo: 'Polítika Kanselamentu no Asiduidade',
       texto:
-        'Bainhira simu pedidu viajen nian ruma, motorista asume kompromisu atu realiza viajen refere. Kanselamentu lahó justifikasaun ka la mosu ba sei hamosu perturbasaun grave ba pasajeiru no estraga reputasaun rede nian.\nKanselamentu sistemátiku/tutuir malu ka lahó justifikasaun bainhira simu tiha ona pedidu bele hamosu suspensaun temporária ka definitiva hodi asesu ba plataforma.',
+        'Bainhira simu pedidu viajen nian ruma, motorista asume kompromisu atu realiza viajen refere. Kanselamentu lahó justifikasaun ka la mosu ba sei hamosu perturbasaun grave ba pasajeiru no estraga reputasaun rede nian.\nPasajeiru ne’ebé la mai. Depois toka «Ha’u to’o ona», motorista hein minutu 5 iha fatin foti nian. Liu tempu ne’e, nia bele kansela ho motivu «pasajeiru la mai», no ida-ne’e la konta hasoru nia. Antes minutu 5, aplikasaun la simu motivu ne’e.\nKanselamentu sistemátiku/tutuir malu ka lahó justifikasaun bainhira simu tiha ona pedidu bele hamosu suspensaun temporária ka definitiva hodi asesu ba plataforma, tuir Tabela Infrasaun no Sansaun.',
     },
     {
       titulo: 'Motivu Suspensaun no Desativasaun ba Konta',

@@ -74,7 +74,7 @@ export const termosPassageiro = {
     {
       titulo: 'Conduct and acceptable use',
       texto:
-        'Users are required to treat drivers courteously and with respect.\n\nOccasional cancellations are understandable. However, repeated cancellation after the driver has accepted the ride creates undue fuel and time costs, and may result in the temporary or permanent suspension of the account.\n\nUse of the app for unlawful purposes is expressly prohibited.',
+        'Users are required to treat drivers courteously and with respect.\n\nCancellations. You may cancel without any consequence before a driver is assigned and up to 2 minutes after the driver accepts the ride. A cancellation after that is a late cancellation: the driver is already on the way and loses time and fuel. At the 3rd late cancellation within 7 days, the application warns you; at the 5th, your requests are suspended for 24 hours, while your account, history and SOS button remain available. As payment is in cash, there are no fines. Repeated cancellation beyond this may result in the temporary or permanent suspension of the account.\n\nUse of the app for unlawful purposes is expressly prohibited.',
     },
     {
       titulo: 'Liability',
@@ -147,7 +147,7 @@ export const termosMotorista = {
     {
       titulo: 'Cancellation and attendance policy',
       texto:
-        'By accepting a ride request, the driver undertakes to carry it out. Unjustified cancellations or failure to appear cause serious inconvenience to passengers and damage the reputation of the network.\n\nSystematic or unjustified cancellation after acceptance may result in the temporary or permanent suspension of access to the platform.',
+        'By accepting a ride request, the driver undertakes to carry it out. Unjustified cancellations or failure to appear cause serious inconvenience to passengers and damage the reputation of the network.\n\nPassenger no-show. After tapping «I’ve arrived», the driver waits 5 minutes at the pick-up point. After that time, they may cancel with the reason «passenger did not show up», and it does not count against them. Before the 5 minutes, the application does not accept this reason.\n\nSystematic or unjustified cancellation after acceptance may result in the temporary or permanent suspension of access to the platform, under the Table of Infractions and Sanctions.',
     },
     {
       titulo: 'Grounds for suspension and deactivation of the account',

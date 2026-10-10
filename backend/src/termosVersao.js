@@ -17,7 +17,10 @@ import { one } from './db.js';
 // E de novo no MESMO dia (daí o 'b'): entra a cláusula «Desconto para quem
 // ganha pouco» — 15% do rendimento registado, até ao preço do pacote de 30
 // dias, perdido com mais de 3 cancelamentos ou mais de 20% (decisão do Simão).
-export const VERSAO_TERMOS_MOTORISTA = '2026-10-05b';
+// E a 10/10/2026: a política de cancelamentos (backend/src/cancelamentos.js)
+// — o motorista espera 5 minutos depois de «Cheguei» antes de dar o
+// passageiro como faltoso.
+export const VERSAO_TERMOS_MOTORISTA = '2026-10-10';
 
 // Lida da base e não da sessão: quem aceita os termos a meio tem de poder
 // ficar disponível logo a seguir, sem sair da app e voltar a entrar.

@@ -69,7 +69,7 @@ export const termosPassageiro = {
     {
       titulo: 'Conduta e Utilização Aceitável',
       texto:
-        'Exige-se aos utilizadores um tratamento urbano e respeitoso para com os motoristas.\n\nCancelamentos pontuais são compreensíveis. No entanto, o cancelamento reiterado após a aceitação da viagem pelo motorista gera custos indevidos de combustível e tempo, podendo resultar na suspensão temporária ou definitiva da conta.\n\nÉ expressamente proibida a utilização da app para fins ilícitos.',
+        'Exige-se aos utilizadores um tratamento urbano e respeitoso para com os motoristas.\n\nCancelamentos. Pode cancelar sem qualquer consequência antes de haver motorista e até 2 minutos depois de o motorista aceitar a viagem. O cancelamento feito depois disso é um cancelamento tardio: o motorista já vem a caminho e perde tempo e combustível. Ao 3.º cancelamento tardio em 7 dias, a aplicação avisa-o; ao 5.º, os seus pedidos ficam suspensos durante 24 horas, mantendo-se a conta, o histórico e o botão de socorro. Como o pagamento é em dinheiro, não há multas. O cancelamento reiterado para além disto pode resultar na suspensão temporária ou definitiva da conta.\n\nÉ expressamente proibida a utilização da app para fins ilícitos.',
     },
     {
       titulo: 'Responsabilidade',
@@ -141,7 +141,7 @@ export const termosMotorista = {
     {
       titulo: 'Política de Cancelamentos e Assiduidade',
       texto:
-        'Ao aceitar um pedido de viagem, o motorista assume o compromisso de a realizar. Cancelamentos injustificados ou o não comparecimento provocam transtornos graves aos passageiros e prejudicam a reputação da rede.\n\nO cancelamento sistemático ou injustificado após aceitação pode originar a suspensão temporária ou definitiva do acesso à plataforma.',
+        'Ao aceitar um pedido de viagem, o motorista assume o compromisso de a realizar. Cancelamentos injustificados ou o não comparecimento provocam transtornos graves aos passageiros e prejudicam a reputação da rede.\n\nPassageiro que não aparece. Depois de tocar em «Cheguei», o motorista espera 5 minutos no local de recolha. Passado esse tempo, pode cancelar com o motivo «passageiro não apareceu», sem que isso conte contra ele. Antes dos 5 minutos, a aplicação não aceita este motivo.\n\nO cancelamento sistemático ou injustificado após aceitação pode originar a suspensão temporária ou definitiva do acesso à plataforma, nos termos da Tabela de Infrações e Sanções.',
     },
     {
       titulo: 'Motivos de Suspensão e Desativação da Conta',

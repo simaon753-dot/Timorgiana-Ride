@@ -68,7 +68,11 @@ export default function ViagemPassageiro({ ride, navigation }) {
   async function cancelarComMotivo(motivo) {
     setACancelar(false);
     const r = await cancelRide(ride.id, motivo);
-    if (r?.aviso === 'demasiados') {
+    // A política de 10/10/2026 (backend/src/cancelamentos.js): aviso aos 3
+    // tardios em 7 dias, suspensão de 24 h ao 5.º.
+    if (r?.aviso === 'suspenso') {
+      Alert.alert(t('cancelSuspensoTitulo'), t('cancelSuspensoTexto', { hora: r.suspensoAteDili }));
+    } else if (r?.aviso === 'demasiados') {
       Alert.alert(t('cancelTooMany', { n: r.cancelamentos }), t('cancelTooManyExplain'));
     }
   }

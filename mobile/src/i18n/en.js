@@ -870,13 +870,16 @@ export default {
     'I am on a HAKAT trip.\nDriver: {driver} ({plate})\nDestination: {dest}\nLocation: {link}',
 
   cancelConfirmAccepted:
-    'The driver is already on the way. Cancelling now means they lose the trip.',
+    'The driver is already on the way. You can cancel with no consequences up to 2 minutes after they accept; after that it is a late cancellation. At the 5th late cancellation in 7 days, your requests are suspended for 24 hours.',
   cancelConfirmRequested: 'No driver yet. You can cancel without any problem.',
   cancelKeep: 'Keep ride',
   cancelYes: 'Yes, cancel',
-  cancelTooMany: 'You have cancelled {n} rides this week',
+  cancelTooMany: 'You have cancelled {n} rides late this week',
   cancelTooManyExplain:
-    'Cancelling often leaves drivers without work. If this continues, your account may be suspended.',
+    'Cancelling after the driver is on the way costs them time and fuel. At the 5th late cancellation in 7 days, your requests are suspended for 24 hours.',
+  cancelSuspensoTitulo: 'Requests suspended for 24 hours',
+  cancelSuspensoTexto:
+    'You cancelled 5 rides late in 7 days. You can request again from {hora} (Díli time). Your account, history and SOS button keep working.',
 
   admin: 'Administration',
   adminTitle: 'Dashboard',

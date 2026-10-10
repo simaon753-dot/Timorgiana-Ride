@@ -880,13 +880,17 @@ export default {
     'Haʼu iha hela viajen ida ho HAKAT. Motorista: {driver} ({plate}) Destinu: {dest} Fatin: {link}',
 
   // Kanselamentu
-  cancelConfirmAccepted: 'Motorista ida dalan mai ona. Kansela agora halo nia lakon viajen.',
+  cancelConfirmAccepted:
+    'Motorista ida dalan mai ona. Ita bele kansela la ho konsekuénsia to’o minutu 2 depois nia simu; depois ne’e, kansela tarde. Iha kansela tarde da-5 iha loron 7 nia laran, ita-nia pedidu sira suspensu oras 24.',
   cancelConfirmRequested: 'Seidauk iha motorista. Ita bele kansela.',
   cancelKeep: 'Kontinua viajen',
   cancelYes: 'Sin, kansela',
-  cancelTooMany: 'Ita kansela ona viajen {n} iha semana ida-neʼe',
+  cancelTooMany: 'Ita kansela tarde ona viajen {n} iha semana ida-neʼe',
   cancelTooManyExplain:
-    'Kansela beibeik halo motorista sira lakon serbisu. Se kontinua nafatin, ita-nia konta bele hetan suspensaun.',
+    'Kansela depois motorista dalan mai ona halo nia lakon tempu no kombustivel. Iha kansela tarde da-5 iha loron 7 nia laran, ita-nia pedidu sira suspensu oras 24.',
+  cancelSuspensoTitulo: 'Pedidu sira suspensu oras 24',
+  cancelSuspensoTexto:
+    'Ita kansela tarde viajen 5 iha loron 7 nia laran. Ita bele husu fali hahú husi oras {hora} (oras Díli). Ita-nia konta, istóriku no butaun ajuda kontinua funsiona.',
 
   // Administrasaun
   admin: 'Administrasaun',

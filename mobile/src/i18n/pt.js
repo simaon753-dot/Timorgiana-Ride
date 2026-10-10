@@ -888,13 +888,16 @@ export default {
 
   // Cancelamentos
   cancelConfirmAccepted:
-    'O motorista já vem a caminho. Cancelar agora faz com que ele perca a viagem.',
+    'O motorista já vem a caminho. Pode cancelar sem consequências até 2 minutos depois de ele aceitar; depois disso, é um cancelamento tardio. Ao 5.º cancelamento tardio em 7 dias, os pedidos ficam suspensos 24 horas.',
   cancelConfirmRequested: 'Ainda não há motorista. Pode cancelar sem problema.',
   cancelKeep: 'Manter viagem',
   cancelYes: 'Sim, cancelar',
-  cancelTooMany: 'Já cancelaste {n} viagens esta semana',
+  cancelTooMany: 'Já cancelou tarde {n} viagens esta semana',
   cancelTooManyExplain:
-    'Cancelar muitas vezes deixa os motoristas sem trabalho. Se isto continuar, a sua conta pode ser suspensa.',
+    'Cancelar depois de o motorista vir a caminho custa-lhe tempo e combustível. Ao 5.º cancelamento tardio em 7 dias, os seus pedidos ficam suspensos 24 horas.',
+  cancelSuspensoTitulo: 'Pedidos suspensos por 24 horas',
+  cancelSuspensoTexto:
+    'Cancelou tarde 5 viagens em 7 dias. Pode voltar a pedir a partir das {hora} (hora de Díli). A sua conta, o histórico e o botão de socorro continuam a funcionar.',
 
   // Administração
   admin: 'Administração',

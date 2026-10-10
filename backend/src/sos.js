@@ -49,7 +49,11 @@ export async function cancelamentosRecentes(userId, dias = 7) {
   const r = await one(
     `SELECT COUNT(*)::int AS n FROM rides
      WHERE cancelled_by = $1 AND driver_id IS NOT NULL
-       AND created_at > NOW() - ($2 || ' days')::interval`,
+       AND created_at > NOW() - ($2 || ' days')::interval
+       -- O passageiro que não apareceu, com a espera cumprida, não conta
+       -- contra o motorista (cancelamentos.js); a rota já recusa o motivo
+       -- antes dos 5 minutos.
+       AND COALESCE(cancel_reason, '') <> 'passageiro_nao_aparece'`,
     [userId, String(dias)]
   );
   return r?.n || 0;

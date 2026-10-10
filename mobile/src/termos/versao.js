@@ -13,7 +13,7 @@
 // um erro de escrita.
 // Alterada em 14/09/2026: taxas de entrada, pedir para outra pessoa e
 // menores, Carro Pickup; e o pagamento deixa de dizer que o motorista não paga.
-export const VERSAO_TERMOS = '2026-09-14';
+export const VERSAO_TERMOS = '2026-10-10';
 // Alterada em 03/09/2026: a cláusula do seguro deixou de pedir "seguro
 // adequado à atividade" — que era vago — e passa a citar a obrigação legal
 // concreta (Instrução Pública n.º 07/2010) e a dizer o que acontece a quem
@@ -48,7 +48,7 @@ export const VERSAO_TERMOS = '2026-09-14';
 // E de novo no MESMO dia (daí o 'b'): entra a cláusula «Desconto para quem
 // ganha pouco» — 15% do rendimento registado, até ao preço do pacote de 30
 // dias, perdido com mais de 3 cancelamentos ou mais de 20% (decisão do Simão).
-export const VERSAO_TERMOS_MOTORISTA = '2026-10-05b';
+export const VERSAO_TERMOS_MOTORISTA = '2026-10-10';
 
 // A privacidade tem versão PRÓPRIA, e não a dos termos.
 //
