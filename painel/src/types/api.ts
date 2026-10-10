@@ -154,6 +154,22 @@ export interface Resumo {
   carry24h: number;
 }
 
+// «Ajude a melhorar o mapa» (backend/src/mapaComunidade.js): respostas iguais
+// do mesmo sítio, com quantas pessoas as deram. Sem nomes.
+export interface GrupoContribuicao {
+  tipo: 'bairro' | 'aldeia' | 'suco' | 'posto' | 'municipio' | 'local' | 'problema';
+  resposta: string;
+  categoria: string | null;
+  ids: number[];
+  respostas: number;
+  pessoas: number;
+  confirmaram: boolean;
+  lat: number;
+  lng: number;
+  ultima: string;
+  notas: string[];
+}
+
 // Uma falha da app, agrupada (backend/src/erros.js).
 export interface ErroApp {
   assinatura: string;
@@ -185,7 +201,8 @@ export interface ItemNotificacao {
     | 'canceladas'
     | 'suspensas'
     | 'espaco'
-    | 'errosApp';
+    | 'errosApp'
+    | 'contribuicoesMapa';
   n: number;
   // Só no `espaco`: a percentagem usada do tecto da base de dados.
   pct?: number;

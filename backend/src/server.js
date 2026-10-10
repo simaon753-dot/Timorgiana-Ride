@@ -3,6 +3,7 @@ import { verificarAvisos, limparAvisosVelhos } from './avisos.js';
 import { carregarConfigServico } from './configServico.js';
 import { podeEntrarAoServico } from './assinatura.js';
 import { errosRouter } from './erros.js';
+import { mapaComunidadeRouter } from './routes/mapa.js';
 import express from 'express';
 import cors from 'cors';
 import { corsPorPedido } from './corsApi.js';
@@ -250,6 +251,7 @@ app.get('/painel-antigo', (req, res) => res.redirect(301, '/painel/'));
 
 // Os erros da app (erros.js): ANTES do resto da /api, e sem sessão obrigatória.
 app.use('/api/erros', errosRouter);
+app.use('/api/mapa', mapaComunidadeRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/rides', ridesRouter);
 app.use('/api/driver', driverRouter);

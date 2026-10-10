@@ -20,6 +20,14 @@ export const LINGUAS = ['pt', 'tet', 'en'];
 
 // 'texto em português': ['tétum', 'inglês']
 export const MENSAGENS = {
+  // ── Ajude a melhorar o mapa (10/10/2026)
+  'Pergunta desconhecida.': ['Pergunta la koñesidu.', 'Unknown question.'],
+  'Escolha o que está errado.': ['Hili saida mak sala.', 'Choose what is wrong.'],
+  'Escreva a resposta, ou toque em «Não sei».': [
+    'Hakerek resposta, ka toka «La hatene».',
+    'Write the answer, or tap «I don’t know».',
+  ],
+  'Nada para decidir.': ['La iha buat ida atu deside.', 'Nothing to decide.'],
   // ── Veículo de terceiro (10/10/2026)
   'Diga se o veículo é seu ou de outra pessoa.': [
     'Hatete se veíkulu ne’e ita nian ka ema seluk nian.',

@@ -3,13 +3,13 @@ import { useSearchParams } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Check, Copy, ExternalLink, Eye, EyeOff, Info, MapPin, MapPinned, MoreHorizontal, Plus, RotateCcw, Tag, Trash2, X } from 'lucide-react';
+import { Check, Copy, ExternalLink, Eye, EyeOff, Info, MapPin, MapPinned, MoreHorizontal, Plus, RotateCcw, Tag, Trash2, Users, X } from 'lucide-react';
 import { t, tl, type Chave } from '@/i18n';
 import { api } from '@/services/admin';
 import { useDados } from '@/hooks/useDados';
 import { data, haQuanto } from '@/lib/formato';
 import { cn } from '@/lib/utils';
-import type { EstadoLugar, LugarProposto, MoradaDoPonto, MunicipioArvore, Parada } from '@/types/api';
+import type { EstadoLugar, GrupoContribuicao, LugarProposto, MoradaDoPonto, MunicipioArvore, Parada } from '@/types/api';
 import { CabecalhoPagina } from '@/components/ui/cabecalho-pagina';
 import { Cartao } from '@/components/ui/cartao';
 import { Botao } from '@/components/ui/botao';
@@ -25,6 +25,7 @@ import { Menu, MenuAbrir, MenuConteudo, MenuItem, MenuSeparador } from '@/compon
 import { DialogoConfirmacao } from '@/components/ui/confirmar';
 import { avisar, mensagemDe } from '@/components/ui/aviso';
 import { IlustracaoIcone } from '@/components/ilustracoes';
+import { useServico } from '@/layouts/servico';
 import { EscolherCategoria } from '@/components/escolher-categoria';
 import { CATEGORIA_DO_TIPO, nomeCategoria, tipoDaCategoria } from '@/lib/categoriasGiara';
 import type { QualPino } from '@/components/mapa/MapaParagem';
@@ -35,11 +36,12 @@ import HOTEIS from '@/lib/hoteisDili.json';
 const MapaEscolher = lazy(() => import('@/components/mapa/MapaEscolher'));
 const MapaParagem = lazy(() => import('@/components/mapa/MapaParagem'));
 
-type Vista = 'lugares' | 'paradas';
+type Vista = 'lugares' | 'paradas' | 'contribuicoes';
 
 export function Paragens() {
   const [params, setParams] = useSearchParams();
-  const vista: Vista = params.get('vista') === 'paradas' ? 'paradas' : 'lugares';
+  const v = params.get('vista');
+  const vista: Vista = v === 'paradas' || v === 'contribuicoes' ? v : 'lugares';
   const [procura, setProcura] = useState('');
 
   return (
@@ -60,6 +62,7 @@ export function Paragens() {
           opcoes={[
             { valor: 'lugares', rotulo: <><MapPin className="size-4" aria-hidden /> {t('parag.vistaLugares')}</> },
             { valor: 'paradas', rotulo: <><MapPinned className="size-4" aria-hidden /> {t('parag.vistaParadas')}</> },
+            { valor: 'contribuicoes', rotulo: <><Users className="size-4" aria-hidden /> {t('parag.vistaContribuicoes')}</> },
           ]}
         />
         <CampoPesquisa
@@ -70,7 +73,13 @@ export function Paragens() {
           onChange={(e) => setProcura(e.target.value)}
         />
       </div>
-      {vista === 'lugares' ? <Lugares procura={procura} estadoInicial={params.get('estado') as EstadoLugar | null} /> : <Paradas procura={procura} />}
+      {vista === 'lugares' ? (
+        <Lugares procura={procura} estadoInicial={params.get('estado') as EstadoLugar | null} />
+      ) : vista === 'paradas' ? (
+        <Paradas procura={procura} />
+      ) : (
+        <Contribuicoes procura={procura} />
+      )}
     </>
   );
 }
@@ -408,6 +417,107 @@ function Paradas({ procura }: { procura: string }) {
         }}
       />
     </>
+  );
+}
+
+// «AJUDE A MELHORAR O MAPA» (10/10/2026): o que passageiros e motoristas
+// responderam depois das viagens, agrupado — a mesma resposta no mesmo sítio
+// conta uma vez, com quantas PESSOAS a deram (a confiança). Sem nomes, de
+// propósito. Aceitar um bairro, uma aldeia ou o nome de um sítio põe-no no
+// HAKAT Maps; o suco, o posto e o município passam a ser o que se pergunta só
+// para confirmar; um problema aceite fica como tratado.
+function Contribuicoes({ procura }: { procura: string }) {
+  const { dados, erro, aCarregar, recarregar } = useDados(() => api.contribuicoesMapa(), []);
+  const { recarregarNotificacoes } = useServico();
+  const [aDecidir, setADecidir] = useState<string | null>(null);
+  const q = procura.trim().toLowerCase();
+  const grupos = (dados?.grupos ?? []).filter((g) => !q || g.resposta.toLowerCase().includes(q));
+  const chave = (g: GrupoContribuicao) => g.ids.join(',');
+  const decidir = async (g: GrupoContribuicao, aceitar: boolean) => {
+    setADecidir(chave(g));
+    try {
+      await api.decidirContribuicao(g.ids, aceitar);
+      avisar.sucesso(t(aceitar ? 'contrib.aceite' : 'contrib.recusada'), g.resposta);
+      recarregar();
+      recarregarNotificacoes();
+    } catch (e) {
+      avisar.erro(mensagemDe(e));
+    } finally {
+      setADecidir(null);
+    }
+  };
+  const resposta = (g: GrupoContribuicao) =>
+    g.tipo === 'problema' ? g.resposta.split(',').map((c) => t(('contrib.prob_' + c) as Chave)).join(', ') : g.resposta;
+
+  return (
+    <Cartao className="overflow-hidden">
+      {erro && !dados ? (
+        <EstadoErro mensagem={erro} aoTentar={recarregar} />
+      ) : aCarregar ? (
+        <EsqueletoTabela colunas={5} />
+      ) : !grupos.length ? (
+        <EstadoVazio
+          ilustracao={
+            <IlustracaoIcone>
+              <Users />
+            </IlustracaoIcone>
+          }
+          titulo={t('contrib.vazioTitulo')}
+          texto={t('contrib.vazioTexto')}
+        />
+      ) : (
+        <Tabela>
+          <TCabeca>
+            <tr>
+              <TTitulo>{t('contrib.colPergunta')}</TTitulo>
+              <TTitulo>{t('contrib.colResposta')}</TTitulo>
+              <TTitulo className="text-right">{t('contrib.colConfianca')}</TTitulo>
+              <TTitulo className="hidden md:table-cell">{t('contrib.colOnde')}</TTitulo>
+              <TTitulo className="text-right">{t('comum.acoes')}</TTitulo>
+            </tr>
+          </TCabeca>
+          <TCorpo>
+            {grupos.map((g) => (
+              <TLinha key={chave(g)}>
+                <TCelula className="text-secundario">{t(('contrib.tipo_' + g.tipo) as Chave)}</TCelula>
+                <TCelula>
+                  <span className="font-semibold">{resposta(g)}</span>
+                  {g.categoria ? <span className="block text-xs text-secundario">{nomeCategoria(g.categoria)}</span> : null}
+                  {g.confirmaram ? <span className="block text-xs text-teal-escuro">{t('contrib.confirmaram')}</span> : null}
+                  {g.notas.length ? <span className="block text-xs text-secundario">«{g.notas.join('» · «')}»</span> : null}
+                </TCelula>
+                <TCelula className="text-right">
+                  <Distintivo cor={g.pessoas >= 3 ? 'sucesso' : g.pessoas === 2 ? 'teal' : 'neutro'}>
+                    {t('contrib.pessoas', { n: String(g.pessoas) })}
+                  </Distintivo>
+                </TCelula>
+                <TCelula className="numeros hidden md:table-cell">
+                  <a
+                    href={`https://www.openstreetmap.org/?mlat=${g.lat}&mlon=${g.lng}#map=18/${g.lat}/${g.lng}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-teal-escuro hover:underline"
+                  >
+                    {g.lat.toFixed(5)}, {g.lng.toFixed(5)}
+                  </a>
+                  <span className="block text-xs text-secundario">{haQuanto(g.ultima)}</span>
+                </TCelula>
+                <TCelula className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Botao tamanho="sm" aCarregar={aDecidir === chave(g)} onClick={() => decidir(g, true)}>
+                      <Check /> {t(g.tipo === 'problema' ? 'contrib.tratado' : 'contrib.aceitar')}
+                    </Botao>
+                    <Botao tamanho="sm" variante="secundario" onClick={() => decidir(g, false)}>
+                      <X /> {t('contrib.recusar')}
+                    </Botao>
+                  </div>
+                </TCelula>
+              </TLinha>
+            ))}
+          </TCorpo>
+        </Tabela>
+      )}
+    </Cartao>
   );
 }
 

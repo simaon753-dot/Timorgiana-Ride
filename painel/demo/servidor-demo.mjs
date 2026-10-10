@@ -57,6 +57,12 @@ const seis = (validades = {}) => [
 // As quatro fotografias do veículo (04/10/2026).
 const quatroFotos = () => ['veiculofrente', 'veiculotras', 'veiculoesquerda', 'veiculodireita'].map((k) => doc(k));
 
+let contribuicoes = [
+  { tipo: 'bairro', resposta: 'Bairro Formosa', categoria: null, ids: [1, 2, 3], respostas: 3, pessoas: 3, confirmaram: true, lat: -8.5536, lng: 125.5785, ultima: ha(2), notas: [] },
+  { tipo: 'local', resposta: 'Kios Maria', categoria: 'shop', ids: [4], respostas: 1, pessoas: 1, confirmaram: false, lat: -8.5571, lng: 125.5702, ultima: ha(5), notas: [] },
+  { tipo: 'aldeia', resposta: 'Fomento', categoria: null, ids: [5, 6], respostas: 2, pessoas: 2, confirmaram: false, lat: -8.5592, lng: 125.5436, ultima: ha(8), notas: [] },
+  { tipo: 'problema', resposta: 'rua_sem_nome,local_errado', categoria: null, ids: [7], respostas: 1, pessoas: 1, confirmaram: false, lat: -8.5601, lng: 125.5811, ultima: ha(20), notas: ['A rua atrás do mercado não tem nome no mapa'] },
+];
 const motoristas = [
   // Veículo de terceiro (10/10/2026): a autorização chegou, a identificação do dono não.
   { estado: 'pending', tipo: 'motorbike', docs: [...seis({ inspection: 18 }), ...quatroFotos(), doc('autorizacaoproprietario')], cor: 'Preta', h: 3, online: true, terceiro: true },
@@ -427,6 +433,18 @@ async function api(req, res, url) {
     return json(res, { erros: lista });
   }
   if (p === '/admin/erros/resolver') return json(res, { ok: true, resolvidos: 1 });
+  // «Ajude a melhorar o mapa» (10/10/2026), fictício.
+  if (p === '/admin/mapa/contribuicoes') {
+    const ate = (h) => new Date(Date.now() - h * 3600e3).toISOString();
+    return json(res, { grupos: contribuicoes });
+  }
+  if (p === '/admin/mapa/contribuicoes/decidir') {
+    let corpo = '';
+    for await (const c of req) corpo += c;
+    const ids = JSON.parse(corpo || '{}').ids || [];
+    contribuicoes = contribuicoes.filter((g) => !g.ids.some((id) => ids.includes(id)));
+    return json(res, { ok: true, decididas: ids.length });
+  }
   if (p === '/admin/sos') return json(res, { alertas: sos });
   if (p === '/admin/ocorrencias') {
     const todas = url.searchParams.get('filtro') === 'todas';

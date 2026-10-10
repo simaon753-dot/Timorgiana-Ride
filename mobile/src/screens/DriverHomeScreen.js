@@ -32,6 +32,7 @@ import { api } from '../api/client.js';
 import { paraMostrar } from '../lib/datas.js';
 import SosButton from '../components/SosButton.js';
 import RatingPanel from '../components/RatingPanel.js';
+import AjudarMapa from '../components/AjudarMapa.js';
 import { ResumoEncomenda, RegistarCompra } from '../components/Encomenda.js';
 import { rideMarkers } from '../lib/rideMarkers.js';
 import { VEICULOS, nomeDoVeiculo } from '../dados/tiposDeVeiculo.js';
@@ -998,6 +999,8 @@ function ActiveRideCard({
       ) : null}
 
       {ride.status === 'completed' ? <RatingPanel ride={ride} role="driver" /> : null}
+      {/* «Ajude a melhorar o mapa» (10/10/2026): o convite, debaixo da avaliação. */}
+      {ride.status === 'completed' ? <AjudarMapa ride={ride} /> : null}
 
       {isFinal ? (
         <View style={{ marginTop: spacing.lg }}>

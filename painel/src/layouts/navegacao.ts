@@ -23,7 +23,7 @@ export const GRUPOS: { rotulo: Chave; itens: ItemNav[] }[] = [
       { para: '/ocorrencias', rotulo: 'nav.ocorrencias', icone: Flag, contam: ['ocorrenciasGraves', 'ocorrencias'] },
       { para: '/contas', rotulo: 'nav.contas', icone: Users },
       { para: '/viagens', rotulo: 'nav.viagens', icone: Route, contam: ['semResposta'] },
-      { para: '/paragens', rotulo: 'nav.paragens', icone: MapPin },
+      { para: '/paragens', rotulo: 'nav.paragens', icone: MapPin, contam: ['contribuicoesMapa'] },
       { para: '/dados', rotulo: 'nav.dados', icone: ChartColumn },
     ],
   },
@@ -52,4 +52,5 @@ export const DESTINO_NOTIFICACAO: Record<ItemNotificacao['chave'], string> = {
   suspensas: '/aprovacoes?estado=suspended',
   espaco: '/definicoes',
   errosApp: '/erros',
+  contribuicoesMapa: '/paragens?vista=contribuicoes',
 };

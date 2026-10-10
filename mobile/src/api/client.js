@@ -235,6 +235,12 @@ export const api = {
     request(`/rides/${id}/fare`, { method: 'POST', body: { fareUsd }, token }),
 
   listMessages: (token, id) => request(`/rides/${id}/messages`, { token }),
+
+  // «Ajude a melhorar o mapa» (10/10/2026), backend/src/routes/mapa.js.
+  perguntasMapa: (token, rideId) => request(`/mapa/perguntas?rideId=${rideId}`, { token }),
+  responderMapa: (token, corpo) =>
+    request('/mapa/respostas', { method: 'POST', body: corpo, token }),
+  adiarMapa: (token) => request('/mapa/adiar', { method: 'POST', token }),
   sendMessage: (token, id, body) =>
     request(`/rides/${id}/messages`, { method: 'POST', body: { body }, token }),
 

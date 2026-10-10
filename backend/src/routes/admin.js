@@ -73,6 +73,11 @@ import { percursoDe } from '../percursos.js';
 import { normalizarReferencia } from '../referenciaViagem.js';
 import { enviarAoGiara } from '../giara.js';
 import { errosAgrupados, resolverErro, SQL_ERROS_NO_SINO } from '../erros.js';
+import {
+  contribuicoesPorVer,
+  decidir as decidirContribuicao,
+  SQL_CONTRIBUICOES_NO_SINO,
+} from '../mapaComunidade.js';
 
 export const adminRouter = Router();
 adminRouter.use(requireAuth);
@@ -637,6 +642,7 @@ adminRouter.get(
           WHERE estado='pendente' AND created_at < NOW() - INTERVAL '24 hours')::int
           AS "pagamentosAtrasados",
         ${SQL_ERROS_NO_SINO} AS "errosApp",
+        ${SQL_CONTRIBUICOES_NO_SINO} AS "contribuicoesMapa",
         pg_database_size(current_database())::float8 AS "bytesBase"
     `,
       [CATEGORIAS_GRAVES]
@@ -666,6 +672,8 @@ adminRouter.get(
       { chave: 'suspensas', n: n.suspensas, nivel: 'neutro', seccao: 'contas' },
       // Falhas diferentes da app, por resolver, nos últimos 7 dias (erros.js).
       { chave: 'errosApp', n: n.errosApp, nivel: 'aviso', seccao: 'erros' },
+      // Respostas de «Ajude a melhorar o mapa» por ver (mapaComunidade.js).
+      { chave: 'contribuicoesMapa', n: n.contribuicoesMapa, nivel: 'aviso', seccao: 'paragens' },
     ].filter((i) => i.n > 0);
 
     // O ESPAÇO DA BASE DE DADOS (05/10/2026, pedido do Simão). O plano
@@ -693,6 +701,24 @@ adminRouter.get(
     const porTratar = itens.filter((i) => i.nivel !== 'neutro').reduce((soma, i) => soma + i.n, 0);
 
     res.json({ itens, porTratar });
+  })
+);
+
+// «AJUDE A MELHORAR O MAPA» (10/10/2026, mapaComunidade.js): as respostas
+// agrupadas, com a confiança (pessoas diferentes) e sem nomes.
+adminRouter.get(
+  '/mapa/contribuicoes',
+  wrap(async (_req, res) => {
+    res.json({ grupos: await contribuicoesPorVer() });
+  })
+);
+adminRouter.post(
+  '/mapa/contribuicoes/decidir',
+  wrap(async (req, res) => {
+    const ids = Array.isArray(req.body?.ids) ? req.body.ids : [];
+    if (!ids.length) return res.status(400).json({ error: 'Nada para decidir.' });
+    const n = await decidirContribuicao(ids, req.body?.aceitar === true, req.user.id);
+    res.json({ ok: true, decididas: n });
   })
 );
 

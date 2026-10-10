@@ -15,6 +15,7 @@ import CodigoRecolha from './CodigoRecolha.js';
 import MotivoCancelamento from './MotivoCancelamento.js';
 import ShareTripButton from './ShareTripButton.js';
 import RatingPanel from './RatingPanel.js';
+import AjudarMapa from './AjudarMapa.js';
 import { ResumoEncomenda } from './Encomenda.js';
 import { statusMeta } from './StatusBadge.js';
 import { rideMarkers } from '../lib/rideMarkers.js';
@@ -298,6 +299,8 @@ export default function ViagemPassageiro({ ride, navigation }) {
       />
 
       {ride.status === 'completed' ? <RatingPanel ride={ride} role="passenger" /> : null}
+      {/* «Ajude a melhorar o mapa» (10/10/2026): o convite, debaixo da avaliação. */}
+      {ride.status === 'completed' ? <AjudarMapa ride={ride} /> : null}
 
       {/* NINGUÉM RESPONDEU. Ao fim de dez minutos o pedido fecha-se sozinho no
           servidor; sem esta linha a viagem desaparecia sem explicação, e isso

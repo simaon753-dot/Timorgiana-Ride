@@ -514,6 +514,35 @@ export async function initSchema() {
     )
   `);
   await query('CREATE INDEX IF NOT EXISTS idx_erros_app_quando ON erros_app(quando)');
+
+  // «AJUDE A MELHORAR O MAPA» (10/10/2026, mapaComunidade.js): as respostas dos
+  // passageiros e motoristas sobre o sítio onde a viagem acabou. Vistas no
+  // painel antes de entrarem no mapa. `user_id` serve para não repetir
+  // perguntas e contar pessoas diferentes — nunca sai do servidor.
+  await query(`
+    CREATE TABLE IF NOT EXISTS contribuicoes_mapa (
+      id           SERIAL PRIMARY KEY,
+      user_id      INTEGER,
+      ride_id      INTEGER,
+      tipo         TEXT NOT NULL,
+      resposta     TEXT,
+      categoria    TEXT,
+      nota         TEXT,
+      confirmou    BOOLEAN NOT NULL DEFAULT FALSE,
+      nao_sei      BOOLEAN NOT NULL DEFAULT FALSE,
+      lat          DOUBLE PRECISION NOT NULL,
+      lng          DOUBLE PRECISION NOT NULL,
+      estado       TEXT NOT NULL DEFAULT 'nova',
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      decidido_em  TIMESTAMPTZ,
+      decidido_por INTEGER
+    )
+  `);
+  await query(
+    'CREATE INDEX IF NOT EXISTS idx_contrib_mapa_estado ON contribuicoes_mapa(estado, tipo)'
+  );
+  await query('CREATE INDEX IF NOT EXISTS idx_contrib_mapa_sitio ON contribuicoes_mapa(lat, lng)');
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS mapa_adiado_ate TIMESTAMPTZ`);
   // Quantas pessoas vão na viagem. Só faz sentido em carro — numa
   // motorizada vai sempre uma.
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS passengers INTEGER`);
