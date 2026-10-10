@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Modal,
   Image,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,6 +18,7 @@ import Button from '../components/Button.js';
 import LanguageToggle from '../components/LanguageToggle.js';
 import TextField from '../components/TextField.js';
 import FormularioVeiculo from '../components/FormularioVeiculo.js';
+import { urlModeloDeclaracao } from '../design/EscolherTitularidade.js';
 import Voltar from '../components/Voltar.js';
 import { VERSAO_TERMOS_MOTORISTA } from '../termos/index.js';
 import { useI18n } from '../i18n/index.js';
@@ -80,6 +82,22 @@ const TIPOS = [
   { kind: 'veiculotras', label: 'docVeiculotras', nota: 'docVeiculoMatricula', camera: true },
   { kind: 'veiculoesquerda', label: 'docVeiculoesquerda', camera: true },
   { kind: 'veiculodireita', label: 'docVeiculodireita', camera: true },
+  // VEÍCULO DE TERCEIRO (10/10/2026): só a quem disse, no registo, que o
+  // veículo é de outra pessoa (user.vehicle.proprio === false). Obrigatórios
+  // para esse registo — e, no servidor, também para trabalhar.
+  {
+    kind: 'idproprietario',
+    label: 'docIdproprietario',
+    nota: 'docIdproprietarioNota',
+    soTerceiro: true,
+  },
+  {
+    kind: 'autorizacaoproprietario',
+    label: 'docAutorizacaoproprietario',
+    nota: 'docAutorizacaoproprietarioNota',
+    soTerceiro: true,
+    modelo: true,
+  },
 ];
 
 // Ecrã que o motorista vê enquanto a conta não está aprovada. Sem isto,
@@ -296,9 +314,10 @@ export default function DriverPendingScreen({ navigation }) {
   // «Faltam documentos» a motoristas aprovados com tudo entregue.
   // As fotografias do veículo contam para quem ainda se está a registar; a
   // quem já foi aprovado não se exige o que não existia quando se registou.
-  const completo = TIPOS.filter((tp) => !tp.soCarry && (!aprovado || !tp.camera)).every((tp) =>
-    enviados.includes(tp.kind)
-  );
+  const deTerceiro = user?.vehicle?.proprio === false;
+  const completo = TIPOS.filter(
+    (tp) => !tp.soCarry && (!aprovado || !tp.camera) && (!tp.soTerceiro || deTerceiro)
+  ).every((tp) => enviados.includes(tp.kind));
   const termosOk = user?.driverTermsVersion === VERSAO_TERMOS_MOTORISTA;
   const aCorrigir = docs.filter((d) => d.correcao);
 
@@ -425,8 +444,9 @@ export default function DriverPendingScreen({ navigation }) {
                   // A fotografia única do Carry (14/09) deu lugar às quatro:
                   // só aparece a quem já a tinha enviado.
                   (tp) =>
-                    !tp.soCarry ||
-                    (VEICULOS[user?.vehicle?.type]?.perguntaCarga && enviados.includes(tp.kind))
+                    (!tp.soTerceiro || deTerceiro) &&
+                    (!tp.soCarry ||
+                      (VEICULOS[user?.vehicle?.type]?.perguntaCarga && enviados.includes(tp.kind)))
                 ).map((tp) => {
                   const enviado = enviados.includes(tp.kind);
                   const doc = docs.find((d) => d.kind === tp.kind);
@@ -436,6 +456,17 @@ export default function DriverPendingScreen({ navigation }) {
                         <View style={{ flex: 1 }}>
                           <Text style={styles.docName}>{t(tp.label)}</Text>
                           {tp.nota ? <Text style={styles.docNota}>{t(tp.nota)}</Text> : null}
+                          {/* O modelo da declaração, para levar ao dono e
+                              assinar (10/10/2026). */}
+                          {tp.modelo ? (
+                            <Pressable
+                              onPress={() => Linking.openURL(urlModeloDeclaracao())}
+                              hitSlop={8}
+                              accessibilityRole="link"
+                            >
+                              <Text style={styles.docModelo}>{t('vVerModelo')}</Text>
+                            </Pressable>
+                          ) : null}
                           <Text style={[styles.docState, enviado && styles.docStateOk]}>
                             {enviado ? `✓ ${t('docSent')}` : t('docMissing')}
                           </Text>
@@ -782,6 +813,13 @@ const criarEstilos = () =>
     },
     docName: { ...tipo.subtitulo, color: colors.text },
     docNota: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },
+    docModelo: {
+      ...tipo.pequeno,
+      color: colors.teal,
+      textDecorationLine: 'underline',
+      marginTop: 4,
+      paddingVertical: 4,
+    },
     docState: { ...tipo.legenda, color: colors.textMuted, marginTop: 2 },
     docStateOk: { color: colors.success, fontWeight: '600' },
     docBtn: {

@@ -76,6 +76,10 @@ authRouter.post('/register', async (req, res) => {
     if (role === 'driver' && (!vehicle || !vehicle.plate || !vehicle.plate.trim())) {
       return res.status(400).json({ error: 'Motoristas têm de indicar a matrícula do veículo.' });
     }
+    // Próprio ou de terceiro (10/10/2026, documents.js DOCS_TERCEIRO).
+    if (role === 'driver' && typeof vehicle.proprio !== 'boolean') {
+      return res.status(400).json({ error: 'Diga se o veículo é seu ou de outra pessoa.' });
+    }
 
     // ── CONDUZIR É PARA CIDADÃOS DE TIMOR-LESTE ────────────────────────
     //

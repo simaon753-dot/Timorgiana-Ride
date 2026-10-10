@@ -101,6 +101,8 @@ export function toPublicUser(row) {
       carroceria: row.vehicle_carroceria || null,
       capacidade: row.vehicle_capacidade || null,
       ano: row.vehicle_ano ?? null,
+      // TRUE próprio, FALSE de terceiro, null nos registos anteriores.
+      proprio: row.vehicle_proprio ?? null,
     };
   }
   if (row.is_admin) base.isAdmin = true;
@@ -143,7 +145,7 @@ export async function createUser({
        (name, phone, email, password_hash, role, vehicle_type, vehicle_model, vehicle_plate,
         vehicle_color, vehicle_seats, driver_status, terms_version, terms_accepted_at,
         privacy_version, privacy_accepted_at, cidadao_tl, cidadao_tl_em,
-        vehicle_carroceria, vehicle_capacidade, vehicle_ano)
+        vehicle_carroceria, vehicle_capacidade, vehicle_ano, vehicle_proprio)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NOW(),$13,
              CASE WHEN $13::text IS NULL THEN NULL ELSE NOW() END,
              $14,
@@ -151,7 +153,7 @@ export async function createUser({
              -- lado de um "não declarou" seria datar uma coisa que ninguém
              -- disse — o mesmo princípio do consentimento dos menores.
              CASE WHEN $14::boolean IS TRUE THEN NOW() ELSE NULL END,
-             $15, $16, $17)
+             $15, $16, $17, $18)
      RETURNING *`,
     [
       name.trim(),
@@ -179,6 +181,7 @@ export async function createUser({
       carga.carroceria,
       carga.capacidade,
       carga.ano,
+      role === 'driver' && typeof vehicle?.proprio === 'boolean' ? vehicle.proprio : null,
     ]
   );
 }

@@ -77,6 +77,7 @@ module.exports = C.documento(
 
     A('Artigo 11.º', 'Veículo de terceiro'),
     P('O motorista que conduza veículo de que não seja proprietário deve dispor de autorização escrita do proprietário para o afetar ao transporte remunerado de passageiros, nos termos do modelo de declaração disponibilizado pela Timorgiara Neto, Unipessoal, Lda.'),
+    P('No registo, o motorista declara se o veículo é próprio ou de terceiro. Sendo de terceiro, envia pela aplicação o documento de identificação do proprietário e a autorização assinada, sem os quais o registo não é aprovado e o veículo não pode ser utilizado em viagens.'),
     P('A Timorgiara Neto, Unipessoal, Lda. pode solicitar a exibição dessa autorização a qualquer momento.'),
 
     A('Artigo 12.º', 'Verificações'),

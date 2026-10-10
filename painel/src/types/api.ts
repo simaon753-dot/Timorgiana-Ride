@@ -17,7 +17,9 @@ export type TipoDocumento =
   | 'veiculotras'
   | 'veiculoesquerda'
   | 'veiculodireita'
-  | 'registocriminal';
+  | 'registocriminal'
+  | 'idproprietario'
+  | 'autorizacaoproprietario';
 
 export interface Veiculo {
   type: TipoVeiculo;
@@ -28,6 +30,8 @@ export interface Veiculo {
   carroceria: string | null;
   capacidade: string | null;
   ano: number | null;
+  // TRUE próprio, FALSE de terceiro, null nos registos anteriores (10/10/2026).
+  proprio?: boolean | null;
 }
 
 export interface UtilizadorPublico {

@@ -20,6 +20,11 @@ export const LINGUAS = ['pt', 'tet', 'en'];
 
 // 'texto em português': ['tétum', 'inglês']
 export const MENSAGENS = {
+  // ── Veículo de terceiro (10/10/2026)
+  'Diga se o veículo é seu ou de outra pessoa.': [
+    'Hatete se veíkulu ne’e ita nian ka ema seluk nian.',
+    'Say whether the vehicle is yours or someone else’s.',
+  ],
   // ── Erros da app (10/10/2026, erros.js)
   'Erro vazio.': ['Erru mamuk.', 'Empty error.'],
   'Falha inválida.': ['Falla inválidu.', 'Invalid fault.'],
@@ -911,6 +916,16 @@ export const NOTIFICACOES = {
     pt: 'Certificado de registo criminal',
     tet: 'Sertifikadu rejistu kriminál',
     en: 'Criminal record certificate',
+  },
+  doc_idproprietario: {
+    pt: 'Identificação do proprietário do veículo',
+    tet: 'Identifikasaun na’in ba veíkulu',
+    en: 'Vehicle owner’s identification',
+  },
+  doc_autorizacaoproprietario: {
+    pt: 'Autorização do proprietário do veículo',
+    tet: 'Autorizasaun husi na’in ba veíkulu',
+    en: 'Vehicle owner’s authorisation',
   },
   doc_veiculofrente: {
     pt: 'Veículo, frente',

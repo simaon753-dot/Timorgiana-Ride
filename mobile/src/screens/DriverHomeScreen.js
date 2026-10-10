@@ -83,6 +83,8 @@ const NOME_DO_DOC = {
   fotoveiculo: 'docFotoveiculo',
   veiculofrente: 'docVeiculofrente',
   registocriminal: 'docRegistocriminal',
+  idproprietario: 'docIdproprietario',
+  autorizacaoproprietario: 'docAutorizacaoproprietario',
   veiculotras: 'docVeiculotras',
   veiculoesquerda: 'docVeiculoesquerda',
   veiculodireita: 'docVeiculodireita',

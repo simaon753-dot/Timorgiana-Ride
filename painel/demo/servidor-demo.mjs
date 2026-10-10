@@ -58,7 +58,8 @@ const seis = (validades = {}) => [
 const quatroFotos = () => ['veiculofrente', 'veiculotras', 'veiculoesquerda', 'veiculodireita'].map((k) => doc(k));
 
 const motoristas = [
-  { estado: 'pending', tipo: 'motorbike', docs: [...seis({ inspection: 18 }), ...quatroFotos()], cor: 'Preta', h: 3, online: true },
+  // Veículo de terceiro (10/10/2026): a autorização chegou, a identificação do dono não.
+  { estado: 'pending', tipo: 'motorbike', docs: [...seis({ inspection: 18 }), ...quatroFotos(), doc('autorizacaoproprietario')], cor: 'Preta', h: 3, online: true, terceiro: true },
   { estado: 'pending', tipo: 'car', docs: seis().filter((d) => d.kind !== 'inspection'), cor: '', h: 26 },
   { estado: 'pending', tipo: 'carry', docs: seis({ inspection: 1100 }).map((d) => (d.kind === 'licence' ? { ...d, correcao: 'A fotografia não se lê — tire outra com mais luz e sem tremer.', correcaoEm: ha(5) } : d)), cor: 'Branca', h: 50 },
   { estado: 'approved', tipo: 'car', docs: [...seis(), ...quatroFotos()], cor: 'Prateada', h: 400, online: true, viagens: 42 },
@@ -83,6 +84,7 @@ const motoristas = [
     type: m.tipo, model: MODELOS[m.tipo], plate: `DEMO ${String(i + 1).padStart(3, '0')}`, color: m.cor,
     seats: m.tipo === 'car' ? 6 : null, carroceria: m.tipo === 'carry' ? 'aberta' : null,
     capacidade: m.tipo === 'carry' ? 'media' : null, ano: m.tipo === 'carry' ? 2019 : null,
+    proprio: m.terceiro ? false : true,
   },
   documents: m.docs,
   online: !!m.online,

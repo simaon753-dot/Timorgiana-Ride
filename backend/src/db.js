@@ -490,6 +490,9 @@ export async function initSchema() {
     `ALTER TABLE rides ADD COLUMN IF NOT EXISTS cancel_tardio BOOLEAN NOT NULL DEFAULT FALSE`
   );
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS pedidos_suspensos_ate TIMESTAMPTZ`);
+  // A TITULARIDADE DO VEÍCULO (10/10/2026, documents.js DOCS_TERCEIRO): TRUE
+  // próprio, FALSE de terceiro, NULL nos registos anteriores (não perguntado).
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS vehicle_proprio BOOLEAN`);
 
   // OS ERROS DA APP (10/10/2026, erros.js): o que o ecrã verde mostrava passa
   // a chegar aqui. Sem chave estrangeira de propósito: apagar uma conta não

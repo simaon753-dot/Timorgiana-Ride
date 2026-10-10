@@ -12,7 +12,7 @@ import {
   getOwnDocument,
   definirValidade,
   motivoValido,
-  OBRIGATORIOS_REGISTO,
+  obrigatoriosRegisto,
 } from '../documents.js';
 import { temFotoDeHoje, guardarFotoDeTurno, ultimaFotoDeTurno } from '../turnos.js';
 import { setOnline, savePushToken } from '../drivers.js';
@@ -259,9 +259,14 @@ driverRouter.get(
 driverRouter.post(
   '/vehicle',
   wrap(async (req, res) => {
-    const { type, model, plate, color, seats, carroceria, capacidade, ano } = req.body || {};
+    const { type, model, plate, color, seats, carroceria, capacidade, ano, proprio } =
+      req.body || {};
     if (!plate || !String(plate).trim()) {
       return res.status(400).json({ error: 'Indica a matrícula do veículo.' });
+    }
+    // Próprio ou de terceiro (10/10/2026, documents.js DOCS_TERCEIRO).
+    if (typeof proprio !== 'boolean') {
+      return res.status(400).json({ error: 'Diga se o veículo é seu ou de outra pessoa.' });
     }
     const tipo = TIPOS_VEICULO.includes(type) ? type : 'car';
     if (tipo === 'car' && !seats) {
@@ -277,6 +282,7 @@ driverRouter.post(
        SET vehicle_type = $1, vehicle_model = $2, vehicle_plate = $3,
            vehicle_color = $4, vehicle_seats = $5,
            vehicle_carroceria = $7, vehicle_capacidade = $8, vehicle_ano = $9,
+           vehicle_proprio = $10,
            -- O PAPEL PASSA A MOTORISTA, e a falta desta linha era um
            -- defeito silencioso: a conta ficava aprovada e o sistema de
            -- motoristas continuava a não a ver.
@@ -309,6 +315,7 @@ driverRouter.post(
         carga.carroceria,
         carga.capacidade,
         carga.ano,
+        proprio,
       ]
     );
     res.json({ user: toPublicUser(row) });
@@ -458,7 +465,7 @@ driverRouter.post(
       // "completo" com três documentos e ninguém era avisado dos outros dois.
       // Com as quatro fotografias do veículo (04/10/2026): é quando o registo
       // NOVO está mesmo pronto para ser visto.
-      const completo = OBRIGATORIOS_REGISTO.every((k) => tipos.has(k));
+      const completo = obrigatoriosRegisto(req.user).every((k) => tipos.has(k));
       // Só avisa quem pediu MESMO para conduzir. Com o registo aberto a
       // qualquer conta, `null || 'pending'` faria soar o alarme por
       // alguém que enviou documentos sem sequer declarar um veículo.
@@ -495,7 +502,7 @@ driverRouter.post(
       return res.status(409).json({ error: 'O teu registo não está recusado.' });
     }
     const tipos = new Set((await listDocuments(req.user.id)).map((d) => d.kind));
-    if (!OBRIGATORIOS_REGISTO.every((k) => tipos.has(k))) {
+    if (!obrigatoriosRegisto(req.user).every((k) => tipos.has(k))) {
       return res.status(400).json({ error: 'Faltam documentos na tua conta.' });
     }
     if (req.user.driver_terms_version !== VERSAO_TERMOS_MOTORISTA) {

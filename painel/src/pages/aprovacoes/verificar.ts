@@ -19,6 +19,12 @@ export const FOTOS_VEICULO: TipoDocumento[] = ['veiculofrente', 'veiculotras', '
 // só se aponta. «Recente» (3 meses) vê-se na data de emissão do papel.
 export const REGISTO_CRIMINAL: TipoDocumento = 'registocriminal';
 
+// VEÍCULO DE TERCEIRO (10/10/2026): quem declarou que o veículo é de outra
+// pessoa junta a identificação do dono e a autorização assinada por ele
+// (modelo d4). Impedem a aprovação, e no servidor também impedem trabalhar.
+export const DOCS_TERCEIRO: TipoDocumento[] = ['idproprietario', 'autorizacaoproprietario'];
+export const deTerceiro = (d: Motorista) => d.vehicle?.proprio === false;
+
 // Quanto tempo é PLAUSÍVEL faltar para cada documento caducar. As datas são
 // escritas pelo próprio motorista a olhar para o cartão, e nada o impede de
 // escrever 2035 — mas um Kartaun Inspesaun vale um ano: uma validade a três
@@ -67,6 +73,19 @@ export function verificar(d: Motorista): LinhaVerificacao[] {
     linhas.push({ nivel: 'duvida', texto: 'Registo criminal: confirmar que foi emitido nos últimos 3 meses e que não tem NENHUMA condenação — qualquer condenação impede a aprovação' });
   }
 
+  if (deTerceiro(d)) {
+    const semDono = DOCS_TERCEIRO.filter((k) => !docs[k]).map((k) => tl('documento', k).toLowerCase());
+    linhas.push(
+      semDono.length
+        ? { nivel: 'no', texto: `Veículo de terceiro — falta: ${semDono.join(', ')}` }
+        : {
+            nivel: 'duvida',
+            texto:
+              'Veículo de terceiro: confirmar que a autorização está assinada e identifica o proprietário, o motorista e este veículo (matrícula), e que o nome do proprietário bate com o cartão de registo',
+          }
+    );
+  }
+
   const semFotos = FOTOS_VEICULO.filter((k) => !docs[k]).map((k) => tl('documento', k).toLowerCase());
   if (semFotos.length) {
     linhas.push({
@@ -105,7 +124,7 @@ export function verificar(d: Motorista): LinhaVerificacao[] {
   // A CORREÇÃO PEDIDA IMPEDE, como um documento em falta (04/10/2026): quem
   // pediu disse que aquele papel não serve. Aprovar sem ele obriga ao «mesmo
   // assim», com a lista à frente.
-  for (const k of [...TIPOS_DOCUMENTO, REGISTO_CRIMINAL, ...FOTOS_VEICULO]) {
+  for (const k of [...TIPOS_DOCUMENTO, REGISTO_CRIMINAL, ...FOTOS_VEICULO, ...DOCS_TERCEIRO]) {
     const doc = docs[k];
     if (doc?.correcao) linhas.push({ nivel: 'no', texto: `${tl('documento', k)}: correção pedida — ${doc.correcao}` });
   }

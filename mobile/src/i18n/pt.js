@@ -148,7 +148,8 @@ export default {
   reqDoc3Titulo: 'Certificado de registo criminal',
   reqDoc3Texto: 'Emitido nos últimos 3 meses, para verificação de idoneidade.',
   reqDoc4Titulo: 'Documentos do veículo',
-  reqDoc4Texto: 'Cartão de registo do veículo e cartão de inspeção (Kartaun Inspesaun) válidos.',
+  reqDoc4Texto:
+    'Cartão de registo do veículo e cartão de inspeção (Kartaun Inspesaun) válidos. Se o veículo for de outra pessoa, também a identificação do dono e a autorização assinada por ele.',
   reqDoc5Titulo: 'Fotografias',
   reqDoc5Texto:
     'Uma fotografia sua e 4 fotografias do veículo, tiradas na hora, com a matrícula à vista.',
@@ -782,6 +783,21 @@ export default {
   docVehicle: 'Cartão de registo do veículo',
   docFotoveiculo: 'Fotografia do veículo',
   docRegistocriminal: 'Certificado de registo criminal',
+  // Veículo de terceiro (10/10/2026)
+  vTitularidade: 'Titularidade do veículo',
+  vProprio: 'Veículo próprio (Ita nian rasik)',
+  vProprioSub: 'O veículo pertence-me.',
+  vTerceiro: 'Veículo de terceiro (Ema seluk nian)',
+  vTerceiroSub: 'Pertence a outra pessoa, que me autoriza a usá-lo.',
+  vTerceiroNota:
+    'Nos documentos vai ter de enviar também o documento de identificação do proprietário e a declaração de autorização assinada por ele, que identifica o proprietário, o motorista e o veículo.',
+  vVerModelo: 'Descarregar o modelo da declaração',
+  errTitularidade: 'Diga se o veículo é seu ou de outra pessoa.',
+  docIdproprietario: 'Identificação do proprietário',
+  docIdproprietarioNota: 'Documento de identificação válido do dono do veículo. Fotografia ou PDF.',
+  docAutorizacaoproprietario: 'Autorização do proprietário',
+  docAutorizacaoproprietarioNota:
+    'Declaração assinada pelo dono, que identifica o proprietário, o motorista e o veículo, e autoriza o uso na HAKAT. Fotografia ou PDF.',
   docRegistocriminalNota: 'Certificado válido. Formato aceite: fotografia ou PDF.',
   docVeiculofrente: 'Veículo, frente',
   docVeiculotras: 'Veículo, traseira',

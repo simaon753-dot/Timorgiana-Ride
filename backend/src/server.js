@@ -190,6 +190,18 @@ for (const [caminho, ficheiro] of [
   });
 }
 
+// O MODELO DA DECLARAÇÃO DO PROPRIETÁRIO (10/10/2026): quem conduz um
+// veículo de terceiro descarrega-o na app, leva-o ao dono para assinar e
+// envia-o como documento. É o d4 de juridico/ (copiado para aqui porque o
+// Render só tem a pasta backend/): ao regenerar os Word, copiar de novo.
+app.get('/modelos/declaracao-proprietario', (req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.download(
+    fileURLToPath(new URL('../publico/modelos/declaracao-proprietario.docx', import.meta.url)),
+    'Declaracao do Proprietario - HAKAT.docx'
+  );
+});
+
 // O PAINEL NOVO (17/09/2026): React, compilado a partir de painel/ para
 // publico/painel/. O Render não compila nada — serve o que está no
 // repositório, como sempre serviu o ficheiro único.

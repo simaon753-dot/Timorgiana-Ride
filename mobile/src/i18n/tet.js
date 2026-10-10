@@ -149,7 +149,8 @@ export default {
   reqDoc3Titulo: 'Sertifikadu rejistu kriminál',
   reqDoc3Texto: 'Hasai iha fulan 3 ikus nia laran, atu verifika idoneidade.',
   reqDoc4Titulo: 'Dokumentu veíkulu nian',
-  reqDoc4Texto: 'Kartaun rejistu veíkulu no kartaun inspesaun (Kartaun Inspesaun) ne’ebé válidu.',
+  reqDoc4Texto:
+    'Kartaun rejistu veíkulu no kartaun inspesaun (Kartaun Inspesaun) ne’ebé válidu. Se veíkulu ne’e ema seluk nian, mós identifikasaun na’in nian no autorizasaun ne’ebé nia asina.',
   reqDoc5Titulo: 'Foto sira',
   reqDoc5Texto:
     'Ita-nia foto ida no foto veíkulu nian 4, foti iha momentu ne’e, ho matríkula hatudu.',
@@ -776,6 +777,21 @@ export default {
   docVehicle: 'Kartaun Rejistu Veíkulu',
   docFotoveiculo: 'Fotografia veíkulu nian',
   docRegistocriminal: 'Sertifikadu rejistu kriminál',
+  // Veículo de terceiro (10/10/2026)
+  vTitularidade: 'Na’in ba veíkulu',
+  vProprio: 'Veíkulu rasik (Ita nian rasik)',
+  vProprioSub: 'Veíkulu ne’e ha’u nian.',
+  vTerceiro: 'Veíkulu ema seluk nian (Ema seluk nian)',
+  vTerceiroSub: 'Ema seluk nian, ne’ebé autoriza ha’u atu uza.',
+  vTerceiroNota:
+    'Iha dokumentu sira, ita tenke haruka mós dokumentu identifikasaun na’in ba veíkulu nian no deklarasaun autorizasaun ne’ebé nia asina, ne’ebé identifika na’in, motorista no veíkulu.',
+  vVerModelo: 'Download modelu deklarasaun nian',
+  errTitularidade: 'Hatete se veíkulu ne’e ita nian ka ema seluk nian.',
+  docIdproprietario: 'Identifikasaun na’in ba veíkulu',
+  docIdproprietarioNota: 'Dokumentu identifikasaun válidu husi na’in ba veíkulu. Foto ka PDF.',
+  docAutorizacaoproprietario: 'Autorizasaun husi na’in',
+  docAutorizacaoproprietarioNota:
+    'Deklarasaun ne’ebé na’in asina, ne’ebé identifika na’in, motorista no veíkulu, no autoriza uza iha HAKAT. Foto ka PDF.',
   docRegistocriminalNota: 'Sertifikadu ne’ebé sei válidu. Formatu ne’ebé simu: foto ka PDF.',
   docVeiculofrente: 'Veíkulu, oin',
   docVeiculotras: 'Veíkulu, kotuk',

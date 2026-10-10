@@ -155,7 +155,8 @@ export default {
   reqDoc3Titulo: 'Criminal record certificate',
   reqDoc3Texto: 'Issued in the last 3 months, to verify good standing.',
   reqDoc4Titulo: 'Vehicle documents',
-  reqDoc4Texto: 'Valid vehicle registration card and inspection card (Kartaun Inspesaun).',
+  reqDoc4Texto:
+    'Valid vehicle registration card and inspection card (Kartaun Inspesaun). If the vehicle belongs to someone else, also the owner’s identification and the authorisation signed by them.',
   reqDoc5Titulo: 'Photos',
   reqDoc5Texto:
     'A photo of yourself and 4 photos of the vehicle, taken on the spot, with the plate visible.',
@@ -768,6 +769,21 @@ export default {
   docVehicle: 'Vehicle registration card',
   docFotoveiculo: 'Vehicle photo',
   docRegistocriminal: 'Criminal record certificate',
+  // Veículo de terceiro (10/10/2026)
+  vTitularidade: 'Vehicle ownership',
+  vProprio: 'My own vehicle (Ita nian rasik)',
+  vProprioSub: 'The vehicle belongs to me.',
+  vTerceiro: 'Someone else’s vehicle (Ema seluk nian)',
+  vTerceiroSub: 'It belongs to another person, who authorises me to use it.',
+  vTerceiroNota:
+    'In the documents you will also need to send the owner’s identification and the authorisation signed by the owner, identifying the owner, the driver and the vehicle.',
+  vVerModelo: 'Download the declaration template',
+  errTitularidade: 'Say whether the vehicle is yours or someone else’s.',
+  docIdproprietario: 'Owner’s identification',
+  docIdproprietarioNota: 'A valid identity document of the vehicle owner. Photo or PDF.',
+  docAutorizacaoproprietario: 'Owner’s authorisation',
+  docAutorizacaoproprietarioNota:
+    'A declaration signed by the owner, identifying the owner, the driver and the vehicle, and authorising its use on HAKAT. Photo or PDF.',
   docRegistocriminalNota: 'Valid certificate. Accepted format: photo or PDF.',
   docVeiculofrente: 'Vehicle, front',
   docVeiculotras: 'Vehicle, rear',

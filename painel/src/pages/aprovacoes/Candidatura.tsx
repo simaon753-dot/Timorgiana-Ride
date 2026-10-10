@@ -15,7 +15,7 @@ import { DialogoConfirmacao } from '@/components/ui/confirmar';
 import { ImagemProtegida, Lupa } from '@/components/ui/imagem-protegida';
 import { avisar, mensagemDe } from '@/components/ui/aviso';
 import { Dado, EstadoDoMotorista, IconeVeiculo, Telefone } from '@/components/comuns';
-import { FOTOS_VEICULO, REGISTO_CRIMINAL, TIPOS_DOCUMENTO, documentoSuspeito, porTipo, resumoVerificacao, type NivelVerificacao } from './verificar';
+import { DOCS_TERCEIRO, FOTOS_VEICULO, REGISTO_CRIMINAL, TIPOS_DOCUMENTO, deTerceiro, documentoSuspeito, porTipo, resumoVerificacao, type NivelVerificacao } from './verificar';
 
 type Acao = null | 'aprovarMesmoAssim' | 'recusar' | 'suspender';
 
@@ -304,6 +304,11 @@ export function Candidatura({
                   {veiculo?.carroceria ? <Dado rotulo={t('cand.carroceria')}>{tl('carroceria', veiculo.carroceria)}</Dado> : null}
                   {veiculo?.capacidade ? <Dado rotulo={t('cand.capacidade')}>{tl('capacidade', veiculo.capacidade)}</Dado> : null}
                   {veiculo?.ano ? <Dado rotulo={t('cand.ano')}>{veiculo.ano}</Dado> : null}
+                  {veiculo?.proprio != null ? (
+                    <Dado rotulo={t('cand.titularidade')}>
+                      {veiculo.proprio ? t('cand.proprio') : <span className="font-semibold text-coral-texto">{t('cand.terceiro')}</span>}
+                    </Dado>
+                  ) : null}
                 </dl>
               </Seccao>
             </div>
@@ -313,6 +318,12 @@ export function Candidatura({
                 {[...TIPOS_DOCUMENTO, REGISTO_CRIMINAL].map(cartaoDocumento)}
               </ul>
             </Seccao>
+
+            {deTerceiro(d) ? (
+              <Seccao titulo={t('cand.docsTerceiro')} nota={t('cand.docsTerceiroNota')}>
+                <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">{DOCS_TERCEIRO.map(cartaoDocumento)}</ul>
+              </Seccao>
+            ) : null}
 
             <Seccao titulo={t('cand.fotosVeiculo')} nota={t('cand.fotosVeiculoNota')}>
               <ul className="grid grid-cols-2 gap-4 sm:grid-cols-4">{FOTOS_VEICULO.map(cartaoDocumento)}</ul>

@@ -20,6 +20,9 @@ const TIPOS = [
   'veiculodireita',
   // O certificado de registo criminal (09/10/2026). Ver OBRIGATORIOS_REGISTO.
   'registocriminal',
+  // Veículo de terceiro (10/10/2026). Ver DOCS_TERCEIRO.
+  'idproprietario',
+  'autorizacaoproprietario',
 ];
 
 // O dia em Díli, e não o dia do servidor.
@@ -174,6 +177,23 @@ export const FOTOS_VEICULO = ['veiculofrente', 'veiculotras', 'veiculoesquerda',
 export const REGISTO_CRIMINAL = 'registocriminal';
 export const OBRIGATORIOS_REGISTO = [...OBRIGATORIOS, REGISTO_CRIMINAL, ...FOTOS_VEICULO];
 
+// O VEÍCULO DE TERCEIRO (10/10/2026, pedido do Simão; Regulamento de Registo
+// e Inspeção de Veículos, art. 11.º). Quem conduz um veículo que não é seu
+// declara-o no registo (`users.vehicle_proprio = FALSE`) e junta:
+//   · o documento de identificação do proprietário;
+//   · a declaração de autorização assinada por ele (o modelo d4, que
+//     identifica o proprietário, o motorista e o veículo).
+// Contam para o registo estar completo e, ao contrário das fotografias,
+// também para PODER TRABALHAR: sem autorização do dono não se conduz o
+// veículo dele — e quem mudar para um veículo de terceiro depois de
+// aprovado fica parado até os enviar. Os registos antigos (NULL) não mudam.
+export const DOCS_TERCEIRO = ['idproprietario', 'autorizacaoproprietario'];
+export const deTerceiro = (user) => user?.vehicle_proprio === false;
+export const obrigatoriosRegisto = (user) => [
+  ...OBRIGATORIOS_REGISTO,
+  ...(deTerceiro(user) ? DOCS_TERCEIRO : []),
+];
+
 // Avisar quinze dias antes. Chega para tratar de um papel em Díli sem
 // perder um dia de trabalho, e não é tão cedo que se esqueça.
 export const DIAS_DE_AVISO = 15;
@@ -195,8 +215,10 @@ export const DIAS_DE_AVISO = 15;
 export async function podeTrabalhar(userId) {
   const docs = await listDocuments(userId);
   const porTipo = Object.fromEntries(docs.map((d) => [d.kind, d]));
+  const dono = await one('SELECT vehicle_proprio FROM users WHERE id = $1', [userId]);
+  const exigidos = [...OBRIGATORIOS, ...(deTerceiro(dono) ? DOCS_TERCEIRO : [])];
 
-  for (const k of OBRIGATORIOS) {
+  for (const k of exigidos) {
     if (!porTipo[k]) return { pode: false, motivo: 'documento_em_falta', qual: k };
   }
 
@@ -204,7 +226,7 @@ export async function podeTrabalhar(userId) {
   // disse que aquela fotografia não se lê, ou que é o papel errado: contá-la
   // como entregue seria deixar trabalhar com um documento que ninguém
   // conseguiu verificar. Volta sozinho quando o motorista enviar o novo.
-  for (const k of OBRIGATORIOS) {
+  for (const k of exigidos) {
     if (porTipo[k].correcao_motivo) {
       return {
         pode: false,

@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Button from './Button.js';
 import TextField from './TextField.js';
 import EscolherCor from './EscolherCor.js';
+import EscolherTitularidade from '../design/EscolherTitularidade.js';
 import EscolherLugares from './EscolherLugares.js';
 import CartaoSeccao from '../design/CartaoSeccao.js';
 import EscolherTipoVeiculo from '../design/EscolherTipoVeiculo.js';
@@ -42,6 +43,8 @@ export default function FormularioVeiculo({ onPronto }) {
   const [carroceria, setCarroceria] = useState(null);
   const [capacidade, setCapacidade] = useState(null);
   const [ano, setAno] = useState('');
+  // Próprio (true) ou de terceiro (false); null até escolher (10/10/2026).
+  const [proprio, setProprio] = useState(null);
   const pedeCarga = !!VEICULOS[tipoVeiculo]?.perguntaCarga;
   const [erro, setErro] = useState(null);
   const [aEnviar, setAEnviar] = useState(false);
@@ -57,6 +60,7 @@ export default function FormularioVeiculo({ onPronto }) {
     // preencher pela primeira vez.
     if (!cor.trim()) return setErro(t('errColorRequired'));
     if (pedeCarga && (!carroceria || !capacidade)) return setErro(t('errCarroceriaCapacidade'));
+    if (proprio === null) return setErro(t('errTitularidade'));
 
     setAEnviar(true);
     try {
@@ -67,6 +71,7 @@ export default function FormularioVeiculo({ onPronto }) {
         color: cor.trim(),
         ...(pedeLugares ? { seats: lugares } : {}),
         ...(pedeCarga ? { carroceria, capacidade, ano: ano ? Number(ano) : null } : {}),
+        proprio,
       });
       await refreshUser();
       onPronto?.();
@@ -132,6 +137,11 @@ export default function FormularioVeiculo({ onPronto }) {
           />
         </View>
       ) : null}
+      <Text style={[styles.rotulo, { marginTop: spacing.md }]}>
+        {t('vTitularidade')}
+        <Text style={styles.asterisco}> *</Text>
+      </Text>
+      <EscolherTitularidade valor={proprio} onEscolher={setProprio} />
 
       {erro ? <Text style={styles.erro}>{erro}</Text> : null}
       <View style={{ height: spacing.md }} />

@@ -26,6 +26,7 @@ import CampoTelefone, { telefoneValido } from '../components/CampoTelefone.js';
 import { useI18n } from '../i18n/index.js';
 import AceitarTermos from '../components/AceitarTermos.js';
 import EscolherCor from '../components/EscolherCor.js';
+import EscolherTitularidade from '../design/EscolherTitularidade.js';
 import { nomeDaCor } from '../lib/corVeiculo.js';
 import EscolherLugares from '../components/EscolherLugares.js';
 import { LUGARES } from '../dados/veiculos.js';
@@ -97,6 +98,8 @@ export default function RegisterScreen({ navigation, route }) {
   const [vCarroceria, setVCarroceria] = useState(null);
   const [vCapacidade, setVCapacidade] = useState(null);
   const [vAno, setVAno] = useState('');
+  // Próprio (true) ou de terceiro (false); null até escolher (10/10/2026).
+  const [vProprio, setVProprio] = useState(null);
 
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -126,6 +129,7 @@ export default function RegisterScreen({ navigation, route }) {
     if (!vColor.trim()) return t('errColorRequired');
     if (VEICULOS[vType]?.perguntaCarga && (!vCarroceria || !vCapacidade))
       return t('errCarroceriaCapacidade');
+    if (vProprio === null) return t('errTitularidade');
     return null;
   }
 
@@ -182,6 +186,7 @@ export default function RegisterScreen({ navigation, route }) {
                     ano: vAno ? Number(vAno) : null,
                   }
                 : {}),
+              proprio: vProprio,
             },
           }
         : {}),
@@ -213,6 +218,11 @@ export default function RegisterScreen({ navigation, route }) {
             ? [{ rotulo: t('vehicleSeats'), valor: vSeats ? String(vSeats) : '—', ir: 1 }]
             : []),
           { rotulo: t('vehicleColor'), valor: nomeDaCor(vColor.trim(), t) || '—', ir: 1 },
+          {
+            rotulo: t('vTitularidade'),
+            valor: vProprio === null ? '—' : t(vProprio ? 'vProprio' : 'vTerceiro'),
+            ir: 1,
+          },
         ]
       : []),
   ];
@@ -442,6 +452,11 @@ export default function RegisterScreen({ navigation, route }) {
                     />
                   </View>
                 ) : null}
+                <Text style={[styles.rotulo, { marginTop: spacing.md }]}>
+                  {t('vTitularidade')}
+                  <Text style={styles.asterisco}> *</Text>
+                </Text>
+                <EscolherTitularidade valor={vProprio} onEscolher={setVProprio} />
               </CartaoSeccao>
             </View>
           ) : (
