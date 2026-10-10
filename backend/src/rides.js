@@ -49,6 +49,10 @@ const RIDE_SELECT = `
          p.rating_avg AS p_rating, d.rating_avg AS d_rating,
          d.vehicle_type AS d_vtype, d.vehicle_model AS d_vmodel,
          d.vehicle_plate AS d_vplate, d.vehicle_color AS d_vcolor,
+         -- A ÚLTIMA POSIÇÃO DO MOTORISTA (10/10/2026): sem ela o passageiro
+         -- só via o pino quando o motorista andava 25 m depois de aceitar.
+         d.last_lat AS d_lat, d.last_lng AS d_lng, d.last_precisao_m AS d_prec,
+         (d.last_seen_at > NOW() - INTERVAL '10 minutes') AS d_recente,
          -- A VÍRGULA AQUI EM CIMA faltou durante dois dias (11 a 13/09/26). A
          -- linha do d_vcolor era a ÚLTIMA da lista; acrescentei colunas a
          -- seguir sem lhe pôr vírgula, e deixei uma a mais antes do FROM. O
@@ -272,6 +276,20 @@ export function toPublicRide(row, opcoes = {}) {
           },
           // O selo «Seguro ✓» que o passageiro vê (ver d_seguro em cima).
           seguro: !!row.d_seguro,
+          // ONDE ESTÁ AGORA (10/10/2026, queixa do Simão: o pino do motorista
+          // não aparecia ao passageiro depois de aceitar). As posições novas
+          // só chegam quando o motorista anda; esta é a que ele já tinha. Só
+          // com a viagem a decorrer e se for recente (10 min) — terminada, a
+          // posição de quem conduziu não é de ninguém.
+          ...(!terminada && row.d_recente && row.d_lat != null
+            ? {
+                posicao: {
+                  lat: Number(row.d_lat),
+                  lng: Number(row.d_lng),
+                  precisao: row.d_prec ?? null,
+                },
+              }
+            : {}),
         }
       : null,
   };

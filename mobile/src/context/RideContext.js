@@ -507,6 +507,22 @@ export function RideProvider({ children }) {
     }
   }, [activeId, hasDriver, token]);
 
+  // A POSIÇÃO QUE O MOTORISTA JÁ TINHA (10/10/2026, queixa do Simão: o pino
+  // não aparecia ao passageiro depois de aceitar). As posições pelo socket só
+  // chegam quando o motorista anda; o servidor manda na viagem a última que
+  // conhece (`driver.posicao`, se recente). Serve só enquanto não chegar uma
+  // nova — e vem DEPOIS do efeito de cima, que limpa a posição ao mudar de
+  // viagem, para não ser apagada por ele.
+  const posicaoInicial = activeRide?.driver?.posicao;
+  useEffect(() => {
+    if (!posicaoInicial || driverLocation) return;
+    // Sem a precisão: à espera de pedidos a leitura é de propósito grosseira,
+    // e um pino aproximado vale mais do que nenhum. Passa pelo filtro só para
+    // o semear (a próxima posição real é comparada com esta).
+    filtroDoMotorista.current({ lat: posicaoInicial.lat, lng: posicaoInicial.lng });
+    setDriverLocation({ lat: posicaoInicial.lat, lng: posicaoInicial.lng });
+  }, [posicaoInicial?.lat, posicaoInicial?.lng, driverLocation]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // --- Ações ---------------------------------------------------------------
 
   // PEDIR UMA VIAGEM, incluindo o caso em que ela já foi pedida (21/09/2026).
