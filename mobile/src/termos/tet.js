@@ -60,7 +60,7 @@ export const termosPassageiro = {
     {
       titulo: 'Konduta no Uza ne’ebé Aseitavel',
       texto:
-        'Husu ba utilizadór sira atu trata motorista sira ho respeitu no sivilizmu.\nKanselamentu. Ita bele kansela la ho konsekuénsia ida antes iha motorista no to’o minutu 2 depois motorista simu viajen. Kansela depois ne’e mak kanselamentu tarde: motorista dalan mai ona no lakon tempu no kombustível. Iha kanselamentu tarde da-3 iha loron 7 nia laran, aplikasaun sei fó avizu; iha da-5, ita-nia pedidu sira suspensu durante oras 24, maibé konta, istóriku no butaun ajuda kontinua. Tanba selu ho osan, la iha multa. Kansela beibeik liu ida-ne’e bele hakat ba suspensaun temporária ka definitiva ba konta.\nBandu tebes atu uza app ne’e ba finalidade ilísitu ka ilegal sira.',
+        'Husu ba utilizadór sira atu trata motorista sira ho respeitu no sivilizmu.\nKanselamentu sira. Ita bele kansela la ho konsekuénsia ida antes iha motorista no to’o minutu 2 depois motorista simu viajen. Halo kanselamentu depoizde ida-ne’e mak kanselamentu tarde: motorista iha dalan mai ona no lakon nia tempu no kombustível. Iha kanselamentu tarde da-3 iha loron 7 nia laran, aplikasaun sei fó avizu; iha da-5, ita-nia pedidu sira suspensu durante oras 24, maibé konta, istóriku no butaun ajuda kontinua. Tanba selu ho osan, la iha multa. Kansela beibeik liu ida-ne’e bele hakat ba suspensaun temporária ka definitiva ba konta.\nBandu tebes atu uza app ne’e ba finalidade ilísitu ka ilegal sira.',
     },
     {
       titulo: 'Responsabilidade',

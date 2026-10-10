@@ -128,7 +128,7 @@ export default {
   // Ecrã «Torne-se motorista HAKAT», antes do registo (09/10/2026).
   introMotTitulo: 'Sai motorista HAKAT',
   introMotSub:
-    'Hahú ita-nia dalan hanesan motorista parseiru no simu pedidu transporte liuhusi HAKAT, hafoin aprovasaun.',
+    'Hahú ita-nia jornada hanesan motorista parseiru no simu pedidu transporte liuhusi HAKAT, hafoin hetan aprovasaun.',
   introMotComo: 'Oinsá mak funsiona?',
   introMotPasso1: 'Kria ita-nia konta',
   introMotPasso2: 'Haruka ita-nia dokumentu sira',
@@ -153,7 +153,7 @@ export default {
     'Kartaun rejistu veíkulu no kartaun inspesaun (Kartaun Inspesaun) ne’ebé válidu. Se veíkulu ne’e ema seluk nian, mós identifikasaun na’in nian no autorizasaun ne’ebé nia asina.',
   reqDoc5Titulo: 'Foto sira',
   reqDoc5Texto:
-    'Ita-nia foto ida no foto veíkulu nian 4, foti iha momentu ne’e, ho matríkula hatudu.',
+    'Ita-nia foto ida no foto veíkulu nian 4, foti iha momentu ne’e, ho matríkula haree mos.',
   reqDoc6Titulo: 'Lisensa transporte',
   reqDoc6Texto: 'Bainhira lei ezije ba servisu ne’ebé ita hakarak.',
   reqCondTitulo: 'Kondisaun atu tama',
@@ -903,13 +903,13 @@ export default {
 
   // Kanselamentu
   cancelConfirmAccepted:
-    'Motorista ida dalan mai ona. Ita bele kansela la ho konsekuénsia to’o minutu 2 depois nia simu; depois ne’e, kansela tarde. Iha kansela tarde da-5 iha loron 7 nia laran, ita-nia pedidu sira suspensu oras 24.',
+    'Motorista iha dalan mai ona. Ita bele kansela la ho konsekuénsia to’o minutu 2 depois nia simu; depois ne’e, kansela tarde. Iha kansela tarde da-5 iha loron 7 nia laran, ita-nia pedidu sira suspensu oras 24.',
   cancelConfirmRequested: 'Seidauk iha motorista. Ita bele kansela.',
   cancelKeep: 'Kontinua viajen',
   cancelYes: 'Sin, kansela',
   cancelTooMany: 'Ita kansela tarde ona viajen {n} iha semana ida-neʼe',
   cancelTooManyExplain:
-    'Kansela depois motorista dalan mai ona halo nia lakon tempu no kombustivel. Iha kansela tarde da-5 iha loron 7 nia laran, ita-nia pedidu sira suspensu oras 24.',
+    'Kansela depoizde motorista iha dalan mai ona halo nia lakon tempu no kombustível. Iha kanselamentu tarde da-5 iha loron 7 nia laran, ita-nia pedidu sira suspensu oras 24.',
   cancelSuspensoTitulo: 'Pedidu sira suspensu oras 24',
   cancelSuspensoTexto:
     'Ita kansela tarde viajen 5 iha loron 7 nia laran. Ita bele husu fali hahú husi oras {hora} (oras Díli). Ita-nia konta, istóriku no butaun ajuda kontinua funsiona.',
