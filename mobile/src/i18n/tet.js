@@ -1254,7 +1254,7 @@ export default {
   assinCarregamentos: 'Karegamentu',
   assinBloqueado: 'Ita-nia asinatura remata ona',
   assinVer: 'Haree asinatura',
-  assinNoEscritorio: 'Iha eskritóriu Timorgiana nian',
+  assinNoEscritorio: 'Iha eskritóriu HAKAT nian',
   assinComAgente: 'Ho ami-nia ajente',
   admAssinatura: 'Asinatura',
   admDiasSaldo: 'Loron iha saldu',

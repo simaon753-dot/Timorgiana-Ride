@@ -951,10 +951,13 @@ function ActiveRideCard({
           </View>
           <View style={styles.accoesLinha}>
             {telefone ? (
+              // SÓ O BOTÃO, SEM O NÚMERO ESCRITO (10/10/2026): como o passageiro,
+              // que vê «Ligar» e não o número do motorista. O número continua a
+              // ir para o marcador do telemóvel — esconder de todo exige uma
+              // central de chamadas, que é decisão (e custo) do Simão.
               <BotaoAccao
                 icone="telefone"
-                titulo={t('phone')}
-                sub={telefone}
+                titulo={t('acaoLiga')}
                 empilhado
                 onPress={() => Linking.openURL(`tel:${telefone}`)}
               />

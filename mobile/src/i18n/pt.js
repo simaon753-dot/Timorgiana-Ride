@@ -1263,7 +1263,7 @@ export default {
   assinCarregamentos: 'Carregamentos',
   assinBloqueado: 'A tua assinatura acabou',
   assinVer: 'Ver assinatura',
-  assinNoEscritorio: 'No escritório da Timorgiana',
+  assinNoEscritorio: 'No escritório da HAKAT',
   assinComAgente: 'Com um agente nosso',
   admAssinatura: 'Assinatura',
   admDiasSaldo: 'Dias no saldo',

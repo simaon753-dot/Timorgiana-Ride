@@ -57,7 +57,7 @@ function casca({ titulo, sub, versao, corpo, rodape }) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escapar(titulo)} — TimorgianaRide</title>
+<title>${escapar(titulo)} — HAKAT</title>
 <style>
   :root { color-scheme: light; }
   body { margin: 0; background: #FBF7F0; color: #1C2421;
@@ -88,7 +88,7 @@ function casca({ titulo, sub, versao, corpo, rodape }) {
   <p class="versao">${escapar(versao || '')}</p>
 ${corpo}
   <footer>
-    TimorgianaRide · Díli, Timor-Leste<br>
+    HAKAT · Timorgiara Neto, Unipessoal, Lda. · Díli, Timor-Leste<br>
     ${rodape}
   </footer>
 </main>

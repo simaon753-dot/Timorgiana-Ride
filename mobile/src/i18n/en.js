@@ -1238,7 +1238,7 @@ export default {
   assinCarregamentos: 'Top-ups',
   assinBloqueado: 'Your subscription has run out',
   assinVer: 'View subscription',
-  assinNoEscritorio: 'At the Timorgiana office',
+  assinNoEscritorio: 'At the HAKAT office',
   assinComAgente: 'With one of our agents',
   admAssinatura: 'Subscription',
   admDiasSaldo: 'Days in balance',
