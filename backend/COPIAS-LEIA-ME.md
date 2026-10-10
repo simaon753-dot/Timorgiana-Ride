@@ -72,6 +72,19 @@ openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in timorgianaride-mac-AAAA-MM-
    branch), para criar as tabelas, e pará-lo.
 2. `node scripts/restaurar.mjs copia.sql "LIGAÇÃO_DO_BRANCH_NOVO"`
 
+O `restaurar.mjs` reconhece sozinho a cópia do Mac (só dados): exige as
+tabelas já criadas e nenhuma conta, em vez de uma base vazia.
+
+**Ensaio de 10/10/2026** — o primeiro. Para uma base local em Docker (nunca
+a Neon). Encontrou três defeitos, todos da cópia do Mac, e corrigidos:
+o `restaurar.mjs` recusava-a; as colunas JSON com um valor simples
+(`carry.ativo`) e as colunas de lista saíam num formato que o PostgreSQL
+não aceita de volta. As cópias do Mac de 05 e 07/10 só se restauram
+corrigindo à mão a linha `carry.ativo` (`TRUE` → `'true'`). Depois da
+correcção, uma cópia nova restaurou-se com as 31 tabelas iguais à base a
+funcionar, as contas idênticas e os documentos idênticos byte a byte.
+Próximo ensaio: Janeiro de 2027.
+
 Cópia do GitHub (completa, com as tabelas): ver o início de
 `scripts/restaurar.mjs`.
 

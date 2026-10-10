@@ -61,7 +61,13 @@ const sql = bruto
 // Um ficheiro decifrado com a senha errada não dá erro no openssl em todos
 // os casos — pode sair lixo. Se não parecer SQL do pg_dump, é melhor parar
 // aqui do que atirá-lo contra uma base de dados.
-if (!/CREATE TABLE|SET statement_timeout|PostgreSQL database dump/i.test(sql.slice(0, 4000))) {
+// DOIS FORMATOS (corrigido a 10/10/2026, no primeiro teste de restauro):
+//   • a cópia do GitHub é do pg_dump — traz as tabelas, e quer a base VAZIA;
+//   • a cópia do Mac (copia-de-seguranca.mjs) é SÓ DADOS — quer as tabelas
+//     já criadas pelo servidor (initSchema), mas sem nenhuma conta.
+// Antes o script só conhecia o primeiro, e a cópia do Mac era recusada.
+const soDados = /^-- Cópia de segurança da TimorgianaRide/.test(sql) && /Só dados/.test(sql.slice(0, 600));
+if (!soDados && !/CREATE TABLE|SET statement_timeout|PostgreSQL database dump/i.test(sql.slice(0, 4000))) {
   console.error(`
   Isto não parece uma cópia do pg_dump.
 
@@ -75,7 +81,12 @@ console.log(`  Ficheiro: ${ficheiro}  (${(sql.length / 1024 / 1024).toFixed(1)} 
 console.log(`  Destino:  ${ligacao.replace(/:\/\/([^:]+):[^@]+@/, '://$1:•••••@')}`);
 console.log();
 
-const cliente = new pg.Client({ connectionString: ligacao, ssl: { rejectUnauthorized: false } });
+// Sem SSL só numa base local (o ensaio de restauro em Docker); o Neon exige-o.
+const local = /@(localhost|127\.0\.0\.1)[:/]/.test(ligacao);
+const cliente = new pg.Client({
+  connectionString: ligacao,
+  ssl: local ? false : { rejectUnauthorized: false },
+});
 await cliente.connect();
 
 // Recusa-se a restaurar para uma base que já tenha dados. A ideia é sempre
@@ -85,7 +96,26 @@ const { rows } = await cliente.query(`
   SELECT COUNT(*)::int AS n FROM information_schema.tables
    WHERE table_schema = 'public'
 `);
-if (rows[0].n > 0) {
+if (soDados) {
+  // Só dados: as tabelas têm de existir (initSchema) e estar sem contas.
+  const tem = await cliente.query(`SELECT to_regclass('public.users') IS NOT NULL AS sim`);
+  const contas = tem.rows[0].sim ? (await cliente.query('SELECT COUNT(*)::int AS n FROM users')).rows[0].n : -1;
+  if (contas !== 0) {
+    console.error(
+      contas < 0
+        ? `
+  Esta é uma cópia do Mac (só dados) e a base ainda não tem as tabelas.
+  Arranca o servidor uma vez contra esta base (DATABASE_URL) e pára-o.
+`
+        : `
+  A base de destino JÁ TEM ${contas} contas. Só se restaura para uma base nova.
+  Se puseste aqui a ligação da base a funcionar, foi por pouco.
+`
+    );
+    await cliente.end();
+    process.exit(1);
+  }
+} else if (rows[0].n > 0) {
   console.error(`
   A base de destino JÁ TEM ${rows[0].n} tabelas.
 

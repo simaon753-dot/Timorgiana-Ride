@@ -28,6 +28,19 @@ import { writeFileSync } from 'node:fs';
 
 const destino = process.argv[2] || `copia-${new Date().toISOString().slice(0, 10)}.sql`;
 
+// Uma lista no formato que o PostgreSQL lê: {"a","b",NULL}.
+function listaPg(v) {
+  const el = (e) =>
+    e === null || e === undefined
+      ? 'NULL'
+      : Array.isArray(e)
+        ? listaPg(e)
+        : `"${String(e instanceof Date ? e.toISOString() : e)
+            .replace(/\\/g, '\\\\')
+            .replace(/"/g, '\\"')}"`;
+  return `{${v.map(el).join(',')}}`;
+}
+
 function valor(v) {
   if (v === null || v === undefined) return 'NULL';
   if (typeof v === 'number') return Number.isFinite(v) ? String(v) : 'NULL';
@@ -37,8 +50,22 @@ function valor(v) {
   // codificação de uma imagem.
   if (Buffer.isBuffer(v)) return `'\\x${v.toString('hex')}'`;
   if (v instanceof Date) return `'${v.toISOString()}'`;
+  // Colunas de lista (text[], int[]): o `pg` devolve um Array, e o JSON
+  // `[]` não é uma lista do PostgreSQL — o restauro falhava (10/10/2026).
+  if (Array.isArray(v)) return `'${listaPg(v).replace(/'/g, "''")}'`;
   const t = typeof v === 'object' ? JSON.stringify(v) : String(v);
   return `'${t.replace(/'/g, "''")}'`;
+}
+
+// AS COLUNAS JSON (json 114, jsonb 3802) — corrigido a 10/10/2026, no primeiro
+// teste de restauro. O `pg` devolve-as já interpretadas: um jsonb `true` vem
+// como booleano JS e saía `TRUE`, um jsonb `"abc"` saía `'abc'` (JSON
+// inválido). O PostgreSQL recusava a cópia inteira ao restaurar. Para estas
+// colunas escreve-se SEMPRE o texto JSON.
+const JSON_OIDS = new Set([114, 3802]);
+function valorJson(v) {
+  if (v === null || v === undefined) return 'NULL';
+  return `'${JSON.stringify(v).replace(/'/g, "''")}'`;
 }
 
 // A ordem em que as tabelas podem ser inseridas sem violar chaves
@@ -110,7 +137,9 @@ export async function gerarCopia(c) {
     const colunas = fields.map((f) => `"${f.name}"`).join(', ');
     linhas.push(`-- ${tabela}: ${rows.length} linha(s)`);
     for (const r of rows) {
-      const vals = fields.map((f) => valor(r[f.name])).join(', ');
+      const vals = fields
+        .map((f) => (JSON_OIDS.has(f.dataTypeID) ? valorJson(r[f.name]) : valor(r[f.name])))
+        .join(', ');
       linhas.push(`INSERT INTO "${tabela}" (${colunas}) VALUES (${vals});`);
     }
     linhas.push('');
