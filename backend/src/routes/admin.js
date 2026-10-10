@@ -72,6 +72,7 @@ import { destinosDaViagem } from '../destinosDaViagem.js';
 import { percursoDe } from '../percursos.js';
 import { normalizarReferencia } from '../referenciaViagem.js';
 import { enviarAoGiara } from '../giara.js';
+import { errosAgrupados, resolverErro, SQL_ERROS_NO_SINO } from '../erros.js';
 
 export const adminRouter = Router();
 adminRouter.use(requireAuth);
@@ -635,6 +636,7 @@ adminRouter.get(
         (SELECT COUNT(*) FROM pedidos_carregamento
           WHERE estado='pendente' AND created_at < NOW() - INTERVAL '24 hours')::int
           AS "pagamentosAtrasados",
+        ${SQL_ERROS_NO_SINO} AS "errosApp",
         pg_database_size(current_database())::float8 AS "bytesBase"
     `,
       [CATEGORIAS_GRAVES]
@@ -662,6 +664,8 @@ adminRouter.get(
       { chave: 'docsACaducar', n: n.docsACaducar, nivel: 'aviso', seccao: 'motoristas' },
       { chave: 'canceladas', n: n.canceladas, nivel: 'neutro', seccao: 'viagens' },
       { chave: 'suspensas', n: n.suspensas, nivel: 'neutro', seccao: 'contas' },
+      // Falhas diferentes da app, por resolver, nos últimos 7 dias (erros.js).
+      { chave: 'errosApp', n: n.errosApp, nivel: 'aviso', seccao: 'erros' },
     ].filter((i) => i.n > 0);
 
     // O ESPAÇO DA BASE DE DADOS (05/10/2026, pedido do Simão). O plano
@@ -689,6 +693,25 @@ adminRouter.get(
     const porTratar = itens.filter((i) => i.nivel !== 'neutro').reduce((soma, i) => soma + i.n, 0);
 
     res.json({ itens, porTratar });
+  })
+);
+
+// OS ERROS DA APP (10/10/2026, erros.js), agrupados pela mesma falha.
+adminRouter.get(
+  '/erros',
+  wrap(async (req, res) => {
+    res.json({ erros: await errosAgrupados({ resolvidos: req.query.resolvidos === '1' }) });
+  })
+);
+// Dar uma falha por resolvida: todas as vezes que apareceu. Se voltar a
+// aparecer depois de corrigida, volta à lista como nova.
+adminRouter.post(
+  '/erros/resolver',
+  wrap(async (req, res) => {
+    const assinatura = String(req.body?.assinatura || '');
+    if (!/^[0-9a-f]{32}$/.test(assinatura))
+      return res.status(400).json({ error: 'Falha inválida.' });
+    res.json({ ok: true, resolvidos: await resolverErro(assinatura) });
   })
 );
 
@@ -1899,7 +1922,8 @@ adminRouter.post(
     // A categoria do Giara (07/10/2026): só uma das do catálogo, senão o envio
     // para o Giara levava um código que lá ninguém conhece.
     const categoria = req.body?.categoria || null;
-    if (!categoriaValida(categoria)) return res.status(400).json({ error: 'Categoria desconhecida.' });
+    if (!categoriaValida(categoria))
+      return res.status(400).json({ error: 'Categoria desconhecida.' });
     if (nome.length < 2 || nome.length > 120) {
       return res.status(400).json({ error: 'O nome tem de ter entre 2 e 120 letras.' });
     }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
+import { relatarErro } from '../lib/relatarErro.js';
 
 // Barreira de erro.
 //
@@ -28,6 +29,12 @@ export default class Barreira extends React.Component {
   componentDidCatch(erro, info) {
     this.setState({ pilha: info?.componentStack ?? null });
     console.error('[Barreira]', erro, info?.componentStack);
+    // E segue para o painel (10/10/2026): já não depende de alguém tirar a
+    // fotografia. Nunca falha nem demora o ecrã — ver lib/relatarErro.js.
+    relatarErro(erro, {
+      pilha: `${erro?.stack || ''}\n${info?.componentStack || ''}`,
+      fatal: true,
+    });
   }
 
   render() {

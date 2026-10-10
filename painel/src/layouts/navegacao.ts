@@ -1,4 +1,4 @@
-import { ChartColumn, Flag, MapPin, Route, Settings, ShieldCheck, Siren, Users, Wallet, type LucideIcon } from 'lucide-react';
+import { Bug, ChartColumn, Flag, MapPin, Route, Settings, ShieldCheck, Siren, Users, Wallet, type LucideIcon } from 'lucide-react';
 import type { Chave } from '@/i18n';
 import type { ItemNotificacao } from '@/types/api';
 
@@ -31,6 +31,7 @@ export const GRUPOS: { rotulo: Chave; itens: ItemNav[] }[] = [
     rotulo: 'nav.grupoGestao',
     itens: [
       { para: '/pagamentos', rotulo: 'nav.pagamentos', icone: Wallet, contam: ['pagamentos', 'pagamentosAtrasados'] },
+      { para: '/erros', rotulo: 'nav.erros', icone: Bug, contam: ['errosApp'] },
       { para: '/definicoes', rotulo: 'nav.definicoes', icone: Settings },
     ],
   },
@@ -50,4 +51,5 @@ export const DESTINO_NOTIFICACAO: Record<ItemNotificacao['chave'], string> = {
   canceladas: '/viagens',
   suspensas: '/aprovacoes?estado=suspended',
   espaco: '/definicoes',
+  errosApp: '/erros',
 };

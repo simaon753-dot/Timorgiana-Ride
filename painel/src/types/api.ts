@@ -149,6 +149,22 @@ export interface Resumo {
   carry24h: number;
 }
 
+// Uma falha da app, agrupada (backend/src/erros.js).
+export interface ErroApp {
+  assinatura: string;
+  nome: string | null;
+  mensagem: string;
+  pilha: string | null;
+  ecra: string | null;
+  versao: string | null;
+  modelo: string | null;
+  vezes: number;
+  pessoas: number;
+  fatal: boolean;
+  primeira: string;
+  ultima: string;
+}
+
 export type NivelNotificacao = 'mau' | 'aviso' | 'neutro';
 export interface ItemNotificacao {
   chave:
@@ -163,7 +179,8 @@ export interface ItemNotificacao {
     | 'docsACaducar'
     | 'canceladas'
     | 'suspensas'
-    | 'espaco';
+    | 'espaco'
+    | 'errosApp';
   n: number;
   // Só no `espaco`: a percentagem usada do tecto da base de dados.
   pct?: number;

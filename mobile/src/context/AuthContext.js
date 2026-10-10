@@ -2,12 +2,15 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { lerToken, guardarToken, apagarToken } from '../lib/cofreSessao.js';
 import { api, ApiError, definirAoPerderSessao, definirAoAvisarSessao } from '../api/client.js';
 import { loadSavedServer } from '../serverUrl.js';
+import { definirSessao } from '../lib/relatarErro.js';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  // O relatório de erros leva a sessão, para o painel saber de que conta veio.
+  useEffect(() => definirSessao(token), [token]);
   const [restoring, setRestoring] = useState(true); // a recuperar sessão guardada
   // PORQUE É QUE A SESSÃO ACABOU (23/09/2026). Fica posto quando o servidor
   // recusa o token e é lido pelo ecrã de entrada, que é para onde a pessoa

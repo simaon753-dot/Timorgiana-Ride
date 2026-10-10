@@ -19,6 +19,7 @@ const Contas = lazy(() => import('@/pages/contas/Contas').then((m) => ({ default
 const Paragens = lazy(() => import('@/pages/Paragens').then((m) => ({ default: m.Paragens })));
 const Dados = lazy(() => import('@/pages/dados/Dados').then((m) => ({ default: m.Dados })));
 const Pagamentos = lazy(() => import('@/pages/pagamentos/Pagamentos').then((m) => ({ default: m.Pagamentos })));
+const ErrosApp = lazy(() => import('@/pages/ErrosApp').then((m) => ({ default: m.ErrosApp })));
 const Definicoes = lazy(() => import('@/pages/definicoes/Definicoes').then((m) => ({ default: m.Definicoes })));
 
 function ACarregarPagina() {
@@ -54,6 +55,7 @@ function Rotas() {
           <Route path="paragens" element={<Suspense fallback={<ACarregarPagina />}><Paragens /></Suspense>} />
           <Route path="dados" element={<Suspense fallback={<ACarregarPagina />}><Dados /></Suspense>} />
           <Route path="pagamentos" element={<Suspense fallback={<ACarregarPagina />}><Pagamentos /></Suspense>} />
+          <Route path="erros" element={<Suspense fallback={<ACarregarPagina />}><ErrosApp /></Suspense>} />
           <Route path="definicoes" element={<Suspense fallback={<ACarregarPagina />}><Definicoes /></Suspense>} />
           <Route path="*" element={<NaoEncontrado />} />
         </Route>

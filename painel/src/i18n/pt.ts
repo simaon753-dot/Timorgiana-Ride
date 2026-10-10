@@ -9,5 +9,6 @@ import { paragens } from './pt/paragens';
 import { dados } from './pt/dados';
 import { pagamentos } from './pt/pagamentos';
 import { definicoes } from './pt/definicoes';
+import { erros } from './pt/erros';
 
-export const pt = { ...comum, ...layout, ...aprovacoes, ...emergencias, ...ocorrencias, ...viagens, ...contas, ...paragens, ...dados, ...pagamentos, ...definicoes } as const;
+export const pt = { ...comum, ...layout, ...aprovacoes, ...emergencias, ...ocorrencias, ...viagens, ...contas, ...paragens, ...dados, ...pagamentos, ...definicoes, ...erros } as const;

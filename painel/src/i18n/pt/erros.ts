@@ -1,0 +1,20 @@
+// Erros da app (10/10/2026) — ver pages/ErrosApp.tsx.
+export const erros = {
+  'erros.titulo': 'Erros da app',
+  'erros.descricao': 'As falhas que aconteceram nos telemóveis, enviadas pela própria app. A mesma falha aparece uma vez, com o número de vezes.',
+  'erros.vistas': 'Ver',
+  'erros.abertos': 'Por ver',
+  'erros.resolvidos': 'Resolvidos',
+  'erros.vazioTitulo': 'Nenhuma falha por ver.',
+  'erros.vazioResolvidos': 'Ainda nenhuma falha resolvida.',
+  'erros.vazioTexto': 'Quando a app falhar no telemóvel de alguém, aparece aqui sem ninguém ter de mandar uma fotografia.',
+  'erros.ecraVerde': 'Ecrã verde',
+  'erros.vezes': '{n}×',
+  'erros.pessoas': '{n} conta(s)',
+  'erros.noEcra': 'no ecrã {ecra}',
+  'erros.ultima': 'Última {quando}',
+  'erros.primeira': 'primeira {quando}',
+  'erros.pilha': 'Detalhe técnico',
+  'erros.marcarResolvido': 'Resolvido',
+  'erros.resolvido': 'Falha marcada como resolvida.',
+} as const;

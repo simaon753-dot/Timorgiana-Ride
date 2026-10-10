@@ -490,6 +490,27 @@ export async function initSchema() {
     `ALTER TABLE rides ADD COLUMN IF NOT EXISTS cancel_tardio BOOLEAN NOT NULL DEFAULT FALSE`
   );
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS pedidos_suspensos_ate TIMESTAMPTZ`);
+
+  // OS ERROS DA APP (10/10/2026, erros.js): o que o ecrã verde mostrava passa
+  // a chegar aqui. Sem chave estrangeira de propósito: apagar uma conta não
+  // pode falhar por causa de um relatório de erro.
+  await query(`
+    CREATE TABLE IF NOT EXISTS erros_app (
+      id           SERIAL PRIMARY KEY,
+      user_id      INTEGER,
+      nome         TEXT,
+      mensagem     TEXT NOT NULL,
+      pilha        TEXT,
+      ecra         TEXT,
+      versao       TEXT,
+      plataforma   TEXT,
+      modelo       TEXT,
+      fatal        BOOLEAN NOT NULL DEFAULT FALSE,
+      quando       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      resolvido_em TIMESTAMPTZ
+    )
+  `);
+  await query('CREATE INDEX IF NOT EXISTS idx_erros_app_quando ON erros_app(quando)');
   // Quantas pessoas vão na viagem. Só faz sentido em carro — numa
   // motorizada vai sempre uma.
   await query(`ALTER TABLE rides ADD COLUMN IF NOT EXISTS passengers INTEGER`);

@@ -20,6 +20,9 @@ export const LINGUAS = ['pt', 'tet', 'en'];
 
 // 'texto em português': ['tétum', 'inglês']
 export const MENSAGENS = {
+  // ── Erros da app (10/10/2026, erros.js)
+  'Erro vazio.': ['Erru mamuk.', 'Empty error.'],
+  'Falha inválida.': ['Falla inválidu.', 'Invalid fault.'],
   // ── Cancelamentos (10/10/2026, cancelamentos.js)
   'Os seus pedidos estão suspensos até às {0} (hora de Díli), por cancelamentos tardios repetidos.':
     [

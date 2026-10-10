@@ -415,6 +415,16 @@ async function api(req, res, url) {
       base: { usadoMb: 14.5, limiteMb: 512, pct: 3, maiores: [{ tabela: 'driver_documents', mb: 2.3 }, { tabela: 'driver_shifts', mb: 1.4 }, { tabela: 'rides', mb: 0.2 }] },
       servidor: { memoriaMb: 142.3, limiteMb: 512, pct: 28, ligadoDesde: new Date(Date.now() - 3 * 3600e3).toISOString() },
     });
+  // Erros da app (10/10/2026), fictícios.
+  if (p === '/admin/erros') {
+    const ate = (h) => new Date(Date.now() - h * 3600e3).toISOString();
+    const lista = url.searchParams.get('resolvidos') === '1' ? [] : [
+      { assinatura: 'a'.repeat(32), nome: 'TypeError', mensagem: "Cannot read property 'lat' of undefined", pilha: 'at MapaGoogle (MapaGoogle.js:612)\nat DriverHomeScreen', ecra: 'DriverHome', versao: '1.5.0 fc3751b5', modelo: 'SM-A155F', vezes: 3, pessoas: 2, fatal: true, primeira: ate(30), ultima: ate(2) },
+      { assinatura: 'b'.repeat(32), nome: 'Error', mensagem: 'Network request failed', pilha: null, ecra: 'RequestRide', versao: '1.5.0 fc3751b5', modelo: 'Redmi Note 12', vezes: 1, pessoas: 1, fatal: false, primeira: ate(5), ultima: ate(5) },
+    ];
+    return json(res, { erros: lista });
+  }
+  if (p === '/admin/erros/resolver') return json(res, { ok: true, resolvidos: 1 });
   if (p === '/admin/sos') return json(res, { alertas: sos });
   if (p === '/admin/ocorrencias') {
     const todas = url.searchParams.get('filtro') === 'todas';

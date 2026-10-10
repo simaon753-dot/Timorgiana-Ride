@@ -10,6 +10,7 @@ export const layout = {
   'nav.dados': 'Dados',
   'nav.pagamentos': 'Pagamentos',
   'nav.definicoes': 'Definições',
+  'nav.erros': 'Erros da app',
   'nav.principal': 'Navegação principal',
   'nav.recolher': 'Recolher menu',
   'nav.expandir': 'Expandir menu',
@@ -38,6 +39,7 @@ export const layout = {
   'notif.docsACaducar': '{n} motorista(s) com documentos a caducar em 30 dias',
   'notif.canceladas': '{n} viagem(ns) cancelada(s) nas últimas 24 horas',
   'notif.suspensas': '{n} conta(s) suspensa(s)',
+  'notif.errosApp': '{n} falha(s) da app por ver nos últimos 7 dias',
   'notif.espaco':
     'Base de dados a {pct}% do espaço. Passar as fotografias para fora ou subir de plano antes de encher.',
 

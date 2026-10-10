@@ -34,7 +34,7 @@ import type {
   TipoVeiculo,
   UtilizadorPublico,
   ViagemLinha,
-} from '@/types/api';
+ErroApp } from '@/types/api';
 
 // Uma função por rota do servidor. Os ecrãs nunca escrevem um endereço à mão:
 // se uma rota mudar, muda aqui e o TypeScript mostra quem a usava.
@@ -93,6 +93,9 @@ export const api = {
   resumo: () => pedir<{ resumo: Resumo }>('/admin/resumo'),
   notificacoes: () => pedir<RespostaNotificacoes>('/admin/notificacoes'),
   sos: () => pedir<{ alertas: AlertaSos[] }>('/admin/sos'),
+  errosApp: (resolvidos = false) => pedir<{ erros: ErroApp[] }>('/admin/erros' + (resolvidos ? '?resolvidos=1' : '')),
+  resolverErroApp: (assinatura: string) =>
+    pedir<{ ok: true; resolvidos: number }>('/admin/erros/resolver', { method: 'POST', corpo: { assinatura } }),
   ocorrencias: (filtro: 'abertas' | 'todas') =>
     pedir<{ ocorrencias: Ocorrencia[] }>('/admin/ocorrencias' + q({ filtro })),
   tratarOcorrencia: (id: number, corpo: { estado: EstadoOcorrencia; resposta?: string; notaInterna?: string }) =>

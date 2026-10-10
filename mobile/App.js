@@ -11,6 +11,7 @@ import SlowBanner from './src/components/SlowBanner.js';
 import AvisoSessao from './src/components/AvisoSessao.js';
 import RootNavigator from './src/navigation/RootNavigator.js';
 import Barreira from './src/design/Barreira.js';
+import { instalarRelatorioDeErros } from './src/lib/relatarErro.js';
 // A TAREFA DE LOCALIZAÇÃO DEFINE-SE À ENTRADA, e não onde é usada.
 //
 // O sistema pode ACORDAR a app só para entregar uma posição, com tudo o resto
@@ -47,6 +48,11 @@ if (DSN) {
     environment: __DEV__ ? 'desenvolvimento' : 'producao',
   });
 }
+
+// E PARA O NOSSO SERVIDOR (10/10/2026): o Simão preferiu não depender do
+// Sentry. Os erros fora do desenho (um toque, um relógio) também seguem para
+// o painel, «Erros da app» — ver src/lib/relatarErro.js.
+instalarRelatorioDeErros();
 
 function App() {
   // Os tipos de letra carregam-se antes de desenhar seja o que for. Se se
