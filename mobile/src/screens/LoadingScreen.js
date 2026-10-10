@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Text, Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import Logo from '../components/Logo.js';
 import Carregando from '../design/Carregando.js';
 import Tais from '../design/Tais.js';
 import Button from '../components/Button.js';
@@ -18,6 +19,9 @@ export default function LoadingScreen({ semLigacao = false }) {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
+      {/* O logótipo voltou a este ecrã a pedido do Simão (10/10/2026): é o
+          que se vê ao abrir a app, logo a seguir ao ícone. */}
+      <Logo onTeal />
       {semLigacao ? (
         <View style={styles.semLigacao}>
           <Text style={styles.titulo}>{t('semLigacaoTitulo')}</Text>
