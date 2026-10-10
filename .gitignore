@@ -69,3 +69,6 @@ loja/capturas/antigas/
 backend/mapa/receita/ferramentas/
 backend/mapa/receita/anterior/
 backend/mapa/receita/.novo-*/
+
+# CSV gerados para importar no HAKAT Maps (backend/scripts/osm-para-hakat-maps.mjs)
+/importar-hakat-maps/
