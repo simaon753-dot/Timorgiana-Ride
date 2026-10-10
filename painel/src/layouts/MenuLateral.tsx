@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router';
-import logo from '@/assets/logo-marca.png';
+// O logótipo da app, a palavra HAKAT (10/10/2026): era só o «H» antigo.
+import logo from '@/assets/logo-hakat.png';
 import { t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { Dica } from '@/components/ui/menu';
@@ -8,16 +9,10 @@ import { contagemDe, useServico } from './servico';
 
 export function Marca({ compacta }: { compacta?: boolean }) {
   return (
-    <div className={cn('flex items-center gap-3', compacta && 'justify-center')}>
-      <img src={logo} alt="" className="h-10 w-auto shrink-0" width={44} height={40} />
-      {compacta ? (
-        <span className="sr-only">{t('marca.nome')}</span>
-      ) : (
-        <span className="min-w-0 leading-tight">
-          <span className="block truncate text-[15px] font-bold tracking-tight text-texto">{t('marca.nome')}</span>
-          <span className="block truncate text-xs text-secundario">{t('marca.sub')}</span>
-        </span>
-      )}
+    <div className={cn('flex flex-col', compacta ? 'items-center' : 'items-start gap-1')}>
+      {/* A palavra já diz «HAKAT»: o nome escrito ao lado repetia-a. */}
+      <img src={logo} alt={t('marca.nome')} className={cn('w-auto shrink-0', compacta ? 'h-3' : 'h-6')} width={138} height={24} />
+      {compacta ? null : <span className="block truncate text-xs text-secundario">{t('marca.sub')}</span>}
     </div>
   );
 }
