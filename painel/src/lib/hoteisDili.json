@@ -1,0 +1,795 @@
+{
+ "fonte": "east-timor-261006.osm.pbf",
+ "hoteis": [
+  {
+   "nome": "Alvaro",
+   "tipo": "guest_house",
+   "lat": -8.560801,
+   "lng": 125.561144,
+   "paradaLat": -8.560801,
+   "paradaLng": 125.561144,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "apartemen 15",
+   "tipo": "hostel",
+   "lat": -8.547904,
+   "lng": 125.555023,
+   "paradaLat": -8.547296,
+   "paradaLng": 125.554875,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "apartemen no 10",
+   "tipo": "hostel",
+   "lat": -8.547768,
+   "lng": 125.554712,
+   "paradaLat": -8.547299,
+   "paradaLng": 125.554845,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "apartemen no 12",
+   "tipo": "hostel",
+   "lat": -8.547903,
+   "lng": 125.555123,
+   "paradaLat": -8.547296,
+   "paradaLng": 125.554875,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "apartemen no 16",
+   "tipo": "hostel",
+   "lat": -8.547894,
+   "lng": 125.554893,
+   "paradaLat": -8.547299,
+   "paradaLng": 125.554845,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "apartemen no 17",
+   "tipo": "hostel",
+   "lat": -8.547889,
+   "lng": 125.554764,
+   "paradaLat": -8.547299,
+   "paradaLng": 125.554845,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "apartemen no 19",
+   "tipo": "hostel",
+   "lat": -8.547874,
+   "lng": 125.554592,
+   "paradaLat": -8.547299,
+   "paradaLng": 125.554845,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "apartemen no 20",
+   "tipo": "hostel",
+   "lat": -8.547872,
+   "lng": 125.554492,
+   "paradaLat": -8.547299,
+   "paradaLng": 125.554845,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Beach Garden Hotel",
+   "tipo": "hotel",
+   "lat": -8.547613,
+   "lng": 125.554686,
+   "paradaLat": -8.546986,
+   "paradaLng": 125.55485,
+   "raio": 133,
+   "origem": "entrada"
+  },
+  {
+   "nome": "Beach Side hotel",
+   "tipo": "hotel",
+   "lat": -8.533128,
+   "lng": 125.615268,
+   "paradaLat": -8.533128,
+   "paradaLng": 125.615268,
+   "raio": 60,
+   "origem": "centro"
+  },
+  {
+   "nome": "Bemori Menor House",
+   "tipo": "apartment",
+   "lat": -8.558633,
+   "lng": 125.587287,
+   "paradaLat": -8.558519,
+   "paradaLng": 125.587608,
+   "raio": 62,
+   "origem": "acesso"
+  },
+  {
+   "nome": "California",
+   "tipo": "hotel",
+   "lat": -8.54371,
+   "lng": 125.610944,
+   "paradaLat": -8.54371,
+   "paradaLng": 125.610944,
+   "raio": 60,
+   "origem": "centro"
+  },
+  {
+   "nome": "Casa Minha Backpackers",
+   "tipo": "guest_house",
+   "lat": -8.552589,
+   "lng": 125.5689,
+   "paradaLat": -8.552209,
+   "paradaLng": 125.569233,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Casa Minha Backpackers",
+   "tipo": "hostel",
+   "lat": -8.545986,
+   "lng": 125.540277,
+   "paradaLat": -8.545986,
+   "paradaLng": 125.540277,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "caz bar hotel",
+   "tipo": "hotel",
+   "lat": -8.534434,
+   "lng": 125.615008,
+   "paradaLat": -8.534434,
+   "paradaLng": 125.615008,
+   "raio": 60,
+   "origem": "centro"
+  },
+  {
+   "nome": "Central Dili Backpackers",
+   "tipo": "hostel",
+   "lat": -8.55404,
+   "lng": 125.5875,
+   "paradaLat": -8.553981,
+   "paradaLng": 125.586986,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Ceslink Office",
+   "tipo": "hostel",
+   "lat": -8.545364,
+   "lng": 125.610462,
+   "paradaLat": -8.545364,
+   "paradaLng": 125.610462,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "City Praia Apartments",
+   "tipo": "apartment",
+   "lat": -8.548741,
+   "lng": 125.58844,
+   "paradaLat": -8.549046,
+   "paradaLng": 125.588405,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "D'City Hotel",
+   "tipo": "hotel",
+   "lat": -8.557013,
+   "lng": 125.567837,
+   "paradaLat": -8.557062,
+   "paradaLng": 125.567745,
+   "raio": 60,
+   "origem": "acesso"
+  },
+  {
+   "nome": "daTerra",
+   "tipo": "guest_house",
+   "lat": -8.553193,
+   "lng": 125.570283,
+   "paradaLat": -8.552682,
+   "paradaLng": 125.57034,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "DaTerra hostel & snack-bar",
+   "tipo": "hostel",
+   "lat": -8.542943,
+   "lng": 125.543052,
+   "paradaLat": -8.542943,
+   "paradaLng": 125.543052,
+   "raio": 60,
+   "origem": "centro"
+  },
+  {
+   "nome": "DaTerra hostel and snack bar",
+   "tipo": "hostel",
+   "lat": -8.561243,
+   "lng": 125.569054,
+   "paradaLat": -8.561243,
+   "paradaLng": 125.569054,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "Dili Central Backpackers",
+   "tipo": "hostel",
+   "lat": -8.553954,
+   "lng": 125.587437,
+   "paradaLat": -8.553934,
+   "paradaLng": 125.586988,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Discovery Inn",
+   "tipo": "hotel",
+   "lat": -8.552423,
+   "lng": 125.584384,
+   "paradaLat": -8.552423,
+   "paradaLng": 125.584384,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "Dive Timor Lorosae",
+   "tipo": "guest_house",
+   "lat": -8.548833,
+   "lng": 125.560011,
+   "paradaLat": -8.548833,
+   "paradaLng": 125.560011,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "Dos Reis Horta",
+   "tipo": "guest_house",
+   "lat": -8.562522,
+   "lng": 125.572478,
+   "paradaLat": -8.562522,
+   "paradaLng": 125.572478,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "eric accom.",
+   "tipo": "guest_house",
+   "lat": -8.540259,
+   "lng": 125.539003,
+   "paradaLat": -8.540259,
+   "paradaLng": 125.539003,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "Esplanada",
+   "tipo": "hotel",
+   "lat": -8.546704,
+   "lng": 125.553513,
+   "paradaLat": -8.546538,
+   "paradaLng": 125.553586,
+   "raio": 82,
+   "origem": "entrada"
+  },
+  {
+   "nome": "Gama Apartments",
+   "tipo": "guest_house",
+   "lat": -8.552795,
+   "lng": 125.591759,
+   "paradaLat": -8.552795,
+   "paradaLng": 125.591759,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "Hilly's house",
+   "tipo": "apartment",
+   "lat": -8.553228,
+   "lng": 125.565967,
+   "paradaLat": -8.553762,
+   "paradaLng": 125.565918,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Hotel Audian",
+   "tipo": "hotel",
+   "lat": -8.557375,
+   "lng": 125.585732,
+   "paradaLat": -8.557375,
+   "paradaLng": 125.585732,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "Hotel Dili",
+   "tipo": "hotel",
+   "lat": -8.553628,
+   "lng": 125.577178,
+   "paradaLat": -8.553596,
+   "paradaLng": 125.576714,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Hotel Dili",
+   "tipo": "hotel",
+   "lat": -8.551937,
+   "lng": 125.582431,
+   "paradaLat": -8.551937,
+   "paradaLng": 125.582431,
+   "raio": 60,
+   "origem": "centro"
+  },
+  {
+   "nome": "Hotel Fortuner",
+   "tipo": "hotel",
+   "lat": -8.560512,
+   "lng": 125.551008,
+   "paradaLat": -8.560758,
+   "paradaLng": 125.550842,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Hotel Lecidere",
+   "tipo": "hotel",
+   "lat": -8.55209,
+   "lng": 125.58554,
+   "paradaLat": -8.55209,
+   "paradaLng": 125.58554,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "Hotel Long Xiang",
+   "tipo": "motel",
+   "lat": -8.560467,
+   "lng": 125.539027,
+   "paradaLat": -8.560467,
+   "paradaLng": 125.539027,
+   "raio": 60,
+   "origem": "centro"
+  },
+  {
+   "nome": "Hotel Malinamoc",
+   "tipo": "hotel",
+   "lat": -8.561208,
+   "lng": 125.527743,
+   "paradaLat": -8.561213,
+   "paradaLng": 125.52787,
+   "raio": 60,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Hotel Novo Turismo",
+   "tipo": "hotel",
+   "lat": -8.549114,
+   "lng": 125.586817,
+   "paradaLat": -8.549404,
+   "paradaLng": 125.586945,
+   "raio": 101,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Hotel Rocella",
+   "tipo": "hotel",
+   "lat": -8.552499,
+   "lng": 125.582805,
+   "paradaLat": -8.5527,
+   "paradaLng": 125.582904,
+   "raio": 60,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Hotel Timor",
+   "tipo": "hotel",
+   "lat": -8.554424,
+   "lng": 125.573434,
+   "paradaLat": -8.554424,
+   "paradaLng": 125.573434,
+   "raio": 85,
+   "origem": "centro"
+  },
+  {
+   "nome": "House No.3",
+   "tipo": "hostel",
+   "lat": -8.547561,
+   "lng": 125.554903,
+   "paradaLat": -8.546986,
+   "paradaLng": 125.55485,
+   "raio": 80,
+   "origem": "entrada"
+  },
+  {
+   "nome": "JL Villa",
+   "tipo": "hotel",
+   "lat": -8.555711,
+   "lng": 125.550032,
+   "paradaLat": -8.555459,
+   "paradaLng": 125.550044,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Katua's Hotel",
+   "tipo": "hotel",
+   "lat": -8.552467,
+   "lng": 125.584216,
+   "paradaLat": -8.552467,
+   "paradaLng": 125.584216,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "Leokase Hotel",
+   "tipo": "hotel",
+   "lat": -8.55411,
+   "lng": 125.51866,
+   "paradaLat": -8.55408,
+   "paradaLng": 125.518776,
+   "raio": 60,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Lucitania",
+   "tipo": "apartment",
+   "lat": -8.538128,
+   "lng": 125.616918,
+   "paradaLat": -8.538128,
+   "paradaLng": 125.616918,
+   "raio": 60,
+   "origem": "centro"
+  },
+  {
+   "nome": "Lugabutty Rooms",
+   "tipo": "guest_house",
+   "lat": -8.555035,
+   "lng": 125.570392,
+   "paradaLat": -8.554866,
+   "paradaLng": 125.569871,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Malinamok",
+   "tipo": "hotel",
+   "lat": -8.561185,
+   "lng": 125.527496,
+   "paradaLat": -8.5612,
+   "paradaLng": 125.527871,
+   "raio": 129,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Miplug construction unipessoal LDA",
+   "tipo": "apartment",
+   "lat": -8.545363,
+   "lng": 125.608568,
+   "paradaLat": -8.545363,
+   "paradaLng": 125.608568,
+   "raio": 75,
+   "origem": "centro"
+  },
+  {
+   "nome": "New Palace Hotel",
+   "tipo": "hotel",
+   "lat": -8.55656,
+   "lng": 125.58802,
+   "paradaLat": -8.556535,
+   "paradaLng": 125.588293,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Novo Horizonte",
+   "tipo": "hotel",
+   "lat": -8.547033,
+   "lng": 125.60038,
+   "paradaLat": -8.547126,
+   "paradaLng": 125.60032,
+   "raio": 60,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Ocean View",
+   "tipo": "hotel",
+   "lat": -8.539207,
+   "lng": 125.536681,
+   "paradaLat": -8.539207,
+   "paradaLng": 125.536681,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "Osobubu hills Residance",
+   "tipo": "hotel",
+   "lat": -8.540455,
+   "lng": 125.616169,
+   "paradaLat": -8.540455,
+   "paradaLng": 125.616169,
+   "raio": 60,
+   "origem": "centro"
+  },
+  {
+   "nome": "Palm Beach Hotel",
+   "tipo": "hotel",
+   "lat": -8.546092,
+   "lng": 125.548887,
+   "paradaLat": -8.546442,
+   "paradaLng": 125.548815,
+   "raio": 74,
+   "origem": "entrada"
+  },
+  {
+   "nome": "Palm Springs Hotel Dili",
+   "tipo": "hotel",
+   "lat": -8.552009,
+   "lng": 125.558707,
+   "paradaLat": -8.552009,
+   "paradaLng": 125.558707,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "Photo",
+   "tipo": "apartment",
+   "lat": -8.547852,
+   "lng": 125.554942,
+   "paradaLat": -8.547296,
+   "paradaLng": 125.554872,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Photo;apartemen no 18",
+   "tipo": "hostel",
+   "lat": -8.547905,
+   "lng": 125.555045,
+   "paradaLat": -8.547296,
+   "paradaLng": 125.554875,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Plaza Hotel",
+   "tipo": "hotel",
+   "lat": -8.553084,
+   "lng": 125.583204,
+   "paradaLat": -8.553133,
+   "paradaLng": 125.58303,
+   "raio": 75,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Plaza Hotel Executive Wing",
+   "tipo": "hotel",
+   "lat": -8.552845,
+   "lng": 125.583097,
+   "paradaLat": -8.552884,
+   "paradaLng": 125.582957,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Residencia sr.Longuinhos Monteiros",
+   "tipo": "guest_house",
+   "lat": -8.565719,
+   "lng": 125.535744,
+   "paradaLat": -8.565719,
+   "paradaLng": 125.535744,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "Rocella",
+   "tipo": "hotel",
+   "lat": -8.552564,
+   "lng": 125.582691,
+   "paradaLat": -8.5527,
+   "paradaLng": 125.582904,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Rocella Hotel",
+   "tipo": "hotel",
+   "lat": -8.55255,
+   "lng": 125.58255,
+   "paradaLat": -8.5527,
+   "paradaLng": 125.582904,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Royal Beach Hotel",
+   "tipo": "hotel",
+   "lat": -8.548358,
+   "lng": 125.558779,
+   "paradaLat": -8.548358,
+   "paradaLng": 125.558779,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "Sands Motel",
+   "tipo": "motel",
+   "lat": -8.554285,
+   "lng": 125.568644,
+   "paradaLat": -8.554285,
+   "paradaLng": 125.568644,
+   "raio": 60,
+   "origem": "centro"
+  },
+  {
+   "nome": "Sassib Guest House",
+   "tipo": "guest_house",
+   "lat": -8.565388,
+   "lng": 125.569304,
+   "paradaLat": -8.565129,
+   "paradaLng": 125.569826,
+   "raio": 60,
+   "origem": "acesso"
+  },
+  {
+   "nome": "SK Hotel",
+   "tipo": "hotel",
+   "lat": -8.542379,
+   "lng": 125.612751,
+   "paradaLat": -8.542379,
+   "paradaLng": 125.612751,
+   "raio": 60,
+   "origem": "centro"
+  },
+  {
+   "nome": "Sukura Tower",
+   "tipo": "hotel",
+   "lat": -8.55649,
+   "lng": 125.587923,
+   "paradaLat": -8.556473,
+   "paradaLng": 125.58829,
+   "raio": 60,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Sunset Inn by Pro-Ema",
+   "tipo": "hotel",
+   "lat": -8.552509,
+   "lng": 125.584327,
+   "paradaLat": -8.552509,
+   "paradaLng": 125.584327,
+   "raio": 60,
+   "origem": "centro"
+  },
+  {
+   "nome": "Sunshine snorkeling timor resort",
+   "tipo": "hotel",
+   "lat": -8.547059,
+   "lng": 125.600967,
+   "paradaLat": -8.547263,
+   "paradaLng": 125.600504,
+   "raio": 60,
+   "origem": "acesso"
+  },
+  {
+   "nome": "The Ramelau",
+   "tipo": "hotel",
+   "lat": -8.555067,
+   "lng": 125.548357,
+   "paradaLat": -8.555034,
+   "paradaLng": 125.548181,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Tibar Beach Retreat",
+   "tipo": "hotel",
+   "lat": -8.575776,
+   "lng": 125.474067,
+   "paradaLat": -8.575776,
+   "paradaLng": 125.474067,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "Timor Homes",
+   "tipo": "apartment",
+   "lat": -8.542391,
+   "lng": 125.612217,
+   "paradaLat": -8.542391,
+   "paradaLng": 125.612217,
+   "raio": 60,
+   "origem": "centro"
+  },
+  {
+   "nome": "Timor Lodge",
+   "tipo": "hotel",
+   "lat": -8.55365,
+   "lng": 125.528476,
+   "paradaLat": -8.553658,
+   "paradaLng": 125.528752,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Timor Lodge",
+   "tipo": "hotel",
+   "lat": -8.554661,
+   "lng": 125.529633,
+   "paradaLat": -8.554661,
+   "paradaLng": 125.529633,
+   "raio": 205,
+   "origem": "centro"
+  },
+  {
+   "nome": "Varhoven",
+   "tipo": "hotel",
+   "lat": -8.560759,
+   "lng": 125.54527,
+   "paradaLat": -8.560499,
+   "paradaLng": 125.545078,
+   "raio": 60,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Ventura",
+   "tipo": "hotel",
+   "lat": -8.549041,
+   "lng": 125.588016,
+   "paradaLat": -8.549046,
+   "paradaLng": 125.588405,
+   "raio": 80,
+   "origem": "acesso"
+  },
+  {
+   "nome": "Vila Harmonia",
+   "tipo": "hotel",
+   "lat": -8.56252,
+   "lng": 125.60633,
+   "paradaLat": -8.56252,
+   "paradaLng": 125.60633,
+   "raio": 80,
+   "origem": "centro"
+  },
+  {
+   "nome": "Vila Mor",
+   "tipo": "apartment",
+   "lat": -8.538223,
+   "lng": 125.614888,
+   "paradaLat": -8.538223,
+   "paradaLng": 125.614888,
+   "raio": 60,
+   "origem": "centro"
+  },
+  {
+   "nome": "White Sands Resort and Residence",
+   "tipo": "hotel",
+   "lat": -8.539683,
+   "lng": 125.615882,
+   "paradaLat": -8.539683,
+   "paradaLng": 125.615882,
+   "raio": 60,
+   "origem": "centro"
+  },
+  {
+   "nome": "Xing Deng Hotel",
+   "tipo": "hotel",
+   "lat": -8.56025,
+   "lng": 125.55867,
+   "paradaLat": -8.56025,
+   "paradaLng": 125.55867,
+   "raio": 80,
+   "origem": "centro"
+  }
+ ]
+}

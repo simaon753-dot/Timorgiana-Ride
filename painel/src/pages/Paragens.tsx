@@ -27,10 +27,13 @@ import { avisar, mensagemDe } from '@/components/ui/aviso';
 import { IlustracaoIcone } from '@/components/ilustracoes';
 import { EscolherCategoria } from '@/components/escolher-categoria';
 import { CATEGORIA_DO_TIPO, nomeCategoria, tipoDaCategoria } from '@/lib/categoriasGiara';
+import type { QualPino } from '@/components/mapa/MapaParagem';
+import HOTEIS from '@/lib/hoteisDili.json';
 
 // O MapLibre pesa mais do que o resto do painel junto: só se descarrega quando
 // se abre a janela de baptizar, como o mapa da viagem.
 const MapaEscolher = lazy(() => import('@/components/mapa/MapaEscolher'));
+const MapaParagem = lazy(() => import('@/components/mapa/MapaParagem'));
 
 type Vista = 'lugares' | 'paradas';
 
@@ -301,16 +304,27 @@ function Paradas({ procura }: { procura: string }) {
   const { dados, erro, aCarregar, recarregar } = useDados(() => api.paradas(), []);
   const [nova, setNova] = useState(false);
   const [apagar, setApagar] = useState<Parada | null>(null);
+  const [inicial, setInicial] = useState<InicialParada | null>(null);
   const q = procura.trim().toLowerCase();
   const paradas = (dados?.paradas ?? []).filter((p) => !q || p.nome.toLowerCase().includes(q));
 
   return (
     <>
       <div className="flex justify-end">
-        <Botao onClick={() => setNova(true)}>
+        <Botao onClick={() => { setInicial(null); setNova(true); }}>
           <Plus /> {t('parag.nova')}
         </Botao>
       </div>
+      {dados ? (
+        <HoteisPorMarcar
+          paradas={dados.paradas}
+          procura={procura}
+          aoMarcar={(h) => {
+            setInicial(h);
+            setNova(true);
+          }}
+        />
+      ) : null}
       <Cartao className="mt-4 overflow-hidden">
         {erro && !dados ? (
           <EstadoErro mensagem={erro} aoTentar={recarregar} />
@@ -377,7 +391,7 @@ function Paradas({ procura }: { procura: string }) {
         )}
       </Cartao>
 
-      <NovaParada aberta={nova} aoMudar={setNova} aoGuardar={recarregar} />
+      <NovaParada aberta={nova} aoMudar={setNova} aoGuardar={recarregar} inicial={inicial} />
 
       <DialogoConfirmacao
         aberto={!!apagar}
@@ -397,23 +411,48 @@ function Paradas({ procura }: { procura: string }) {
   );
 }
 
-function NovaParada({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMudar: (v: boolean) => void; aoGuardar: () => void }) {
+export type InicialParada = { nome: string; lat: number; lng: number; paradaLat: number; paradaLng: number; raio: number; origem?: string };
+
+// A NOVA PARAGEM COM O MAPA (10/10/2026). Antes eram só coordenadas escritas
+// à mão; agora há dois pinos que se arrastam (o sítio e onde o carro pára) e
+// o círculo do raio. As coordenadas continuam em baixo, para colar do Google.
+// `inicial` vem da lista «Hotéis por marcar» já com a proposta.
+function NovaParada({ aberta, aoMudar, aoGuardar, inicial }: { aberta: boolean; aoMudar: (v: boolean) => void; aoGuardar: () => void; inicial?: InicialParada | null }) {
+  const vazio = { nome: '', sitio: '', parada: '', raio: 150 };
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
-  } = useForm<Formulario>({ resolver: zodResolver(esquema), defaultValues: { nome: '', sitio: '', parada: '', raio: 150 } });
+  } = useForm<Formulario>({ resolver: zodResolver(esquema), defaultValues: vazio });
   const [erroServidor, setErroServidor] = useState<string | null>(null);
+  const [modo, setModo] = useState<QualPino>('parada');
+
+  // Cada vez que abre com um hotel, o formulário começa com a proposta dele.
+  useEffect(() => {
+    if (!aberta) return;
+    setModo(inicial ? 'parada' : 'sitio');
+    reset(
+      inicial
+        ? { nome: inicial.nome, sitio: `${inicial.lat}, ${inicial.lng}`, parada: `${inicial.paradaLat}, ${inicial.paradaLng}`, raio: inicial.raio }
+        : vazio
+    );
+  }, [aberta, inicial]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const sitio = lerCoordenadas(watch('sitio'));
+  const parada = lerCoordenadas(watch('parada'));
+  const raio = Number(watch('raio')) || 0;
 
   const guardar = handleSubmit(async (f) => {
     setErroServidor(null);
-    const sitio = lerCoordenadas(f.sitio)!;
-    const parada = lerCoordenadas(f.parada)!;
+    const s = lerCoordenadas(f.sitio)!;
+    const pr = lerCoordenadas(f.parada)!;
     try {
-      await api.criarParada({ nome: f.nome.trim(), lat: sitio[0], lng: sitio[1], paradaLat: parada[0], paradaLng: parada[1], raioM: Number(f.raio) });
+      await api.criarParada({ nome: f.nome.trim(), lat: s[0], lng: s[1], paradaLat: pr[0], paradaLng: pr[1], raioM: Number(f.raio) });
       avisar.sucesso(t('parag.guardada'), f.nome);
-      reset();
+      reset(vazio);
       aoMudar(false);
       aoGuardar();
     } catch (e) {
@@ -422,38 +461,70 @@ function NovaParada({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMudar: 
   });
 
   return (
-    <Janela open={aberta} onOpenChange={(v) => { if (!v) { reset(); setErroServidor(null); } aoMudar(v); }}>
-      <JanelaConteudo largura="md">
+    <Janela open={aberta} onOpenChange={(v) => { if (!v) { reset(vazio); setErroServidor(null); } aoMudar(v); }}>
+      <JanelaConteudo largura="tela">
         <form onSubmit={guardar} noValidate className="flex min-h-0 flex-1 flex-col">
           <JanelaCabecalho>
             <JanelaTitulo>{t('parag.nova')}</JanelaTitulo>
             <JanelaDescricao>{t('parag.novaDescricao')}</JanelaDescricao>
           </JanelaCabecalho>
-          <JanelaCorpo className="space-y-4">
+          {/* Como no «Baptizar»: em ecrã largo o mapa à esquerda e alto; no
+              telemóvel uma coluna só, a rolar. */}
+          <JanelaCorpo className="grid gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:grid-rows-[minmax(0,1fr)] md:overflow-hidden">
             {erroServidor ? (
-              <p role="alert" className="rounded-lg bg-perigo-claro px-3 py-2 text-sm text-perigo">
+              <p role="alert" className="rounded-lg bg-perigo-claro px-3 py-2 text-sm text-perigo md:col-span-2">
                 {erroServidor}
               </p>
             ) : null}
-            <div>
-              <Rotulo htmlFor="p-nome">{t('parag.nome')}</Rotulo>
-              <Campo id="p-nome" placeholder={t('parag.nomeExemplo')} aria-invalid={!!errors.nome} {...register('nome')} />
-              {errors.nome ? <Ajuda erro>{errors.nome.message}</Ajuda> : null}
+            <div className="flex flex-col gap-2 md:min-h-0">
+              <Segmentos
+                rotulo={t('parag.cliqueMarca')}
+                valor={modo}
+                aoMudar={(v) => setModo(v as QualPino)}
+                className="self-start rounded-2xl bg-borda/40 p-1"
+                opcoes={[
+                  { valor: 'sitio', rotulo: <><span className="size-3 rounded-full bg-teal" aria-hidden /> {t('parag.pinoSitio')}</> },
+                  { valor: 'parada', rotulo: <><span className="size-3 rounded-full bg-coral" aria-hidden /> {t('parag.pinoParada')}</> },
+                ]}
+              />
+              {aberta ? (
+                <Suspense fallback={<Esqueleto className="min-h-80 w-full flex-1 rounded-xl" />}>
+                  <MapaParagem
+                    className="min-h-80 flex-1"
+                    sitio={sitio}
+                    parada={parada}
+                    raio={raio}
+                    modo={modo}
+                    aoMudar={(qual, lat, lng) => setValue(qual, `${lat}, ${lng}`, { shouldValidate: true })}
+                  />
+                </Suspense>
+              ) : null}
+              <Ajuda>{t('parag.ajudaMapaParagem')}</Ajuda>
+              {inicial?.origem === 'centro' ? (
+                <p className="rounded-lg bg-aviso-claro px-3 py-2 text-[13px] text-texto">{t('parag.hotelPorAfinar')}</p>
+              ) : null}
             </div>
-            <div>
-              <Rotulo htmlFor="p-sitio">{t('parag.sitio')}</Rotulo>
-              <Campo id="p-sitio" inputMode="decimal" placeholder={t('parag.coordExemplo')} aria-invalid={!!errors.sitio} {...register('sitio')} />
-              <Ajuda erro={!!errors.sitio}>{errors.sitio?.message ?? t('parag.coordAjuda')}</Ajuda>
-            </div>
-            <div>
-              <Rotulo htmlFor="p-parada">{t('parag.parada')}</Rotulo>
-              <Campo id="p-parada" inputMode="decimal" placeholder="-8.52210, 125.61050" aria-invalid={!!errors.parada} {...register('parada')} />
-              {errors.parada ? <Ajuda erro>{errors.parada.message}</Ajuda> : null}
-            </div>
-            <div>
-              <Rotulo htmlFor="p-raio">{t('parag.raio')}</Rotulo>
-              <Campo id="p-raio" type="number" min={10} max={2000} className="w-40" aria-invalid={!!errors.raio} {...register('raio')} />
-              <Ajuda erro={!!errors.raio}>{errors.raio?.message ?? t('parag.raioAjuda')}</Ajuda>
+            <div className="space-y-4 md:min-h-0 md:overflow-y-auto md:pr-1">
+              <div>
+                <Rotulo htmlFor="p-nome">{t('parag.nome')}</Rotulo>
+                <Campo id="p-nome" placeholder={t('parag.nomeExemplo')} aria-invalid={!!errors.nome} {...register('nome')} />
+                {errors.nome ? <Ajuda erro>{errors.nome.message}</Ajuda> : null}
+              </div>
+              <div>
+                <Rotulo htmlFor="p-sitio">{t('parag.sitio')}</Rotulo>
+                <Campo id="p-sitio" inputMode="decimal" placeholder={t('parag.coordExemplo')} aria-invalid={!!errors.sitio} {...register('sitio')} />
+                <Ajuda erro={!!errors.sitio}>{errors.sitio?.message ?? t('parag.coordAjuda')}</Ajuda>
+              </div>
+              <div>
+                <Rotulo htmlFor="p-parada">{t('parag.parada')}</Rotulo>
+                <Campo id="p-parada" inputMode="decimal" placeholder="-8.52210, 125.61050" aria-invalid={!!errors.parada} {...register('parada')} />
+                {errors.parada ? <Ajuda erro>{errors.parada.message}</Ajuda> : null}
+              </div>
+              <div>
+                <Rotulo htmlFor="p-raio">{t('parag.raio')}</Rotulo>
+                <Campo id="p-raio" type="number" min={10} max={2000} className="w-40" aria-invalid={!!errors.raio} {...register('raio')} />
+                <Ajuda erro={!!errors.raio}>{errors.raio?.message ?? t('parag.raioAjuda')}</Ajuda>
+              </div>
             </div>
           </JanelaCorpo>
           <JanelaRodape>
@@ -467,6 +538,48 @@ function NovaParada({ aberta, aoMudar, aoGuardar }: { aberta: boolean; aoMudar: 
         </form>
       </JanelaConteudo>
     </Janela>
+  );
+}
+
+// OS HOTÉIS POR MARCAR (10/10/2026). Os hotéis de Díli no OpenStreetMap
+// (backend/scripts/gerar-hoteis-dili.mjs → lib/hoteisDili.json), menos os que
+// já têm uma paragem cujo círculo os cobre. «Marcar» abre a nova paragem com
+// a proposta: falta só pôr o pino coral no lobby ou no portão, e guardar.
+function HoteisPorMarcar({ paradas, procura, aoMarcar }: { paradas: Parada[]; procura: string; aoMarcar: (h: InicialParada) => void }) {
+  const [aberto, setAberto] = useState(false);
+  const q = procura.trim().toLowerCase();
+  const metros = (a: number, b: number, c: number, d: number) => {
+    const k = Math.cos((a * Math.PI) / 180);
+    return Math.hypot((d - b) * k, c - a) * 111320;
+  };
+  const porMarcar = HOTEIS.hoteis.filter((h) => !paradas.some((p) => metros(h.lat, h.lng, p.lat, p.lng) <= Math.max(p.raio_m, 40)));
+  const lista = porMarcar.filter((h) => !q || h.nome.toLowerCase().includes(q));
+  if (!porMarcar.length) return null;
+  return (
+    <Cartao className="mt-4 p-4">
+      <button type="button" className="flex w-full items-center justify-between gap-3 text-left" aria-expanded={aberto} onClick={() => setAberto(!aberto)}>
+        <span>
+          <span className="block font-semibold text-texto">{t('parag.hoteisTitulo', { n: String(porMarcar.length) })}</span>
+          <span className="block text-[13px] text-secundario">{t('parag.hoteisTexto')}</span>
+        </span>
+        <Distintivo>{aberto ? t('parag.esconder') : t('parag.mostrar')}</Distintivo>
+      </button>
+      {aberto ? (
+        <ul className="mt-3 max-h-96 divide-y divide-borda overflow-y-auto">
+          {lista.map((h) => (
+            <li key={`${h.nome}-${h.lat}`} className="flex items-center justify-between gap-3 py-2">
+              <span className="min-w-0">
+                <span className="block truncate font-medium text-texto">{h.nome}</span>
+                <span className="block text-xs text-secundario">{t(('parag.origem_' + h.origem) as Chave)}</span>
+              </span>
+              <Botao tamanho="sm" variante="secundario" onClick={() => aoMarcar(h)}>
+                <MapPinned /> {t('parag.marcar')}
+              </Botao>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </Cartao>
   );
 }
 
