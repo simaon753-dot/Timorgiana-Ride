@@ -17,7 +17,7 @@ module.exports = C.documento(
         ['4', 'Carta de condução (verso)', 'Não exigida — a validade consta da frente'],
         ['5', 'Cartão de registo do veículo', 'Obrigatória'],
         ['6', 'Cartão de inspeção (Kartaun Inspesaun)', 'Obrigatória'],
-        ['7', 'Certificado de registo criminal', 'Emitido há menos de 3 meses'],
+        ['7', 'Certificado de registo criminal', 'Emitido há menos de 3 meses e sem nenhuma condenação registada'],
       ],
       [600, 5200, 2700]
     ),

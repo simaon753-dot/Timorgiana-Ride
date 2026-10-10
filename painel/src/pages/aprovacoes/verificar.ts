@@ -64,7 +64,7 @@ export function verificar(d: Motorista): LinhaVerificacao[] {
       texto: 'Falta o certificado de registo criminal',
     });
   } else {
-    linhas.push({ nivel: 'duvida', texto: 'Registo criminal: confirmar que foi emitido nos últimos 3 meses e que está limpo' });
+    linhas.push({ nivel: 'duvida', texto: 'Registo criminal: confirmar que foi emitido nos últimos 3 meses e que não tem NENHUMA condenação — qualquer condenação impede a aprovação' });
   }
 
   const semFotos = FOTOS_VEICULO.filter((k) => !docs[k]).map((k) => tl('documento', k).toLowerCase());

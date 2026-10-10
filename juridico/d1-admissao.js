@@ -44,7 +44,7 @@ module.exports = C.documento(
       ],
       [2500, 4100, 1900]
     ),
-    P('O certificado de registo criminal é apreciado por quem decide a candidatura, nos termos do artigo 8.º. Os motoristas já aprovados à data da entrada em vigor desta exigência mantêm a sua conta ativa e são convidados a apresentá-lo, sem que a sua falta determine a suspensão.'),
+    P('O certificado de registo criminal é apreciado por quem decide a candidatura, nos termos do artigo 8.º. A existência de qualquer condenação nele registada impede a admissão e determina a recusa da candidatura. Os motoristas já aprovados à data da entrada em vigor desta exigência mantêm a sua conta ativa e são convidados a apresentá-lo, sem que a sua falta determine a suspensão.'),
     N('O documento de identificação não exige data de validade. O bilhete de identidade tem prazo, mas o que dele releva é a identidade — e essa não caduca. Suspender uma conta por um documento de identificação por renovar seria impedir alguém de trabalhar por motivo alheio à condução.'),
 
     A('Artigo 5.º', 'Datas de validade'),
