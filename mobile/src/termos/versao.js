@@ -48,7 +48,7 @@ export const VERSAO_TERMOS = '2026-10-10';
 // E de novo no MESMO dia (daí o 'b'): entra a cláusula «Desconto para quem
 // ganha pouco» — 15% do rendimento registado, até ao preço do pacote de 30
 // dias, perdido com mais de 3 cancelamentos ou mais de 20% (decisão do Simão).
-export const VERSAO_TERMOS_MOTORISTA = '2026-10-10';
+export const VERSAO_TERMOS_MOTORISTA = '2026-10-10b';
 
 // A privacidade tem versão PRÓPRIA, e não a dos termos.
 //

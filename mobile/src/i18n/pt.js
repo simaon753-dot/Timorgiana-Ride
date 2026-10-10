@@ -164,7 +164,7 @@ export default {
   reqInfoTexto:
     'Pode iniciar a candidatura sem ter todos os documentos. A conta só é ativada para viagens depois de verificados todos os documentos obrigatórios.',
   reqInfoSeguro:
-    'O seguro de responsabilidade civil do veículo é obrigatório por lei e da responsabilidade do motorista. A HAKAT não o exige nem o verifica.',
+    'O seguro do veículo é obrigatório por lei. Pode enviar já o cartão do seguro na aplicação: quem o envia mostra ao passageiro o selo «Seguro ✓». A HAKAT vai passar a exigi-lo, com aviso de 30 dias.',
   reqComecar: 'Compreendi, iniciar candidatura',
   reqFechar: 'Fechar',
   back: 'Voltar',
@@ -798,6 +798,12 @@ export default {
   docAutorizacaoproprietario: 'Autorização do proprietário',
   docAutorizacaoproprietarioNota:
     'Declaração assinada pelo dono, que identifica o proprietário, o motorista e o veículo, e autoriza o uso na HAKAT. Fotografia ou PDF.',
+  // Cartão do seguro (10/10/2026)
+  docSeguro: 'Cartão do seguro',
+  docSeguroNota:
+    'Seguro de responsabilidade civil do veículo, válido, que cubra o transporte de passageiros. Opcional por agora: quem o envia mostra ao passageiro o selo «Seguro ✓».',
+  docOpcional: 'opcional',
+  seloSeguro: 'Seguro ✓',
   docRegistocriminalNota: 'Certificado válido. Formato aceite: fotografia ou PDF.',
   docVeiculofrente: 'Veículo, frente',
   docVeiculotras: 'Veículo, traseira',

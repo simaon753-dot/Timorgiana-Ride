@@ -23,6 +23,8 @@ const TIPOS = [
   // Veículo de terceiro (10/10/2026). Ver DOCS_TERCEIRO.
   'idproprietario',
   'autorizacaoproprietario',
+  // O cartão do seguro (10/10/2026). Ver SEGURO.
+  'seguro',
 ];
 
 // O dia em Díli, e não o dia do servidor.
@@ -188,10 +190,29 @@ export const OBRIGATORIOS_REGISTO = [...OBRIGATORIOS, REGISTO_CRIMINAL, ...FOTOS
 // veículo dele — e quem mudar para um veículo de terceiro depois de
 // aprovado fica parado até os enviar. Os registos antigos (NULL) não mudam.
 export const DOCS_TERCEIRO = ['idproprietario', 'autorizacaoproprietario'];
+
+// O CARTÃO DO SEGURO (10/10/2026, decisão do Simão). O seguro de
+// responsabilidade civil automóvel é obrigatório por lei em Timor-Leste
+// (Instrução Pública n.º 07/2010, Código da Estrada), mas quase nenhum
+// motorista o tem — exigi-lo já deixava a HAKAT sem motoristas. Por isso:
+//   · AGORA opcional, com data de validade; quem o envia (válido e sem
+//     correção pedida) ganha o selo «Seguro ✓» que o passageiro vê (rides.js);
+//   · OBRIGATÓRIO a partir de SEGURO_OBRIGATORIO_DESDE, que fica a null até o
+//     Simão fixar a data — e anunciá-la com 30 dias de antecedência. Nesse
+//     dia passa a contar para o registo e para poder trabalhar, como a
+//     inspeção (data obrigatória e suspensão quando caducar).
+export const SEGURO = 'seguro';
+export const SEGURO_OBRIGATORIO_DESDE = null; // 'AAAA-MM-DD', hora de Díli
+export function seguroObrigatorio(hoje = new Date()) {
+  if (!SEGURO_OBRIGATORIO_DESDE) return false;
+  const dili = new Date(hoje.getTime() + 9 * 3600e3).toISOString().slice(0, 10);
+  return dili >= SEGURO_OBRIGATORIO_DESDE;
+}
 export const deTerceiro = (user) => user?.vehicle_proprio === false;
 export const obrigatoriosRegisto = (user) => [
   ...OBRIGATORIOS_REGISTO,
   ...(deTerceiro(user) ? DOCS_TERCEIRO : []),
+  ...(seguroObrigatorio() ? [SEGURO] : []),
 ];
 
 // Avisar quinze dias antes. Chega para tratar de um papel em Díli sem
@@ -216,7 +237,11 @@ export async function podeTrabalhar(userId) {
   const docs = await listDocuments(userId);
   const porTipo = Object.fromEntries(docs.map((d) => [d.kind, d]));
   const dono = await one('SELECT vehicle_proprio FROM users WHERE id = $1', [userId]);
-  const exigidos = [...OBRIGATORIOS, ...(deTerceiro(dono) ? DOCS_TERCEIRO : [])];
+  const exigidos = [
+    ...OBRIGATORIOS,
+    ...(deTerceiro(dono) ? DOCS_TERCEIRO : []),
+    ...(seguroObrigatorio() ? [SEGURO] : []),
+  ];
 
   for (const k of exigidos) {
     if (!porTipo[k]) return { pode: false, motivo: 'documento_em_falta', qual: k };
@@ -244,13 +269,14 @@ export async function podeTrabalhar(userId) {
   // enviados antes de haver campo de data ficaram todos a NULL, a
   // suspensão automática não suspenderia ninguém. Uma regra que nunca
   // dispara é pior do que nenhuma: dá a sensação de estar tratado.
-  for (const k of COM_VALIDADE) {
+  const comValidade = [...COM_VALIDADE, ...(seguroObrigatorio() ? [SEGURO] : [])];
+  for (const k of comValidade) {
     if (!porTipo[k].expires_on) {
       return { pode: false, motivo: 'documento_sem_validade', qual: k };
     }
   }
 
-  for (const k of COM_VALIDADE) {
+  for (const k of comValidade) {
     if (porTipo[k].caducado) {
       return { pode: false, motivo: 'documento_caducado', qual: k, ate: porTipo[k].expires_on };
     }

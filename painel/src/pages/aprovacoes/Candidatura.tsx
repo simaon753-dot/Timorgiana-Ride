@@ -15,7 +15,7 @@ import { DialogoConfirmacao } from '@/components/ui/confirmar';
 import { ImagemProtegida, Lupa } from '@/components/ui/imagem-protegida';
 import { avisar, mensagemDe } from '@/components/ui/aviso';
 import { Dado, EstadoDoMotorista, IconeVeiculo, Telefone } from '@/components/comuns';
-import { DOCS_TERCEIRO, FOTOS_VEICULO, REGISTO_CRIMINAL, TIPOS_DOCUMENTO, deTerceiro, documentoSuspeito, porTipo, resumoVerificacao, type NivelVerificacao } from './verificar';
+import { DOCS_TERCEIRO, FOTOS_VEICULO, REGISTO_CRIMINAL, SEGURO, TIPOS_DOCUMENTO, deTerceiro, documentoSuspeito, porTipo, resumoVerificacao, type NivelVerificacao } from './verificar';
 
 type Acao = null | 'aprovarMesmoAssim' | 'recusar' | 'suspender';
 
@@ -134,11 +134,13 @@ export function Candidatura({
     const doc = docs[k];
     const nomeDoc = tl('documento', k);
     if (!doc) {
+      // O seguro é opcional por agora (10/10/2026): «não enviado», sem vermelho.
+      const opcional = k === SEGURO;
       return (
         <li key={k}>
-          <div className="flex aspect-[4/3] flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-perigo/40 bg-perigo-claro text-xs font-semibold text-perigo">
+          <div className={cn('flex aspect-[4/3] flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed text-xs font-semibold', opcional ? 'border-borda bg-fundo text-secundario' : 'border-perigo/40 bg-perigo-claro text-perigo')}>
             <FileWarning className="size-5" aria-hidden />
-            {t('cand.emFalta')}
+            {t(opcional ? 'cand.naoEnviado' : 'cand.emFalta')}
           </div>
           <p className="mt-2 text-[13px] font-semibold">{nomeDoc}</p>
         </li>
@@ -315,7 +317,7 @@ export function Candidatura({
 
             <Seccao titulo={t('cand.documentos')}>
               <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                {[...TIPOS_DOCUMENTO, REGISTO_CRIMINAL].map(cartaoDocumento)}
+                {[...TIPOS_DOCUMENTO, REGISTO_CRIMINAL, SEGURO].map(cartaoDocumento)}
               </ul>
             </Seccao>
 

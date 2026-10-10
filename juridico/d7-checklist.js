@@ -20,6 +20,7 @@ module.exports = C.documento(
         ['7', 'Certificado de registo criminal', 'Emitido há menos de 3 meses e sem nenhuma condenação registada'],
         ['8', 'Identificação do proprietário (só veículo de terceiro)', 'Não exigida'],
         ['9', 'Autorização do proprietário (só veículo de terceiro)', 'Assinada; identifica proprietário, motorista e veículo; matrícula e nome do proprietário batem com o cartão de registo'],
+        ['10', 'Cartão do seguro (facultativo — dá o selo «Seguro ✓»)', 'Data obrigatória; conferir que a apólice cobre o transporte de passageiros'],
       ],
       [600, 5200, 2700]
     ),

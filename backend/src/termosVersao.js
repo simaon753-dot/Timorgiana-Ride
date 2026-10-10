@@ -20,7 +20,9 @@ import { one } from './db.js';
 // E a 10/10/2026: a política de cancelamentos (backend/src/cancelamentos.js)
 // — o motorista espera 5 minutos depois de «Cheguei» antes de dar o
 // passageiro como faltoso.
-export const VERSAO_TERMOS_MOTORISTA = '2026-10-10';
+// E de novo no mesmo dia (b): o cartão do seguro passa a poder ser enviado,
+// facultativamente, e dá o selo «Seguro ✓» (documents.js SEGURO).
+export const VERSAO_TERMOS_MOTORISTA = '2026-10-10b';
 
 // Lida da base e não da sessão: quem aceita os termos a meio tem de poder
 // ficar disponível logo a seguir, sem sair da app e voltar a entrar.

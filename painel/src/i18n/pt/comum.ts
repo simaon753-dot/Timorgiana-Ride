@@ -66,6 +66,7 @@ export const comum = {
   'documento.registocriminal': 'Registo criminal',
   'documento.idproprietario': 'Identificação do proprietário',
   'documento.autorizacaoproprietario': 'Autorização do proprietário',
+  'documento.seguro': 'Cartão do seguro (opcional)',
 
   'motivoDocumento.caducado': 'Caducou e foi renovado',
   'motivoDocumento.perdido': 'Perdeu o documento e tirou outro',

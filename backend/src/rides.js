@@ -68,6 +68,12 @@ const RIDE_SELECT = `
          -- dois 404 em cada cartão da lista. Funcionava, e seria desperdício
          -- desenhado de propósito.
          (SELECT COUNT(*) FROM ride_fotos cf WHERE cf.ride_id = r.id)::int AS carga_fotos,
+         -- O SELO «SEGURO ✓» (10/10/2026, documents.js SEGURO): o motorista
+         -- enviou o cartão do seguro, dentro do prazo e sem correção pedida.
+         EXISTS (SELECT 1 FROM driver_documents sg
+                  WHERE sg.user_id = r.driver_id AND sg.kind = 'seguro'
+                    AND sg.correcao_motivo IS NULL
+                    AND sg.expires_on >= (NOW() AT TIME ZONE 'Asia/Dili')::date) AS d_seguro,
          -- AS PARAGENS DO MEIO, já pela ordem do percurso.
          --
          -- Agregadas aqui e não numa segunda consulta: quem pede uma viagem
@@ -264,6 +270,8 @@ export function toPublicRide(row, opcoes = {}) {
             plate: row.d_vplate || null,
             color: row.d_vcolor || null,
           },
+          // O selo «Seguro ✓» que o passageiro vê (ver d_seguro em cima).
+          seguro: !!row.d_seguro,
         }
       : null,
   };

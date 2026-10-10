@@ -165,7 +165,7 @@ export default {
   reqInfoTexto:
     'Ita bele hahú kandidatura maski seidauk iha dokumentu hotu. Konta sei ativa ba viajen de’it hafoin verifika dokumentu obrigatóriu hotu.',
   reqInfoSeguro:
-    'Seguru responsabilidade sivil veíkulu nian obrigatóriu tuir lei no sai responsabilidade motorista nian. HAKAT la ezije no la verifika.',
+    'Seguru veíkulu nian obrigatóriu tuir lei. Ita bele haruka ona kartaun seguru iha aplikasaun: se haruka, pasajeiru haree selu «Seguru ✓». HAKAT sei ezije ida-ne’e, ho avizu loron 30 molok.',
   reqComecar: 'Komprende ona, hahú kandidatura',
   reqFechar: 'Taka',
   back: 'Fila',
@@ -792,6 +792,12 @@ export default {
   docAutorizacaoproprietario: 'Autorizasaun husi na’in',
   docAutorizacaoproprietarioNota:
     'Deklarasaun ne’ebé na’in asina, ne’ebé identifika na’in, motorista no veíkulu, no autoriza uza iha HAKAT. Foto ka PDF.',
+  // Cartão do seguro (10/10/2026)
+  docSeguro: 'Kartaun seguru',
+  docSeguroNota:
+    'Seguru responsabilidade sivil veíkulu nian, válidu, ne’ebé kobre transporte pasajeiru. Opsionál agora: se haruka, pasajeiru haree selu «Seguru ✓».',
+  docOpcional: 'opsionál',
+  seloSeguro: 'Seguru ✓',
   docRegistocriminalNota: 'Sertifikadu ne’ebé sei válidu. Formatu ne’ebé simu: foto ka PDF.',
   docVeiculofrente: 'Veíkulu, oin',
   docVeiculotras: 'Veíkulu, kotuk',

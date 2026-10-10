@@ -917,6 +917,11 @@ export const NOTIFICACOES = {
     tet: 'Sertifikadu rejistu kriminál',
     en: 'Criminal record certificate',
   },
+  doc_seguro: {
+    pt: 'Cartão do seguro',
+    tet: 'Kartaun seguru',
+    en: 'Insurance card',
+  },
   doc_idproprietario: {
     pt: 'Identificação do proprietário do veículo',
     tet: 'Identifikasaun na’in ba veíkulu',

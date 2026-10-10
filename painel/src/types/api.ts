@@ -19,7 +19,8 @@ export type TipoDocumento =
   | 'veiculodireita'
   | 'registocriminal'
   | 'idproprietario'
-  | 'autorizacaoproprietario';
+  | 'autorizacaoproprietario'
+  | 'seguro';
 
 export interface Veiculo {
   type: TipoVeiculo;

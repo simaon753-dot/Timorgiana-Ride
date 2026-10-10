@@ -171,7 +171,7 @@ export default {
   reqInfoTexto:
     'You can start your application without all the documents. Your account is only activated for rides once all mandatory documents have been verified.',
   reqInfoSeguro:
-    "The vehicle's third-party liability insurance is required by law and is the driver's responsibility. HAKAT does not require or check it.",
+    'Vehicle insurance is required by law. You can already send your insurance card in the app: drivers who do show passengers the «Insured ✓» badge. HAKAT will start requiring it, with 30 days’ notice.',
   reqComecar: 'Got it, start application',
   reqFechar: 'Close',
   back: 'Back',
@@ -784,6 +784,12 @@ export default {
   docAutorizacaoproprietario: 'Owner’s authorisation',
   docAutorizacaoproprietarioNota:
     'A declaration signed by the owner, identifying the owner, the driver and the vehicle, and authorising its use on HAKAT. Photo or PDF.',
+  // Cartão do seguro (10/10/2026)
+  docSeguro: 'Insurance card',
+  docSeguroNota:
+    'Valid third-party liability insurance for the vehicle, covering passenger transport. Optional for now: drivers who send it show passengers the «Insured ✓» badge.',
+  docOpcional: 'optional',
+  seloSeguro: 'Insured ✓',
   docRegistocriminalNota: 'Valid certificate. Accepted format: photo or PDF.',
   docVeiculofrente: 'Vehicle, front',
   docVeiculotras: 'Vehicle, rear',

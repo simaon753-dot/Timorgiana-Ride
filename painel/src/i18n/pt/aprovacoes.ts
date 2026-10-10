@@ -80,6 +80,7 @@ export const aprovacoes = {
   'cand.carroceria': 'Carroçaria',
   'cand.capacidade': 'Capacidade',
   'cand.ano': 'Ano',
+  'cand.naoEnviado': 'Não enviado',
   'cand.titularidade': 'Titularidade',
   'cand.proprio': 'Veículo próprio',
   'cand.terceiro': 'Veículo de terceiro',

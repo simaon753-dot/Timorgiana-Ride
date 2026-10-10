@@ -184,10 +184,22 @@ export default function ViagemPassageiro({ ride, navigation }) {
               <Text style={styles.motoristaNome} numberOfLines={2}>
                 {ride.driver.name}
               </Text>
-              {ride.driver.rating ? (
+              {ride.driver.rating || ride.driver.seguro ? (
                 <View style={styles.estrelas}>
-                  <Icone nome="estrela" tamanho={15} cor={colors.coral} />
-                  <Text style={styles.estrelasTexto}>{ride.driver.rating.toFixed(1)}</Text>
+                  {ride.driver.rating ? (
+                    <>
+                      <Icone nome="estrela" tamanho={15} cor={colors.coral} />
+                      <Text style={styles.estrelasTexto}>{ride.driver.rating.toFixed(1)}</Text>
+                    </>
+                  ) : null}
+                  {/* O SELO DO SEGURO (10/10/2026): o motorista enviou o cartão
+                      do seguro, válido e sem correção pedida pela HAKAT. */}
+                  {ride.driver.seguro ? (
+                    <View style={styles.seloSeguro} accessibilityLabel={t('seloSeguro')}>
+                      <Icone nome="escudo" tamanho={13} cor={colors.teal} />
+                      <Text style={styles.seloSeguroTexto}>{t('seloSeguro')}</Text>
+                    </View>
+                  ) : null}
                 </View>
               ) : null}
               {minChegada != null ? (
@@ -370,6 +382,17 @@ const criarEstilos = () =>
     motoristaNome: { ...tipo.subtitulo, color: colors.text },
     estrelas: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
     estrelasTexto: { ...tipo.corpoForte, color: colors.text },
+    seloSeguro: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+      backgroundColor: colors.tintaTeal,
+      borderRadius: 999,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      marginLeft: 6,
+    },
+    seloSeguroTexto: { ...tipo.legenda, color: colors.teal, fontWeight: '700' },
     chegada: { ...tipo.legenda, color: colors.teal, marginTop: 2 },
     acaoRedonda: { alignItems: 'center', width: 64 },
     acaoCirculo: {

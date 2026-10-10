@@ -25,6 +25,11 @@ export const REGISTO_CRIMINAL: TipoDocumento = 'registocriminal';
 export const DOCS_TERCEIRO: TipoDocumento[] = ['idproprietario', 'autorizacaoproprietario'];
 export const deTerceiro = (d: Motorista) => d.vehicle?.proprio === false;
 
+// O CARTÃO DO SEGURO (10/10/2026): opcional por agora; dá ao passageiro o selo
+// «Seguro ✓». Quando enviado, quem aprova confirma que cobre o transporte de
+// passageiros por aluguer (Instrução Pública n.º 07/2010 distingue-o).
+export const SEGURO: TipoDocumento = 'seguro';
+
 // Quanto tempo é PLAUSÍVEL faltar para cada documento caducar. As datas são
 // escritas pelo próprio motorista a olhar para o cartão, e nada o impede de
 // escrever 2035 — mas um Kartaun Inspesaun vale um ano: uma validade a três
@@ -86,6 +91,13 @@ export function verificar(d: Motorista): LinhaVerificacao[] {
     );
   }
 
+  if (docs[SEGURO]) {
+    linhas.push({
+      nivel: 'duvida',
+      texto: 'Seguro: confirmar a validade e que a apólice cobre o transporte de passageiros por aluguer — com ele, o passageiro vê o selo «Seguro ✓»',
+    });
+  }
+
   const semFotos = FOTOS_VEICULO.filter((k) => !docs[k]).map((k) => tl('documento', k).toLowerCase());
   if (semFotos.length) {
     linhas.push({
@@ -124,7 +136,7 @@ export function verificar(d: Motorista): LinhaVerificacao[] {
   // A CORREÇÃO PEDIDA IMPEDE, como um documento em falta (04/10/2026): quem
   // pediu disse que aquele papel não serve. Aprovar sem ele obriga ao «mesmo
   // assim», com a lista à frente.
-  for (const k of [...TIPOS_DOCUMENTO, REGISTO_CRIMINAL, ...FOTOS_VEICULO, ...DOCS_TERCEIRO]) {
+  for (const k of [...TIPOS_DOCUMENTO, REGISTO_CRIMINAL, ...FOTOS_VEICULO, ...DOCS_TERCEIRO, SEGURO]) {
     const doc = docs[k];
     if (doc?.correcao) linhas.push({ nivel: 'no', texto: `${tl('documento', k)}: correção pedida — ${doc.correcao}` });
   }

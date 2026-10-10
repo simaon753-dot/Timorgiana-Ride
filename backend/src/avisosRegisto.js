@@ -2,7 +2,7 @@ import { query, one } from './db.js';
 import { enviarEmail } from './email.js';
 import { notificarConta } from './push.js';
 import { notificacao as n } from './mensagens.js';
-import { COM_VALIDADE } from './documents.js';
+import { COM_VALIDADE, SEGURO } from './documents.js';
 
 // O MOTORISTA FICA A SABER DE CADA PASSO DO REGISTO (04/10/2026).
 //
@@ -156,7 +156,8 @@ export async function varrerValidades() {
         AND d.expires_on IS NOT NULL
         AND u.driver_status = 'approved'
         AND d.expires_on - (NOW() AT TIME ZONE 'Asia/Dili')::date BETWEEN -30 AND 30`,
-    [COM_VALIDADE]
+    // O seguro também: caducado, o selo «Seguro ✓» desaparece (10/10/2026).
+    [[...COM_VALIDADE, SEGURO]]
   );
 
   let enviados = 0;

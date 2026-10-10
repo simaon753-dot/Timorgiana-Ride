@@ -98,6 +98,10 @@ const TIPOS = [
     soTerceiro: true,
     modelo: true,
   },
+  // O CARTÃO DO SEGURO (10/10/2026): OPCIONAL por agora, com validade. Quem o
+  // envia ganha o selo «Seguro ✓» que o passageiro vê; passa a obrigatório
+  // numa data que o Simão fixará (backend/src/documents.js, SEGURO).
+  { kind: 'seguro', label: 'docSeguro', nota: 'docSeguroNota', opcional: true },
 ];
 
 // Ecrã que o motorista vê enquanto a conta não está aprovada. Sem isto,
@@ -213,6 +217,9 @@ export default function DriverPendingScreen({ navigation }) {
       kind !== 'identity' &&
       kind !== 'fotoveiculo' &&
       kind !== 'cartaverso' &&
+      // Os papéis do proprietário (10/10/2026) não têm validade a pedir.
+      kind !== 'idproprietario' &&
+      kind !== 'autorizacaoproprietario' &&
       !TIPOS.find((tp) => tp.kind === kind)?.camera
     );
   }
@@ -316,7 +323,8 @@ export default function DriverPendingScreen({ navigation }) {
   // quem já foi aprovado não se exige o que não existia quando se registou.
   const deTerceiro = user?.vehicle?.proprio === false;
   const completo = TIPOS.filter(
-    (tp) => !tp.soCarry && (!aprovado || !tp.camera) && (!tp.soTerceiro || deTerceiro)
+    (tp) =>
+      !tp.soCarry && !tp.opcional && (!aprovado || !tp.camera) && (!tp.soTerceiro || deTerceiro)
   ).every((tp) => enviados.includes(tp.kind));
   const termosOk = user?.driverTermsVersion === VERSAO_TERMOS_MOTORISTA;
   const aCorrigir = docs.filter((d) => d.correcao);
@@ -454,7 +462,12 @@ export default function DriverPendingScreen({ navigation }) {
                     <View key={tp.kind}>
                       <View style={styles.docRow}>
                         <View style={{ flex: 1 }}>
-                          <Text style={styles.docName}>{t(tp.label)}</Text>
+                          <Text style={styles.docName}>
+                            {t(tp.label)}
+                            {tp.opcional ? (
+                              <Text style={styles.docOpcional}> · {t('docOpcional')}</Text>
+                            ) : null}
+                          </Text>
                           {tp.nota ? <Text style={styles.docNota}>{t(tp.nota)}</Text> : null}
                           {/* O modelo da declaração, para levar ao dono e
                               assinar (10/10/2026). */}
@@ -813,6 +826,7 @@ const criarEstilos = () =>
     },
     docName: { ...tipo.subtitulo, color: colors.text },
     docNota: { ...tipo.legenda, color: colors.textMuted, marginTop: 1 },
+    docOpcional: { ...tipo.legenda, color: colors.teal },
     docModelo: {
       ...tipo.pequeno,
       color: colors.teal,

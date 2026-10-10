@@ -26,7 +26,9 @@ module.exports = C.documento(
     R(['O seguro de responsabilidade civil automóvel é ', ['obrigatório em Timor-Leste'], ` para todos os veículos motorizados, nos termos da ${C.SEGURO_LEI} (${C.SEGURO_ART}).`]),
     R([`O mesmo diploma fixa (${C.SEGURO_TETOS}) os limites máximos de responsabilidade da seguradora em `, ['USD 20.000 para veículos de transporte de passageiros e de carga'], ' e USD 6.000 para os restantes veículos motorizados.']),
     P('Constitui obrigação exclusiva do motorista contratar e manter em vigor esse seguro, junto de seguradora licenciada pelo Banco Central de Timor-Leste, e confirmar junto dela que a apólice cobre a atividade que efetivamente exerce.'),
-    R([['A Timorgiara Neto, Unipessoal, Lda. não exige a apresentação da apólice, não a verifica e não é seguradora.'], ' A verificação do cumprimento desta obrigação compete às autoridades.']),
+    R([['A Timorgiara Neto, Unipessoal, Lda. não é seguradora.'], ' A verificação do cumprimento desta obrigação compete às autoridades.']),
+    P('O motorista pode apresentar, facultativamente, o cartão do seguro através da aplicação. A apresentação de cartão dentro do prazo de validade dá ao veículo o selo «Seguro ✓», visível ao passageiro. A Timorgiara Neto, Unipessoal, Lda. confere apenas a existência do cartão e a data de validade indicada, para efeito do selo; não verifica o conteúdo, a suficiência nem a vigência da cobertura, que continuam a ser da exclusiva responsabilidade do motorista.'),
+    P('A Timorgiara Neto, Unipessoal, Lda. pode tornar obrigatória a apresentação do cartão do seguro, mediante aviso na aplicação com, pelo menos, 30 dias de antecedência.'),
     C.nota('Esta é a advertência que mais importa deste Regulamento. Um motorista que circule sem seguro não fica sem responsabilidade: fica sem quem a suporte por ele. Responde com o seu próprio património — casa, veículo, rendimento futuro — e sem qualquer limite, por danos causados a um passageiro ou a terceiro. Os USD 20.000 do tecto legal existem para quem tem apólice; quem não tem, não tem tecto nenhum.'),
 
     A('Artigo 4.º', 'Documentos obrigatórios'),

@@ -15,6 +15,7 @@ export const ORDEM_DOCUMENTOS = [
   'registocriminal',
   'idproprietario',
   'autorizacaoproprietario',
+  'seguro',
   'fotoveiculo',
   'veiculofrente',
   'veiculotras',

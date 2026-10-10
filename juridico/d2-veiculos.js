@@ -68,7 +68,8 @@ module.exports = C.documento(
     ),
     P('O veículo afeto ao transporte de passageiros angariados através da aplicação insere-se na primeira categoria.'),
     P('Compete exclusivamente ao motorista, ou ao proprietário do veículo, contratar e manter em vigor a apólice junto de seguradora licenciada pelo Banco Central de Timor-Leste, e confirmar junto dela que a cobertura abrange a atividade efetivamente exercida.'),
-    R([['A Timorgiara Neto, Unipessoal, Lda. não é seguradora, não presta cobertura de qualquer natureza, não exige a apresentação da apólice e não responde por sinistros ocorridos durante a viagem.']]),
+    R([['A Timorgiara Neto, Unipessoal, Lda. não é seguradora, não presta cobertura de qualquer natureza e não responde por sinistros ocorridos durante a viagem.']]),
+    P('A apresentação do cartão do seguro na aplicação é, por ora, facultativa, e dá ao veículo o selo «Seguro ✓», nos termos do artigo 3.º-A do Regulamento de Admissão de Motoristas. Pode tornar-se obrigatória mediante aviso com, pelo menos, 30 dias de antecedência.'),
     C.nota('A ausência de seguro não elimina a responsabilidade — elimina quem a suporta. Quem circule sem apólice responde com o seu próprio património, sem qualquer limite, pelos danos que cause. O tecto de USD 20.000 protege quem está segurado; quem não está fica exposto ao valor integral do dano, seja ele qual for.'),
 
     A('Artigo 10.º', 'Alteração ou substituição do veículo'),
